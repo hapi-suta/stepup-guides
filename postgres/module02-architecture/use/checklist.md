@@ -74,20 +74,21 @@ The safe shutdown methods are:
 
 ---
 
-**4. What information does the postmaster.pid file contain? Name at least 4 of its 7 lines.**
+**4. What information does the postmaster.pid file contain? Name at least 5 of its 8 lines.**
 
 <details>
 <summary>Answer</summary>
 
-The `postmaster.pid` file (at `/opt/pgsql/data/postmaster.pid`) contains 7 lines:
+The `postmaster.pid` file (at `/opt/pgsql/data/postmaster.pid`) contains 8 lines:
 
 1. **Postmaster PID** - the process ID of the main PostgreSQL process
 2. **PGDATA path** - the data directory (e.g., `/opt/pgsql/data`)
 3. **Start timestamp** - Unix epoch when the postmaster started
 4. **Port number** - the TCP port PostgreSQL listens on (e.g., `5432`)
-5. **Unix socket directory** - where the Unix domain socket is created (e.g., `/tmp`)
-6. **Listen address** - the first `listen_addresses` value (e.g., `localhost`)
+5. **Unix socket directory** - where the Unix domain socket is created (e.g., `/run/postgresql`)
+6. **Listen address** - the first `listen_addresses` value (e.g., `*` for all interfaces)
 7. **Shared memory key/ID** - identifies the System V shared memory segment
+8. **Server status** - `ready` when the server has completed startup
 
 PostgreSQL writes this file at startup and removes it at clean shutdown. If it exists when PostgreSQL starts, it checks whether a process with that PID is running to prevent two instances from using the same data directory.
 

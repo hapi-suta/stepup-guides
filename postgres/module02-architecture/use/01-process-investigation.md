@@ -16,10 +16,12 @@ Identify every PostgreSQL background process, map each one to its role, and prov
 On **NODE1** (pg-primary):
 
 ```bash
-ps aux | grep postgres
+ps aux | grep postgres | grep -v grep
 ```
 
-**Expected:** You will see a list of processes including the postmaster and several background workers. Each line shows the process owner (`postgres`), PID, and a description such as `checkpointer`, `background writer`, `walwriter`, `autovacuum launcher`, `logical replication launcher`, and `stats collector` (or `cumulative stats system` on PG16).
+(`grep -v grep` removes the grep process itself from the results.)
+
+**Expected:** You will see a list of processes including the postmaster and several background workers. Each line shows the process owner (`postgres`), PID, and a description such as `checkpointer`, `background writer`, `walwriter`, `autovacuum launcher`, `archiver`, `logger`, and `logical replication launcher`.
 
 > **Concept:** The postmaster is the first PostgreSQL process that starts. It listens for new connections and spawns all background workers. Every other PostgreSQL process is a child of the postmaster. If the postmaster dies, all child processes terminate - this is by design for crash safety.
 
@@ -27,31 +29,42 @@ ps aux | grep postgres
 
 ## Step 2 - Visualize the Process Tree
 
+Switch to the postgres user to read files inside PGDATA (which has mode 0700 and is owned by postgres):
+
+```bash
+sudo -iu postgres
+```
+
 Read the first line of the postmaster PID file to get the postmaster PID:
 
 ```bash
 head -1 /opt/pgsql/data/postmaster.pid
 ```
 
-**Expected:** A single number - the PID of the postmaster process (e.g., `1234`).
+**Expected:** A single number - the PID of the postmaster process (e.g., `9593`).
 
 Now use that PID to display the full process tree. Replace `<PID>` with the number from the previous command:
 
 ```bash
-pstree -p <PID>
+pstree -pa <PID>
 ```
 
-The `-p` flag shows the PID of each process in parentheses.
+(`-p` shows PIDs in parentheses. `-a` shows the command-line arguments so you can identify each process.)
 
 **Expected:** A tree structure with the postmaster at the root and all background workers as children:
 
 ```
-postgres(1234)-+-postgres(1235) checkpointer
-               |-postgres(1236) background writer
-               |-postgres(1237) walwriter
-               |-postgres(1238) autovacuum launcher
-               |-postgres(1239) logical replication launcher
+postgres,9593 -D /opt/pgsql/data
+  |-postgres,9594
+  |-postgres,9595
+  |-postgres,9596
+  |-postgres,9598
+  |-postgres,9599
+  |-postgres,9600
+  |-postgres,9601
 ```
+
+Each child is a direct descendant of the postmaster. You can cross-reference these PIDs with the `ps aux` output from Step 1 to identify which process is the checkpointer, background writer, walwriter, etc.
 
 > **Concept:** The process tree proves the parent-child relationship. The postmaster (PID from `postmaster.pid`) is the root. Every background worker and every client backend is a direct child. This matters operationally because sending `kill -9` to the postmaster kills all children and triggers immediate-mode shutdown - data corruption is possible. Never do this in production.
 
@@ -59,25 +72,32 @@ postgres(1234)-+-postgres(1235) checkpointer
 
 ## Step 3 - Read the postmaster.pid File
 
-Examine every line of the PID file:
+You should still be the postgres user from Step 2. Examine every line of the PID file:
 
 ```bash
 cat /opt/pgsql/data/postmaster.pid
 ```
 
-**Expected:** Seven lines of output:
+**Expected:** Eight lines of output:
 
 ```
-1234                  <- postmaster PID
+9593                  <- postmaster PID
 /opt/pgsql/data       <- PGDATA directory
-1713400000            <- postmaster start timestamp (Unix epoch)
+1776560882            <- postmaster start timestamp (Unix epoch)
 5432                  <- port number
-/tmp                  <- Unix socket directory
-localhost             <- first listen_address
-  12345    1          <- shared memory key and ID
+/run/postgresql       <- Unix socket directory
+*                     <- listen_addresses (* means all interfaces)
+  5824    1           <- shared memory key and ID
+ready                 <- server status
 ```
 
-> **Concept:** PostgreSQL writes this file at startup and removes it at clean shutdown. If PostgreSQL crashes, the file remains - a new startup checks for it and refuses to start if a process with that PID is still running. This prevents two instances from using the same data directory simultaneously, which would cause corruption. The shared memory key on the last line identifies the System V shared memory segment.
+(Your PID, timestamp, and shared memory key will differ.)
+
+> **Concept:** PostgreSQL writes this file at startup and removes it at clean shutdown. If PostgreSQL crashes, the file remains - a new startup checks for it and refuses to start if a process with that PID is still running. This prevents two instances from using the same data directory simultaneously, which would cause corruption. The shared memory key on line 7 identifies the System V shared memory segment. The 8th line (`ready`) indicates the server has completed startup and is accepting connections.
+
+```bash
+exit
+```
 
 ---
 
@@ -86,26 +106,26 @@ localhost             <- first listen_address
 Open 5 background psql sessions. Run each of these commands one at a time:
 
 ```bash
-psql -d labdb -c "SELECT pg_sleep(600);" &
+psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
 ```
 
 ```bash
-psql -d labdb -c "SELECT pg_sleep(600);" &
+psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
 ```
 
 ```bash
-psql -d labdb -c "SELECT pg_sleep(600);" &
+psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
 ```
 
 ```bash
-psql -d labdb -c "SELECT pg_sleep(600);" &
+psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
 ```
 
 ```bash
-psql -d labdb -c "SELECT pg_sleep(600);" &
+psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
 ```
 
-Each `&` sends the psql session to the background. The `pg_sleep(600)` keeps each session alive for 10 minutes.
+Each `&` sends the psql session to the background. The `-U postgres` flag connects as the postgres user. The `pg_sleep(600)` keeps each session alive for 10 minutes.
 
 Now connect to labdb and check what is happening:
 
@@ -220,7 +240,7 @@ exit
 Before continuing, confirm:
 - [ ] You listed all PostgreSQL background processes and can name at least 5 from memory
 - [ ] You used `pstree` to prove the postmaster is the parent of all processes
-- [ ] You read all 7 lines of `postmaster.pid` and know what each line contains
+- [ ] You read all 8 lines of `postmaster.pid` and know what each line contains
 - [ ] You observed active sessions in `pg_stat_activity`
 - [ ] You used `pg_cancel_backend` and understand it cancels the query but keeps the connection
 - [ ] You used `pg_terminate_backend` and understand it kills the connection entirely
