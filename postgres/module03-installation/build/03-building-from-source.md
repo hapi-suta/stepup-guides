@@ -40,15 +40,17 @@ Install the development headers for readline, zlib, libxml2, and OpenSSL. The
 packages only contain the runtime libraries:
 
 ```bash
-sudo dnf install -y readline-devel zlib-devel libxml2-devel openssl-devel
+sudo dnf install -y readline-devel zlib-devel libxml2-devel openssl-devel libicu-devel
 ```
+
+(`libicu-devel` is required because PostgreSQL 16 enables ICU collation support by default. Without it, `./configure` will fail with `ICU library not found`.)
 
 ```
 Expected output (yours will differ):
 Dependencies resolved.
 ...
 Installed:
-  readline-devel-8.x  zlib-devel-1.x  libxml2-devel-2.x  openssl-devel-3.x  ...
+  readline-devel-8.x  zlib-devel-1.x  libxml2-devel-2.x  openssl-devel-3.x  libicu-devel-70.x  ...
 Complete!
 ```
 

@@ -300,10 +300,10 @@ Confirm `Active: active (running)`. If it says `failed`, check the logs with `su
 Now verify both clusters are accepting connections. Check PG16 on port 5432:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
-The `pg_isready` command checks whether a PostgreSQL server is accepting connections. The `-p` flag specifies the port to check.
+The `pg_isready` command checks whether a PostgreSQL server is accepting connections. The `-p` flag specifies the port to check. We use the full path because `pg_isready` is not in ec2-user's PATH by default.
 
 **Expected output:**
 ```
@@ -313,7 +313,7 @@ The `pg_isready` command checks whether a PostgreSQL server is accepting connect
 Check PG15 on port 5433:
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-15/bin/pg_isready -p 5433
 ```
 
 **Expected output:**
@@ -425,8 +425,8 @@ Before moving on, confirm everything is in place:
 - [ ] PG15 cluster initialized (check for `postgresql.conf` inside `/opt/pgsql/data15/`)
 - [ ] PG15 configured on port 5433 (`grep "^port" /opt/pgsql/data15/postgresql.conf`)
 - [ ] PG15 systemd service edited with correct PGDATA (`systemctl cat postgresql-15`)
-- [ ] PG16 still running on port 5432 (`pg_isready -p 5432`)
-- [ ] PG15 running on port 5433 (`pg_isready -p 5433`)
+- [ ] PG16 still running on port 5432 (`/usr/pgsql-16/bin/pg_isready -p 5432`)
+- [ ] PG15 running on port 5433 (`/usr/pgsql-15/bin/pg_isready -p 5433`)
 - [ ] `SELECT version()` returns PG16 on port 5432 and PG15 on port 5433
 - [ ] PG15 enabled for auto-start on boot (`systemctl is-enabled postgresql-15`)
 
