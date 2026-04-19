@@ -50,10 +50,10 @@ su - postgres
 
 **You are now the postgres user.**
 
-Connect to the `pgbench` database. If you used a different database name in earlier labs, substitute that name here.
+Connect to `labdb`. We connect to `labdb` because that's where the pgbench tables were created in the backup-pitr lab.
 
 ```bash
-psql pgbench
+psql -d labdb
 ```
 
 Run an intentionally broken SQL statement. The word `SELECT` is misspelled as `SELCT`.
@@ -168,7 +168,7 @@ Now use `EXPLAIN` to see how PostgreSQL plans to execute a query against this vi
 EXPLAIN SELECT * FROM large_accounts;
 ```
 
-Expected output (yours will differ - cost numbers vary):
+Expected output (yours will differ - cost numbers, row estimates, and plan shape vary based on data size):
 
 ```
                              QUERY PLAN
@@ -178,7 +178,9 @@ Expected output (yours will differ - cost numbers vary):
 (2 rows)
 ```
 
-Look carefully at the output. There is no mention of `large_accounts` anywhere in the plan. Instead, PostgreSQL shows a `Seq Scan on pgbench_accounts` with a `Filter: (abalance > 0)`. The rewriter replaced the view with its underlying query before the planner ever saw it.
+> **Note:** If your table is large, you may see `Parallel Seq Scan` and `Gather` nodes instead of a simple `Seq Scan`. This is fine - the key point is that the view `large_accounts` was expanded to show `pgbench_accounts` with the `Filter: (abalance > 0)` condition. The rewriter replaced the view with its underlying query before the planner ever saw it.
+
+Look carefully at the output. There is no mention of `large_accounts` anywhere in the plan. Instead, PostgreSQL shows a scan on `pgbench_accounts` with a `Filter: (abalance > 0)`. The rewriter replaced the view with its underlying query before the planner ever saw it.
 
 > **Concept: Views are not stored results.**
 > A view does not store any data. It stores a SQL definition. Every time you query a view, the rewriter expands it into the underlying query, and the planner optimizes the expanded version. This means a view never makes a query faster or slower on its own - it is purely a convenience layer. If you want stored results, you need a materialized view (different concept entirely).
@@ -199,7 +201,7 @@ Run `EXPLAIN` on a query that fetches a single row by primary key.
 EXPLAIN SELECT * FROM pgbench_accounts WHERE aid = 1;
 ```
 
-Expected output (yours will differ - cost numbers and scan type depend on table size):
+Expected output (yours will differ - cost numbers, row estimates, and scan type depend on table size):
 
 ```
                                           QUERY PLAN
@@ -222,7 +224,7 @@ Now run a different query that aggregates the entire table.
 EXPLAIN SELECT count(*) FROM pgbench_accounts;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ - cost numbers, row estimates, and plan shape vary based on data size):
 
 ```
                                               QUERY PLAN
@@ -231,6 +233,8 @@ Expected output (yours will differ):
    ->  Seq Scan on pgbench_accounts  (cost=0.00..5.00 rows=100 width=0)
 (2 rows)
 ```
+
+> **Note:** If your table is large, PostgreSQL may choose a `Parallel Seq Scan` instead of a regular `Seq Scan`. This is normal - the planner uses parallel workers when it estimates the table is big enough to benefit from them.
 
 The planner chose a completely different strategy. It needs to count every row, so it uses a `Seq Scan` (sequential scan - read every page in the table) followed by an `Aggregate` node that computes the count. Notice the arrow (`->`) that shows the Aggregate node feeds from the Seq Scan node.
 
@@ -253,7 +257,7 @@ The executor takes the plan from Stage 4 and actually runs it. To see what the e
 EXPLAIN ANALYZE SELECT * FROM pgbench_accounts WHERE aid = 1;
 ```
 
-Expected output (yours will differ - timing and row counts vary):
+Expected output (yours will differ - cost numbers, timing, and row counts vary based on data size):
 
 ```
                                                           QUERY PLAN
@@ -293,7 +297,7 @@ JOIN pgbench_branches b ON a.bid = b.bid
 WHERE a.abalance > 0;
 ```
 
-Expected output (yours will differ - plan shape, costs, and timing all vary):
+Expected output (yours will differ - plan shape, costs, timing, row counts, and join strategy all vary based on data size):
 
 ```
                                                           QUERY PLAN
@@ -310,6 +314,8 @@ Expected output (yours will differ - plan shape, costs, and timing all vary):
  Execution Time: 0.120 ms
 (10 rows)
 ```
+
+> **Note:** This query may take a minute or longer if your `pgbench_accounts` table is large. This is expected - the planner is scanning the entire table. If your table is large, PostgreSQL may choose a `Parallel Seq Scan` instead of a regular `Seq Scan`. This is normal - the planner uses parallel workers when it estimates the table is big enough to benefit from them.
 
 Read this plan from the bottom up, starting with the most indented nodes:
 

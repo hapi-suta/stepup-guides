@@ -55,6 +55,8 @@ drwx------   2 postgres postgres  4096 Apr 14 08:00 pg_wal
 -rw-------   1 postgres postgres  4760 Apr 14 08:00 pg_hba.conf
 ```
 
+> **Note:** `pg_wal` may appear as a symlink (arrow pointing to another location), for example: `pg_wal -> /opt/pgsql/wal`. This is normal when WAL is stored on a separate disk for performance or space reasons.
+
 Here is what each key directory and file contains:
 
 | Directory / File | Purpose |
@@ -83,10 +85,10 @@ Here is what each key directory and file contains:
 
 Each database gets its own subdirectory inside `base/`. The subdirectory name is the database's OID (a numeric identifier that PostgreSQL assigns internally). Let's find the mapping.
 
-Connect to PostgreSQL.
+Connect to `labdb`. We connect to `labdb` because that's where the pgbench tables were created in the backup-pitr lab.
 
 ```bash
-psql
+psql -d labdb
 ```
 
 Query the system catalog to see every database and its OID. The `oid` is a hidden column on `pg_database` that you can select explicitly.
@@ -103,8 +105,10 @@ Expected output (yours will differ - OIDs are assigned at creation time):
      1 | template1
      4 | template0
      5 | postgres
- 16384 | pgbench
-(4 rows)
+ 16384 | labdb
+ 16385 | appdb
+ 16386 | blobdb
+(6 rows)
 ```
 
 Now exit psql so you can check the filesystem.
@@ -126,9 +130,11 @@ drwx------  2 postgres postgres  12288 Apr 15 10:00 1
 drwx------  2 postgres postgres  12288 Apr 14 08:00 4
 drwx------  2 postgres postgres  12288 Apr 15 10:00 5
 drwx------  2 postgres postgres  45056 Apr 15 10:01 16384
+drwx------  2 postgres postgres  12288 Apr 15 10:01 16385
+drwx------  2 postgres postgres  12288 Apr 15 10:01 16386
 ```
 
-The directory `1` is `template1`, `4` is `template0`, `5` is `postgres`, and `16384` is `pgbench`. You can match these up using the OIDs from the query.
+The directory `1` is `template1`, `4` is `template0`, `5` is `postgres`, `16384` is `labdb`, `16385` is `appdb`, and `16386` is `blobdb`. You can match these up using the OIDs from the query.
 
 > **Concept: OIDs Are Internal, Names Are External**
 > PostgreSQL uses numeric OIDs internally for almost everything - databases, tables, indexes, types. The human-readable names you use in SQL are just labels that map to these OIDs in the system catalogs. When you look at the filesystem, you see OIDs.
@@ -143,10 +149,10 @@ The directory `1` is `template1`, `4` is `template0`, `5` is `postgres`, and `16
 
 Now let's trace a specific table from its SQL name all the way to its file on disk. PostgreSQL provides a built-in function for this.
 
-Connect to the pgbench database.
+Connect to `labdb` where the pgbench tables live.
 
 ```bash
-psql pgbench
+psql -d labdb
 ```
 
 Ask PostgreSQL where the `pgbench_accounts` table lives on disk. The `pg_relation_filepath` function returns the path relative to PGDATA.
@@ -164,7 +170,7 @@ Expected output (yours will differ - the relfilenode number is assigned internal
 (1 row)
 ```
 
-This tells you the file is inside `base/16384/` (the pgbench database directory) and the file is named `16394` (the relation's file node number).
+This tells you the file is inside `base/16384/` (the labdb database directory) and the file is named `16394` (the relation's file node number).
 
 Exit psql so you can look at the file on disk.
 
@@ -213,10 +219,10 @@ You can see the main data file plus two companion files - `_fsm` (free space map
 
 Every data file is made up of 8KB pages (also called blocks). Each page has a fixed internal layout: a header at the top, line pointers that grow downward, and tuple data that grows upward from the bottom. The free space is the gap in the middle.
 
-Connect to the pgbench database.
+Connect to `labdb` where the pgbench tables live.
 
 ```bash
-psql pgbench
+psql -d labdb
 ```
 
 Install the `pageinspect` extension. This extension lets you look at the raw contents of individual pages.
@@ -271,7 +277,7 @@ The free space on this page is the gap between `lower` and `upper`. When Postgre
 
 **Run on NODE1 (pg-primary):**
 
-**You are still connected to psql in the pgbench database.**
+**You are still connected to psql in the labdb database.**
 
 A single tuple must fit within one 8KB page. But what happens when you store a 10KB text string? PostgreSQL uses TOAST (The Oversized-Attribute Storage Technique) to handle this automatically.
 
@@ -356,7 +362,7 @@ The `Storage` column shows `extended` for `big_text`, which means PostgreSQL wil
 
 **Run on NODE1 (pg-primary):**
 
-**You are still connected to psql in the pgbench database.**
+**You are still connected to psql in the labdb database.**
 
 Exit psql to look at files on disk.
 
@@ -403,10 +409,10 @@ The VM stores two bits per page: one for "all-visible" and one for "all-frozen".
 
 When you DELETE or UPDATE rows, PostgreSQL does not immediately reclaim the space. The old row versions (dead tuples) stay in the page until VACUUM cleans them up. If VACUUM falls behind, the table accumulates "bloat" - wasted space from dead tuples.
 
-Connect to the pgbench database.
+Connect to `labdb` where the pgbench tables live.
 
 ```bash
-psql pgbench
+psql -d labdb
 ```
 
 Install the `pgstattuple` extension. This extension provides functions to measure tuple-level statistics and detect bloat.
@@ -423,11 +429,13 @@ CREATE EXTENSION
 
 Run `pgstattuple` against the `pgbench_accounts` table. This function reads every page in the table, so it can take a moment on large tables.
 
+> **Note:** This query scans the entire table and may take a minute or more on large tables.
+
 ```sql
 SELECT * FROM pgstattuple('pgbench_accounts');
 ```
 
-Expected output (yours will differ - values depend on table state):
+Expected output (yours will differ significantly depending on the scale factor used when loading pgbench data):
 
 ```
  table_len | tuple_count | tuple_len | tuple_percent | dead_tuple_count | dead_tuple_len | dead_tuple_percent | free_space | free_percent
@@ -458,7 +466,7 @@ If `dead_tuple_percent` is high (say, above 20%), the table has significant bloa
 
 **Run on NODE1 (pg-primary):**
 
-**You are still connected to psql in the pgbench database.**
+**You are still connected to psql in the labdb database.**
 
 PostgreSQL provides several built-in functions to check the size of tables, indexes, and databases without leaving SQL. The `pg_size_pretty` function converts raw byte counts into human-readable format.
 
@@ -468,7 +476,7 @@ Check the size of the `pgbench_accounts` table alone (data only, no indexes or T
 SELECT pg_size_pretty(pg_relation_size('pgbench_accounts')) AS table_size;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ significantly depending on the scale factor):
 
 ```
  table_size
@@ -483,7 +491,7 @@ Check the total size including all indexes and TOAST data.
 SELECT pg_size_pretty(pg_total_relation_size('pgbench_accounts')) AS total_with_indexes;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ significantly depending on the scale factor):
 
 ```
  total_with_indexes
@@ -498,7 +506,7 @@ Check the total size of the current database.
 SELECT pg_size_pretty(pg_database_size(current_database())) AS database_size;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ significantly depending on the scale factor):
 
 ```
  database_size
@@ -516,7 +524,7 @@ Expected output (yours will differ):
 
 **Run on NODE1 (pg-primary):**
 
-**You are still connected to psql in the pgbench database.**
+**You are still connected to psql in the labdb database.**
 
 Drop the test table created in Section 5.
 

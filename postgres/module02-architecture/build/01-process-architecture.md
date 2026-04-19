@@ -49,6 +49,8 @@ postgres   1236  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: checkpoint
 postgres   1237  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: background writer
 postgres   1238  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: walwriter
 postgres   1239  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: autovacuum launcher
+postgres   1240  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: logger
+postgres   1241  0.0  0.1 215432  4096 ?  Ss   10:00   0:00 postgres: archiver
 ```
 
 The very first line - the one that shows the `-D /opt/pgsql/data` flag - is the postmaster. Every other PostgreSQL process is a child of this one.
@@ -80,6 +82,8 @@ Here is what each background process does:
 | **background writer** (bgwriter) | Gradually writes dirty buffers to disk between checkpoints to reduce the I/O spike when the checkpointer runs. |
 | **walwriter** | Flushes WAL (Write-Ahead Log) buffers from shared memory to WAL files on disk. This ensures committed transactions are durable. |
 | **autovacuum launcher** | Starts autovacuum worker processes to clean up dead tuples left behind by UPDATE and DELETE operations. |
+| **logger** | Writes server log messages to the log file. |
+| **archiver** | Copies completed WAL segments to the archive location (if archive_mode is enabled). |
 | **logical replication launcher** | Manages logical replication workers if logical replication is configured. You may or may not see this process. |
 
 You can also query PostgreSQL directly to see background processes. Connect to the database using psql. The `-x` flag displays results in expanded (vertical) format, which is easier to read for wide rows.
@@ -104,7 +108,8 @@ Expected output (yours will differ - PIDs vary):
   1238 | walwriter
   1239 | autovacuum launcher
   1240 | logical replication launcher
-(5 rows)
+  1241 | archiver
+(6 rows)
 ```
 
 Stay in the psql session for the next section.
@@ -264,6 +269,8 @@ postgres(1234)-+-postgres(1236)
                |-postgres(1238)
                |-postgres(1239)
                |-postgres(1240)
+               |-postgres(1241)
+               |-postgres(1242)
 ```
 
 This tree shows the postmaster (PID 1234) as the parent of all background workers. If any client backends were connected, they would also appear as children of the postmaster.
@@ -400,9 +407,10 @@ Expected output (yours will differ - PID, timestamps, and paths vary):
 /opt/pgsql/data
 1713400800
 5432
-/tmp
+/run/postgresql
 *
   1234001  65536
+ready
 ```
 
 Here is what each line means:
@@ -413,9 +421,10 @@ Here is what each line means:
 | 2 | `/opt/pgsql/data` | The data directory path |
 | 3 | `1713400800` | The postmaster start time (Unix epoch) |
 | 4 | `5432` | The port PostgreSQL is listening on |
-| 5 | `/tmp` | The Unix socket directory |
+| 5 | `/run/postgresql` | The Unix socket directory |
 | 6 | `*` | The listen address (`*` means all interfaces) |
 | 7 | `1234001  65536` | Shared memory key and segment ID |
+| 8 | `ready` | Server startup status (indicates PostgreSQL has completed startup and is accepting connections) |
 
 If PostgreSQL crashes without cleaning up, this file is left behind. On the next startup, PostgreSQL checks whether the PID in the file is still running. If it is not, PostgreSQL removes the stale file and starts normally. If it is, PostgreSQL refuses to start to prevent data corruption.
 

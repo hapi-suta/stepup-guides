@@ -28,6 +28,8 @@ Connect to PostgreSQL.
 psql
 ```
 
+We'll start by checking memory settings on the `postgres` database, then switch to `labdb` for the buffer cache exercises.
+
 Check the `shared_buffers` setting. This is the pool of memory shared by all backends for caching data pages. When PostgreSQL reads a page from disk, it lands here so other backends can reuse it without going back to disk.
 
 ```sql
@@ -153,6 +155,20 @@ Expected output:
 
 **Run on NODE1 (pg-primary):**
 
+The `pgbench_accounts` table lives in `labdb` - that's where it was created during the backup-pitr lab. We need to connect to that database before we can inspect its cached pages.
+
+First, quit psql.
+
+```sql
+\q
+```
+
+Reconnect to `labdb`.
+
+```bash
+psql -d labdb
+```
+
 Now let's look at what is currently sitting in shared_buffers. Each buffer slot holds one 8KB page (one PostgreSQL page).
 
 Run the following query. It joins `pg_buffercache` with `pg_class` to map buffer slots back to table and index names.
@@ -199,7 +215,7 @@ Run a full table scan. The `count(*)` forces PostgreSQL to read every single row
 SELECT count(*) FROM pgbench_accounts;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ based on the scale factor used in the backup-pitr lab):
 
 ```
   count
@@ -243,6 +259,8 @@ Compare the before and after. After the full table scan, `pgbench_accounts` shou
 
 The cache hit ratio tells you what percentage of page requests were satisfied from shared_buffers (a "hit") vs. having to read from disk (a "read"). This is one of the most important health metrics for any PostgreSQL server.
 
+We are still connected to `labdb`. The `pg_stat_database` view is system-wide, so it works from any database - the `WHERE datname = current_database()` filter will show stats for `labdb`.
+
 Run the following query against `pg_stat_database`.
 
 ```sql
@@ -259,9 +277,9 @@ WHERE datname = current_database();
 Expected output (yours will differ):
 
 ```
-  datname  | blks_hit | blks_read | hit_ratio_pct
------------+----------+-----------+---------------
- postgres  |   245831 |     19230 |         92.75
+ datname | blks_hit | blks_read | hit_ratio_pct
+---------+----------+-----------+---------------
+ labdb   |   245831 |     19230 |         92.75
 (1 row)
 ```
 
