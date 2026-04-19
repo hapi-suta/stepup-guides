@@ -164,7 +164,7 @@ Find where each order falls in the overall distribution as a percentage:
 
 ```sql
 SELECT order_id, total_amount,
-       ROUND(PERCENT_RANK() OVER (ORDER BY total_amount) * 100, 1) AS percentile
+       ROUND((PERCENT_RANK() OVER (ORDER BY total_amount))::NUMERIC * 100, 1) AS percentile
 FROM orders
 ORDER BY total_amount DESC
 LIMIT 10;
@@ -298,28 +298,31 @@ Expected output (yours will differ):
 
 ```
                                      Table "public.audit_log"
-   Column   |            Type             | Nullable |         Default
-------------+-----------------------------+----------+-------------------------
- log_id     | integer                     | not null | nextval(...)
- event_type | character varying(50)       |          |
- payload    | jsonb                       |          |
- logged_at  | timestamp with time zone    | not null | now()
+   Column    |            Type             | Nullable |         Default
+-------------+-----------------------------+----------+-------------------------
+ log_id      | integer                     | not null | nextval(...)
+ table_name  | character varying(50)       |          |
+ operation   | character varying(50)       |          |
+ old_data    | jsonb                       |          |
+ new_data    | jsonb                       |          |
+ changed_by  | character varying(100)      |          |
+ changed_at  | timestamp with time zone    | not null | now()
 ```
 
 View some raw log entries:
 
 ```sql
-SELECT log_id, event_type, payload FROM audit_log ORDER BY log_id LIMIT 5;
+SELECT log_id, table_name, operation, new_data FROM audit_log ORDER BY log_id LIMIT 5;
 ```
 
 Expected output (yours will differ):
 
 ```
- log_id |  event_type   |                        payload
---------+---------------+---------------------------------------------------------
-      1 | order_created | {"order_id": 1, "customer_id": 5, "total": 125.97}
-      2 | item_added    | {"order_id": 1, "product_id": 3, "qty": 2}
-      3 | order_updated | {"order_id": 1, "field": "status", "old": "pending", "new": "completed"}
+ log_id | table_name | operation |                        new_data
+--------+------------+-----------+---------------------------------------------------------
+      1 | orders     | INSERT    | {"order_id": 1, "customer_id": 5, "total_amount": 125.97}
+      2 | orders     | UPDATE    | {"order_id": 1, "status": "completed"}
+      3 | products   | UPDATE    | {"product_id": 3, "stock_quantity": 498}
 ...
 ```
 
@@ -328,9 +331,9 @@ Expected output (yours will differ):
 The `->` operator extracts a JSON value and returns it as JSONB:
 
 ```sql
-SELECT log_id, payload -> 'order_id' AS order_id
+SELECT log_id, new_data -> 'order_id' AS order_id
 FROM audit_log
-WHERE event_type = 'order_created'
+WHERE table_name = 'orders' AND operation = 'INSERT'
 LIMIT 5;
 ```
 
@@ -349,18 +352,18 @@ Expected output (yours will differ):
 The `->>` operator extracts a JSON value and returns it as text. Use this when you need to compare or concatenate the value:
 
 ```sql
-SELECT log_id, payload ->> 'event_type' AS event_type_text, payload ->> 'total' AS total
+SELECT log_id, new_data ->> 'customer_id' AS customer_id, new_data ->> 'total_amount' AS total
 FROM audit_log
-WHERE event_type = 'order_created'
+WHERE table_name = 'orders' AND operation = 'INSERT'
 LIMIT 5;
 ```
 
 Cast the text result to a numeric type for arithmetic:
 
 ```sql
-SELECT SUM((payload ->> 'total')::NUMERIC) AS total_from_logs
+SELECT SUM((new_data ->> 'total_amount')::NUMERIC) AS total_from_logs
 FROM audit_log
-WHERE event_type = 'order_created';
+WHERE table_name = 'orders' AND operation = 'INSERT';
 ```
 
 Expected output (yours will differ):
@@ -374,30 +377,30 @@ Expected output (yours will differ):
 
 ### Filter by JSON Field Value
 
-Find log entries where the order_id in the payload is 1:
+Find log entries where the order_id in new_data is 1:
 
 ```sql
-SELECT log_id, event_type, payload
+SELECT log_id, operation, new_data
 FROM audit_log
-WHERE payload ->> 'order_id' = '1';
+WHERE new_data ->> 'order_id' = '1';
 ```
 
 Expected output (yours will differ):
 
 ```
- log_id |  event_type   |                        payload
---------+---------------+-----------------------------------------------------------
-      1 | order_created | {"order_id": 1, "customer_id": 5, "total": 125.97}
-      2 | item_added    | {"order_id": 1, "product_id": 3, "qty": 2}
-      3 | order_updated | {"order_id": 1, "field": "status", ...}
+ log_id | operation |                        new_data
+--------+-----------+-----------------------------------------------------------
+      1 | INSERT    | {"order_id": 1, "customer_id": 5, "total_amount": 125.97}
+      2 | UPDATE    | {"order_id": 1, "status": "completed"}
+...
 ```
 
 Use the `@>` operator (containment) to find rows where the JSONB value contains a specific JSON fragment. This uses a GIN index if one exists:
 
 ```sql
-SELECT log_id, event_type, payload
+SELECT log_id, operation, new_data
 FROM audit_log
-WHERE payload @> '{"event_type": "order_updated"}';
+WHERE new_data @> '{"order_id": 1}';
 ```
 
 ### Check if a Key Exists
@@ -405,35 +408,35 @@ WHERE payload @> '{"event_type": "order_updated"}';
 The `?` operator tests whether a key exists in the JSONB object:
 
 ```sql
-SELECT log_id, event_type
+SELECT log_id, operation
 FROM audit_log
-WHERE payload ? 'total'
+WHERE new_data ? 'total_amount'
 LIMIT 5;
 ```
 
 Expected output (yours will differ):
 
 ```
- log_id |  event_type
---------+---------------
-      1 | order_created
-      4 | order_created
+ log_id | operation
+--------+-----------
+      1 | INSERT
+      4 | INSERT
 ...
 ```
 
 ### Extract Nested JSON
 
-Navigate nested JSON with chained operators. If the payload had a nested object:
+Navigate nested JSON with chained operators. If new_data had a nested object:
 
 ```sql
-SELECT payload -> 'metadata' ->> 'source' AS source
+SELECT new_data -> 'metadata' ->> 'source' AS source
 FROM audit_log
-WHERE payload -> 'metadata' IS NOT NULL
+WHERE new_data -> 'metadata' IS NOT NULL
 LIMIT 5;
 ```
 
 > **Concept: JSONB indexing with GIN**
-> JSONB columns support GIN (Generalized Inverted Index) indexing. A GIN index on a JSONB column enables fast `@>` containment and `?` key existence queries. Without an index, every JSON query does a sequential scan. Create one with: `CREATE INDEX idx_audit_payload ON audit_log USING GIN (payload);`
+> JSONB columns support GIN (Generalized Inverted Index) indexing. A GIN index on a JSONB column enables fast `@>` containment and `?` key existence queries. Without an index, every JSON query does a sequential scan. Create one with: `CREATE INDEX idx_audit_new_data ON audit_log USING GIN (new_data);`
 
 ---
 

@@ -154,6 +154,31 @@ Expected output:
 (1 row)
 ```
 
+The PG15 contrib package provides extensions like pg_stat_statements. Install it first.
+
+```
+exit
+```
+
+```
+sudo dnf install -y postgresql15-contrib
+```
+
+Expected output (yours will differ):
+
+```
+...
+Installed:
+  postgresql15-contrib-15.x-...
+Complete!
+```
+
+Switch back to postgres.
+
+```
+sudo -iu postgres
+```
+
 Install pg_stat_statements on PG15 so you have an extension to migrate.
 
 ```

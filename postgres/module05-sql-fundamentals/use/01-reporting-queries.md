@@ -60,7 +60,7 @@ LIMIT 5;
 - Group by calendar day
 - Show: date, number of orders that day, total revenue that day
 - Include only completed orders
-- Use `DATE(created_at)` to truncate to the day
+- Use `DATE(order_date)` to truncate to the day
 - Show only days that had at least one order
 
 Write and run the query. Check that totals per day look reasonable given your data.
@@ -68,14 +68,14 @@ Write and run the query. Check that totals per day look reasonable given your da
 ### Answer
 
 ```sql
-SELECT DATE(created_at) AS order_date,
+SELECT DATE(order_date) AS order_day,
        COUNT(*) AS orders_that_day,
        ROUND(SUM(total_amount), 2) AS daily_revenue
 FROM orders
 WHERE status = 'completed'
-  AND created_at >= now() - INTERVAL '30 days'
-GROUP BY DATE(created_at)
-ORDER BY order_date ASC;
+  AND order_date >= now() - INTERVAL '30 days'
+GROUP BY DATE(order_date)
+ORDER BY order_day ASC;
 ```
 
 ---
@@ -142,7 +142,7 @@ ORDER BY category_revenue DESC;
 **Business question:** At what hours of the day do most orders come in? This helps schedule customer support staffing.
 
 **Requirements:**
-- Extract the hour from `created_at` using `EXTRACT(HOUR FROM created_at)`
+- Extract the hour from `order_date` using `EXTRACT(HOUR FROM order_date)`
 - Show: hour (0-23), number of orders at that hour
 - All order statuses
 - Order by order count descending so the busiest hours are at the top
@@ -150,7 +150,7 @@ ORDER BY category_revenue DESC;
 ### Answer
 
 ```sql
-SELECT EXTRACT(HOUR FROM created_at)::INT AS hour_of_day,
+SELECT EXTRACT(HOUR FROM order_date)::INT AS hour_of_day,
        COUNT(*) AS order_count
 FROM orders
 GROUP BY hour_of_day

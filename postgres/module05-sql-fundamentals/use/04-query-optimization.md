@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS orders_large AS SELECT * FROM orders;
 Insert additional rows until you have at least 50,000 rows:
 
 ```sql
-INSERT INTO orders_large (customer_id, status, total_amount, created_at)
+INSERT INTO orders_large (customer_id, status, total_amount, order_date)
 SELECT (random() * 100 + 1)::INT,
        (ARRAY['pending', 'completed', 'shipped', 'cancelled'])[floor(random() * 4 + 1)],
        (random() * 500 + 10)::NUMERIC(10,2),
@@ -122,7 +122,7 @@ This query finds orders from the last 7 days:
 EXPLAIN ANALYZE
 SELECT order_id, customer_id, total_amount
 FROM orders_large
-WHERE created_at >= now() - INTERVAL '7 days';
+WHERE order_date >= now() - INTERVAL '7 days';
 ```
 
 Run the query. Look at whether an index scan is used.
@@ -132,14 +132,14 @@ Run the query. Look at whether an index scan is used.
 ### Answer
 
 ```sql
-CREATE INDEX idx_orders_large_created_at ON orders_large (created_at);
+CREATE INDEX idx_orders_large_order_date ON orders_large (order_date);
 ```
 
 ```sql
 EXPLAIN ANALYZE
 SELECT order_id, customer_id, total_amount
 FROM orders_large
-WHERE created_at >= now() - INTERVAL '7 days';
+WHERE order_date >= now() - INTERVAL '7 days';
 ```
 
 ---

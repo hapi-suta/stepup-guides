@@ -216,11 +216,11 @@ Expected output (yours will differ):
 
 The partition is empty because you have not migrated the original orders data yet (that is Guide 03's exercise). For now you are learning the mechanics of DETACH.
 
-Detach the January 2024 partition using `DETACH PARTITION CONCURRENTLY`. The `CONCURRENTLY` option uses a weaker lock that does not block reads or writes on the parent table - critical for production use:
+Detach the January 2024 partition. Note: `DETACH PARTITION CONCURRENTLY` cannot be used when a default partition exists (PostgreSQL raises an error). Since we created `orders_default` in Section 1, use plain `DETACH PARTITION` here:
 
 ```sql
 ALTER TABLE orders_partitioned
-    DETACH PARTITION orders_2024_01 CONCURRENTLY;
+    DETACH PARTITION orders_2024_01;
 ```
 
 Expected output:
@@ -230,7 +230,7 @@ ALTER TABLE
 ```
 
 > **Concept - DETACH CONCURRENTLY vs plain DETACH**
-> Plain `DETACH PARTITION` takes an `ACCESS EXCLUSIVE` lock on the parent table, blocking all reads and writes for the duration of the operation. On a large, busy table this can cause a queue of waiting queries. `DETACH PARTITION CONCURRENTLY` (added in PG14) uses a weaker lock that allows reads and writes to continue. It takes longer to complete but is production-safe. Always use `CONCURRENTLY` in production unless you are in a maintenance window.
+> Plain `DETACH PARTITION` takes an `ACCESS EXCLUSIVE` lock on the parent table, blocking all reads and writes for the duration of the operation. On a large, busy table this can cause a queue of waiting queries. `DETACH PARTITION CONCURRENTLY` (added in PG14) uses a weaker lock that allows reads and writes to continue. It takes longer to complete but is production-safe. However, `CONCURRENTLY` is **not allowed when a default partition exists** - PostgreSQL cannot guarantee row routing correctness during a concurrent detach when a default partition is present. In production, either drop/detach the default partition first, or accept the brief lock from plain `DETACH PARTITION`.
 
 Verify the partition is now a standalone table (no longer listed under orders_partitioned):
 

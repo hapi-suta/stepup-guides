@@ -43,7 +43,7 @@ Connect to stepup_store.
 Bad query.
 
 ```sql
-EXPLAIN ANALYZE SELECT * FROM customers WHERE id = 42;
+EXPLAIN ANALYZE SELECT * FROM customers WHERE customer_id = 42;
 ```
 
 Expected output (yours will differ):
@@ -52,7 +52,7 @@ Expected output (yours will differ):
                                                         QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------
  Index Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=120) (actual time=0.025..0.028 rows=1 loops=1)
-   Index Cond: (id = 42)
+   Index Cond: (customer_id = 42)
  Planning Time: 0.102 ms
  Execution Time: 0.044 ms
 (4 rows)
@@ -63,7 +63,7 @@ Note the `width=120` - PostgreSQL is fetching 120 bytes per row even if you only
 Good query - fetch only what the application needs.
 
 ```sql
-EXPLAIN ANALYZE SELECT id, email, first_name, last_name FROM customers WHERE id = 42;
+EXPLAIN ANALYZE SELECT customer_id, email, name FROM customers WHERE customer_id = 42;
 ```
 
 Expected output (yours will differ):
@@ -72,7 +72,7 @@ Expected output (yours will differ):
                                                                QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------------------------
  Index Only Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=52) (actual time=0.024..0.026 rows=1 loops=1)
-   Index Cond: (id = 42)
+   Index Cond: (customer_id = 42)
    Heap Fetches: 0
  Planning Time: 0.108 ms
  Execution Time: 0.038 ms
@@ -90,7 +90,7 @@ Expected output (yours will differ):
 A query without a WHERE clause forces a full table scan every time. On a growing table this becomes catastrophic.
 
 ```sql
-EXPLAIN ANALYZE SELECT id, total_amount FROM orders;
+EXPLAIN ANALYZE SELECT order_id, total_amount FROM orders;
 ```
 
 Expected output (yours will differ):
@@ -110,9 +110,9 @@ Good practice: always filter to the data you need.
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, total_amount
+SELECT order_id, total_amount
 FROM orders
-WHERE created_at >= NOW() - INTERVAL '30 days'
+WHERE order_date >= NOW() - INTERVAL '30 days'
   AND status = 'pending';
 ```
 
@@ -122,7 +122,7 @@ Expected output (yours will differ):
                                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------------
  Index Scan using idx_orders_pending on orders  (cost=0.14..10.20 rows=8 width=12) (actual time=0.028..0.038 rows=8 loops=1)
-   Index Cond: (created_at >= (now() - '30 days'::interval))
+   Index Cond: (order_date >= (now() - '30 days'::interval))
  Planning Time: 0.185 ms
  Execution Time: 0.052 ms
 (4 rows)
@@ -208,7 +208,7 @@ Expected output (yours will differ):
 (4 rows)
 ```
 
-> **Concept - Function on Indexed Column**: The rule is: never wrap an indexed column in a function on the left side of a comparison unless you have an expression index for that exact function. `WHERE date(created_at) = '2024-01-01'` defeats an index on `created_at`. Rewrite it as `WHERE created_at >= '2024-01-01' AND created_at < '2024-01-02'`.
+> **Concept - Function on Indexed Column**: The rule is: never wrap an indexed column in a function on the left side of a comparison unless you have an expression index for that exact function. `WHERE date(order_date) = '2024-01-01'` defeats an index on `order_date`. Rewrite it as `WHERE order_date >= '2024-01-01' AND order_date < '2024-01-02'`.
 
 ---
 
@@ -219,7 +219,7 @@ An OR condition across different columns often forces a Seq Scan because Postgre
 ```sql
 EXPLAIN ANALYZE
 SELECT * FROM customers
-WHERE email = 'alice@example.com' OR first_name = 'Alice';
+WHERE email = 'alice@example.com' OR name = 'Alice';
 ```
 
 Expected output (yours will differ):
@@ -228,7 +228,7 @@ Expected output (yours will differ):
                               QUERY PLAN
 ------------------------------------------------------------------------
  Seq Scan on customers  (cost=0.00..6.00 rows=2 width=80) (actual time=0.014..0.088 rows=2 loops=1)
-   Filter: ((email = 'alice@example.com') OR ((first_name)::text = 'Alice'))
+   Filter: ((email = 'alice@example.com') OR ((name)::text = 'Alice'))
    Rows Removed by Filter: 198
  Planning Time: 0.077 ms
  Execution Time: 0.098 ms
@@ -241,7 +241,7 @@ Rewrite with UNION ALL - each branch can use its own index.
 EXPLAIN ANALYZE
 SELECT * FROM customers WHERE email = 'alice@example.com'
 UNION ALL
-SELECT * FROM customers WHERE first_name = 'Alice'
+SELECT * FROM customers WHERE name = 'Alice'
   AND email != 'alice@example.com';
 ```
 
@@ -252,7 +252,7 @@ Expected output (yours will differ):
 --------------------------------------------------------------------------------------------------------------------------------------
  Append  (cost=0.14..17.00 rows=2 width=80) (actual time=0.028..0.059 rows=2 loops=1)
    ->  Index Scan using customers_email_idx on customers  (cost=0.14..8.16 rows=1 width=80) ...
-   ->  Index Scan using customers_first_name_idx on customers  (cost=0.14..8.18 rows=1 width=80) ...
+   ->  Index Scan using customers_name_idx on customers  (cost=0.14..8.18 rows=1 width=80) ...
  Planning Time: 0.220 ms
  Execution Time: 0.074 ms
 (6 rows)
@@ -273,7 +273,7 @@ Bad query - correlated subquery runs 200 times (once per customer).
 ```sql
 EXPLAIN ANALYZE
 SELECT c.email,
-  (SELECT SUM(total_amount) FROM orders o WHERE o.customer_id = c.id) AS lifetime_spend
+  (SELECT SUM(total_amount) FROM orders o WHERE o.customer_id = c.customer_id) AS lifetime_spend
 FROM customers c;
 ```
 
@@ -299,8 +299,8 @@ Good query - rewrite as a JOIN with aggregation.
 EXPLAIN ANALYZE
 SELECT c.email, COALESCE(SUM(o.total_amount), 0) AS lifetime_spend
 FROM customers c
-LEFT JOIN orders o ON o.customer_id = c.id
-GROUP BY c.id, c.email;
+LEFT JOIN orders o ON o.customer_id = c.customer_id
+GROUP BY c.customer_id, c.email;
 ```
 
 Expected output (yours will differ):
@@ -309,9 +309,9 @@ Expected output (yours will differ):
                                                  QUERY PLAN
 -------------------------------------------------------------------------------------------------------------
  HashAggregate  (cost=28.50..33.50 rows=200 width=44) (actual time=0.412..0.445 rows=200 loops=1)
-   Group Key: c.id
+   Group Key: c.customer_id
    ->  Hash Left Join  (cost=14.50..26.50 rows=200 width=20) (actual time=0.085..0.284 rows=200 loops=1)
-         Hash Cond: (o.customer_id = c.id)
+         Hash Cond: (o.customer_id = c.customer_id)
          ->  Seq Scan on orders o  (cost=0.00..12.50 rows=50 width=12) ...
          ->  Hash  (cost=5.00..5.00 rows=200 width=12) ...
                ->  Seq Scan on customers c ...
@@ -385,7 +385,7 @@ Run some queries to populate the view.
 ```
 
 ```
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT c.email, SUM(o.total_amount) FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id, c.email;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT c.email, SUM(o.total_amount) FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id GROUP BY c.customer_id, c.email;"
 ```
 
 ```

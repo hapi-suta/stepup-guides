@@ -40,8 +40,8 @@ A batch import ran twice and created duplicate customer records with the same em
 First, inject some duplicates so you have something to find:
 
 ```sql
-INSERT INTO cleanup_customers (name, email, phone, created_at)
-SELECT name, email, phone, now()
+INSERT INTO cleanup_customers (name, email, created_at)
+SELECT name, email, now()
 FROM cleanup_customers
 WHERE customer_id IN (1, 2, 3);
 ```

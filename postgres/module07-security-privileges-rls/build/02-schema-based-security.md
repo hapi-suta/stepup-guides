@@ -238,6 +238,24 @@ Expected output:
 CREATE TABLE
 ```
 
+Since we created this table as the `postgres` superuser, `dev_team` members cannot access it yet. Grant table-level privileges to the dev team:
+
+```sql
+GRANT ALL ON ALL TABLES IN SCHEMA dev_schema TO dev_team;
+```
+
+Also grant on sequences so INSERT with SERIAL works:
+
+```sql
+GRANT ALL ON ALL SEQUENCES IN SCHEMA dev_schema TO dev_team;
+```
+
+Expected output for each:
+
+```
+GRANT
+```
+
 ---
 
 ## Step 15 - Create a view in analytics_schema
@@ -254,6 +272,18 @@ Expected output:
 
 ```
 CREATE TABLE
+```
+
+Grant read access on analytics tables to the analytics team:
+
+```sql
+GRANT SELECT ON ALL TABLES IN SCHEMA analytics_schema TO analytics_team;
+```
+
+Expected output:
+
+```
+GRANT
 ```
 
 ---

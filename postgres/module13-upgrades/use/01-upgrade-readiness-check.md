@@ -126,6 +126,20 @@ sudo -iu postgres
 /usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 -l /opt/pgsql/log/pg15.log start
 ```
 
+Prepared transactions require `max_prepared_transactions > 0`. The default is 0 (disabled). Enable it first.
+
+```
+/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c "ALTER SYSTEM SET max_prepared_transactions = 5;"
+```
+
+Restart PG15 for the setting to take effect (this parameter requires a restart).
+
+```
+/usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 restart -l /opt/pgsql/log/pg15.log
+```
+
+Now create a prepared transaction.
+
 ```
 /usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c "BEGIN; INSERT INTO employees (name, department, salary) VALUES ('Prepared', 'Test', 60000); PREPARE TRANSACTION 'test_prepared_txn';"
 ```

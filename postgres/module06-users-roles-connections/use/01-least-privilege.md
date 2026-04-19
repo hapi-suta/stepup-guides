@@ -150,7 +150,7 @@ SELECT count(*) FROM orders;
 This should succeed.
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total) VALUES (1, 1, 1, 9.99);
+INSERT INTO orders (customer_id, product_id, quantity, total_amount) VALUES (1, 1, 1, 9.99);
 ```
 
 Expected output:
@@ -166,7 +166,7 @@ ERROR:  permission denied for table orders
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total) VALUES (1, 1, 1, 9.99);
+INSERT INTO orders (customer_id, product_id, quantity, total_amount) VALUES (1, 1, 1, 9.99);
 ```
 
 This should succeed.
@@ -233,6 +233,15 @@ REVOKE app_admin FROM dev_carol;
 DROP ROLE reporter_alice;
 DROP ROLE backend_bob;
 DROP ROLE dev_carol;
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_read;
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_write;
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_admin;
+REVOKE ALL ON SCHEMA public FROM app_read;
+REVOKE ALL ON SCHEMA public FROM app_write;
+REVOKE ALL ON SCHEMA public FROM app_admin;
+REVOKE ALL ON DATABASE stepup_store FROM app_read;
+REVOKE ALL ON DATABASE stepup_store FROM app_write;
+REVOKE ALL ON DATABASE stepup_store FROM app_admin;
 DROP ROLE app_read;
 DROP ROLE app_write;
 DROP ROLE app_admin;

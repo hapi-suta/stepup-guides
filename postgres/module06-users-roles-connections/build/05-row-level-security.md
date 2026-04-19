@@ -69,14 +69,16 @@ Expected output (yours will differ):
 
 ```
                          Table "public.orders"
-   Column   |            Type             | Nullable |      Default
-------------+-----------------------------+----------+--------------------
- id         | integer                     | not null | nextval(...)
- customer_id| integer                     |          |
- product_id | integer                     |          |
- quantity   | integer                     |          |
- total      | numeric(10,2)               |          |
- created_at | timestamp without time zone |          | now()
+    Column    |            Type             | Nullable |      Default
+--------------+-----------------------------+----------+--------------------
+ order_id     | integer                     | not null | nextval(...)
+ customer_id  | integer                     |          |
+ product_id   | integer                     |          |
+ quantity     | integer                     |          |
+ total_amount | numeric(10,2)               |          |
+ order_date   | timestamp without time zone |          | now()
+ status       | text                        |          |
+ tenant_id    | text                        |          |
 ```
 
 Add a tenant_id column:
@@ -98,17 +100,17 @@ ALTER TABLE
 ## Step 5 - Insert test data for two tenants
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (1, 1, 2, 49.98, 'tenant_alpha');
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (2, 2, 1, 29.99, 'tenant_beta');
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (3, 3, 5, 124.95, 'tenant_alpha');
 ```
 
@@ -191,14 +193,14 @@ CREATE POLICY
 In the app_user terminal:
 
 ```sql
-SELECT id, tenant_id, total FROM orders;
+SELECT order_id, tenant_id, total_amount FROM orders;
 ```
 
 Expected output:
 
 ```
- id | tenant_id | total
-----+-----------+-------
+ order_id | tenant_id | total_amount
+----------+-----------+--------------
 (0 rows)
 ```
 
@@ -244,14 +246,14 @@ SET LOCAL app.tenant_id = 'tenant_alpha';
 ```
 
 ```sql
-SELECT id, tenant_id, total FROM orders;
+SELECT order_id, tenant_id, total_amount FROM orders;
 ```
 
 Expected output (yours will differ):
 
 ```
- id | tenant_id    | total
-----+--------------+--------
+ order_id | tenant_id    | total_amount
+----------+--------------+--------------
   1 | tenant_alpha |  49.98
   3 | tenant_alpha | 124.95
 (2 rows)
@@ -264,14 +266,14 @@ SET LOCAL app.tenant_id = 'tenant_beta';
 ```
 
 ```sql
-SELECT id, tenant_id, total FROM orders;
+SELECT order_id, tenant_id, total_amount FROM orders;
 ```
 
 Expected output:
 
 ```
- id | tenant_id   | total
-----+-------------+-------
+ order_id | tenant_id   | total_amount
+----------+-------------+--------------
   2 | tenant_beta | 29.99
 (1 row)
 ```
@@ -323,7 +325,7 @@ SET LOCAL app.tenant_id = 'tenant_alpha';
 Try to insert a row for a different tenant (this should fail):
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (1, 1, 1, 9.99, 'tenant_beta');
 ```
 
@@ -336,7 +338,7 @@ ERROR:  new row violates row-level security policy for table "orders"
 Insert for the correct tenant (this should succeed):
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (1, 1, 1, 9.99, 'tenant_alpha');
 ```
 

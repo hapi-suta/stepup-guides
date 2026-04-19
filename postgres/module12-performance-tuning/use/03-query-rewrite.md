@@ -33,12 +33,12 @@ Connect to stepup_store.
 **Original query:** The application fetches all customer columns just to display the name in a dropdown.
 
 ```sql
-EXPLAIN ANALYZE SELECT * FROM customers WHERE id = 15;
+EXPLAIN ANALYZE SELECT * FROM customers WHERE customer_id = 15;
 ```
 
 Note the plan, the `width`, and whether an Index Only Scan is possible.
 
-**Your task:** Rewrite the query to fetch only `id`, `first_name`, `last_name`.
+**Your task:** Rewrite the query to fetch only `customer_id`, `name`.
 
 After rewriting, run EXPLAIN ANALYZE again. The `width` should drop and you should see `Index Only Scan` if the primary key covers those columns (it does not by default - check whether an INCLUDE index would help here).
 
@@ -52,14 +52,14 @@ After rewriting, run EXPLAIN ANALYZE again. The `width` should drop and you shou
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, total_amount
+SELECT order_id, total_amount
 FROM orders
-WHERE date(created_at) = CURRENT_DATE;
+WHERE date(order_date) = CURRENT_DATE;
 ```
 
-Note whether the index on `created_at` is used. It will not be - `date(created_at)` wraps the column in a function.
+Note whether the index on `order_date` is used. It will not be - `date(order_date)` wraps the column in a function.
 
-**Your task:** Rewrite the WHERE clause to use a range condition instead, so an existing B-tree index on `created_at` can be used.
+**Your task:** Rewrite the WHERE clause to use a range condition instead, so an existing B-tree index on `order_date` can be used.
 
 **Hint:** `CURRENT_DATE` is the start of today. `CURRENT_DATE + 1` is the start of tomorrow.
 
@@ -76,7 +76,7 @@ After rewriting, run EXPLAIN ANALYZE and confirm the index is used.
 ```sql
 EXPLAIN ANALYZE
 SELECT c.email,
-  (SELECT MAX(created_at) FROM orders o WHERE o.customer_id = c.id) AS last_order_date
+  (SELECT MAX(order_date) FROM orders o WHERE o.customer_id = c.customer_id) AS last_order_date
 FROM customers c;
 ```
 
@@ -91,12 +91,12 @@ After rewriting, run EXPLAIN ANALYZE and confirm `loops=1` for all nodes.
 ```sql
 -- Paste this after writing your new query to check for differences:
 -- (original)
-SELECT c.email, (SELECT MAX(created_at) FROM orders o WHERE o.customer_id = c.id) AS last_order_date
+SELECT c.email, (SELECT MAX(order_date) FROM orders o WHERE o.customer_id = c.customer_id) AS last_order_date
 FROM customers c
 EXCEPT
 -- (your rewrite)
-SELECT c.email, MAX(o.created_at) AS last_order_date
-FROM customers c LEFT JOIN orders o ON o.customer_id = c.id
+SELECT c.email, MAX(o.order_date) AS last_order_date
+FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id
 GROUP BY c.email;
 ```
 
@@ -116,9 +116,9 @@ Expected output (zero rows means they match):
 
 ```sql
 EXPLAIN ANALYZE
-SELECT DISTINCT c.id, c.email
+SELECT DISTINCT c.customer_id, c.email
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
+JOIN orders o ON o.customer_id = c.customer_id
 WHERE o.total_amount > 400
    OR c.city = 'Chicago';
 ```
@@ -139,15 +139,15 @@ After rewriting, run EXPLAIN ANALYZE and confirm the plan uses Index Scans in bo
 
 ```sql
 EXPLAIN ANALYZE
-SELECT DISTINCT c.id, c.email, c.first_name
+SELECT DISTINCT c.customer_id, c.email, c.name
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-WHERE o.id = 25;
+JOIN orders o ON o.customer_id = c.customer_id
+WHERE o.order_id = 25;
 ```
 
 Note the extra `HashAggregate` or `Unique` node the DISTINCT adds.
 
-**Your task:** Determine whether DISTINCT is needed here. If a customer has only one row in customers, and the join condition is on orders.id (unique primary key), then each customer appears at most once. Rewrite without DISTINCT.
+**Your task:** Determine whether DISTINCT is needed here. If a customer has only one row in customers, and the join condition is on orders.order_id (unique primary key), then each customer appears at most once. Rewrite without DISTINCT.
 
 After rewriting, run EXPLAIN ANALYZE. The `Unique` or `HashAggregate` node should be gone.
 

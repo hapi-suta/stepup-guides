@@ -66,16 +66,16 @@ ORDER BY category;
 
 For customer_id = 1, show each order in date order with a running cumulative total. Each row should show the individual order amount and the sum of all orders up to and including that one.
 
-Expected columns: `order_id`, `created_at`, `total_amount`, `cumulative_total`
+Expected columns: `order_id`, `order_date`, `total_amount`, `cumulative_total`
 
 ### Answer
 
 ```sql
-SELECT order_id, created_at, total_amount,
-       SUM(total_amount) OVER (ORDER BY created_at, order_id) AS cumulative_total
+SELECT order_id, order_date, total_amount,
+       SUM(total_amount) OVER (ORDER BY order_date, order_id) AS cumulative_total
 FROM orders
 WHERE customer_id = 1
-ORDER BY created_at, order_id;
+ORDER BY order_date, order_id;
 ```
 
 ---
@@ -169,11 +169,11 @@ Calculate a 7-day moving average of daily revenue using a window that looks at t
 
 ```sql
 WITH daily AS (
-  SELECT DATE(created_at) AS order_date,
+  SELECT DATE(order_date) AS order_date,
          SUM(total_amount) AS daily_revenue
   FROM orders
   WHERE status = 'completed'
-  GROUP BY DATE(created_at)
+  GROUP BY DATE(order_date)
 )
 SELECT order_date, daily_revenue,
        ROUND(

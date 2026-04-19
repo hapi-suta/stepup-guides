@@ -261,7 +261,7 @@ REVOKE SELECT ON TABLE products FROM readonly_user;
 Then grant column-level SELECT for only specific columns:
 
 ```sql
-GRANT SELECT (id, name, description, category) ON TABLE products TO readonly_user;
+GRANT SELECT (product_id, name, price, category) ON TABLE products TO readonly_user;
 ```
 
 Expected output for each:
@@ -288,9 +288,9 @@ Expected output (yours will differ):
    grantee    | table_name | column_name |  privilege_type
 --------------+------------+-------------+------------------
  readonly_user| products   | category    | SELECT
- readonly_user| products   | description | SELECT
- readonly_user| products   | id          | SELECT
  readonly_user| products   | name        | SELECT
+ readonly_user| products   | price       | SELECT
+ readonly_user| products   | product_id  | SELECT
 ```
 
 ---
@@ -326,7 +326,7 @@ SELECT * FROM orders LIMIT 3;
 This should now work.
 
 ```sql
-DELETE FROM orders WHERE id = 1;
+DELETE FROM orders WHERE order_id = 1;
 ```
 
 Expected output:

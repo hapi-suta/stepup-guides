@@ -79,12 +79,13 @@ Expected output (yours will differ):
                                         Table "public.products"
     Column     |          Type          | Nullable |            Default
 ---------------+------------------------+----------+-------------------------------
- product_id    | integer                | not null | nextval('products_product_id_seq')
- name          | character varying(100) | not null |
- category      | character varying(50)  |          |
- price         | numeric(10,2)          | not null |
- stock_qty     | integer                |          | 0
- created_at    | timestamp with time zone | not null | now()
+ product_id     | integer                | not null | nextval('products_product_id_seq')
+ name           | character varying(100) | not null |
+ price          | numeric(10,2)          | not null |
+ stock          | integer                |          |
+ category       | character varying(50)  |          |
+ stock_quantity | integer                |          | 0
+ created_at     | timestamp with time zone | not null | now()
 ```
 
 Describe the `orders` table the same way:
@@ -101,9 +102,12 @@ Expected output (yours will differ):
 --------------+-----------------------------+----------+-------------------------
  order_id     | integer                     | not null | nextval(...)
  customer_id  | integer                     |          |
- status       | character varying(20)       |          | 'pending'
+ product_id   | integer                     |          |
+ quantity     | integer                     |          |
  total_amount | numeric(10,2)               |          |
- created_at   | timestamp with time zone    | not null | now()
+ order_date   | timestamp with time zone    | not null | now()
+ status       | character varying(20)       |          | 'completed'
+ tenant_id    | integer                     |          |
 ```
 
 > **Concept: Why does column order matter in queries?**
@@ -122,13 +126,13 @@ SELECT * FROM products;
 Expected output (yours will differ):
 
 ```
- product_id |       name        |   category    | price  | stock_qty |          created_at
-------------+-------------------+---------------+--------+-----------+----------------------------
-          1 | Widget Pro        | Electronics   |  29.99 |       150 | 2024-01-15 10:00:00+00
-          2 | Gadget Plus       | Electronics   |  49.99 |        75 | 2024-01-15 10:00:00+00
-          3 | Super Cable       | Accessories   |   9.99 |       500 | 2024-01-15 10:00:00+00
+ product_id |       name        |   category    | price  | stock_quantity |          created_at
+------------+-------------------+---------------+--------+----------------+----------------------------
+          1 | Widget Pro        | Electronics   |  29.99 |            150 | 2024-01-15 10:00:00+00
+          2 | Gadget Plus       | Electronics   |  49.99 |             75 | 2024-01-15 10:00:00+00
+          3 | Super Cable       | Accessories   |   9.99 |            500 | 2024-01-15 10:00:00+00
 ...
-(20 rows)
+(55 rows)
 ```
 
 Select only specific columns. Listing column names explicitly is clearer and faster than `SELECT *`:
@@ -146,7 +150,7 @@ Expected output (yours will differ):
  Gadget Plus       | Electronics   |  49.99
  Super Cable       | Accessories   |   9.99
 ...
-(20 rows)
+(55 rows)
 ```
 
 Use column aliases to rename output columns. The `AS` keyword assigns a display name:
@@ -371,7 +375,7 @@ Expected output:
 ```
  count
 -------
-    20
+    55
 (1 row)
 ```
 

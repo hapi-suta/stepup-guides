@@ -67,11 +67,11 @@ Connect and run a variety of queries to populate the stats.
 Run a simple lookup (fast to plan and execute).
 
 ```sql
-SELECT id, email FROM customers WHERE id = 1;
-SELECT id, email FROM customers WHERE id = 2;
-SELECT id, email FROM customers WHERE id = 3;
-SELECT id, email FROM customers WHERE id = 4;
-SELECT id, email FROM customers WHERE id = 5;
+SELECT customer_id, email FROM customers WHERE customer_id = 1;
+SELECT customer_id, email FROM customers WHERE customer_id = 2;
+SELECT customer_id, email FROM customers WHERE customer_id = 3;
+SELECT customer_id, email FROM customers WHERE customer_id = 4;
+SELECT customer_id, email FROM customers WHERE customer_id = 5;
 ```
 
 Run a complex join that takes more planning time.
@@ -79,9 +79,9 @@ Run a complex join that takes more planning time.
 ```sql
 SELECT c.email, p.name, SUM(oi.quantity * oi.unit_price) AS revenue
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-JOIN order_items oi ON oi.order_id = o.id
-JOIN products p ON p.id = oi.product_id
+JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+JOIN products p ON p.product_id = oi.product_id
 WHERE o.status = 'shipped'
 GROUP BY c.email, p.name
 HAVING SUM(oi.quantity * oi.unit_price) > 100
@@ -93,9 +93,9 @@ Run it three more times.
 ```sql
 SELECT c.email, p.name, SUM(oi.quantity * oi.unit_price) AS revenue
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-JOIN order_items oi ON oi.order_id = o.id
-JOIN products p ON p.id = oi.product_id
+JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+JOIN products p ON p.product_id = oi.product_id
 WHERE o.status = 'shipped'
 GROUP BY c.email, p.name
 HAVING SUM(oi.quantity * oi.unit_price) > 100
@@ -105,9 +105,9 @@ ORDER BY revenue DESC;
 ```sql
 SELECT c.email, p.name, SUM(oi.quantity * oi.unit_price) AS revenue
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-JOIN order_items oi ON oi.order_id = o.id
-JOIN products p ON p.id = oi.product_id
+JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+JOIN products p ON p.product_id = oi.product_id
 WHERE o.status = 'shipped'
 GROUP BY c.email, p.name
 HAVING SUM(oi.quantity * oi.unit_price) > 100
@@ -117,9 +117,9 @@ ORDER BY revenue DESC;
 ```sql
 SELECT c.email, p.name, SUM(oi.quantity * oi.unit_price) AS revenue
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-JOIN order_items oi ON oi.order_id = o.id
-JOIN products p ON p.id = oi.product_id
+JOIN orders o ON o.customer_id = c.customer_id
+JOIN order_items oi ON oi.order_id = o.order_id
+JOIN products p ON p.product_id = oi.product_id
 WHERE o.status = 'shipped'
 GROUP BY c.email, p.name
 HAVING SUM(oi.quantity * oi.unit_price) > 100
@@ -163,7 +163,7 @@ Expected output (yours will differ):
 -------+-------------+-------------+-------------------+------------------------------------------
      4 |       0.445 |       1.220 |              26.7 | SELECT c.email, p.name, SUM(oi.quantity *
      3 |       0.088 |       0.312 |              22.0 | SELECT customer_id, COUNT(*), SUM(total_a
-     5 |       0.065 |       0.035 |              65.0 | SELECT id, email FROM customers WHERE id
+     5 |       0.065 |       0.035 |              65.0 | SELECT customer_id, email FROM customers WHERE customer_id
 (3 rows)
 ```
 
@@ -173,7 +173,7 @@ Expected output (yours will differ):
 
 Look at the `plan_pct_of_total` column.
 
-**High plan_pct on short queries:** The `SELECT id, email FROM customers WHERE id = $1` query ran 5 times with 65% of total time spent planning. This is common for very fast queries (< 1ms execution). Planning time is basically fixed per query shape, so fast queries show a high planning percentage. This is not a problem - both numbers are tiny.
+**High plan_pct on short queries:** The `SELECT customer_id, email FROM customers WHERE customer_id = $1` query ran 5 times with 65% of total time spent planning. This is common for very fast queries (< 1ms execution). Planning time is basically fixed per query shape, so fast queries show a high planning percentage. This is not a problem - both numbers are tiny.
 
 **High plan_pct on complex queries:** The 4-table join query shows 26.7% planning time. If this query ran thousands of times per second, planning overhead would become meaningful. This is where prepared statements or connection poolers with statement caching help.
 
@@ -203,7 +203,7 @@ Expected output (yours will differ):
 -------+---------------+---------------+----------+------------------------------------------
      4 |           4.9 |           1.8 |      6.7 | SELECT c.email, p.name, SUM(oi.quantity *
      3 |           0.9 |           0.3 |      1.2 | SELECT customer_id, COUNT(*), SUM(total_a
-     5 |           0.2 |           0.3 |      0.5 | SELECT id, email FROM customers WHERE id
+     5 |           0.2 |           0.3 |      0.5 | SELECT customer_id, email FROM customers WHERE customer_id
 (3 rows)
 ```
 

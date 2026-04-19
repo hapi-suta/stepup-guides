@@ -11,7 +11,7 @@
 - How PostgreSQL organizes privileges in layers: cluster, database, schema, table, column, and row
 - The GRANT and REVOKE syntax for each layer
 - What the PUBLIC role is and why it matters
-- How to use pg_has_table_privilege() to check access programmatically
+- How to use has_table_privilege() to check access programmatically
 - How to create a test schema with restricted access
 
 ---
@@ -145,10 +145,10 @@ Expected output (yours will differ):
 
 ---
 
-## Step 8 - Use pg_has_table_privilege() to check access
+## Step 8 - Use has_table_privilege() to check access
 
 ```sql
-SELECT pg_has_table_privilege('app_user', 'orders', 'SELECT');
+SELECT has_table_privilege('app_user', 'orders', 'SELECT');
 ```
 
 This function returns true if the specified role has the given privilege on the table. It respects inherited privileges through role membership.
@@ -156,7 +156,7 @@ This function returns true if the specified role has the given privilege on the 
 Expected output:
 
 ```
- pg_has_table_privilege
+ has_table_privilege
 ------------------------
  f
 (1 row)
@@ -185,13 +185,13 @@ GRANT
 ## Step 10 - Verify the grant took effect
 
 ```sql
-SELECT pg_has_table_privilege('app_user', 'orders', 'SELECT');
+SELECT has_table_privilege('app_user', 'orders', 'SELECT');
 ```
 
 Expected output:
 
 ```
- pg_has_table_privilege
+ has_table_privilege
 ------------------------
  t
 (1 row)
@@ -220,7 +220,7 @@ GRANT
 Column-level privileges are more restrictive than table-level. You can allow a role to SELECT only specific columns.
 
 ```sql
-GRANT SELECT (id, status, total_amount) ON TABLE orders TO readonly_user;
+GRANT SELECT (order_id, status, total_amount) ON TABLE orders TO readonly_user;
 ```
 
 This grants `readonly_user` the ability to SELECT only the `id`, `status`, and `total_amount` columns. Attempting to SELECT other columns will fail.
@@ -334,13 +334,13 @@ REVOKE
 ## Step 19 - Verify the revoke
 
 ```sql
-SELECT pg_has_table_privilege('app_user', 'orders', 'UPDATE');
+SELECT has_table_privilege('app_user', 'orders', 'UPDATE');
 ```
 
 Expected output:
 
 ```
- pg_has_table_privilege
+ has_table_privilege
 ------------------------
  f
 (1 row)

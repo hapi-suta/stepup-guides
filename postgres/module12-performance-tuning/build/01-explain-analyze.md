@@ -103,9 +103,9 @@ Every plan node has the format: `(cost=startup..total rows=N width=W)`
 - **width** - estimated average row size in bytes
 
 ```sql
-EXPLAIN SELECT o.id, c.email
+EXPLAIN SELECT o.order_id, c.email
 FROM orders o
-JOIN customers c ON o.customer_id = c.id
+JOIN customers c ON o.customer_id = c.customer_id
 WHERE o.total_amount > 100;
 ```
 
@@ -115,7 +115,7 @@ Expected output (yours will differ):
                               QUERY PLAN
 -----------------------------------------------------------------------
  Hash Join  (cost=7.50..28.32 rows=25 width=52)
-   Hash Cond: (o.customer_id = c.id)
+   Hash Cond: (o.customer_id = c.customer_id)
    ->  Seq Scan on orders o  (cost=0.00..15.00 rows=25 width=20)
          Filter: (total_amount > 100)
    ->  Hash  (cost=5.00..5.00 rows=200 width=36)
@@ -149,7 +149,7 @@ A Seq Scan is fine for small tables or when fetching most rows. On large tables 
 ### Index Scan - uses a B-tree index, follows heap pointers
 
 ```sql
-EXPLAIN SELECT * FROM customers WHERE id = 42;
+EXPLAIN SELECT * FROM customers WHERE customer_id = 42;
 ```
 
 Expected output (yours will differ):
@@ -158,7 +158,7 @@ Expected output (yours will differ):
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Index Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=80)
-   Index Cond: (id = 42)
+   Index Cond: (customer_id = 42)
 (2 rows)
 ```
 
@@ -189,7 +189,7 @@ Expected output (yours will differ):
 ```sql
 EXPLAIN SELECT p.name, SUM(oi.quantity)
 FROM order_items oi
-JOIN products p ON oi.product_id = p.id
+JOIN products p ON oi.product_id = p.product_id
 GROUP BY p.name;
 ```
 
@@ -201,7 +201,7 @@ Expected output (yours will differ):
  HashAggregate  (cost=35.00..37.00 rows=50 width=44)
    Group Key: p.name
    ->  Hash Join  (cost=3.75..27.50 rows=300 width=28)
-         Hash Cond: (oi.product_id = p.id)
+         Hash Cond: (oi.product_id = p.product_id)
          ->  Seq Scan on order_items oi  (cost=0.00..18.00 rows=300 width=12)
          ->  Hash  (cost=2.50..2.50 rows=50 width=20)
                ->  Seq Scan on products p  (cost=0.00..2.50 rows=50 width=20)
@@ -215,8 +215,8 @@ Hash Join hashes the smaller table (products, 50 rows) into memory, then probes 
 ```sql
 EXPLAIN SELECT c.email, o.total_amount
 FROM customers c
-JOIN orders o ON o.customer_id = c.id
-WHERE c.id = 10;
+JOIN orders o ON o.customer_id = c.customer_id
+WHERE c.customer_id = 10;
 ```
 
 Expected output (yours will differ):
@@ -226,7 +226,7 @@ Expected output (yours will differ):
 ----------------------------------------------------------------------------------
  Nested Loop  (cost=0.28..16.90 rows=2 width=44)
    ->  Index Scan using customers_pkey on customers c  (cost=0.14..8.16 rows=1 width=36)
-         Index Cond: (id = 10)
+         Index Cond: (customer_id = 10)
    ->  Index Scan using orders_customer_id_idx on orders o  (cost=0.14..8.22 rows=2 width=12)
          Index Cond: (customer_id = 10)
 (5 rows)
@@ -237,10 +237,10 @@ Nested Loop is efficient when the outer relation is tiny (like one customer). It
 ### Merge Join - sorts both sides and merges them
 
 ```sql
-EXPLAIN SELECT c.email, o.id
+EXPLAIN SELECT c.email, o.order_id
 FROM customers c
-JOIN orders o ON c.id = o.customer_id
-ORDER BY c.id;
+JOIN orders o ON c.customer_id = o.customer_id
+ORDER BY c.customer_id;
 ```
 
 Expected output (yours will differ):
@@ -249,7 +249,7 @@ Expected output (yours will differ):
                                 QUERY PLAN
 ---------------------------------------------------------------------------
  Merge Join  (cost=30.15..42.65 rows=100 width=44)
-   Merge Cond: (c.id = o.customer_id)
+   Merge Cond: (c.customer_id = o.customer_id)
    ->  Index Scan using customers_pkey on customers c  ...
    ->  Sort  (cost=14.20..14.45 rows=100 width=12)
          Sort Key: o.customer_id

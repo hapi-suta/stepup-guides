@@ -54,27 +54,26 @@ Run these queries to populate pg_stat_statements with a realistic mix. Run them 
 Run the first query 1000 times using `generate_series` to simulate repeated traffic:
 
 ```sql
-SELECT count(*) FROM orders WHERE status = 'pending'
-FROM generate_series(1, 1000);
+SELECT count(*) FROM orders WHERE status = 'pending' AND customer_id IN (SELECT generate_series(1, 1000));
 ```
 
 Run a slow analytical query that does a full table scan and join:
 
 ```sql
-SELECT o.id, o.status, sum(oi.quantity * oi.price) AS total
+SELECT o.order_id, o.status, sum(oi.quantity * oi.unit_price) AS total
 FROM orders o
-JOIN order_items oi ON o.id = oi.order_id
-GROUP BY o.id, o.status
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY o.order_id, o.status
 ORDER BY total DESC;
 ```
 
 Run it again to give it more calls:
 
 ```sql
-SELECT o.id, o.status, sum(oi.quantity * oi.price) AS total
+SELECT o.order_id, o.status, sum(oi.quantity * oi.unit_price) AS total
 FROM orders o
-JOIN order_items oi ON o.id = oi.order_id
-GROUP BY o.id, o.status
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY o.order_id, o.status
 ORDER BY total DESC;
 ```
 
@@ -87,8 +86,7 @@ SELECT pg_sleep(3);
 Run a simple fast query many times:
 
 ```sql
-SELECT id, status FROM orders WHERE id = 1
-FROM generate_series(1, 5000);
+SELECT order_id, status FROM orders WHERE order_id = 1 AND customer_id IN (SELECT generate_series(1, 5000));
 ```
 
 Exit psql.

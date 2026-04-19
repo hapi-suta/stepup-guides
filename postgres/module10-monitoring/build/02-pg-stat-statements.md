@@ -8,7 +8,7 @@ Install and configure the pg_stat_statements extension so PostgreSQL tracks ever
 
 ## Overview
 
-`pg_stat_statements` is a PostgreSQL extension that records statistics for every normalized query that runs. "Normalized" means query literals are replaced with `$1`, `$2`, etc., so `SELECT * FROM orders WHERE id = 1` and `SELECT * FROM orders WHERE id = 2` are tracked as a single entry.
+`pg_stat_statements` is a PostgreSQL extension that records statistics for every normalized query that runs. "Normalized" means query literals are replaced with `$1`, `$2`, etc., so `SELECT * FROM orders WHERE order_id = 1` and `SELECT * FROM orders WHERE order_id = 2` are tracked as a single entry.
 
 By the end of this guide you will know:
 - How to install and configure pg_stat_statements
@@ -241,7 +241,7 @@ Expected output (yours will differ):
               query               |  calls  | mean_ms | total_ms
 ----------------------------------+---------+---------+----------
  SELECT $1                        | 1824000 |    0.01 |   182.40
- SELECT * FROM orders WHERE id... |   98200 |    0.49 |  4821.34
+ SELECT * FROM orders WHERE or... |   98200 |    0.49 |  4821.34
 ...
 ```
 
@@ -316,7 +316,7 @@ SELECT * FROM orders LIMIT 100;
 ```
 
 ```sql
-SELECT o.id, o.status, sum(oi.price) FROM orders o JOIN order_items oi ON o.id = oi.order_id GROUP BY o.id, o.status LIMIT 20;
+SELECT o.order_id, o.status, sum(oi.unit_price) FROM orders o JOIN order_items oi ON o.order_id = oi.order_id GROUP BY o.order_id, o.status LIMIT 20;
 ```
 
 Then refresh the Pulse panel. You should see these query patterns appear in the Query Stats view.

@@ -167,7 +167,7 @@ INSERT INTO test_inventory (sku, description, quantity, unit_cost)
 SELECT
   'PROD-' || product_id,
   name,
-  stock_qty,
+  stock_quantity,
   price * 0.4
 FROM products
 WHERE category = 'Accessories';

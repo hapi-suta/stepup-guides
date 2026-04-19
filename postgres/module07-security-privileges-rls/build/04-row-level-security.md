@@ -99,11 +99,11 @@ ALTER TABLE
 ## Step 6 - Seed some rows with different tenant IDs
 
 ```sql
-UPDATE orders SET tenant_id = 'tenant_alpha' WHERE id % 2 = 0;
+UPDATE orders SET tenant_id = 'tenant_alpha' WHERE order_id % 2 = 0;
 ```
 
 ```sql
-UPDATE orders SET tenant_id = 'tenant_beta' WHERE id % 2 = 1;
+UPDATE orders SET tenant_id = 'tenant_beta' WHERE order_id % 2 = 1;
 ```
 
 Expected output for each:
@@ -482,22 +482,22 @@ GRANT
 ## Step 22 - List all policies on the orders table
 
 ```sql
-SELECT polname, polcmd, polroles, polqual, polwithcheck
+SELECT policyname, cmd, roles, qual, with_check
 FROM pg_policies
 WHERE tablename = 'orders';
 ```
 
-This system view shows all RLS policies with their commands and conditions.
+This system view shows all RLS policies with their commands and conditions. On PG16 the column names are `policyname`, `cmd`, `roles`, `qual`, `with_check`.
 
 Expected output (yours will differ):
 
 ```
-         polname          | polcmd |   polroles    |           polqual            |         polwithcheck
---------------------------+--------+---------------+------------------------------+-----------------------------
- tenant_select_policy     | r      | {=}           | (tenant_id = (current_user)) |
- tenant_insert_policy     | a      | {=}           |                              | (tenant_id = (current_user))
- tenant_update_policy     | w      | {=}           | (tenant_id = (current_user)) | (tenant_id = (current_user))
- tenant_session_policy    | r      | {app_user}    | (tenant_id = current_setting...) |
+        policyname        |   cmd    |   roles       |              qual              |          with_check
+--------------------------+----------+---------------+--------------------------------+-----------------------------
+ tenant_select_policy     | SELECT   | {public}      | (tenant_id = (CURRENT_USER))   |
+ tenant_insert_policy     | INSERT   | {public}      |                                | (tenant_id = (CURRENT_USER))
+ tenant_update_policy     | UPDATE   | {public}      | (tenant_id = (CURRENT_USER))   | (tenant_id = (CURRENT_USER))
+ tenant_session_policy    | SELECT   | {app_user}    | (tenant_id = current_setting...) |
 ```
 
 ---

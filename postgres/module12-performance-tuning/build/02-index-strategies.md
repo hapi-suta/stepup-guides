@@ -60,7 +60,7 @@ Expected output (yours will differ):
 ```
     indexname     |                      indexdef
 ------------------+------------------------------------------------------
- orders_pkey      | CREATE UNIQUE INDEX orders_pkey ON orders USING btree (id)
+ orders_pkey      | CREATE UNIQUE INDEX orders_pkey ON orders USING btree (order_id)
 (1 row)
 ```
 
@@ -187,21 +187,18 @@ Expected output (yours will differ):
                       Table "public.products"
     Column     |       Type        | Nullable |      Default
 ---------------+-------------------+----------+-------------------
- id            | integer           | not null | nextval(...)
+ product_id    | integer           | not null | nextval(...)
  name          | character varying | not null |
- description   | text              |          |
  price         | numeric(10,2)     | not null |
- category      | character varying |          |
- stock_qty     | integer           |          |
- ...
+ stock         | integer           |          |
 ```
 
-Create a GIN index for full-text search on product descriptions.
+Create a GIN index for full-text search on product names.
 
 ```sql
-CREATE INDEX idx_products_description_fts
+CREATE INDEX idx_products_name_fts
 ON products
-USING GIN(to_tsvector('english', coalesce(description, '')));
+USING GIN(to_tsvector('english', name));
 ```
 
 Expected output:
@@ -214,9 +211,9 @@ Test the full-text search.
 
 ```sql
 EXPLAIN ANALYZE
-SELECT name, description
+SELECT product_id, name, price
 FROM products
-WHERE to_tsvector('english', coalesce(description, '')) @@ plainto_tsquery('english', 'wireless');
+WHERE to_tsvector('english', name) @@ plainto_tsquery('english', 'wireless');
 ```
 
 Expected output (yours will differ):
@@ -224,9 +221,9 @@ Expected output (yours will differ):
 ```
                                                               QUERY PLAN
 ---------------------------------------------------------------------------------------------------------------------------------------
- Bitmap Heap Scan on products  (cost=8.25..15.40 rows=1 width=80) (actual time=0.245..0.249 rows=3 loops=1)
-   Recheck Cond: (to_tsvector('english'...) @@ ...)
-   ->  Bitmap Index Scan on idx_products_description_fts  (cost=0.00..8.25 rows=1 width=0)
+ Bitmap Heap Scan on products  (cost=8.25..15.40 rows=1 width=48) (actual time=0.245..0.249 rows=3 loops=1)
+   Recheck Cond: (to_tsvector('english'::regconfig, (name)::text) @@ ...)
+   ->  Bitmap Index Scan on idx_products_name_fts  (cost=0.00..8.25 rows=1 width=0)
 (4 rows)
 ```
 
@@ -276,7 +273,7 @@ DROP INDEX
 
 BRIN (Block Range Index) stores the min/max values for ranges of physical disk pages. It is tiny compared to B-tree but only works when data is physically ordered by the column (like timestamps written in order).
 
-Check the orders table for a created_at or ordered_at column.
+Check the orders table for an order_date or ordered_at column.
 
 ```sql
 SELECT column_name, data_type FROM information_schema.columns
@@ -288,18 +285,20 @@ Expected output (yours will differ):
 ```
     column_name    |     data_type
 -------------------+-------------------
- id                | integer
+ order_id          | integer
  customer_id       | integer
- status            | character varying
+ product_id        | integer
+ quantity          | integer
  total_amount      | numeric
- created_at        | timestamp without time zone
- ...
+ order_date        | timestamp without time zone
+ status            | character varying
+ tenant_id         | integer
 ```
 
-Create a BRIN index on created_at.
+Create a BRIN index on order_date.
 
 ```sql
-CREATE INDEX idx_orders_created_brin ON orders USING BRIN(created_at);
+CREATE INDEX idx_orders_created_brin ON orders USING BRIN(order_date);
 ```
 
 Expected output:
@@ -313,7 +312,7 @@ Test a date range query.
 ```sql
 EXPLAIN ANALYZE
 SELECT * FROM orders
-WHERE created_at >= NOW() - INTERVAL '7 days';
+WHERE order_date >= NOW() - INTERVAL '7 days';
 ```
 
 Expected output (yours will differ):
@@ -322,7 +321,7 @@ Expected output (yours will differ):
                                                   QUERY PLAN
 ---------------------------------------------------------------------------------------------------------------
  Bitmap Heap Scan on orders  (cost=4.02..14.55 rows=10 width=72) (actual time=0.033..0.058 rows=8 loops=1)
-   Recheck Cond: (created_at >= (now() - '7 days'::interval))
+   Recheck Cond: (order_date >= (now() - '7 days'::interval))
    ->  Bitmap Index Scan on idx_orders_created_brin  (cost=0.00..4.02 rows=10 width=0)
 (4 rows)
 ```
@@ -339,7 +338,7 @@ The orders table has a status column. Most queries care about 'pending' orders, 
 
 ```sql
 CREATE INDEX idx_orders_pending
-ON orders(created_at)
+ON orders(order_date)
 WHERE status = 'pending';
 ```
 
@@ -355,7 +354,7 @@ This index is only used when the query also filters on `status = 'pending'`.
 EXPLAIN ANALYZE
 SELECT * FROM orders
 WHERE status = 'pending'
-ORDER BY created_at;
+ORDER BY order_date;
 ```
 
 Expected output (yours will differ):

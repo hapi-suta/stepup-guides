@@ -67,18 +67,18 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_login text DEFAULT current_
 Insert test rows for each "customer":
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, customer_login)
-VALUES (101, 1, 2, 49.98, 'customer_role');
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, customer_login)
+VALUES (1, 1, 2, 49.98, 'customer_role');
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, customer_login)
-VALUES (202, 2, 1, 29.99, 'other_customer');
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, customer_login)
+VALUES (2, 2, 1, 29.99, 'other_customer');
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, customer_login)
-VALUES (101, 3, 3, 89.97, 'customer_role');
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, customer_login)
+VALUES (3, 3, 3, 89.97, 'customer_role');
 ```
 
 ---
@@ -107,14 +107,14 @@ Test it in a second terminal:
 ```
 
 ```sql
-SELECT id, customer_login, total FROM orders;
+SELECT order_id, customer_login, total_amount FROM orders;
 ```
 
 Expected output (yours will differ):
 
 ```
- id | customer_login | total
-----+----------------+-------
+ order_id | customer_login | total_amount
+----------+----------------+--------------
   1 | customer_role  | 49.98
   3 | customer_role  | 89.97
 (2 rows)
@@ -140,14 +140,14 @@ Test in a third terminal:
 ```
 
 ```sql
-SELECT id, customer_login, total FROM orders;
+SELECT order_id, customer_login, total_amount FROM orders;
 ```
 
 Expected output - all rows visible:
 
 ```
- id | customer_login | total
-----+----------------+-------
+ order_id | customer_login | total_amount
+----------+----------------+--------------
   1 | customer_role  | 49.98
   2 | other_customer | 29.99
   3 | customer_role  | 89.97
@@ -178,14 +178,14 @@ SET LOCAL app.tenant_id = 'tenant_alpha';
 ```
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (1, 1, 1, 9.99, 'tenant_alpha');
 ```
 
 This should succeed.
 
 ```sql
-INSERT INTO orders (customer_id, product_id, quantity, total, tenant_id)
+INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)
 VALUES (1, 1, 1, 9.99, 'tenant_beta');
 ```
 
@@ -212,7 +212,7 @@ CREATE POLICY no_delete ON orders
 Test as app_user:
 
 ```sql
-DELETE FROM orders WHERE id = 1;
+DELETE FROM orders WHERE order_id = 1;
 ```
 
 Expected output:

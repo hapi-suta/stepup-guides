@@ -115,7 +115,7 @@ BEGIN;
 ```
 
 ```sql
-UPDATE orders SET status = 'processing' WHERE id = 1;
+UPDATE orders SET status = 'processing' WHERE order_id = 1;
 ```
 
 Expected output:
@@ -129,7 +129,7 @@ Do NOT commit yet. Leave this transaction open.
 In your second terminal (Session 2), try to update the same row:
 
 ```sql
-UPDATE orders SET status = 'shipped' WHERE id = 1;
+UPDATE orders SET status = 'shipped' WHERE order_id = 1;
 ```
 
 This command will hang - it is blocked waiting for Session 1's lock to be released.

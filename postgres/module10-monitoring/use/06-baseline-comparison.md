@@ -91,7 +91,7 @@ Run the test query 100 times to populate statistics.
 
 ```sql
 SELECT count(*) FROM (
-  SELECT * FROM orders WHERE customer_id = generate_series(1, 100)
+  SELECT * FROM orders WHERE customer_id IN (SELECT generate_series(1, 100))
 ) t;
 ```
 
@@ -174,7 +174,7 @@ Run the same workload as before.
 
 ```sql
 SELECT count(*) FROM (
-  SELECT * FROM orders WHERE customer_id = generate_series(1, 100)
+  SELECT * FROM orders WHERE customer_id IN (SELECT generate_series(1, 100))
 ) t;
 ```
 

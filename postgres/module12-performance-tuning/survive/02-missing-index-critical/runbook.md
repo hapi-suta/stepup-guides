@@ -19,15 +19,15 @@ Something may have gone wrong.
 
 ## Key Concepts for Revision
 
-- **Primary key = unique constraint + index** - A primary key in PostgreSQL is two things at once: a NOT NULL UNIQUE constraint on the column, and a B-tree index that enforces it. Dropping the constraint also drops the index. Without the index, every lookup by `orders.id` becomes a sequential scan of the entire table.
+- **Primary key = unique constraint + index** - A primary key in PostgreSQL is two things at once: a NOT NULL UNIQUE constraint on the column, and a B-tree index that enforces it. Dropping the constraint also drops the index. Without the index, every lookup by `orders.order_id` becomes a sequential scan of the entire table.
 
 - **EXPLAIN to diagnose** - Before touching anything, run EXPLAIN on the slow query. A Seq Scan on orders for a single-row lookup is the immediate signal that the primary key index is missing.
 
 - **pg_indexes view** - `SELECT * FROM pg_indexes WHERE tablename = 'orders'` shows every index on the table. Missing a row with `indexname LIKE '%pkey'` is a clear indicator.
 
-- **Recreating a primary key while the table is in use** - `ALTER TABLE orders ADD PRIMARY KEY (id)` acquires an `ACCESS EXCLUSIVE` lock, blocking all reads and writes until the index build completes. On large tables, use `CREATE UNIQUE INDEX CONCURRENTLY` first to build the index without blocking, then `ALTER TABLE orders ADD CONSTRAINT orders_pkey PRIMARY KEY USING INDEX idx_orders_id_unique` to attach it.
+- **Recreating a primary key while the table is in use** - `ALTER TABLE orders ADD PRIMARY KEY (order_id)` acquires an `ACCESS EXCLUSIVE` lock, blocking all reads and writes until the index build completes. On large tables, use `CREATE UNIQUE INDEX CONCURRENTLY` first to build the index without blocking, then `ALTER TABLE orders ADD CONSTRAINT orders_pkey PRIMARY KEY USING INDEX idx_orders_id_unique` to attach it.
 
-- **Foreign key cascade effects** - If `order_items.order_id` references `orders.id`, dropping the primary key on orders may also drop the foreign key constraint (depending on CASCADE settings). Check for orphaned foreign keys after restoring the primary key.
+- **Foreign key cascade effects** - If `order_items.order_id` references `orders.order_id`, dropping the primary key on orders may also drop the foreign key constraint (depending on CASCADE settings). Check for orphaned foreign keys after restoring the primary key.
 
 ---
 
@@ -44,7 +44,7 @@ sudo -iu postgres
 ```
 
 ```sql
-EXPLAIN SELECT * FROM orders WHERE id = 1;
+EXPLAIN SELECT * FROM orders WHERE order_id = 1;
 ```
 
 Expected output (yours will differ):
@@ -53,7 +53,7 @@ Expected output (yours will differ):
                       QUERY PLAN
 -------------------------------------------------------
  Seq Scan on orders  (cost=0.00..12.50 rows=1 width=72)
-   Filter: (id = 1)
+   Filter: (order_id = 1)
 (2 rows)
 ```
 
@@ -105,7 +105,7 @@ No constraints at all on orders. Both the PK constraint and its index are gone.
 For the small orders table in this lab, a direct `ADD PRIMARY KEY` is safe.
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER TABLE orders ADD PRIMARY KEY (id);"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER TABLE orders ADD PRIMARY KEY (order_id);"
 ```
 
 Expected output:
@@ -117,7 +117,7 @@ ALTER TABLE
 If the table were large (millions of rows), use CONCURRENTLY to avoid locking:
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "CREATE UNIQUE INDEX CONCURRENTLY idx_orders_id_unique ON orders(id);"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "CREATE UNIQUE INDEX CONCURRENTLY idx_orders_id_unique ON orders(order_id);"
 ```
 
 Then attach it:
@@ -137,14 +137,14 @@ Expected output:
 ```
   indexname   |                      indexdef
 --------------+----------------------------------------------
- orders_pkey  | CREATE UNIQUE INDEX orders_pkey ON orders USING btree (id)
+ orders_pkey  | CREATE UNIQUE INDEX orders_pkey ON orders USING btree (order_id)
 (1 row)
 ```
 
 ### Step 3 - Confirm EXPLAIN now shows index scan
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "EXPLAIN SELECT * FROM orders WHERE id = 1;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "EXPLAIN SELECT * FROM orders WHERE order_id = 1;"
 ```
 
 Expected output (yours will differ):
@@ -153,7 +153,7 @@ Expected output (yours will differ):
                                   QUERY PLAN
 ------------------------------------------------------------------------------
  Index Scan using orders_pkey on orders  (cost=0.14..8.16 rows=1 width=72)
-   Index Cond: (id = 1)
+   Index Cond: (order_id = 1)
 (2 rows)
 ```
 
@@ -179,8 +179,8 @@ exit
 
 Expected checks:
 - PostgreSQL is running
-- orders.id has a primary key or unique index
-- Lookup by orders.id uses index scan
+- orders.order_id has a primary key or unique index
+- Lookup by orders.order_id uses index scan
 - Can query orders table
 - order_items foreign key to orders is intact
 

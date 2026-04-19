@@ -34,11 +34,11 @@ This query is used by the operations dashboard. It is slow.
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, total_amount, created_at
+SELECT order_id, total_amount, order_date
 FROM orders
 WHERE status = 'shipped'
-  AND created_at >= NOW() - INTERVAL '14 days'
-ORDER BY created_at DESC;
+  AND order_date >= NOW() - INTERVAL '14 days'
+ORDER BY order_date DESC;
 ```
 
 Note the plan. Is it using any indexes? What is the execution time?
@@ -57,7 +57,7 @@ The application searches for customers by email regardless of how the user typed
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, first_name, last_name, email
+SELECT customer_id, name, email
 FROM customers
 WHERE lower(email) = lower('ALICE@EXAMPLE.COM');
 ```
@@ -78,37 +78,37 @@ This query fetches line items for orders placed in the last 7 days. It joins two
 
 ```sql
 EXPLAIN ANALYZE
-SELECT oi.id, oi.quantity, oi.unit_price, o.created_at
+SELECT oi.item_id, oi.quantity, oi.unit_price, o.order_date
 FROM order_items oi
-JOIN orders o ON oi.order_id = o.id
-WHERE o.created_at >= NOW() - INTERVAL '7 days';
+JOIN orders o ON oi.order_id = o.order_id
+WHERE o.order_date >= NOW() - INTERVAL '7 days';
 ```
 
 Note the plan. How many rows does the Seq Scan on order_items read?
 
-Your task: create indexes on both `orders.created_at` and `order_items.order_id` and compare the plan.
+Your task: create indexes on both `orders.order_date` and `order_items.order_id` and compare the plan.
 
 Run EXPLAIN ANALYZE after and confirm both index scans appear.
 
 ---
 
-## Challenge 4 - Products by Category and Price Range
+## Challenge 4 - Products by Price Range
 
 The storefront runs this filter frequently.
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, name, price
+SELECT product_id, name, price
 FROM products
-WHERE category = 'Electronics'
-  AND price BETWEEN 50 AND 300;
+WHERE price > 50
+  AND price <= 300;
 ```
 
 Note the plan. What is the execution time?
 
 Your task: create a covering index that allows an Index-Only Scan (no heap access).
 
-**Hint:** The query only selects id, name, and price. A covering index can include those columns.
+**Hint:** The query only selects product_id, name, and price. A covering index can include those columns.
 
 Run EXPLAIN ANALYZE after and verify `Index Only Scan` and `Heap Fetches: 0`.
 
@@ -120,7 +120,7 @@ This fraud check query runs every minute. It only cares about a small subset of 
 
 ```sql
 EXPLAIN ANALYZE
-SELECT id, customer_id, total_amount
+SELECT order_id, customer_id, total_amount
 FROM orders
 WHERE status = 'pending'
   AND total_amount > 500;
@@ -158,10 +158,10 @@ Expected output (yours will differ - should show your new indexes):
 ------------------------------------+-----+-------
  idx_customers_email_lower          | ... | 8 kB
  idx_order_items_order_id           | ... | 16 kB
- idx_orders_created_at              | ... | 16 kB
+ idx_orders_order_date              | ... | 16 kB
  idx_orders_status_created_covering | ... | 24 kB
  idx_orders_high_value_pending      | ... | 8 kB
- idx_products_category_price        | ... | 8 kB
+ idx_products_price_covering        | ... | 8 kB
 (6 rows)
 ```
 

@@ -451,7 +451,7 @@ Click on the **Performance** panel. You should see:
 Generate some load so the metrics change.
 
 ```
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM orders o JOIN customers c ON o.customer_id = c.id JOIN order_items oi ON oi.order_id = o.id;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM orders o JOIN customers c ON o.customer_id = c.customer_id JOIN order_items oi ON oi.order_id = o.order_id;"
 ```
 
 Refresh the Pulse Performance panel. The cache hit ratio should be close to 100% after this warm-up query.
