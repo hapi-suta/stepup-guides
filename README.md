@@ -7,6 +7,7 @@ Step-by-step lab guides for learning PostgreSQL administration.
 | Lab | Topic | Guides |
 |-----|-------|--------|
 | [backup-pitr](postgres/backup-pitr/) | Backup, Recovery, and Point-in-Time Recovery | 8 BUILD guides |
+| [architecture](postgres/architecture/) | PostgreSQL Architecture Deep Dive | 4 BUILD guides |
 
 ## How to Use
 
