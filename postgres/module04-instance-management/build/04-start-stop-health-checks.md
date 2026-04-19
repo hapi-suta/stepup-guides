@@ -303,10 +303,11 @@ Immediate shutdown is like pulling the power cord. The server process exits imme
 Expected output:
 
 ```
+waiting for server to shut down.... done
 server stopped
 ```
 
-Notice there is no "waiting for server to shut down" - it stopped instantly. Check `pg_controldata` to see the cluster state:
+The shutdown happens almost instantly because the server skips checkpoint and cleanup. Check `pg_controldata` to see the cluster state:
 
 ```bash
 /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-shutdown | grep "cluster state"
@@ -336,10 +337,10 @@ waiting for server to start.... done
 server started
 ```
 
-Check the log for recovery activity:
+Check the log for recovery activity. Since `logging_collector` is enabled by default, recovery messages go to the data directory's log subdirectory:
 
 ```bash
-tail -5 /opt/pgsql/log/pg-shutdown-test.log
+tail -10 /opt/pgsql/data-shutdown/log/postgresql-*.log
 ```
 
 Expected output (yours will differ):
@@ -350,6 +351,7 @@ LOG:  database system was not properly shut down; automatic recovery in progress
 LOG:  redo starts at 0/...
 LOG:  invalid record length at 0/...
 LOG:  redo done at 0/...
+LOG:  database system is ready to accept connections
 ```
 
 The `was not properly shut down; automatic recovery in progress` message confirms WAL recovery happened. After recovery, check the cluster state:
@@ -446,13 +448,13 @@ Production PostgreSQL needs monitoring. Here are the tools for checking whether 
 The `pg_isready` command is a lightweight connection check. It attempts a connection and reports the result:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 The exit code tells monitoring tools what happened:
@@ -466,7 +468,7 @@ The exit code tells monitoring tools what happened:
 Check the exit code. The `$?` variable holds the exit code of the last command:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 ```bash
@@ -482,7 +484,7 @@ Expected output:
 Check a port with no server:
 
 ```bash
-pg_isready -p 9999
+/usr/pgsql-16/bin/pg_isready -p 9999
 ```
 
 Expected output:
@@ -545,7 +547,7 @@ Expected output (yours will differ):
 
 ```
     PID USER     COMMAND
-   1234 postgres /usr/pgsql-16/bin/postmaster -D /opt/pgsql/data
+   1234 postgres /usr/pgsql-16/bin/postgres -D /opt/pgsql/data
 ```
 
 Exit the postgres session:
@@ -697,13 +699,13 @@ exit
 Verify the main PG16 cluster is still running:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 ---

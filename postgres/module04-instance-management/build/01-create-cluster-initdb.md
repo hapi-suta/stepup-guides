@@ -39,10 +39,10 @@ Expected output (yours will differ):
 ```
 pg_control version number:            1300
 Catalog version number:               202307071
-Database system identifier:           7490123456789012345
+Database system identifier:           7629952116069622029
 Database cluster state:               in production
 ...
-Data page checksum version:           1
+Data page checksum version:           0
 ...
 ```
 
@@ -60,19 +60,20 @@ The output is long. Here are the fields that matter most:
 > **Concept: What is a system identifier?**
 > The system identifier is a unique number generated from the timestamp and process ID when `initdb` runs. It acts like a cluster's DNA - streaming replication checks this number to make sure a replica was cloned from the right primary. If the identifiers don't match, replication refuses to start. You will see this in Module 11 when you set up streaming replication.
 
-Now filter for just the checksum and locale information. The `grep` command searches for lines matching a pattern:
+Now filter for just the checksum and WAL segment information. The `grep` command searches for lines matching a pattern:
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep -E "checksum|Locale|segment"
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep -E "checksum|WAL segment"
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-Data page checksum version:           1
 Bytes per WAL segment:                16777216
-...
+Data page checksum version:           0
 ```
+
+Note: Checksum version `0` means this cluster was created **without** `--data-checksums`. You will create a new cluster with checksums enabled shortly and see the difference.
 
 Exit the postgres session:
 
@@ -256,7 +257,7 @@ Now compare the checksum settings:
 Expected output:
 
 ```
-Data page checksum version:           1
+Data page checksum version:           0
 ```
 
 ```bash
@@ -269,7 +270,7 @@ Expected output:
 Data page checksum version:           1
 ```
 
-Both clusters have checksums enabled (version 1). If either showed version 0, that cluster was created without `--data-checksums`.
+The PG16 main cluster has checksums **OFF** (version 0) because it was created without `--data-checksums`. Your test cluster has checksums **ON** (version 1) because you used `--data-checksums` in the `initdb` command above. This difference is permanent - you cannot enable checksums on an existing cluster without stopping it and running `pg_checksums --enable`.
 
 Compare WAL segment size:
 
@@ -346,13 +347,13 @@ server started
 Verify the cluster is running with `pg_isready`. The `-p` flag specifies which port to check:
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - accepting connections
+/run/postgresql:5435 - accepting connections
 ```
 
 Connect to the test cluster and check the version:
@@ -373,13 +374,13 @@ Expected output (yours will differ):
 Verify your PG16 main cluster is still running independently:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Both clusters are running side by side on the same server. They share nothing - different data directories, different ports, different system identifiers.
@@ -418,13 +419,13 @@ server stopped
 Verify it is stopped:
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - no response
+/run/postgresql:5435 - no response
 ```
 
 Exit the postgres session:
@@ -475,7 +476,7 @@ You have completed Guide 01. Verify you understand the following:
 - [ ] You can create a new cluster with `initdb -D <path> --data-checksums --locale=en_US.UTF-8 --encoding=UTF8`
 - [ ] You understand that `initdb` decisions (checksums, locale, WAL segment size) are permanent
 - [ ] You can start a cluster on a custom port with `pg_ctl start -D <path> -l <logfile>`
-- [ ] You can verify a cluster is running with `pg_isready -p <port>`
+- [ ] You can verify a cluster is running with `/usr/pgsql-16/bin/pg_isready -p <port>`
 
 ---
 

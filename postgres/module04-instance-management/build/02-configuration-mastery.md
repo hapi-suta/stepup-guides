@@ -140,10 +140,10 @@ Expected output (yours will differ):
 ```
          name          | setting |  unit  |       source       |             sourcefile
 -----------------------+---------+--------+--------------------+-------------------------------------
- data_checksums        | on      |        | override           |
+ data_checksums        | off     |        | override           |
  lc_messages           | en_US.UTF-8 |    | override           |
  port                  | 5432    |        | configuration file | /opt/pgsql/data/postgresql.conf
- shared_buffers        | 16384   | 8kB    | configuration file | /opt/pgsql/data/postgresql.conf
+ shared_buffers        | 16384   | 8kB    | configuration file | /opt/pgsql/data/postgresql.auto.conf
  ...
 ```
 
@@ -208,13 +208,37 @@ In production, you should never modify the main `postgresql.conf` file directly 
 > **Concept: The conf.d/ pattern - how production environments work**
 > Every serious PostgreSQL deployment uses the `conf.d/` pattern. Cloud-managed services like RDS, Aurora, and Cloud SQL do the same thing with parameter groups - they never touch the base config. When you take over a database from another team, the first thing you check is `conf.d/`. If all changes are dumped into the main `postgresql.conf`, you have no easy way to tell what was intentionally changed versus what is a default.
 
-Switch to the `postgres` user:
+First, clean up any settings in `postgresql.auto.conf` from previous labs so they don't interfere with our conf.d experiments. Switch to the `postgres` user:
 
 ```bash
 sudo -iu postgres
 ```
 
-Create the `conf.d/` directory inside PGDATA:
+Connect to psql and reset any persisted settings:
+
+```bash
+psql -p 5432
+```
+
+```sql
+ALTER SYSTEM RESET ALL;
+```
+
+Expected output:
+
+```
+ALTER SYSTEM
+```
+
+```sql
+SELECT pg_reload_conf();
+```
+
+```sql
+\q
+```
+
+Now create the `conf.d/` directory inside PGDATA:
 
 ```bash
 mkdir /opt/pgsql/data/conf.d
@@ -545,13 +569,15 @@ Expected output (yours will differ - comments removed for clarity):
 
 ```
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
-local   all             all                                     peer
-host    all             all             127.0.0.1/32            scram-sha-256
-host    all             all             ::1/128                 scram-sha-256
-local   replication     all                                     peer
-host    replication     all             127.0.0.1/32            scram-sha-256
-host    replication     all             ::1/128                 scram-sha-256
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+local   replication     all                                     trust
+host    replication     all             127.0.0.1/32            trust
+host    replication     all             ::1/128                 trust
 ```
+
+Your server uses `trust` authentication because `initdb` defaults to it when no auth method is specified. This means no password is required for local connections. In production, you would use `peer` (OS user match) for local and `scram-sha-256` (password hash) for host connections.
 
 Each line is a rule with these fields:
 
@@ -581,9 +607,9 @@ Expected output (yours will differ):
 ```
  line_number | type  | database |  user_name  |  address  |  netmask  |   auth_method   | error
 -------------+-------+----------+-------------+-----------+-----------+-----------------+-------
-          85 | local | {all}    | {all}       |           |           | peer            |
-          87 | host  | {all}    | {all}       | 127.0.0.1 | 255.255.255.255 | scram-sha-256 |
-          89 | host  | {all}    | {all}       | ::1       | ...       | scram-sha-256   |
+          85 | local | {all}    | {all}       |           |           | trust           |
+          87 | host  | {all}    | {all}       | 127.0.0.1 | 255.255.255.255 | trust     |
+          89 | host  | {all}    | {all}       | ::1       | ...       | trust           |
 ...
 ```
 
@@ -683,15 +709,16 @@ SELECT context, count(*) FROM pg_settings GROUP BY context ORDER BY count DESC;
 Expected output (yours will differ):
 
 ```
-   context   | count
--------------+-------
- user        |   120
- sighup      |   105
- postmaster  |    35
- superuser   |    25
- internal    |    18
- backend     |     5
-(6 rows)
+      context      | count
+-------------------+-------
+ user              |   142
+ sighup            |    96
+ postmaster        |    58
+ superuser         |    47
+ internal          |    18
+ superuser-backend |     4
+ backend           |     2
+(7 rows)
 ```
 
 The key distinction:
@@ -703,12 +730,13 @@ The key distinction:
 | `user` | Can be set per-session with `SET` | No |
 | `superuser` | Can be set per-session by superusers | No |
 | `internal` | Set at compile time or `initdb` - cannot change | N/A |
+| `superuser-backend` | Set at connection start by superusers only | No |
 | `backend` | Set only at connection start | No |
 
 > **Concept: Reload vs restart - the practical difference**
 > A reload sends a SIGHUP signal to the postmaster process, which re-reads all configuration files. Existing connections keep running. A restart shuts down all connections, stops the server, and starts it fresh. In production, you plan restarts during maintenance windows. Reloads can happen anytime. About 75% of settings are reload-safe (`sighup` + `user` + `superuser`), so you rarely need restarts for day-to-day tuning.
 
-Demonstrate a reload with `log_min_duration_statement` (which has `context = 'sighup'`). Check its current value:
+Demonstrate a reload with `log_min_duration_statement` (which has `context = 'superuser'` - meaning it can be changed per-session or via reload, no restart needed). Check its current value:
 
 ```sql
 SELECT name, setting, unit, context FROM pg_settings WHERE name = 'log_min_duration_statement';
@@ -717,9 +745,9 @@ SELECT name, setting, unit, context FROM pg_settings WHERE name = 'log_min_durat
 Expected output:
 
 ```
-            name            | setting | unit | context
-----------------------------+---------+------+---------
- log_min_duration_statement | 1000    | ms   | sighup
+            name            | setting | unit |  context
+----------------------------+---------+------+-----------
+ log_min_duration_statement | -1      | ms   | superuser
 (1 row)
 ```
 

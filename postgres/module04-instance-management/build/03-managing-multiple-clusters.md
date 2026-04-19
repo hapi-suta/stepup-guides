@@ -25,25 +25,25 @@ ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]
 Check whether the PG16 cluster is accepting connections on port 5432. The `pg_isready` command returns a one-line status:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Check the PG15 cluster on port 5433:
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
 Expected output:
 
 ```
-/tmp:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 List the systemd services for PostgreSQL. The `--type=service` flag filters for services only:
@@ -198,13 +198,13 @@ server started
 Verify it is running:
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - accepting connections
+/run/postgresql:5435 - accepting connections
 ```
 
 Exit the postgres session:
@@ -241,7 +241,7 @@ User=postgres
 Group=postgres
 Environment=PGDATA=/var/lib/pgsql/16/data/
 ...
-ExecStart=/usr/pgsql-16/bin/postmaster -D ${PGDATA}
+ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA}
 ExecReload=/bin/kill -HUP $MAINPID
 ...
 
@@ -269,7 +269,7 @@ User=postgres
 Group=postgres
 Environment=PGDATA=/opt/pgsql/data-multi
 
-ExecStart=/usr/pgsql-16/bin/postmaster -D ${PGDATA}
+ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA}
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=mixed
 KillSignal=SIGINT
@@ -325,7 +325,7 @@ Expected output (yours will differ):
 ● postgresql-16-multi.service - PostgreSQL 16 Multi-Test database server
      Loaded: loaded (/etc/systemd/system/postgresql-16-multi.service; disabled; preset: disabled)
      Active: active (running) since ...
-   Main PID: 12345 (postmaster)
+   Main PID: 12345 (postgres)
      ...
 ```
 
@@ -344,33 +344,33 @@ Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16-multi.
 Verify all three clusters are running:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
 Expected output:
 
 ```
-/tmp:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - accepting connections
+/run/postgresql:5435 - accepting connections
 ```
 
 Three clusters, three ports, three independent services.
@@ -390,37 +390,37 @@ sudo systemctl stop postgresql-15
 Verify PG15 is stopped:
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
 Expected output:
 
 ```
-/tmp:5433 - no response
+/run/postgresql:5433 - no response
 ```
 
 Verify PG16 is still running:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Verify the test cluster is still running:
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - accepting connections
+/run/postgresql:5435 - accepting connections
 ```
 
 PG15 is down. PG16 and the test cluster are unaffected. Start PG15 back up:
@@ -432,13 +432,13 @@ sudo systemctl start postgresql-15
 Verify PG15 is running again:
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
 Expected output:
 
 ```
-/tmp:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 All three clusters are back to normal.
@@ -661,33 +661,33 @@ exit
 Verify only the original two clusters are running:
 
 ```bash
-pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected output:
 
 ```
-/tmp:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 ```bash
-pg_isready -p 5433
+/usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
 Expected output:
 
 ```
-/tmp:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 ```bash
-pg_isready -p 5435
+/usr/pgsql-16/bin/pg_isready -p 5435
 ```
 
 Expected output:
 
 ```
-/tmp:5435 - no response
+/run/postgresql:5435 - no response
 ```
 
 Back to two clusters. Clean state.

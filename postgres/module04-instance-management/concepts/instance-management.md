@@ -235,16 +235,9 @@ Every PostgreSQL binary that touches the data directory supports either the
 `-D` flag or the `PGDATA` environment variable. The `-D` flag always takes
 precedence.
 
-**Ownership rules:** PGDATA and all its contents must be owned by the OS user
-that runs the PostgreSQL server process. On our lab servers, that is the
-`postgres` user. The directory permissions must be `0700` (owner read/write/
-execute only). PostgreSQL refuses to start if the data directory is readable by
-other users.
-
-```
-drwx------  postgres postgres  /opt/pgsql/data/     # correct: 0700
-drwxr-xr-x  postgres postgres  /opt/pgsql/data/     # WRONG: 0755, PostgreSQL will refuse to start
-```
+**Ownership rules:** PGDATA must be owned by the postgres OS user with `0700`
+permissions (owner only). PostgreSQL refuses to start if other users can read
+the data directory.
 
 > **Concept:** The `PGDATA` environment variable is the single most important
 > piece of configuration for any PostgreSQL tool. Set it wrong (or leave it
@@ -254,38 +247,14 @@ drwxr-xr-x  postgres postgres  /opt/pgsql/data/     # WRONG: 0755, PostgreSQL wi
 
 ### 3.3 System Identifier
 
-The **system identifier** is a 64-bit integer assigned to a cluster at
-`initdb` time. It never changes for the lifetime of that cluster. It
-uniquely identifies this specific cluster across all PostgreSQL installations
-in the world (with extremely high probability - it is derived from the
-timestamp and PID at init time).
+The **system identifier** is a 64-bit integer assigned at `initdb` time,
+derived from the timestamp and PID. It never changes. View it with
+`pg_controldata $PGDATA | grep "system identifier"` or
+`SELECT system_identifier FROM pg_control_system()`.
 
-You can see it with `pg_controldata`:
-
-```
-$ pg_controldata /opt/pgsql/data | grep "system identifier"
-Database system identifier:           7355210286638503921
-```
-
-Or from SQL while the server is running:
-
-```sql
-SELECT system_identifier FROM pg_control_system();
-```
-
-**Why it matters:**
-
-- **Streaming replication** uses the system identifier to verify that a standby
-  belongs to the same cluster as the primary. If they do not match, replication
-  refuses to start. This prevents accidental cross-cluster replication.
-- **Backup tools** (pgBackRest, pg_basebackup) record the system identifier in
-  their metadata. A restore will fail if you try to apply WAL from a different
-  cluster.
-- **WAL archive directories** are namespaced by system identifier to prevent
-  WAL from different clusters from mixing together.
-
-You cannot change the system identifier after `initdb`. If you need a new one,
-you need a new cluster.
+Streaming replication uses it to verify primary/standby belong together.
+Backup tools record it to prevent cross-cluster WAL mixing. You cannot
+change it - a new identifier requires a new cluster.
 
 ### 3.4 Data Checksums
 
@@ -295,31 +264,15 @@ PostgreSQL computes a checksum when writing a page to disk and verifies it
 when reading the page back. If the checksum does not match, PostgreSQL raises
 a `WARNING` (by default) or an `ERROR` (if `ignore_checksum_failure` is off).
 
-```
-+---------+---------+--------------------------------+
-| Page    | Check-  | Page data (tuple headers,      |
-| Header  | sum     | tuple data, free space, ...)   |
-| (24 B)  | (2 B)   |            (~8168 B)           |
-+---------+---------+--------------------------------+
-             ^
-             |
-             Computed at write time, verified at read time.
-             Catches: bit rot, firmware bugs, kernel bugs,
-             storage controller errors, torn writes.
-```
+Each 8 KB data page includes a 2-byte checksum computed at write time and
+verified at read time. This catches bit rot, firmware bugs, storage controller
+errors, and torn writes.
 
-**The critical limitation:** Data checksums can only be enabled at `initdb`
-time or by running `pg_checksums` on a stopped cluster (PostgreSQL 12+).
-Enabling checksums on a large production database requires downtime because
-`pg_checksums` must read and rewrite every data page.
-
-| Aspect | Without Checksums | With Checksums |
-| ------ | ----------------- | -------------- |
-| Detection of silent corruption | None | Immediate on read |
-| CPU overhead | Zero | 1-3% (negligible on modern hardware) |
-| Can be enabled later? | Yes, but requires full downtime | N/A (already on) |
-| Backup validation | Cannot verify page integrity | pgBackRest validates pages during backup |
-| Required for production? | Not enforced | Strongly recommended by every PostgreSQL expert |
+**Critical limitation:** Checksums can only be enabled at `initdb` time or by
+running `pg_checksums --enable` on a stopped cluster (PostgreSQL 12+), which
+requires reading and rewriting every data page. CPU overhead is 1-3% -
+negligible on modern hardware. Every PostgreSQL expert recommends enabling
+them.
 
 > **Concept:** Always enable data checksums for any cluster that holds data you
 > care about. The `initdb --data-checksums` flag is a one-time decision with
@@ -582,25 +535,14 @@ This is the primary configuration file, located in PGDATA by default. It
 contains key-value pairs, one per line:
 
 ```ini
-# Connection settings
 listen_addresses = 'localhost'      # which interfaces to bind to
 port = 5432                         # TCP port
 max_connections = 100               # maximum concurrent connections
-
-# Memory
 shared_buffers = 128MB              # shared memory for data caching
 work_mem = 4MB                      # per-operation memory for sorts/hashes
-
-# WAL
 wal_level = replica                 # minimal, replica, or logical
 max_wal_size = 1GB                  # trigger checkpoint at this WAL size
-min_wal_size = 80MB                 # always keep at least this much WAL
-
-# Logging
-log_destination = 'stderr'
 logging_collector = on
-log_directory = 'log'
-log_filename = 'postgresql-%Y-%m-%d.log'
 log_min_duration_statement = 1000   # log queries taking more than 1 second
 ```
 
@@ -634,17 +576,10 @@ Files are loaded in alphabetical order. If the same parameter appears in
 multiple files, the last one loaded wins. The numeric prefix convention
 (`00-`, `01-`, `02-`) gives you explicit control over load order.
 
-**Why this pattern matters:**
-
-- **Version control.** You can `git diff` individual config files to see what
-  changed, when, and why.
-- **Automation.** Ansible, Puppet, and Chef can manage individual files in
-  `conf.d/` without touching the vendor-provided `postgresql.conf`.
-- **Rollback.** Reverting a change means deleting or renaming one file, not
-  editing a 700-line config file and hoping you find the right line.
-- **Multi-tool management.** pgBackRest drops its settings in
-  `conf.d/pgbackrest.conf`. Patroni manages `conf.d/patroni.conf`. Each tool
-  owns its own file.
+**Why this pattern matters:** version control (git diff individual files),
+automation (Ansible manages files in conf.d without touching postgresql.conf),
+rollback (delete one file instead of editing 700 lines), and multi-tool
+management (pgBackRest owns `pgbackrest.conf`, Patroni owns `patroni.conf`).
 
 ### postgresql.auto.conf - ALTER SYSTEM
 
@@ -768,31 +703,16 @@ and an explicit reject-all at the bottom.
 
 ### Validating pg_hba.conf
 
-PostgreSQL 15+ provides the `pg_hba_file_rules` view for validation:
+Use `SELECT * FROM pg_hba_file_rules WHERE error IS NOT NULL` (PostgreSQL 15+)
+to find syntax errors before reloading. A reload with syntax errors keeps the
+old rules - you will not lock yourself out from a typo. But a logical error
+(misplaced `reject` rule) will lock you out.
 
-```sql
-SELECT line_number, type, database, user_name, address, netmask, auth_method, error
-FROM pg_hba_file_rules
-ORDER BY line_number;
-```
-
-Any line with a non-null `error` column has a syntax problem. Fix it before
-reloading.
-
-In older versions, check the server log after `pg_ctl reload`. Syntax errors
-are logged, and the old rules remain in effect until you fix them and reload
-again. A reload with a syntax error never applies partial rules - it keeps the
-entire old configuration.
-
-> **Concept:** After every edit to `pg_hba.conf`, query `pg_hba_file_rules` to
-> validate syntax, then run `SELECT pg_reload_conf()` to apply. If the reload
-> fails due to a syntax error, the old rules remain active - you will not
-> accidentally lock yourself out. But do not relax: if you fix the syntax and
-> reload again with a logical error (like a misplaced `reject` rule), you can
-> absolutely lock yourself out. Always keep a `local` peer rule for the
-> postgres OS user so you have a backdoor via Unix socket. As you saw in Build
-> Guide 02, we added rules one at a time and tested each one before adding
-> the next.
+> **Concept:** Always keep a `local` peer rule for the postgres OS user as a
+> backdoor via Unix socket. If you lock yourself out of TCP connections with
+> a bad pg_hba.conf edit, you can still connect locally and fix it. As you
+> saw in Build Guide 02, we added rules one at a time and tested each before
+> adding the next.
 
 ---
 
@@ -890,55 +810,17 @@ reconnect.
 
 ### pg_ctl vs systemctl
 
-| Operation | pg_ctl | systemctl |
-| --------- | ------ | --------- |
-| Start | `pg_ctl start -D $PGDATA` | `systemctl start postgresql` |
-| Stop (fast) | `pg_ctl stop -D $PGDATA -m fast` | `systemctl stop postgresql` |
-| Restart | `pg_ctl restart -D $PGDATA` | `systemctl restart postgresql` |
-| Reload | `pg_ctl reload -D $PGDATA` | `systemctl reload postgresql` |
-| Status | `pg_ctl status -D $PGDATA` | `systemctl status postgresql` |
-| Enable at boot | N/A | `systemctl enable postgresql` |
-
-**When to use which:**
-
-- Use `systemctl` when PostgreSQL is managed as a system service (production).
-  It integrates with the OS init system, handles PID tracking, enables
-  auto-start on boot, and provides consistent logging via journald.
-
-- Use `pg_ctl` when you are managing PostgreSQL manually (lab environments,
-  custom installations, multiple clusters on one server where each has its own
-  PGDATA). `pg_ctl` requires you to specify PGDATA and runs as the postgres
-  OS user.
-
-In our lab, we use `pg_ctl` because we installed PostgreSQL from source into
-`/opt/pgsql/` without a systemd service file. In production, you would
-create a systemd unit file or install from packages (which provide one).
+Use `systemctl` for production (init integration, auto-start, journald). Use
+`pg_ctl` for manual management (labs, custom installs, multi-cluster). Both
+support `start`, `stop`, `restart`, `reload`, and `status`. In our lab we use
+`pg_ctl` since we installed from source without a systemd unit file.
 
 ### Verifying server readiness
 
-`pg_isready` is a lightweight command that checks whether a PostgreSQL server
-is accepting connections. It does not authenticate - it only checks
-connectivity.
-
-```bash
-# Check if the local server is ready
-pg_isready
-# /tmp:5432 - accepting connections
-
-# Check a remote server
-pg_isready -h pg-primary.example.com -p 5432
-# pg-primary.example.com:5432 - accepting connections
-
-# Exit codes:
-# 0 = accepting connections
-# 1 = rejecting connections (e.g., during startup)
-# 2 = no response (server not running or unreachable)
-# 3 = no attempt was made (bad parameters)
-```
-
-`pg_isready` is the standard health check command for load balancers,
-monitoring systems, and container orchestration (Docker HEALTHCHECK,
-Kubernetes liveness probes).
+`pg_isready` checks whether PostgreSQL is accepting connections without
+authenticating. Exit codes: 0 = accepting, 1 = rejecting (startup), 2 = no
+response, 3 = bad parameters. Use it for load balancer health checks, Docker
+HEALTHCHECK, and Kubernetes liveness probes.
 
 ---
 
@@ -1232,59 +1114,23 @@ escalate: `pg_ctl stop -D $PGDATA -m fast`. If fast also stalls, use
 
 ### Error 10: "invalid page in block" (checksum failure)
 
-**Full error:**
-
 ```
 WARNING: page verification failed, calculated checksum 12345 but expected 54321
 ERROR: invalid page in block 42 of relation base/16384/16385
 ```
 
-**Cause:** A data page on disk has been corrupted. The checksum computed when
-reading the page does not match the checksum stored when the page was last
-written. This indicates hardware-level corruption: disk failure, memory bit
-flip, storage controller bug, or filesystem corruption.
+**Cause:** A data page is corrupted - disk failure, memory bit flip, or
+storage controller bug. The checksum does not match.
 
-**Fix:** This is a data integrity emergency. The immediate steps:
-
-1. **Do not panic. Do not restart.** The server is still running. Only the
-   affected page(s) are corrupt.
-
-2. **Identify the affected table:**
-
-   ```sql
-   -- Convert the relation file number to a table name
-   SELECT relname, relnamespace::regnamespace
-   FROM pg_class
-   WHERE relfilenode = 16385;
-   ```
-
-3. **Check the extent of corruption:**
-
-   ```bash
-   # Stop the server and run a full checksum verification
-   pg_ctl stop -D /opt/pgsql/data -m fast
-   pg_checksums --check -D /opt/pgsql/data
-   ```
-
-4. **Restore from backup.** If you have a clean backup (pgBackRest or
-   pg_basebackup), restore the affected data files. If using pgBackRest:
-
-   ```bash
-   pgbackrest --stanza=main --delta restore
-   ```
-
-5. **If no backup exists,** you can attempt to skip the corrupted page with
-   `SET zero_damaged_pages = on`, but this silently discards the data on that
-   page. It is a data-loss operation and should only be used as a last resort.
+**Fix:** Do not restart. Identify the table (`SELECT relname FROM pg_class
+WHERE relfilenode = 16385`), check extent with `pg_checksums --check -D
+$PGDATA` (requires stopping the server), and restore from backup. As a
+data-loss last resort, `SET zero_damaged_pages = on` skips corrupted pages.
 
 > **Concept:** Checksum failures are the reason we enable data checksums at
-> `initdb` time. Without checksums, this corruption would go undetected.
-> The application would read garbage data and process it as if it were valid.
-> With checksums, PostgreSQL catches the corruption immediately and gives you
-> a chance to restore from backup before the damage spreads. This is why every
-> production cluster should have checksums enabled and a tested backup
-> strategy. Scenario 10 simulates this exact failure so you can practice
-> the recovery procedure.
+> `initdb` time. Without checksums, corruption goes undetected and the
+> application processes garbage data as valid. With checksums, PostgreSQL
+> catches it immediately. Scenario 10 simulates this exact failure.
 
 ---
 

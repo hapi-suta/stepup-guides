@@ -9,7 +9,7 @@ each configuration choice.
 
 | Document | Topic | Description |
 | -------- | ----- | ----------- |
-| [instance-management.md](instance-management.md) | Instance Management | Cluster architecture, PGDATA internals, initdb deep dive, configuration hierarchy (postgresql.conf / conf.d / postgresql.auto.conf), pg_hba.conf authentication, server lifecycle (startup/shutdown/reload/restart), production best practices, and troubleshooting |
+| [instance-management.md](instance-management.md) | Instance Management | Cluster architecture, PGDATA internals, initdb deep dive, configuration hierarchy (postgresql.conf / conf.d / postgresql.auto.conf), pg_hba.conf authentication, server lifecycle (startup/shutdown/reload/restart), production best practices, cross-platform (CentOS vs Ubuntu/Debian), and troubleshooting |
 
 ## Planned
 
