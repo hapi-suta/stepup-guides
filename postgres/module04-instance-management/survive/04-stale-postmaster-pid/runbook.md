@@ -27,7 +27,7 @@ Before diving into the fix, make sure you understand these concepts:
 
 - **Crash recovery (WAL replay)** - After an unclean shutdown, PostgreSQL replays Write-Ahead Log (WAL) records from the last checkpoint to bring the database to a consistent state. This happens automatically on the next startup. The log will show "database system was not properly shut down" followed by "redo starts at" and eventually "database system is ready to accept connections."
 
-- **Why PID 1 blocks startup** - PID 1 is the init/systemd process - it is always running. When PostgreSQL reads `postmaster.pid` and sees PID 1, it checks if that PID is alive. Since PID 1 is always alive, PostgreSQL concludes another postmaster owns the data directory and refuses to start. A truly stale PID (process no longer exists) would be detected and cleaned up automatically by PG16.
+- **Why a running PID blocks startup** - When PostgreSQL reads `postmaster.pid` and sees a PID that belongs to a running process, it refuses to start. PG16 checks `/proc/<pid>/exe` to see if the PID's binary is a postgres executable. If the binary is NOT postgres (e.g., a `sleep` process owned by root or another non-postgres user), PG16 treats the PID as stale and auto-clears it. However, if the PID belongs to a process running under the **postgres OS user** - even a plain `sleep` - PG16 cannot safely determine it is not a real postmaster and refuses to start with "lock file postmaster.pid already exists".
 
 - **Shared memory cleanup after crash** - On SIGKILL, PostgreSQL may leave orphaned shared memory segments. Modern PostgreSQL (12+) uses `mmap`-based shared memory, which the OS cleans up automatically when the process dies. On older systems with System V shared memory, you might need to manually clean up with `ipcrm`.
 
@@ -65,10 +65,10 @@ Expected output (yours will differ):
 ```
 pg_ctl: another server might be running; trying to start server anyway
 FATAL:  lock file "postmaster.pid" already exists
-HINT:  Is another postmaster (PID 1) running in data directory "/opt/pgsql/data"?
+HINT:  Is another postmaster (PID 12345) running in data directory "/opt/pgsql/data"?
 ```
 
-The key clue is "PID 1" - that is the init process, not a real PostgreSQL instance.
+The key clue is the PID shown - check if it actually belongs to a PostgreSQL process.
 
 ### Step 4 - Inspect the postmaster.pid file
 
@@ -79,31 +79,46 @@ sudo cat /opt/pgsql/data/postmaster.pid
 Expected output (yours will differ):
 
 ```
-1
+12345
 /opt/pgsql/data
 1713500000
 5432
-/var/run/postgresql
+/run/postgresql
 *
   5432001     0
 ready
 ```
 
-Line 1 shows PID `1`. That is definitely not a PostgreSQL process.
+Line 1 shows a PID that is NOT a PostgreSQL process. Check what process owns that PID.
 
-### Step 5 - Verify no actual PostgreSQL processes are running
+### Step 5 - Check what process owns that PID
+
+```bash
+ps -p $(head -1 /opt/pgsql/data/postmaster.pid) -o pid,user,comm
+```
+
+Expected output (yours will differ):
+
+```
+    PID USER     COMM
+  12345 postgres sleep
+```
+
+The PID belongs to a `sleep` process running as the `postgres` OS user, not a real PostgreSQL server process. The PID file is stale.
+
+### Step 6 - Verify no actual PostgreSQL processes are running
 
 ```bash
 sudo ps aux | grep postgres | grep -v grep
 ```
 
-Expected output:
+Expected output (yours will differ):
 
 ```
-(no postgres processes shown, or only the grep itself)
+postgres 12345  0.0  0.0  ... sleep
 ```
 
-No PostgreSQL processes are running. The PID file is stale.
+You may see a `sleep` process owned by the `postgres` user - this is NOT a PostgreSQL server process. No actual PostgreSQL server processes (postmaster, checkpointer, walwriter, etc.) are running. The PID file is stale.
 
 ---
 
@@ -141,9 +156,7 @@ exit
 sudo systemctl start postgresql-16
 ```
 
-PostgreSQL will perform crash recovery automatically since the previous shutdown was unclean.
-
-### Step 4 - Watch the logs for crash recovery
+### Step 4 - Watch the logs for successful startup
 
 ```bash
 sudo tail -20 /opt/pgsql/log/postgresql-*.log
@@ -152,16 +165,20 @@ sudo tail -20 /opt/pgsql/log/postgresql-*.log
 Expected output (yours will differ):
 
 ```
-LOG:  database system was not properly shut down; automatic recovery in progress
-LOG:  redo starts at 0/1234567
-LOG:  invalid record length at 0/1234ABC: expected at least 24, got 0
-LOG:  redo done at 0/1234AAA system usage: ...
 LOG:  database system is ready to accept connections
 ```
 
-The key line is "database system is ready to accept connections" - crash recovery completed.
+The key line is "database system is ready to accept connections" - PostgreSQL started successfully.
 
-### Step 5 - Verify PostgreSQL is running and accepting connections
+### Step 5 - Clean up the decoy process (optional)
+
+The stale PID belonged to a `sleep` process. Kill it so it doesn't waste resources:
+
+```bash
+kill $(cat /tmp/chaos-04-state.env 2>/dev/null | grep DECOY_PID | cut -d= -f2) 2>/dev/null || true
+```
+
+### Step 6 - Verify PostgreSQL is running and accepting connections
 
 ```bash
 sudo -iu postgres
@@ -180,7 +197,7 @@ Expected output (yours will differ):
 (1 row)
 ```
 
-### Step 6 - Confirm postmaster.pid has the correct PID
+### Step 7 - Confirm postmaster.pid has the correct PID
 
 ```bash
 head -1 /opt/pgsql/data/postmaster.pid
@@ -233,7 +250,7 @@ Expected checks:
 
 1. **What scenarios cause a stale postmaster.pid in production?** - The most common causes are: (a) server power loss or kernel panic, (b) the OOM killer terminating the postmaster process, (c) `kill -9` issued by an operator or automation, (d) a container being forcefully stopped without a graceful shutdown signal. In all these cases, PostgreSQL has no chance to clean up its PID file.
 
-2. **How does PostgreSQL 16 handle stale PID detection compared to older versions?** - PG16 checks whether the PID in `postmaster.pid` actually belongs to a running process. If the PID does not exist, PG16 logs a warning and removes the stale file automatically, then starts normally. However, if the PID belongs to a running process (like PID 1 or a recycled PID), PG16 cannot tell it apart from a real postmaster and refuses to start. Older versions (before PG12) were less sophisticated and often required manual cleanup.
+2. **How does PostgreSQL 16 handle stale PID detection compared to older versions?** - PG16 uses a two-stage check. First: if the PID does not exist at all, PG16 logs a warning, removes the stale file, and starts normally. Second: if the PID exists, PG16 checks `/proc/<pid>/exe` to see if the binary is a postgres executable AND checks the process owner. If the process is owned by the postgres OS user (regardless of binary), PG16 refuses to start with "lock file postmaster.pid already exists" because it cannot safely determine whether it is a live postmaster. A `sleep` process owned by a non-postgres user is auto-cleared; the same `sleep` owned by the postgres user blocks startup. Older versions (before PG12) were less sophisticated and always required manual cleanup of stale PID files.
 
 3. **What is crash recovery and how long does it take?** - After an unclean shutdown, PostgreSQL replays all WAL records written since the last completed checkpoint. The duration depends on the `checkpoint_timeout` setting (default 5 minutes) and write volume. In the worst case, PG replays up to one checkpoint interval worth of WAL. Heavy write workloads with long checkpoint intervals can mean several minutes of recovery. Setting `checkpoint_timeout` lower reduces recovery time but increases I/O during normal operations.
 
