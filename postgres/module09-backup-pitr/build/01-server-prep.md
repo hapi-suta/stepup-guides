@@ -6,6 +6,123 @@ Run every step on BOTH servers unless noted otherwise.
 
 ---
 
+## 0. Connect to your servers
+
+Before you can run any commands, you need to SSH into your servers. Your welcome email has your server IPs and SSH key.
+
+### Mac / Linux
+
+Open Terminal and run:
+
+```bash
+ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
+```
+
+If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter.
+
+### Windows - Option A: Command Prompt (Recommended)
+
+Open **Command Prompt** (search for "cmd" in the Start menu) and run:
+
+```
+ssh -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
+```
+
+If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter.
+
+### Windows - Option B: MobaXterm
+
+If you have MobaXterm installed, open it and click the terminal at the bottom. Then run:
+
+```
+ssh -i C:\Users\[YOUR-USERNAME]\Desktop\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
+```
+
+Adjust the path to wherever you saved the .pem file.
+
+### Windows Troubleshooting
+
+**"ssh is not recognized"**
+
+SSH is not installed or not in your PATH. Try these fixes in order:
+
+1. Try the full path to ssh:
+
+```
+C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
+```
+
+2. If that also fails, check if OpenSSH is installed:
+
+```
+Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
+```
+
+If it says `NotPresent`, install it (run PowerShell as Administrator):
+
+```powershell
+Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+```
+
+Close PowerShell, reopen it, then try `ssh -V` to confirm it works.
+
+3. If it says `Installed` but ssh still doesn't work, the install is broken. Remove and reinstall (run PowerShell as Administrator):
+
+```powershell
+Remove-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+```
+
+Close PowerShell, reopen it, then try `ssh -V`.
+
+4. If none of the above work, use **MobaXterm** (Option B above) or **PuTTY** (Option C below).
+
+**"Permission denied (publickey)"**
+
+Your key file was not found or has the wrong name. Check:
+
+1. Make sure the file exists where you saved it:
+
+```
+dir C:\Users\[YOUR-USERNAME]\.ssh\*.pem
+dir C:\Users\[YOUR-USERNAME]\Desktop\*.pem
+dir C:\Users\[YOUR-USERNAME]\Downloads\*.pem
+```
+
+2. If the file was saved as `.pem.txt` instead of `.pem`, rename it:
+
+```
+ren C:\Users\[YOUR-USERNAME]\Desktop\[YOUR-KEY-FILE].pem.txt [YOUR-KEY-FILE].pem
+```
+
+Then try the ssh command again with the correct path.
+
+**"Identity file not accessible: No such file or directory"**
+
+Same issue - the file path is wrong. Run the `dir` commands above to find where the file actually is, then use that full path in your ssh command.
+
+### Windows - Option C: PuTTY (Last Resort)
+
+If SSH won't work on your machine at all, use PuTTY:
+
+1. Download and install PuTTY from `https://www.putty.org`
+
+2. Open **Command Prompt** and convert your .pem key to PuTTY format:
+
+```
+"C:\Program Files\PuTTY\puttygen.exe" C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem -o C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].ppk
+```
+
+3. Connect:
+
+```
+"C:\Program Files\PuTTY\putty.exe" -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].ppk -ssh ec2-user@[NODE1_IP]
+```
+
+A PuTTY window will open. If it asks about a key fingerprint, click **Accept**. You should be logged in.
+
+---
+
 ## 1. Update the OS
 
 **Run on BOTH servers:**
