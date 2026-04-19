@@ -3,13 +3,13 @@
 Learn every pg_dump and pg_dumpall option. By the end of this guide you can dump
 any database in any format with surgical precision.
 
-All commands run on NODE1 unless noted otherwise.
-
 ---
 
 ## 1. pg_dump basics - plain SQL format (-Fp)
 
-The simplest backup - a plain SQL script.
+**Run on NODE1 (pg-primary):**
+
+The simplest backup - a plain SQL script. Use plain format (`-Fp`) when you have a small database and want a human-readable dump you can open and edit.
 
 Switch to the postgres user:
 
@@ -17,13 +17,17 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
-Dump the appdb database in plain SQL format. The `-Fp` flag selects plain format, and `>` redirects the output into a file:
+**You are now the postgres user.**
+
+Dump the appdb database in plain SQL format. The `-Fp` flag selects plain format:
 
 ```bash
 pg_dump -Fp appdb > /opt/pgsql/backup/dumps/appdb.sql
 ```
 
-(`-Fp` = plain format, `appdb` = the database to dump, `>` = write output to a file)
+The `>` operator sends the command's output into a file instead of printing it on screen.
+
+(`-Fp` = plain format, `appdb` = the database to dump)
 
 Inspect the first 30 lines of the dump to see what it looks like:
 
@@ -66,7 +70,9 @@ Expected output (yours will differ):
 
 ## 2. Custom format (-Fc)
 
-The most versatile format - compressed, supports selective restore.
+**Run on NODE1 (pg-primary):**
+
+The most versatile format - compressed, supports selective restore. Use custom format (`-Fc`) as your go-to default for most backups.
 
 Still as the postgres user, dump appdb in custom format:
 
@@ -117,7 +123,9 @@ Expected output (yours will differ):
 
 ## 3. Directory format (-Fd)
 
-Directory format dumps each table to a separate file, which enables parallel dumping.
+**Run on NODE1 (pg-primary):**
+
+Directory format dumps each table to a separate file, which enables parallel dumping. Use directory format (`-Fd`) when you have a large database and need the fastest possible dump and restore times.
 
 Dump appdb in directory format. The `-f` flag specifies the output directory (instead of `>` for a single file):
 
@@ -163,7 +171,9 @@ This will take a few minutes with the 5GB dataset. Be patient.
 
 ## 4. TAR format (-Ft)
 
-A tar archive of the directory format - useful for transferring as a single file.
+**Run on NODE1 (pg-primary):**
+
+A tar archive of the directory format - useful for transferring as a single file. Use tar format (`-Ft`) when you need a single portable file but still want the ability to selectively restore individual tables.
 
 ```bash
 pg_dump -Ft appdb > /opt/pgsql/backup/dumps/appdb.tar
@@ -171,11 +181,13 @@ pg_dump -Ft appdb > /opt/pgsql/backup/dumps/appdb.tar
 
 (`-Ft` = tar format)
 
-Inspect the contents of the tar file:
+Inspect the contents of the tar file. The `|` (pipe) operator takes the output of one command and feeds it as input to the next command:
 
 ```bash
 tar tf /opt/pgsql/backup/dumps/appdb.tar | head -10
 ```
+
+(`tar tf` = list the files inside a tar archive without extracting them. `head -10` = show only the first 10 lines.)
 
 Expected: filenames like `toc.dat`, data files.
 
@@ -185,6 +197,8 @@ Expected: filenames like `toc.dat`, data files.
 > Use it when you need a single file but still want selective restore capability.
 
 ## 5. Compare all format sizes
+
+**Run on NODE1 (pg-primary):**
 
 Check the plain SQL dump size:
 
@@ -228,6 +242,8 @@ appdb.tar:     4.1M
 
 ## 6. pg_dump options deep dive - schema and data filtering
 
+**Run on NODE1 (pg-primary):**
+
 ### Schema only (no data)
 
 Dump only the table definitions, with no row data:
@@ -238,7 +254,7 @@ pg_dump -Fp --schema-only appdb > /opt/pgsql/backup/dumps/appdb_schema.sql
 
 (`--schema-only` = dump CREATE TABLE, CREATE INDEX, etc. but skip all the data)
 
-Verify there are no COPY or INSERT statements (which would contain data):
+Verify there are no COPY or INSERT statements (which would contain data). The `grep` command searches text for a pattern and shows only the lines that match. The `-c` flag makes `grep` count the number of matching lines instead of printing them:
 
 ```bash
 grep -c "^COPY\|^INSERT" /opt/pgsql/backup/dumps/appdb_schema.sql
@@ -275,6 +291,8 @@ Expected: `0`.
 > before loading data (e.g., adding partitioning).
 
 ## 7. pg_dump options deep dive - table filtering
+
+**Run on NODE1 (pg-primary):**
 
 ### Dump a single table
 
@@ -336,6 +354,8 @@ pg_dump -Fc --schema=public appdb > /opt/pgsql/backup/dumps/appdb_public.dump
 
 ## 8. pg_dump options deep dive - ownership and privileges
 
+**Run on NODE1 (pg-primary):**
+
 Dump without ownership or permission statements. This creates a "portable" dump that works regardless of which roles exist:
 
 ```bash
@@ -364,6 +384,8 @@ Expected output:
 
 ## 9. pg_dump with compression
 
+**Run on NODE1 (pg-primary):**
+
 Dump labdb with maximum compression (level 9):
 
 ```bash
@@ -390,6 +412,8 @@ ls -lh /opt/pgsql/backup/dumps/labdb_max_compress.dump /opt/pgsql/backup/dumps/l
 > databases, the difference between 6 and 9 is rarely worth the extra CPU time.
 
 ## 10. pg_dumpall - full cluster dump
+
+**Run on NODE1 (pg-primary):**
 
 pg_dumpall dumps every database plus cluster-level objects (roles, tablespaces):
 
@@ -437,6 +461,8 @@ ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION
 
 ## 11. pg_dumpall - globals only
 
+**Run on NODE1 (pg-primary):**
+
 Dump only the cluster-level objects (roles, tablespaces) without any database contents:
 
 ```bash
@@ -461,6 +487,8 @@ Expected: only `CREATE ROLE` and related statements - no database contents.
 
 ## 12. Dump to NODE2 over SSH
 
+**Run on NODE1 (pg-primary):**
+
 Send a backup directly to the backup server without storing it locally. This pipes the output of pg_dump through an SSH connection to NODE2.
 
 Still as the postgres user, dump appdb and stream it directly to NODE2:
@@ -469,15 +497,18 @@ Still as the postgres user, dump appdb and stream it directly to NODE2:
 pg_dump -Fc appdb | ssh postgres@pg-backup "cat > /opt/pgsql/backup/logical/appdb.dump"
 ```
 
-(The `|` pipes pg_dump's output through SSH to NODE2, where `cat >` writes it to a file. We run this as the postgres user because postgres has the SSH keys to connect to NODE2.)
+(This pipes pg_dump's output through SSH to NODE2, where `cat >` writes it to a file. We run this as the postgres user because postgres has the SSH keys to connect to NODE2.)
 
-Dump all three databases to NODE2:
+Now dump labdb to NODE2:
 
 ```bash
-for db in labdb appdb blobdb; do
-    echo "Dumping $db to pg-backup..."
-    pg_dump -Fc "$db" | ssh postgres@pg-backup "cat > /opt/pgsql/backup/logical/${db}.dump"
-done
+pg_dump -Fc labdb | ssh postgres@pg-backup "cat > /opt/pgsql/backup/logical/labdb.dump"
+```
+
+Now dump blobdb to NODE2:
+
+```bash
+pg_dump -Fc blobdb | ssh postgres@pg-backup "cat > /opt/pgsql/backup/logical/blobdb.dump"
 ```
 
 Dump globals to NODE2:
@@ -509,6 +540,8 @@ total 1.5G
 > tradeoff is that a network interruption means you restart the entire dump.
 
 ## 13. Dump the blobdb to verify binary data handling
+
+**Run on NODE1 (pg-primary):**
 
 Still as the postgres user, dump blobdb in custom format:
 
@@ -555,6 +588,8 @@ Exit back to ec2-user:
 ```bash
 exit
 ```
+
+**You are now back to the ec2-user.**
 
 > **Concept - Binary data compression**: Custom format compresses bytea data
 > effectively. A dump of binary data is often smaller than the database itself

@@ -9,6 +9,8 @@ All commands run on NODE1 unless noted otherwise.
 
 ## 1. Restore plain SQL format with psql
 
+**Run on NODE1 (pg-primary):**
+
 Create a fresh database and restore the plain SQL dump into it.
 
 Switch to the postgres user:
@@ -17,17 +19,23 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 Create an empty database to restore into:
 
 ```bash
 psql -c "CREATE DATABASE appdb_restored;"
 ```
 
-Restore the plain SQL dump. Since plain dumps are just SQL scripts, we use `psql` to replay them. The `<` operator feeds the file into psql:
+`-c` runs the SQL command in quotes and exits immediately.
+
+Restore the plain SQL dump. Since plain dumps are just SQL scripts, we use `psql` to replay them. The `<` operator feeds a file's contents into a command as input:
 
 ```bash
 psql -d appdb_restored < /opt/pgsql/backup/dumps/appdb.sql
 ```
+
+`-d appdb_restored` connects to the `appdb_restored` database.
 
 ```
 Expected output (yours will differ):
@@ -42,8 +50,6 @@ ALTER TABLE
 COPY 100000
 ...
 ```
-
-(`-d appdb_restored` = connect to this database, `<` = read SQL from the file)
 
 Verify the data was restored:
 
@@ -66,6 +72,8 @@ Expected output:
 > execution by default. Add `--set ON_ERROR_STOP=on` to halt on the first error.
 
 ## 2. Restore custom format with pg_restore
+
+**Run on NODE1 (pg-primary):**
 
 Create an empty database:
 
@@ -99,6 +107,8 @@ Expected output:
 
 ## 3. pg_restore with --create
 
+**Run on NODE1 (pg-primary):**
+
 Instead of creating the database manually, let pg_restore do it automatically from the dump metadata.
 
 First, drop the database we just created so --create can recreate it:
@@ -113,7 +123,7 @@ Restore with --create. Notice we connect to the `postgres` database (not appdb):
 pg_restore --create -d postgres /opt/pgsql/backup/dumps/appdb.dump
 ```
 
-(`--create` = issue CREATE DATABASE before restoring objects, `-d postgres` = connect to the postgres database first, since you can't create a database while connected to it)
+--create tells pg_restore to create the database first. It reads the original database name from inside the dump and issues a CREATE DATABASE before restoring objects. You must connect to a different database (like `postgres`) since you cannot create a database while connected to it.
 
 > **Concept - The --create flag**: When you use `--create`, pg_restore issues
 > `CREATE DATABASE` followed by `\connect` before restoring objects. You must
@@ -137,6 +147,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_custom;"
 
 ## 4. pg_restore with --clean and --if-exists
 
+**Run on NODE1 (pg-primary):**
+
 Drop existing objects before restoring - useful for refreshing a database.
 
 Create a test database:
@@ -151,7 +163,7 @@ Restore with --clean and --if-exists:
 pg_restore -d appdb_clean_test --clean --if-exists /opt/pgsql/backup/dumps/appdb.dump
 ```
 
-(`--clean` = drop each object before recreating it, `--if-exists` = add IF EXISTS to the DROP statements so they don't error if the object doesn't exist yet)
+--clean tells pg_restore to drop existing objects before recreating them. --if-exists prevents errors if the objects don't exist yet. Always pair these two flags together.
 
 > **Concept - Clean restore**: `--clean` adds DROP statements before each CREATE.
 > `--if-exists` adds IF EXISTS to those DROPs so they do not error on the first
@@ -172,6 +184,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_clean_test;"
 ```
 
 ## 5. Restore schema only, then data only
+
+**Run on NODE1 (pg-primary):**
 
 This two-step approach lets you load the table structure first, optionally modify it, then load the data.
 
@@ -220,6 +234,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_split;"
 ```
 
 ## 6. Restore a single table from a full dump
+
+**Run on NODE1 (pg-primary):**
 
 Restore only the employees table from the full appdb dump. This is one of the biggest advantages of custom format over plain SQL.
 
@@ -273,6 +289,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_partial;"
 
 ## 7. Custom restore order with --list and --use-list
 
+**Run on NODE1 (pg-primary):**
+
 This two-step workflow gives you total control over what gets restored and in what order.
 
 Step 1 - generate the table of contents from the dump file:
@@ -298,13 +316,23 @@ Expected: numbered entries like:
 ...
 ```
 
-Step 2 - edit the list. Comment out any entries you don't want. This example removes SEQUENCE SET entries:
+Step 2 - edit the list to comment out entries you don't want. We will comment out any SEQUENCE SET entries by adding a `;` at the start of those lines.
+
+Open the file in vim:
 
 ```bash
-sed -i 's/^.*SEQUENCE SET/;&/' /tmp/appdb_toc.list
+vi /tmp/appdb_toc.list
 ```
 
-(Lines starting with `;` are treated as comments and will be skipped during restore.)
+Inside vim:
+
+1. Type `/SEQUENCE SET` and press Enter to find the first SEQUENCE SET line.
+2. Press `I` (capital i) to move to the beginning of the line and enter insert mode.
+3. Type `;` to comment out that line, then press Escape.
+4. If there are more SEQUENCE SET lines, press `n` to jump to the next match and repeat steps 2-3.
+5. When all SEQUENCE SET lines are commented out, type `:wq` and press Enter to save and exit.
+
+Lines starting with `;` are treated as comments and will be skipped during restore.
 
 Step 3 - restore using the edited list:
 
@@ -339,6 +367,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_custom_order;"
 ```
 
 ## 8. Parallel restore with --jobs
+
+**Run on NODE1 (pg-primary):**
 
 Restore the labdb directory dump using multiple workers to speed up the process.
 
@@ -385,6 +415,8 @@ psql -c "DROP DATABASE IF EXISTS labdb_parallel;"
 ```
 
 ## 9. Restore with --section
+
+**Run on NODE1 (pg-primary):**
 
 pg_restore organizes dumps into three sections: pre-data, data, and post-data. You can restore each section independently.
 
@@ -437,6 +469,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_sections;"
 
 ## 10. Restore with --no-owner and --no-privileges
 
+**Run on NODE1 (pg-primary):**
+
 Restore without trying to set ownership. Useful when the original roles don't exist in your environment.
 
 Create the database:
@@ -465,6 +499,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_portable;"
 ```
 
 ## 11. Restore to a different database name
+
+**Run on NODE1 (pg-primary):**
 
 The dump contains the original database name, but you can restore to any name you want.
 
@@ -500,6 +536,8 @@ psql -c "DROP DATABASE IF EXISTS appdb_renamed;"
 ```
 
 ## 12. Cross-version considerations
+
+**Run on NODE1 (pg-primary):**
 
 Check your pg_dump version:
 
@@ -540,6 +578,8 @@ These should match. If they don't, you could run into compatibility issues.
 
 ## 13. Restore from NODE2
 
+**Run on NODE1 (pg-primary):**
+
 Verify you can restore from dumps stored on the backup server.
 
 Exit back to ec2-user:
@@ -553,6 +593,8 @@ Switch to the postgres user (we need the postgres SSH keys to connect to NODE2):
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Copy the dump from NODE2 to a temp location on NODE1. `scp` is secure copy over SSH - this pulls the file from NODE2 to NODE1:
 

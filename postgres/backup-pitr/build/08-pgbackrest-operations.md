@@ -9,7 +9,19 @@ commands run on NODE2 unless noted otherwise.
 
 ---
 
+## Backup Types Overview
+
+Before you run any backups, here is what each type does:
+
+- **Full backup**: A complete copy of your entire database. Takes the most time and space, but is self-contained.
+- **Differential backup**: Only the data that changed since the last FULL backup. Faster and smaller than full, but needs the full backup to restore.
+- **Incremental backup**: Only the data that changed since the last backup of ANY type. Fastest and smallest, but needs the full backup plus all incremental backups in the chain to restore.
+
+---
+
 ## 1. Take a full backup
+
+**Run on NODE1 (pg-primary):**
 
 A full backup copies the entire data directory.
 
@@ -19,7 +31,9 @@ Switch to the postgres user:
 sudo -i -u postgres
 ```
 
-Run the full backup:
+**You are now the postgres user.**
+
+Run the full backup. The `--stanza=main` flag tells pgBackRest which configuration stanza to use. The `--type=full` flag requests a complete copy of the database:
 
 ```bash
 pgbackrest --stanza=main --type=full backup
@@ -39,7 +53,7 @@ INFO: full backup size = 4.9GB, file total = 1899
 INFO: backup command end: completed successfully (95209ms)
 ```
 
-Check the backup details:
+Check the backup details. The `info` command shows all backups stored in the repository:
 
 ```bash
 pgbackrest --stanza=main info
@@ -77,7 +91,9 @@ exit
 
 ## 2. Generate data changes for differential/incremental testing
 
-Insert data between backups so the diff/incr have something to capture.
+**Run on NODE1 (pg-primary):**
+
+We insert data between backups so the differential and incremental backups have changes to capture. In production, database changes happen naturally from your application.
 
 Switch to the postgres user:
 
@@ -85,7 +101,9 @@ Switch to the postgres user:
 sudo -i -u postgres
 ```
 
-Insert 50,000 rows:
+**You are now the postgres user.**
+
+Insert 50,000 rows. This generates test data that the next backup types can detect as changes:
 
 ```bash
 psql -d labdb -c "
@@ -99,13 +117,13 @@ FROM generate_series(1, 50000) g;
 "
 ```
 
-Force a WAL switch to ensure changes are archived:
+Force a WAL switch to ensure changes are archived. This command tells PostgreSQL to finish the current WAL file and start a new one, triggering archiving:
 
 ```bash
 psql -c "SELECT pg_switch_wal();"
 ```
 
-Wait for archiving:
+Wait for archiving. This gives pgBackRest time to pick up the new WAL file:
 
 ```bash
 sleep 3
@@ -113,9 +131,11 @@ sleep 3
 
 ## 3. Take a differential backup
 
+**Run on NODE1 (pg-primary):**
+
 A differential backup captures all changes since the last full backup.
 
-Still as postgres, run the diff backup:
+Still as postgres, run the diff backup. The `--type=diff` flag tells pgBackRest to only capture changes since the last full backup:
 
 ```bash
 pgbackrest --stanza=main --type=diff backup
@@ -148,6 +168,10 @@ Expected output (yours will differ):
 
 ## 4. Generate more changes
 
+**Run on NODE1 (pg-primary):**
+
+We insert more data so the incremental backup has additional changes to capture beyond what the differential already recorded.
+
 Still as postgres, insert another 30,000 rows:
 
 ```bash
@@ -176,10 +200,12 @@ sleep 3
 
 ## 5. Take an incremental backup
 
+**Run on NODE1 (pg-primary):**
+
 An incremental backup captures changes since the last backup of any type
 (full, diff, or incr).
 
-Still as postgres:
+Still as postgres, run the incremental backup. The `--type=incr` flag tells pgBackRest to only capture changes since the last backup (regardless of type):
 
 ```bash
 pgbackrest --stanza=main --type=incr backup
@@ -210,7 +236,9 @@ Expected output (yours will differ):
 
 ## 6. Compare backup sizes
 
-Still as postgres, get JSON output and parse it to show backup sizes:
+**Run on NODE1 (pg-primary):**
+
+Still as postgres, get JSON output and parse it to show backup sizes. This command pipes pgBackRest's JSON output through a Python script that extracts the label, type, sizes, and compression ratio for each backup:
 
 ```bash
 pgbackrest --stanza=main info --output=json | \
@@ -258,11 +286,15 @@ exit
 
 ## 7. List and inspect backups
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 List all backups with details:
 
@@ -270,13 +302,13 @@ List all backups with details:
 pgbackrest --stanza=main info
 ```
 
-Get JSON output for scripting (useful for monitoring integrations):
+Get JSON output for scripting (useful for monitoring integrations). The `--output=json` flag produces machine-readable output, and `python3 -m json.tool` pretty-prints it. The `head -40` limits output to the first 40 lines:
 
 ```bash
 pgbackrest --stanza=main info --output=json | python3 -m json.tool | head -40
 ```
 
-List the backup labels stored in the repository:
+List the backup labels stored in the repository. The `repo-ls` command lists files and directories inside the pgBackRest repository:
 
 ```bash
 pgbackrest --stanza=main repo-ls backup/main
@@ -306,29 +338,39 @@ exit
 
 ## 8. Restore with pgBackRest - full database
 
+**Run on NODE2 (pg-backup):**
+
+The `--delta` flag tells pgBackRest to check existing files and only restore what is different, instead of requiring an empty data directory. Without `--delta`, pgBackRest would refuse to restore if the data directory contains any files. We clear the data directory first in this section for a clean demo, but `--delta` is still useful because it verifies file integrity during the restore.
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
 
-Stop PostgreSQL:
+**You are now on NODE2 (pg-backup).**
+
+Stop PostgreSQL. The `systemctl stop` command gracefully shuts down the database service:
 
 ```bash
 sudo systemctl stop postgresql-16
 ```
 
-Clear the data directory:
+Clear the data directory. This removes all database files so we can do a clean restore:
 
 ```bash
 sudo rm -rf /opt/pgsql/data/*
 ```
 
-Switch to the postgres user and run the restore:
+Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
+
+Run the restore. The `--delta` flag compares existing files with the backup and only restores what differs:
 
 ```bash
 pgbackrest --stanza=main --delta restore
@@ -347,7 +389,7 @@ INFO: restore size = 4.9GB, file total = 1899
 INFO: restore command end: completed successfully (41183ms)
 ```
 
-Verify the restore created a full data directory:
+Verify the restore created a full data directory. The `ls -la` command lists all files with permissions and ownership:
 
 ```bash
 ls -la /opt/pgsql/data/
@@ -372,6 +414,10 @@ Switch to postgres and verify the data:
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
+
+Check that all rows are present. The `count(*)` function returns the total number of rows in the table:
 
 ```bash
 psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
@@ -399,6 +445,8 @@ Exit back to NODE1:
 exit
 ```
 
+**You are now back on NODE1 (pg-primary).**
+
 > **Concept - Delta restore**: The `--delta` flag tells pgBackRest to compare
 > existing files with the backup and only restore files that differ. Without
 > `--delta`, pgBackRest requires an empty target directory. Delta is useful
@@ -407,11 +455,15 @@ exit
 
 ## 9. PITR with pgBackRest
 
+**Run on NODE2 (pg-backup) first, then NODE1 (pg-primary), then back to NODE2.**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
+
+**You are now on NODE2 (pg-backup).**
 
 Stop PostgreSQL:
 
@@ -431,11 +483,15 @@ Exit back to NODE1:
 exit
 ```
 
+**You are now back on NODE1 (pg-primary).**
+
 Record the current time on NODE1. This is your "safe" timestamp:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 ```bash
 psql -c "SELECT now() AS pitr_target_time;"
@@ -448,6 +504,8 @@ Wait a few seconds, then insert "post-target" data that should not survive the P
 ```bash
 sleep 3
 ```
+
+Insert rows into the employees table. These rows represent a "mistake" that we want to undo with PITR:
 
 ```bash
 psql -d appdb -c "
@@ -481,13 +539,19 @@ SSH into NODE2 and restore to the target time:
 ssh ec2-user@pg-backup
 ```
 
+**You are now on NODE2 (pg-backup).**
+
 Switch to postgres:
 
 ```bash
 sudo -i -u postgres
 ```
 
-Run the PITR restore. Replace the `--target` value with the timestamp you recorded above:
+**You are now the postgres user.**
+
+Run the PITR restore. Replace the `--target` value with the timestamp you recorded above. The `+00` means UTC timezone.
+
+**Use the actual timestamp from YOUR output above - do not copy this example.**
 
 ```bash
 pgbackrest --stanza=main \
@@ -524,7 +588,9 @@ Switch to postgres and verify the recovery:
 sudo -i -u postgres
 ```
 
-Check that the "mistake" data does not exist:
+**You are now the postgres user.**
+
+Check that the "mistake" data does not exist. This query filters for rows with department = 'mistake' - if PITR worked correctly, none should be found:
 
 ```bash
 psql -d appdb -c "SELECT * FROM employees WHERE department = 'mistake';"
@@ -539,7 +605,7 @@ Expected output:
 (0 rows)
 ```
 
-Verify the instance was automatically promoted:
+Verify the instance was automatically promoted. The `pg_is_in_recovery()` function returns `t` (true) if the server is in recovery mode, or `f` (false) if it is a writable primary:
 
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
@@ -567,6 +633,8 @@ Exit back to NODE1:
 exit
 ```
 
+**You are now back on NODE1 (pg-primary).**
+
 > **Concept - pgBackRest PITR vs manual PITR**: pgBackRest handles everything
 > you did manually in Build 06 - restoring the base backup, configuring
 > restore_command, setting recovery targets, and creating recovery.signal. A
@@ -577,7 +645,7 @@ exit
 
 ## 10. Restore a specific backup
 
-You can target a specific backup by its label instead of using the most recent one.
+**Run on NODE1 (pg-primary) first, then NODE2 (pg-backup).**
 
 Switch to postgres on NODE1 to get the backup labels:
 
@@ -585,11 +653,15 @@ Switch to postgres on NODE1 to get the backup labels:
 sudo -i -u postgres
 ```
 
+**You are now the postgres user.**
+
 ```bash
 pgbackrest --stanza=main info
 ```
 
 Note the full backup label (e.g., `20260417-143000F`).
+
+**Use the actual backup label from YOUR output above - do not copy this example.**
 
 Exit back to ec2-user:
 
@@ -597,11 +669,15 @@ Exit back to ec2-user:
 exit
 ```
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
+
+**You are now on NODE2 (pg-backup).**
 
 Stop PostgreSQL:
 
@@ -615,11 +691,17 @@ Clear the data directory:
 sudo rm -rf /opt/pgsql/data/*
 ```
 
-Switch to postgres and restore from the specific full backup. Replace the `--set` value with your actual full backup label:
+Switch to postgres:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
+
+Restore from the specific full backup. The `--set` flag tells pgBackRest which backup to restore from instead of using the latest one. The `--target-action=promote` flag makes the server writable after recovery.
+
+**Use the actual backup label from YOUR output above - do not copy this example.**
 
 ```bash
 pgbackrest --stanza=main \
@@ -640,6 +722,8 @@ Exit back to NODE1:
 exit
 ```
 
+**You are now back on NODE1 (pg-primary).**
+
 > **Concept - Backup selection**: By default, pgBackRest restores from the most
 > recent backup. The `--set` flag lets you pick a specific backup by label.
 > This is useful when the most recent backup is suspected to be corrupted or
@@ -647,11 +731,15 @@ exit
 
 ## 11. Verify retention policy
 
+**Run on NODE1 (pg-primary):**
+
 Switch to postgres on NODE1:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Check what pgBackRest currently retains:
 
@@ -696,11 +784,15 @@ exit
 
 ## 12. Clean up NODE2 for verify script
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
+
+**You are now on NODE2 (pg-backup).**
 
 Stop PostgreSQL:
 
@@ -719,6 +811,8 @@ Exit back to NODE1:
 ```bash
 exit
 ```
+
+**You are now back on NODE1 (pg-primary).**
 
 Do NOT remove the pgBackRest repository - the verify script checks it.
 

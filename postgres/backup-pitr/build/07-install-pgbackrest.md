@@ -4,11 +4,11 @@ Move from manual WAL archiving to enterprise-grade backup management. pgBackRest
 handles archiving, compression, encryption, retention, and multi-repository
 support - replacing your hand-rolled archive_command with a battle-tested tool.
 
-Steps run on NODE1 unless noted otherwise.
-
 ---
 
 ## 1. Install pgBackRest on NODE1
+
+**Run on NODE1 (pg-primary):**
 
 Switch to root to install packages:
 
@@ -16,13 +16,15 @@ Switch to root to install packages:
 sudo -i
 ```
 
-First, install EPEL (Extra Packages for Enterprise Linux). pgBackRest needs `libssh2` which is only available in EPEL:
+**You are now root.**
+
+First, install EPEL. EPEL (Extra Packages for Enterprise Linux) is an additional software repository. CentOS Stream 9 comes with a limited set of packages, and pgBackRest requires libraries that are only available in EPEL.
 
 ```bash
 dnf install -y epel-release
 ```
 
-Now install pgBackRest:
+Now install pgBackRest. This pulls in the pgBackRest binary and all its dependencies from the PGDG and EPEL repositories:
 
 ```bash
 dnf install -y pgbackrest
@@ -34,7 +36,9 @@ Exit back to ec2-user:
 exit
 ```
 
-Verify the install by checking the version:
+**You are now ec2-user.**
+
+Verify the install by checking the version. This confirms the binary is in your PATH and working:
 
 ```bash
 pgbackrest version
@@ -49,19 +53,23 @@ pgBackRest 2.54.2
 
 ## 2. Install pgBackRest on NODE2
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
 
-Switch to root and install:
+Switch to root:
 
 ```bash
 sudo -i
 ```
 
-Install EPEL:
+**You are now root.**
+
+Install EPEL. EPEL (Extra Packages for Enterprise Linux) is an additional software repository. CentOS Stream 9 comes with a limited set of packages, and pgBackRest requires libraries that are only available in EPEL.
 
 ```bash
 dnf install -y epel-release
@@ -78,6 +86,8 @@ Exit back to ec2-user:
 ```bash
 exit
 ```
+
+**You are now ec2-user.**
 
 Verify the version matches NODE1:
 
@@ -99,13 +109,17 @@ exit
 
 ## 3. Create the pgBackRest configuration on NODE1
 
-Create the configuration directory:
+**Run on NODE1 (pg-primary):**
+
+A stanza is pgBackRest's name for a database cluster configuration. Think of it as a label that groups your backup settings together. We named ours `main`.
+
+Create the configuration directory. The `-p` flag means "create parent directories if they don't exist":
 
 ```bash
 sudo mkdir -p /etc/pgbackrest
 ```
 
-Write the configuration file. The `tee` command writes the content to the file:
+Write the configuration file. The `tee` command writes text to a file. `sudo tee` is needed because the config file requires root privileges to create.
 
 ```bash
 sudo tee /etc/pgbackrest/pgbackrest.conf > /dev/null <<EOF
@@ -128,13 +142,13 @@ compress-level=3
 EOF
 ```
 
-Set ownership so postgres owns the config file:
+Set ownership so postgres owns the config file. The `chown` command changes the file's owner and group:
 
 ```bash
 sudo chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
 ```
 
-Restrict permissions so only postgres can read it:
+Restrict permissions so only postgres can read it. `640` means the owner can read/write, the group can read, and nobody else has access:
 
 ```bash
 sudo chmod 640 /etc/pgbackrest/pgbackrest.conf
@@ -161,17 +175,25 @@ sudo chmod 640 /etc/pgbackrest/pgbackrest.conf
 
 ## 4. Create the pgBackRest configuration on NODE2
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
 
-Create the config directory and write the config file. NODE2's config includes `repo1-host` so it can access the backup repository on NODE1 for restore operations:
+Create the config directory:
 
 ```bash
 sudo mkdir -p /etc/pgbackrest
 ```
+
+Write the configuration file. The `tee` command writes text to a file. `sudo tee` is needed because the config file requires root privileges to create.
+
+Notice NODE2's config has two extra lines (`repo1-host` and `repo1-host-user`). This is because backups are stored on NODE1, so NODE2 needs to know how to reach NODE1's repository over SSH.
+
+This SSH connection works because you set up passwordless SSH between the postgres users in Build 01.
 
 ```bash
 sudo tee /etc/pgbackrest/pgbackrest.conf > /dev/null <<EOF
@@ -229,11 +251,15 @@ exit
 
 ## 5. Update PostgreSQL archive_command to use pgBackRest
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user on NODE1:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Open postgresql.conf for editing:
 
@@ -241,7 +267,7 @@ Open postgresql.conf for editing:
 vim /opt/pgsql/data/postgresql.conf
 ```
 
-Change the archive_command to use pgBackRest instead of rsync:
+Change the archive_command to use pgBackRest instead of rsync. The `--stanza=main` flag tells pgBackRest which backup configuration to use:
 
 ```
 archive_command = 'pgbackrest --stanza=main archive-push %p'
@@ -255,11 +281,15 @@ archive_mode = on
 archive_timeout = 60
 ```
 
-Save and exit vim, then exit back to ec2-user:
+Save and exit vim.
+
+Exit back to ec2-user:
 
 ```bash
 exit
 ```
+
+**You are now ec2-user.**
 
 Reload the configuration. The archive_command change only needs a reload, not a full restart:
 
@@ -272,6 +302,8 @@ Switch to postgres and verify the new archive_command:
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 ```bash
 psql -c "SHOW archive_command;"
@@ -293,6 +325,8 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 > **Concept - pgBackRest vs manual archive_command**: The old rsync-based
 > archive_command was fragile - no compression, no parallelism, no verification,
 > no encryption. pgBackRest's archive-push handles all of this:
@@ -306,6 +340,8 @@ exit
 
 ## 6. Create the stanza
 
+**Run on NODE1 (pg-primary):**
+
 The stanza-create command initializes the backup repository and verifies
 connectivity.
 
@@ -315,7 +351,9 @@ Switch to the postgres user:
 sudo -i -u postgres
 ```
 
-Create the stanza:
+**You are now the postgres user.**
+
+Create the stanza. The `--stanza=main` flag tells pgBackRest which configuration to initialize:
 
 ```bash
 pgbackrest --stanza=main stanza-create
@@ -337,7 +375,9 @@ Exit back to ec2-user:
 exit
 ```
 
-Verify the repository directories were created:
+**You are now ec2-user.**
+
+Verify the repository directories were created. The `-la` flags show all files in long format with permissions:
 
 ```bash
 ls -la /opt/pgsql/backup/pgbackrest/
@@ -354,11 +394,15 @@ drwxr-xr-x. 3 postgres postgres 18 Apr 19 01:26 backup
 
 ## 7. Verify the stanza
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Run the check command. This performs an end-to-end verification:
 
@@ -389,6 +433,8 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 > **Concept - Trust but verify**: Always run `pgbackrest check` after any
 > configuration change. It is the single command that proves the entire pipeline
 > works - from PostgreSQL generating WAL, to pgBackRest compressing and
@@ -397,13 +443,17 @@ exit
 
 ## 8. Verify WAL archiving through pgBackRest
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
 
-Generate some WAL activity by inserting 1,000 rows:
+**You are now the postgres user.**
+
+Generate some WAL activity by inserting 1,000 rows into the pgbench_history table:
 
 ```bash
 psql -d labdb -c "
@@ -417,7 +467,7 @@ FROM generate_series(1, 1000) g;
 "
 ```
 
-Force a WAL switch so the segment gets archived:
+Force a WAL switch so the current segment gets archived. This tells PostgreSQL to close the current WAL file and start a new one:
 
 ```bash
 psql -c "SELECT pg_switch_wal();"
@@ -429,7 +479,7 @@ Wait a moment for the archive to complete:
 sleep 5
 ```
 
-List recent WAL files in the pgBackRest repository:
+List recent WAL files in the pgBackRest repository. The `--sort=desc` flag shows newest first, and `head -5` limits to the 5 most recent:
 
 ```bash
 pgbackrest --stanza=main repo-ls archive/main --sort=desc | head -5
@@ -437,7 +487,7 @@ pgbackrest --stanza=main repo-ls archive/main --sort=desc | head -5
 
 Expected: recent WAL segment files.
 
-Check the archiver stats to confirm no failures:
+Check the archiver stats to confirm no failures. This queries PostgreSQL's built-in archiver statistics:
 
 ```bash
 psql -c "SELECT archived_count, last_archived_wal, failed_count FROM pg_stat_archiver;"
@@ -459,9 +509,13 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 ## 9. Inspect the repository structure
 
-Look at how pgBackRest organizes the repository:
+**Run on NODE1 (pg-primary):**
+
+Look at how pgBackRest organizes the repository. The `find` command lists all directories (`-type d`) under the backup path, and `head -20` limits the output to 20 lines:
 
 ```bash
 find /opt/pgsql/backup/pgbackrest -type d | head -20

@@ -10,13 +10,17 @@ Steps 1-5 run on NODE1 (primary). Steps 6-10 run on NODE2 (backup server).
 
 ## 1. Note the current time and LSN
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
 
-Record the current time and WAL position. This is your "before" marker:
+**You are now the postgres user.**
+
+Record the current time and WAL position. This is your "before" marker. The `now()` function returns the current date and time, and `pg_current_wal_lsn()` returns the current position in the write-ahead log.
 
 ```bash
 psql -c "SELECT now() AS current_time, pg_current_wal_lsn() AS current_lsn;"
@@ -34,6 +38,8 @@ Expected output (yours will differ):
 
 ## 2. Insert known data (this SHOULD survive PITR)
 
+**Run on NODE1 (pg-primary):**
+
 Still as postgres, insert test rows into appdb. These represent "good" data that existed before the mistake:
 
 ```bash
@@ -45,7 +51,12 @@ VALUES ('pitr_survivor_1', 'recovery'),
 "
 ```
 
-Verify the rows were inserted:
+```
+Expected output:
+INSERT 0 3
+```
+
+Verify the rows were inserted. The `-d appdb` flag connects to the `appdb` database. The `WHERE` clause filters to only the rows we just inserted.
 
 ```bash
 psql -d appdb -c "SELECT * FROM employees WHERE department = 'recovery';"
@@ -64,6 +75,8 @@ Expected output (yours will differ):
 ```
 
 ## 3. Record the recovery target time
+
+**Run on NODE1 (pg-primary):**
 
 This is the moment you want to recover TO. Everything up to this point should
 be preserved:
@@ -84,7 +97,11 @@ Expected output (yours will differ):
 
 Example: `2026-04-17 14:30:00.000000+00`
 
+The `+00` at the end means UTC timezone. The `.000000` is microseconds (you can omit this). Use the exact timestamp you recorded above - do not copy this example value.
+
 ## 4. Insert MORE data (this should NOT survive PITR)
+
+**Run on NODE1 (pg-primary):**
 
 Wait a few seconds, then insert data that represents "the mistake":
 
@@ -101,13 +118,23 @@ VALUES ('pitr_should_be_gone_1', 'mistake'),
 "
 ```
 
+```
+Expected output:
+INSERT 0 3
+```
+
 Simulate a destructive accident - delete the entire marketing department:
 
 ```bash
 psql -d appdb -c "DELETE FROM employees WHERE department = 'marketing';"
 ```
 
-Check the damage:
+```
+Expected output (yours will differ):
+DELETE 20000
+```
+
+Check the damage. This query groups all employees by department and counts how many are in each one.
 
 ```bash
 psql -d appdb -c "
@@ -119,10 +146,20 @@ Expected: `marketing` department is gone, `mistake` department exists.
 
 ## 5. Force WAL archiving and take a fresh base backup
 
-Force a WAL switch so all changes are archived:
+**Run on NODE1 (pg-primary):**
+
+Force a WAL switch so all changes are archived. This function closes the current WAL file and starts a new one, which triggers the archive_command to copy the completed file.
 
 ```bash
 psql -c "SELECT pg_switch_wal();"
+```
+
+```
+Expected output (yours will differ):
+ pg_switch_wal
+---------------
+ 1/27000078
+(1 row)
 ```
 
 Exit back to ec2-user:
@@ -131,13 +168,15 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 Wait for archiving:
 
 ```bash
 sleep 5
 ```
 
-Verify WAL files are on NODE2:
+Verify WAL files are on NODE2. The `-lt` flags list files in long format sorted by newest first, and `head -5` shows only the first 5 results.
 
 ```bash
 ssh postgres@pg-backup "ls -lt /opt/pgsql/backup/archive/ | head -5"
@@ -151,13 +190,17 @@ ssh postgres@pg-backup "ls -lt /opt/pgsql/backup/archive/ | head -5"
 
 ## 6. Prepare the recovery environment on NODE2
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
 
-Install the PostgreSQL server package. We only had the client tools until now:
+**You are now on NODE2 (pg-backup) as ec2-user.**
+
+Install the PostgreSQL server package. The `-y` flag answers "yes" to all prompts automatically. We only had the client tools until now:
 
 ```bash
 sudo dnf install -y postgresql16-server
@@ -165,7 +208,7 @@ sudo dnf install -y postgresql16-server
 
 Do NOT run initdb. We will restore from the base backup instead.
 
-Create the data directory:
+Create the data directory. The `-p` flag creates parent directories if they do not exist:
 
 ```bash
 sudo mkdir -p /opt/pgsql/data
@@ -183,19 +226,19 @@ Create the WAL directory:
 sudo mkdir -p /opt/pgsql/wal
 ```
 
-Set ownership so postgres owns everything:
+Set ownership so postgres owns everything. The `-R` flag applies the ownership change recursively to all files and subdirectories:
 
 ```bash
 sudo chown -R postgres:postgres /opt/pgsql
 ```
 
-Lock down the data directory permissions:
+Lock down the data directory permissions. `700` means only the owner (postgres) can read, write, or enter this directory:
 
 ```bash
 sudo chmod 700 /opt/pgsql/data
 ```
 
-Override the systemd service to use our custom data directory:
+Override the systemd service to use our custom data directory. This command opens an editor where you can add a drop-in configuration:
 
 ```bash
 sudo systemctl edit postgresql-16
@@ -221,7 +264,9 @@ sudo systemctl daemon-reload
 
 ## 7. Restore the base backup and configure recovery
 
-Copy the plain base backup into the PG data directory:
+**Run on NODE2 (pg-backup):**
+
+Copy the plain base backup into the PG data directory. The `-a` flag preserves file permissions, timestamps, and ownership:
 
 ```bash
 sudo cp -a /opt/pgsql/backup/basebackup/plain_backup/* /opt/pgsql/data/
@@ -241,7 +286,9 @@ Switch to the postgres user:
 sudo -i -u postgres
 ```
 
-Remove existing WAL files:
+**You are now the postgres user.**
+
+Remove existing WAL files. This clears out the WAL files that came with the base backup so PostgreSQL will fetch the archived copies instead:
 
 ```bash
 rm -rf /opt/pgsql/data/pg_wal/*
@@ -254,31 +301,44 @@ mkdir -p /opt/pgsql/data/pg_wal
 ```
 
 Create the recovery configuration. In PG 12+, recovery settings go in
-`postgresql.auto.conf` and you create a signal file:
+`postgresql.auto.conf` and you create a signal file.
+
+Open the configuration file with vim:
 
 ```bash
-cat >> /opt/pgsql/data/postgresql.auto.conf <<EOF
+vim /opt/pgsql/data/postgresql.auto.conf
+```
 
+Press `G` to go to the last line of the file, then press `o` to open a new line below and enter insert mode. Type the following three lines:
+
+```
 # PITR Recovery Settings
 restore_command = 'cp /opt/pgsql/backup/archive/%f %p'
 recovery_target_time = '2026-04-17 14:30:00.000000+00'
 recovery_target_action = 'pause'
-EOF
 ```
 
 **Replace the `recovery_target_time` value with the exact timestamp you recorded in step 3.**
 
-Create the recovery signal file. This tells PostgreSQL to start in recovery mode:
+The `+00` at the end means UTC timezone. The `.000000` is microseconds (you can omit this). Use the exact timestamp you recorded in step 3 - do not copy this example value.
+
+Press `Esc` to exit insert mode, then type `:wq` and press Enter to save and quit.
+
+Create the recovery signal file:
 
 ```bash
 touch /opt/pgsql/data/recovery.signal
 ```
+
+Creating this empty file tells PostgreSQL to start in recovery mode when it next starts up. PostgreSQL will read the recovery settings from `postgresql.auto.conf` and replay WAL files until it reaches the target time. Once recovery is complete and PostgreSQL promotes to normal mode, it automatically deletes this file.
 
 Exit back to ec2-user:
 
 ```bash
 exit
 ```
+
+**You are now ec2-user on NODE2.**
 
 > **Concept - recovery.signal**: This file tells PostgreSQL to start in recovery
 > mode. PG reads `restore_command` and `recovery_target_*` from postgresql.conf
@@ -300,13 +360,15 @@ exit
 
 ## 8. Start PostgreSQL in recovery mode
 
+**Run on NODE2 (pg-backup):**
+
 Start PostgreSQL. It will detect recovery.signal and enter recovery mode:
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
-Watch the recovery progress in the log file:
+Watch the recovery progress in the log file. The `-f` flag follows the file in real time, showing new lines as they are written:
 
 ```bash
 sudo tail -f /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log
@@ -330,9 +392,15 @@ Switch to the postgres user to check recovery status:
 sudo -i -u postgres
 ```
 
+**You are now the postgres user.**
+
+Check whether PostgreSQL is in recovery mode:
+
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
 ```
+
+This returns `t` (true) if PostgreSQL is still in recovery mode, or `f` (false) if it is running normally.
 
 Expected: `t` (true - the server is paused in recovery).
 
@@ -345,6 +413,8 @@ Expected output:
 ```
 
 ## 9. Verify the recovery - the moment of truth
+
+**Run on NODE2 (pg-backup):**
 
 Still as postgres, check that the "survivor" data exists:
 
@@ -404,16 +474,32 @@ Expected: all five original departments present, no `mistake` department.
 
 ## 10. Promote the recovered instance
 
-Once you are satisfied with the recovery, resume WAL replay to promote:
+**Run on NODE2 (pg-backup):**
+
+Still as postgres. Once you are satisfied with the recovery, resume WAL replay to promote. This function tells PostgreSQL to finish recovery and become a writable server:
 
 ```bash
 psql -c "SELECT pg_wal_replay_resume();"
 ```
 
-Or promote directly using pg_ctl:
+```
+Expected output:
+ pg_wal_replay_resume
+----------------------
+
+(1 row)
+```
+
+Or promote directly using pg_ctl. The `promote` subcommand tells PostgreSQL to exit recovery mode. The `-D` flag specifies the data directory:
 
 ```bash
 pg_ctl promote -D /opt/pgsql/data
+```
+
+```
+Expected output:
+waiting for server to promote.... done
+server promoted
 ```
 
 Verify it is no longer in recovery:
@@ -421,6 +507,8 @@ Verify it is no longer in recovery:
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
 ```
+
+This returns `t` (true) if PostgreSQL is still in recovery mode, or `f` (false) if it is running normally.
 
 Expected: `f` (false - now a standalone writable primary).
 
@@ -432,6 +520,14 @@ Expected output:
 (1 row)
 ```
 
+Exit back to ec2-user:
+
+```bash
+exit
+```
+
+**You are now ec2-user on NODE2.**
+
 > **Concept - Post-promotion timeline**: After promotion, PostgreSQL creates a
 > new timeline (you can see the timeline ID increment in `pg_control`). This
 > prevents confusion between WAL from the original primary and WAL from the
@@ -440,12 +536,29 @@ Expected output:
 
 ## 11. PITR using LSN target
 
+**Run on NODE1 (pg-primary):**
+
 Instead of a time target, you can target a specific LSN (Log Sequence Number).
 
-On NODE1, get the current LSN before making changes:
+First, exit NODE2 if you are still connected:
 
 ```bash
-# On NODE1
+exit
+```
+
+**You are now on NODE1 (pg-primary) as ec2-user.**
+
+Switch to the postgres user:
+
+```bash
+sudo -i -u postgres
+```
+
+**You are now the postgres user.**
+
+Get the current LSN before making changes. This function returns the current write position in the WAL stream:
+
+```bash
 psql -c "SELECT pg_current_wal_lsn() AS target_lsn;"
 ```
 
@@ -463,6 +576,14 @@ The recovery configuration would use:
 recovery_target_lsn = '0/1A000060'
 ```
 
+Exit back to ec2-user:
+
+```bash
+exit
+```
+
+**You are now ec2-user on NODE1.**
+
 > **Concept - LSN vs time target**: LSN targets are more precise than time
 > targets. A time target can be ambiguous if the server clock was adjusted.
 > LSN is a monotonically increasing position in the WAL stream - it is never
@@ -471,10 +592,19 @@ recovery_target_lsn = '0/1A000060'
 
 ## 12. Named restore points
 
-On NODE1, create a named restore point before a deployment:
+**Run on NODE1 (pg-primary):**
+
+Switch to the postgres user:
 
 ```bash
-# On NODE1
+sudo -i -u postgres
+```
+
+**You are now the postgres user.**
+
+Create a named restore point before a deployment. This function writes a named marker into the WAL stream that you can target during recovery:
+
+```bash
 psql -c "SELECT pg_create_restore_point('pre_deployment_v2');"
 ```
 
@@ -492,6 +622,14 @@ The recovery configuration would use:
 recovery_target_name = 'pre_deployment_v2'
 ```
 
+Exit back to ec2-user:
+
+```bash
+exit
+```
+
+**You are now ec2-user on NODE1.**
+
 > **Concept - Named restore points**: pg_create_restore_point() writes a named
 > marker into the WAL stream. You can recover to that exact point using
 > `recovery_target_name`. This is cleaner than remembering timestamps or LSNs.
@@ -507,11 +645,33 @@ When you need to recover specific rows without affecting the current primary:
 3. Export the rows you need
 4. Import them back into the production primary
 
-On NODE2, export the recovered marketing rows to a CSV file:
+**Run on NODE2 (pg-backup):**
+
+SSH into NODE2:
 
 ```bash
-# Run on NODE2 as postgres
+ssh ec2-user@pg-backup
+```
+
+**You are now on NODE2 (pg-backup) as ec2-user.**
+
+Switch to the postgres user:
+
+```bash
+sudo -i -u postgres
+```
+
+**You are now the postgres user.**
+
+Export the recovered marketing rows to a CSV file. The `\COPY` command is a psql-specific command (note the backslash). It copies data between a file and a table. This is different from the SQL `COPY` command which runs on the server.
+
+```bash
 psql -d appdb -c "\COPY (SELECT * FROM employees WHERE department = 'marketing' LIMIT 100) TO '/tmp/marketing_recovery.csv' CSV HEADER"
+```
+
+```
+Expected output:
+COPY 100
 ```
 
 Exit back to ec2-user:
@@ -520,21 +680,41 @@ Exit back to ec2-user:
 exit
 ```
 
-Copy the file to NODE1:
+**You are now ec2-user on NODE2.**
+
+Copy the file to NODE1. The `scp` command securely copies files between hosts over SSH:
 
 ```bash
 scp /tmp/marketing_recovery.csv postgres@pg-primary:/tmp/
 ```
 
-On NODE1, import the recovered rows back into production:
+Exit NODE2 back to NODE1:
 
 ```bash
-# Run on NODE1
+exit
+```
+
+**You are now on NODE1 (pg-primary) as ec2-user.**
+
+**Run on NODE1 (pg-primary):**
+
+Switch to the postgres user:
+
+```bash
 sudo -i -u postgres
 ```
 
+**You are now the postgres user.**
+
+Import the recovered rows back into production. The `\COPY` command is a psql-specific command (note the backslash). It copies data between a file and a table. This is different from the SQL `COPY` command which runs on the server. The `FROM` keyword means we are reading from the CSV file into the table.
+
 ```bash
 psql -d appdb -c "\COPY employees (id, name, department, hired_at) FROM '/tmp/marketing_recovery.csv' CSV HEADER"
+```
+
+```
+Expected output:
+COPY 100
 ```
 
 Exit back to ec2-user:
@@ -542,6 +722,8 @@ Exit back to ec2-user:
 ```bash
 exit
 ```
+
+**You are now ec2-user on NODE1.**
 
 > **Concept - Side-restore**: This pattern avoids the downtime of a full PITR on
 > production. You spin up a temporary instance, recover to the point before the
@@ -551,12 +733,15 @@ exit
 
 ## 14. Clean up NODE2
 
-Stop PostgreSQL and clear the data directory on NODE2:
+**Run on NODE2 (pg-backup):**
+
+SSH into NODE2:
 
 ```bash
-# Run on NODE2
 ssh ec2-user@pg-backup
 ```
+
+**You are now on NODE2 (pg-backup) as ec2-user.**
 
 Stop PostgreSQL:
 
@@ -575,6 +760,8 @@ Exit back to NODE1:
 ```bash
 exit
 ```
+
+**You are now on NODE1 (pg-primary) as ec2-user.**
 
 ---
 

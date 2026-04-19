@@ -6,17 +6,19 @@ that exercises real-world backup scenarios.
 
 ---
 
-## 1. Add the PGDG repository (BOTH nodes)
+## 1. Add the PGDG repository
+
+**Run on BOTH servers:**
 
 The PGDG (PostgreSQL Global Development Group) repository gives you the latest PostgreSQL packages. CentOS Stream 9 ships with an older version, so we add this repo to get version 16.
 
-Install the repository RPM:
+Install the repository RPM. The `-y` flag answers "yes" to all prompts so the install runs without asking for confirmation:
 
 ```bash
 sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 ```
 
-Disable the built-in PostgreSQL module so it doesn't conflict with the PGDG packages:
+Disable the built-in PostgreSQL module so it doesn't conflict with the PGDG packages. The `-q` flag suppresses extra output and `-y` auto-confirms:
 
 ```bash
 sudo dnf -qy module disable postgresql
@@ -35,7 +37,9 @@ Complete!
 
 ## 2. Install PostgreSQL 16 on NODE1
 
-On NODE1 only - install the server and contrib packages. `contrib` includes extra utilities like `pgbench` that we'll use later:
+**Run on NODE1 (pg-primary):**
+
+Install the server and contrib packages. `contrib` includes extra utilities like `pgbench` that we'll use later:
 
 ```bash
 sudo dnf install -y postgresql16-server postgresql16-contrib
@@ -55,13 +59,19 @@ with custom paths.
 
 ## 3. Initialize the data directory with custom paths
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user. The `-iu` flags give you a full login shell as that user:
 
 ```bash
 sudo -iu postgres
 ```
 
-Run initdb to create the database cluster. We specify custom locations for the data files and WAL (write-ahead log) files:
+**You are now the postgres user.**
+
+Run initdb to create the database cluster. We specify custom locations for the data files and WAL (write-ahead log) files.
+
+The `\` at the end of a line means the command continues on the next line. You can copy and paste all the lines together.
 
 ```bash
 /usr/pgsql-16/bin/initdb -D /opt/pgsql/data \
@@ -116,7 +126,7 @@ exit
 
 ## 4. Configure postgresql.conf for custom paths
 
-Edit the main configuration file. You can use `vim` or any text editor:
+**Run on NODE1 (pg-primary):**
 
 Switch to the postgres user:
 
@@ -124,11 +134,19 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 Open the configuration file:
 
 ```bash
 vim /opt/pgsql/data/postgresql.conf
 ```
+
+> **Vim mini-tutorial** (if this is your first time using vim):
+> - To search for a setting: press `/`, type the setting name, press `Enter`
+> - To start editing: press `i` (insert mode)
+> - To save and quit: press `Esc`, then type `:wq` and press `Enter`
+> - To quit without saving: press `Esc`, then type `:q!` and press `Enter`
 
 Find and set these parameters (some may be commented out with `#` - uncomment them and set the values):
 
@@ -143,7 +161,7 @@ log_filename = 'postgresql-%Y-%m-%d.log'
 listen_addresses = '*'
 ```
 
-Save and exit vim.
+Save and exit vim (press `Esc`, then type `:wq` and press `Enter`).
 
 Exit back to ec2-user:
 
@@ -153,6 +171,8 @@ exit
 
 ## 5. Add PostgreSQL tools to the postgres user's PATH
 
+**Run on NODE1 (pg-primary):**
+
 By default, CentOS does not add `/usr/pgsql-16/bin` to the `postgres` user's PATH. This means you would need to type the full path (like `/usr/pgsql-16/bin/psql`) every time. Let's fix that so you can just type `psql`, `pg_dump`, etc.
 
 Switch to the postgres user:
@@ -161,10 +181,12 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
-Add the PostgreSQL bin directory to the `.bash_profile`:
+**You are now the postgres user.**
+
+Add the PostgreSQL bin directory to the `.bash_profile`. The `>>` operator appends text to a file. `.bash_profile` runs every time you log in, so this makes the PATH change permanent:
 
 ```bash
-echo "export PATH=/usr/pgsql-16/bin:\$PATH" >> ~/.bash_profile
+echo "export PATH=/usr/pgsql-16/bin:$PATH" >> ~/.bash_profile
 ```
 
 Also set PGDATA so tools know where the data directory is:
@@ -185,7 +207,9 @@ Verify the PATH is set. Switch to postgres again (this reloads `.bash_profile`):
 sudo -iu postgres
 ```
 
-Check where psql lives:
+**You are now the postgres user.**
+
+Check where psql lives. The `which` command shows the full path of a command:
 
 ```bash
 which psql
@@ -208,6 +232,8 @@ From this point on, when you switch to the postgres user, you can use `psql`, `p
 
 ## 6. Override systemd to use custom PGDATA
 
+**Run on NODE1 (pg-primary):**
+
 The default systemd unit for postgresql-16 expects `/var/lib/pgsql/16/data`.
 We need to override it to point to our custom path.
 
@@ -216,6 +242,8 @@ Open the systemd override editor:
 ```bash
 sudo systemctl edit postgresql-16
 ```
+
+This opens a text editor (nano or vi depending on your system). Paste the content shown below, then save and exit (if nano: `Ctrl+X`, then `Y`, then `Enter` - if vi: press `Esc`, type `:wq`, press `Enter`). This creates an override file that tells PostgreSQL where your data directory is.
 
 Add these lines in the editor (between the comment markers):
 
@@ -226,13 +254,13 @@ Environment=PGDATA=/opt/pgsql/data
 
 Save and exit.
 
-Reload systemd so it picks up the override:
+Reload systemd so it picks up the override. The `daemon-reload` subcommand tells systemd to re-read all unit files:
 
 ```bash
 sudo systemctl daemon-reload
 ```
 
-Enable PostgreSQL to start automatically on boot:
+Enable PostgreSQL to start automatically on boot. The `enable` subcommand creates a symlink so the service starts on every reboot:
 
 ```bash
 sudo systemctl enable postgresql-16
@@ -249,6 +277,8 @@ Verify PostgreSQL is running. Switch to the postgres user:
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Check the version:
 
@@ -297,6 +327,8 @@ Verify the custom paths are active. Switch to postgres:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 ```bash
 psql -c "SHOW data_directory;"
 ```
@@ -333,8 +365,9 @@ exit
 
 ## 7. Install PostgreSQL client on NODE2
 
-On NODE2 only - we need the client tools (psql, pg_dump, pg_restore) but not
-the full server:
+**Run on NODE2 (pg-backup):**
+
+We need the client tools (psql, pg_dump, pg_restore) but not the full server:
 
 ```bash
 sudo dnf install -y postgresql16
@@ -346,10 +379,12 @@ Set up the PATH for the postgres user on NODE2 as well. Switch to the postgres u
 sudo -iu postgres
 ```
 
-Add the PostgreSQL bin directory to the `.bash_profile`:
+**You are now the postgres user.**
+
+Add the PostgreSQL bin directory to the `.bash_profile`. The `>>` operator appends text to a file. `.bash_profile` runs every time you log in, so this makes the PATH change permanent:
 
 ```bash
-echo "export PATH=/usr/pgsql-16/bin:\$PATH" >> ~/.bash_profile
+echo "export PATH=/usr/pgsql-16/bin:$PATH" >> ~/.bash_profile
 ```
 
 Exit back to ec2-user:
@@ -363,6 +398,8 @@ Verify the client tools are available. Switch to postgres:
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Check psql:
 
@@ -404,7 +441,9 @@ exit
 
 ## 8. Configure NODE1 to accept remote connections
 
-Back on NODE1, edit `pg_hba.conf` to allow NODE2 to connect. This file controls who can connect to PostgreSQL:
+**Run on NODE1 (pg-primary):**
+
+Edit `pg_hba.conf` to allow NODE2 to connect. This file controls who can connect to PostgreSQL.
 
 Switch to the postgres user:
 
@@ -412,13 +451,15 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 Open the client authentication file:
 
 ```bash
 vim /opt/pgsql/data/pg_hba.conf
 ```
 
-Add this line at the end (replace `[NODE2_IP]` with your actual IP):
+Add this line at the end. **Replace [NODE2_IP] with NODE2's actual IP address (e.g., 34.207.152.179).**
 
 ```
 # Allow backup server to connect
@@ -427,7 +468,7 @@ host    all             postgres        [NODE2_IP]/32       scram-sha-256
 
 (`host` = TCP connection, `all` = any database, `postgres` = the user, `/32` = exact IP match, `scram-sha-256` = password authentication method)
 
-Save and exit vim.
+Save and exit vim (press `Esc`, then type `:wq` and press `Enter`).
 
 Exit back to ec2-user:
 
@@ -441,9 +482,13 @@ Set a password for the postgres role. Switch to the postgres user:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 ```bash
 psql -c "ALTER ROLE postgres PASSWORD 'backup_lab_2026';"
 ```
+
+Remember this password - you will need it in later guides when connecting from NODE2.
 
 Exit back to ec2-user:
 
@@ -457,7 +502,11 @@ Restart PostgreSQL so the pg_hba.conf changes take effect:
 sudo systemctl restart postgresql-16
 ```
 
-Verify from NODE2. SSH into NODE2 and test the connection:
+## 9. Verify NODE2 can connect to NODE1
+
+**Run on NODE2 (pg-backup):**
+
+Test the connection from NODE2 to NODE1. The `PGPASSWORD` variable passes the password without a prompt, `-h pg-primary` connects to NODE1 by hostname, and `-U postgres` specifies the user:
 
 ```bash
 PGPASSWORD=backup_lab_2026 /usr/pgsql-16/bin/psql -h pg-primary -U postgres -c "SELECT 1;"
@@ -473,10 +522,12 @@ Expected output:
 (1 row)
 ```
 
-## 9. Create the labdb database with 5GB of pgbench data
+## 10. Create the labdb database with 5GB of pgbench data
+
+**Run on NODE1 (pg-primary):**
 
 This is the primary lab database with enough data to make backup and restore
-times realistic. Run these on NODE1.
+times realistic.
 
 Switch to the postgres user:
 
@@ -484,19 +535,19 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
 Create the database:
 
 ```bash
 createdb labdb
 ```
 
-Initialize pgbench data with scale factor 330. Each scale factor creates roughly 16MB of data, so 330 gives you approximately 5GB. This will take a few minutes:
+Initialize pgbench data with scale factor 330. Each scale factor creates roughly 16MB of data, so 330 gives you approximately 5GB. The `-i` flag means initialize and `-s 330` sets the scale factor. This will take a few minutes:
 
 ```bash
 pgbench -i -s 330 labdb
 ```
-
-(`-i` = initialize, `-s 330` = scale factor of 330)
 
 This creates four tables: `pgbench_accounts` (33M rows), `pgbench_branches`, `pgbench_tellers`, and `pgbench_history`.
 
@@ -540,7 +591,9 @@ Stay logged in as postgres for the next steps.
 > 45 minutes instead of 5 seconds, or a pg_basebackup that fills your backup
 > disk. Practice with realistic sizes.
 
-## 10. Create the appdb database
+## 11. Create the appdb database
+
+**Run on NODE1 (pg-primary):**
 
 A realistic schema with foreign keys, indexes, and variety - exercises pg_dump's
 handling of dependencies. Still as the postgres user:
@@ -585,7 +638,9 @@ Expected:
 > handling (tables with relationships). blobdb tests binary data encoding. A
 > realistic cluster always has multiple databases with different characteristics.
 
-## 11. Create the blobdb database
+## 12. Create the blobdb database
+
+**Run on NODE1 (pg-primary):**
 
 A table with binary data - tests backup handling of large objects and bytea columns.
 Still as the postgres user:
@@ -628,9 +683,11 @@ Expected output (yours will differ):
 > PG 16). Understanding how binary data affects backup size is critical for
 > capacity planning.
 
-## 12. Verify all databases
+## 13. Verify all databases
 
-List all databases:
+**Run on NODE1 (pg-primary):**
+
+Still as the postgres user. List all databases:
 
 ```bash
 psql -c "\l"

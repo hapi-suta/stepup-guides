@@ -4,17 +4,19 @@ Configure WAL archiving and take physical backups with pg_basebackup. Physical
 backups capture the entire cluster at the filesystem level - combined with WAL,
 they enable point-in-time recovery.
 
-All commands run on NODE1 unless noted otherwise.
-
 ---
 
 ## 1. Configure WAL archiving on NODE1
+
+**Run on NODE1 (pg-primary):**
 
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Open postgresql.conf for editing:
 
@@ -31,11 +33,22 @@ archive_command = 'rsync -a %p postgres@pg-backup:/opt/pgsql/backup/archive/%f'
 archive_timeout = 60
 ```
 
-Save and exit vim, then exit back to ec2-user:
+The `archive_command` tells PostgreSQL what to do with each completed WAL segment:
+- `rsync -a` - archive mode, which preserves file permissions and timestamps
+- `%p` - PostgreSQL replaces this with the full path to the WAL file on the primary
+- `%f` - PostgreSQL replaces this with just the WAL filename (used to name the file on the backup server)
+
+This works because you set up passwordless SSH between the postgres users in Build 01.
+
+Save and exit vim.
+
+Exit back to ec2-user:
 
 ```bash
 exit
 ```
+
+**You are now ec2-user.**
 
 > **Concept - wal_level = replica**: This is the minimum WAL level that includes
 > enough information for both streaming replication and PITR. The `logical` level
@@ -57,7 +70,9 @@ exit
 
 ## 2. Verify the archive directory on NODE2
 
-Check that the directory from Build 01 exists on the backup server:
+**Run on NODE1 (pg-primary):**
+
+Check that the directory from Build 01 exists on the backup server. This works because you set up passwordless SSH between the postgres users in Build 01.
 
 ```bash
 ssh postgres@pg-backup "ls -la /opt/pgsql/backup/archive/"
@@ -66,6 +81,8 @@ ssh postgres@pg-backup "ls -la /opt/pgsql/backup/archive/"
 Expected: empty directory owned by `postgres`.
 
 ## 3. Restart PostgreSQL to enable archiving
+
+**Run on NODE1 (pg-primary):**
 
 Restart PostgreSQL. The `archive_mode` change requires a full restart (reload is not enough):
 
@@ -79,19 +96,13 @@ Switch to the postgres user to verify the settings:
 sudo -i -u postgres
 ```
 
+**You are now the postgres user.**
+
 Check that archive_mode is on:
 
 ```bash
 psql -c "SHOW archive_mode;"
 ```
-
-Check that the archive_command is set:
-
-```bash
-psql -c "SHOW archive_command;"
-```
-
-Expected: `on` and the rsync command.
 
 ```
 Expected output:
@@ -99,6 +110,12 @@ Expected output:
 --------------
  on
 (1 row)
+```
+
+Check that the archive_command is set:
+
+```bash
+psql -c "SHOW archive_command;"
 ```
 
 ```
@@ -115,13 +132,19 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 ## 4. Force a WAL switch and verify archiving
+
+**Run on NODE1 (pg-primary):**
 
 Switch to the postgres user:
 
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Force PostgreSQL to finish the current WAL segment and archive it:
 
@@ -143,13 +166,17 @@ Exit back to ec2-user:
 exit
 ```
 
-Wait a few seconds for the archive to complete, then check NODE2:
+**You are now ec2-user.**
+
+Wait a few seconds for the archive to complete, then check NODE2. This works because you set up passwordless SSH between the postgres users in Build 01.
 
 ```bash
 ssh postgres@pg-backup "ls -la /opt/pgsql/backup/archive/"
 ```
 
 Expected: at least one WAL file (named like `000000010000000000000001`).
+
+WAL filenames are 24-character hex numbers. The first 8 characters are the timeline ID, the next 16 identify the segment position. You don't need to memorize this - just know that each file is a 16MB chunk of database changes.
 
 ```
 Expected output (yours will differ):
@@ -162,6 +189,8 @@ Switch to postgres to check the archiver stats:
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 ```bash
 psql -c "SELECT archived_count, last_archived_wal, last_archived_time FROM pg_stat_archiver;"
@@ -183,6 +212,8 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 > **Concept - pg_stat_archiver**: This view is your monitoring source for WAL
 > archiving health. Key columns:
 > - `archived_count`: total segments archived since last stats reset
@@ -195,6 +226,8 @@ exit
 
 ## 5. Take a base backup with pg_basebackup - plain format
 
+**Run on NODE2 (pg-backup):**
+
 Run from NODE2 (the backup server pulls from the primary).
 
 SSH into NODE2:
@@ -203,7 +236,9 @@ SSH into NODE2:
 ssh ec2-user@pg-backup
 ```
 
-Take the base backup. This copies every file in the primary's data directory over the network:
+Take the base backup. Setting `PGPASSWORD` before the command passes the password automatically. This is the password you set in Build 02. In production, use a `.pgpass` file instead - `PGPASSWORD` is for lab use only.
+
+This copies every file in the primary's data directory over the network:
 
 ```bash
 PGPASSWORD=backup_lab_2026 pg_basebackup \
@@ -224,8 +259,6 @@ What each flag means:
 - `-Xs` = stream WAL during backup (captures all changes made while the backup runs)
 - `-P` = show progress
 - `--checkpoint=fast` = start backup immediately instead of waiting for the next scheduled checkpoint
-
-Expected: progress bar reaching 100%, backup completes.
 
 ```
 Expected output (yours will differ):
@@ -270,13 +303,17 @@ exit
 
 ## 6. Take a base backup - TAR compressed format
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
 ssh ec2-user@pg-backup
 ```
 
-Take a compressed backup. The `-Ft -z` flags produce a gzip-compressed tar archive instead of a plain copy:
+Take a compressed backup. Setting `PGPASSWORD` before the command passes the password automatically. This is the password you set in Build 02. In production, use a `.pgpass` file instead - `PGPASSWORD` is for lab use only.
+
+The `-Ft -z` flags produce a gzip-compressed tar archive instead of a plain copy:
 
 ```bash
 PGPASSWORD=backup_lab_2026 pg_basebackup \
@@ -332,6 +369,8 @@ exit
 
 ## 7. Verify the base backup (plain format)
 
+**Run on NODE2 (pg-backup):**
+
 SSH into NODE2:
 
 ```bash
@@ -343,8 +382,6 @@ Check that critical files exist. The PG_VERSION file tells you which major versi
 ```bash
 cat /opt/pgsql/backup/basebackup/plain_backup/PG_VERSION
 ```
-
-Expected: `16`.
 
 ```
 Expected output:
@@ -373,6 +410,8 @@ exit
 > brings it to any point in time after the backup.
 
 ## 8. Understand the PITR equation
+
+**Run on NODE2 (pg-backup):**
 
 ```
 Base Backup (Point A) + WAL Archives (A -> B) = Recovery to Point B
@@ -403,6 +442,8 @@ LABEL: pg_basebackup base backup
 START TIMELINE: 1
 ```
 
+WAL filenames are 24-character hex numbers. The first 8 characters are the timeline ID, the next 16 identify the segment position. You don't need to memorize this - just know that each file is a 16MB chunk of database changes.
+
 Check how many WAL files have been archived so far:
 
 ```bash
@@ -428,6 +469,8 @@ exit
 
 ## 9. Create additional WAL activity for PITR testing
 
+**Run on NODE1 (pg-primary):**
+
 Generate some WAL activity so there are segments to replay in the next guide.
 
 Switch to the postgres user:
@@ -435,6 +478,8 @@ Switch to the postgres user:
 ```bash
 sudo -i -u postgres
 ```
+
+**You are now the postgres user.**
 
 Insert 10,000 rows into the pgbench_history table:
 
@@ -450,10 +495,23 @@ FROM generate_series(1, 10000) g;
 "
 ```
 
+```
+Expected output:
+INSERT 0 10000
+```
+
 Force PostgreSQL to finish the current WAL segment and archive it:
 
 ```bash
 psql -c "SELECT pg_switch_wal();"
+```
+
+```
+Expected output (yours will differ):
+ pg_switch_wal
+---------------
+ 0/4000108
+(1 row)
 ```
 
 Exit back to ec2-user:
@@ -462,19 +520,23 @@ Exit back to ec2-user:
 exit
 ```
 
+**You are now ec2-user.**
+
 Wait a few seconds for archiving:
 
 ```bash
 sleep 5
 ```
 
-Verify new WAL files arrived on NODE2:
+Verify new WAL files arrived on NODE2. This works because you set up passwordless SSH between the postgres users in Build 01.
 
 ```bash
 ssh postgres@pg-backup "ls -lt /opt/pgsql/backup/archive/ | head -5"
 ```
 
 Expected: recent WAL files with timestamps after the base backup.
+
+WAL filenames are 24-character hex numbers. The first 8 characters are the timeline ID, the next 16 identify the segment position. You don't need to memorize this - just know that each file is a 16MB chunk of database changes.
 
 ```
 Expected output (yours will differ):

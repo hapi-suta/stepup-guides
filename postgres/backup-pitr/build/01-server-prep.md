@@ -8,6 +8,8 @@ Run every step on BOTH servers unless noted otherwise.
 
 ## 1. Update the OS
 
+**Run on BOTH servers:**
+
 SSH into your server as `ec2-user`:
 
 ```bash
@@ -34,13 +36,13 @@ Complete!
 
 Setting a hostname makes it easier to know which server you're on when you have multiple terminals open.
 
-On NODE1:
+**Run on NODE1 (pg-primary):**
 
 ```bash
 sudo hostnamectl set-hostname pg-primary
 ```
 
-On NODE2:
+**Run on NODE2 (pg-backup):**
 
 ```bash
 sudo hostnamectl set-hostname pg-backup
@@ -65,7 +67,11 @@ Expected output (yours will differ):
 
 The `/etc/hosts` file maps hostnames to IP addresses so you can type `pg-primary` instead of remembering an IP address.
 
-On BOTH servers, add entries for both nodes. Replace `[NODE1_IP]` and `[NODE2_IP]` with your actual IP addresses:
+**Run on BOTH servers:**
+
+**Replace [NODE1_IP] and [NODE2_IP] with your actual IP addresses before running this command.**
+
+Add entries for both nodes:
 
 ```bash
 sudo tee -a /etc/hosts <<EOF
@@ -74,7 +80,7 @@ sudo tee -a /etc/hosts <<EOF
 EOF
 ```
 
-(`tee -a` appends text to a file. We use `sudo tee` because `/etc/hosts` requires root privileges to edit.)
+The `<<EOF` means "everything between this line and the next `EOF` is the text to write." The `tee -a` command appends that text to a file. We use `sudo tee` because the `/etc/hosts` file requires root privileges to edit.
 
 Verify both names resolve. The `-c 2` flag sends just 2 pings and then stops:
 
@@ -116,6 +122,8 @@ an OS firewall like firewalld or iptables. Your security group already allows:
 
 ## 5. Install essential tools
 
+**Run on BOTH servers:**
+
 Install common utilities we'll need throughout the lab. The `-y` flag skips the confirmation prompt:
 
 ```bash
@@ -131,12 +139,16 @@ Installed:
 Complete!
 ```
 
+**Why rsync?** We install rsync explicitly because it is the backbone of WAL archiving in this lab. The `archive_command` on the primary will use rsync to copy WAL segments to the backup server. Without rsync, WAL archiving will not work and point-in-time recovery will be impossible.
+
 > **Concept - rsync**: We install rsync explicitly because it is the backbone of
 > WAL archiving in this lab. The archive_command on the primary will rsync WAL
 > segments to the backup server. rsync uses delta transfers - it only sends the
 > bytes that changed - making it efficient for large files.
 
 ## 6. Set timezone to UTC
+
+**Run on BOTH servers:**
 
 Set the system timezone to UTC:
 
@@ -171,6 +183,8 @@ SSH keys let you connect between servers without typing a password every time. T
 
 ### On NODE1
 
+**Run on NODE1 (pg-primary):**
+
 Generate an SSH key. The `-N ""` flag sets an empty passphrase (no password on the key). The `-t ed25519` flag uses a modern, secure key type:
 
 ```bash
@@ -191,6 +205,8 @@ ssh-copy-id ec2-user@pg-backup
 ```
 
 ### On NODE2
+
+**Run on NODE2 (pg-backup):**
 
 Generate an SSH key:
 
@@ -236,7 +252,9 @@ pgBackRest also run as `postgres`, so this user needs SSH access too.
 
 ### On NODE1
 
-Create the `postgres` OS user. The `|| true` at the end prevents an error if the user already exists:
+**Run on NODE1 (pg-primary):**
+
+Create the `postgres` OS user. The `|| true` at the end means "if the command fails (because the user already exists), that's okay - continue without an error."
 
 ```bash
 sudo useradd -m -d /home/postgres -s /bin/bash postgres || true
@@ -247,6 +265,8 @@ Switch to the postgres user:
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Create the `.ssh` directory:
 
@@ -281,7 +301,9 @@ exit
 
 ### On NODE2
 
-Create the `postgres` OS user:
+**Run on NODE2 (pg-backup):**
+
+Create the `postgres` OS user. The `|| true` at the end means "if the command fails (because the user already exists), that's okay - continue without an error."
 
 ```bash
 sudo useradd -m -d /home/postgres -s /bin/bash postgres || true
@@ -292,6 +314,8 @@ Switch to the postgres user:
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Create the `.ssh` directory:
 
@@ -313,11 +337,17 @@ exit
 
 ### Copy keys between nodes
 
-On NODE1, switch to the postgres user and copy the key to NODE2:
+**Run on NODE1 (pg-primary):**
+
+Switch to the postgres user:
 
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+Copy the key to NODE2:
 
 ```bash
 ssh-copy-id postgres@pg-backup
@@ -329,15 +359,23 @@ Exit back to ec2-user:
 exit
 ```
 
-On NODE2, switch to the postgres user, generate a key, and copy it to NODE1:
+**Run on NODE2 (pg-backup):**
+
+Switch to the postgres user:
 
 ```bash
 sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
+Generate a key:
+
 ```bash
 ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
 ```
+
+Copy the key to NODE1:
 
 ```bash
 ssh-copy-id postgres@pg-primary
@@ -351,11 +389,15 @@ exit
 
 ### Verify
 
-From NODE1, switch to postgres and test:
+**Run on NODE1 (pg-primary):**
+
+Switch to postgres and test:
 
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 ```bash
 ssh postgres@pg-backup hostname
@@ -375,6 +417,8 @@ exit
 ```
 
 ## 9. Create custom mount point directories
+
+**Run on BOTH servers:**
 
 Create the `/opt/pgsql` directory tree on BOTH servers. This is where all
 PostgreSQL data, logs, WAL, and backups will live.
@@ -417,11 +461,15 @@ sudo chmod 700 /opt/pgsql/data
 
 ### On NODE1
 
+**Run on NODE1 (pg-primary):**
+
 Switch to the postgres user to create subdirectories:
 
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Create the archive subdirectory:
 
@@ -443,11 +491,15 @@ exit
 
 ### On NODE2
 
+**Run on NODE2 (pg-backup):**
+
 Switch to the postgres user:
 
 ```bash
 sudo -iu postgres
 ```
+
+**You are now the postgres user.**
 
 Create the archive subdirectory:
 
@@ -486,6 +538,8 @@ exit
 ```
 
 ### Verify (BOTH nodes)
+
+**Run on BOTH servers:**
 
 List the top-level directories:
 
