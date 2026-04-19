@@ -57,7 +57,9 @@ LOG:  checkpoint starting: wal
 
 Multiple checkpoint messages within seconds of each other confirms the problem.
 
-### Step 2 - Check pg_stat_bgwriter for checkpoint statistics
+### Step 2 - Check checkpoint statistics
+
+> **Note:** On PG15+ the canonical view for checkpoint stats is `pg_stat_checkpointer`. On PG16 the columns still exist in `pg_stat_bgwriter`, but PG17 removes them.
 
 ```bash
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store

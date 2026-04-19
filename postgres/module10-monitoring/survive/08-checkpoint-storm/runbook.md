@@ -43,7 +43,9 @@ sudo -iu postgres
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store
 ```
 
-### Step 2 - Check checkpoint frequency in pg_stat_bgwriter
+### Step 2 - Check checkpoint frequency
+
+> **Note:** On PG15+ the canonical view is `pg_stat_checkpointer`. On PG16 the columns still exist in `pg_stat_bgwriter` for backward compatibility, but PG17 removes them. Use `pg_stat_checkpointer` when available.
 
 ```sql
 SELECT checkpoints_timed,
