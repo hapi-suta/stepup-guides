@@ -22,7 +22,7 @@ than the old cluster. The upgrade cannot proceed.
 
 - **Why pg_upgrade checks locale** - If the old and new clusters have different locales, indexes in the new cluster would be sorted incorrectly - the data would be there but the index entries would be in the wrong order. This causes silent data corruption where queries return wrong results or miss rows. pg_upgrade refuses to proceed rather than allow this.
 
-- **pg_controldata shows locale** - `pg_controldata` reads the `pg_control` binary file inside the data directory and prints cluster metadata including the locale, encoding, and block size. You do not need a running cluster to read it.
+- **How to check cluster locale** - For a running cluster, use `SHOW lc_collate;` (PG15 and earlier) or `SELECT datcollate FROM pg_database WHERE datname = 'template0';` (works on all versions). For a stopped cluster, check `pg_controldata` output. Note: some PG versions show locale as `LC_COLLATE` in pg_controldata; others display it under different field names. The SQL approach is more reliable when the cluster is running.
 
 - **The only fix is reinitialize** - You cannot change a cluster's locale after `initdb`. The locale is baked into every database and every text index. The resolution is always: wipe the incorrectly initialized target directory and re-run `initdb` with the correct locale.
 
@@ -61,28 +61,45 @@ The error is clear: `lc_collate` differs between old (`en_US.UTF-8`) and new (`C
 
 ### Step 2 - Confirm the old cluster's locale
 
+If PG15 is running on port 5433, query it directly:
+
 ```
-/usr/pgsql-15/bin/pg_controldata /opt/pgsql/data15 | grep -i lc_
+/usr/pgsql-15/bin/psql -p 5433 -d postgres -c "SELECT datcollate, datctype FROM pg_database WHERE datname = 'template0';"
 ```
 
 Expected output:
 
 ```
-LC_COLLATE:                           en_US.UTF-8
-LC_CTYPE:                             en_US.UTF-8
+  datcollate  |  datctype
+--------------+-----------
+ en_US.UTF-8  | en_US.UTF-8
+(1 row)
+```
+
+If PG15 is not running, use pg_controldata:
+
+```
+/usr/pgsql-15/bin/pg_controldata /opt/pgsql/data15 | grep -iE "lc_|locale"
 ```
 
 ### Step 3 - Confirm the new cluster's (wrong) locale
 
 ```
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data16 | grep -i lc_
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data16 | grep -iE "lc_|locale"
 ```
 
-Expected output:
+If pg_controldata does not show locale fields, start the new cluster temporarily and check:
 
 ```
-LC_COLLATE:                           C
-LC_CTYPE:                             C
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 -o "-p 5434" start
+```
+
+```
+/usr/pgsql-16/bin/psql -p 5434 -d postgres -c "SELECT datcollate, datctype FROM pg_database WHERE datname = 'template0';"
+```
+
+```
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 stop
 ```
 
 Mismatch confirmed. The new cluster was initialized with locale `C` instead of `en_US.UTF-8`.
@@ -131,15 +148,27 @@ Success. You can now start the database server using:
 
 ### Step 4 - Verify the new cluster has the correct locale
 
+Start it temporarily to verify:
+
 ```
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data16 | grep -i lc_
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 -o "-p 5434" start
+```
+
+```
+/usr/pgsql-16/bin/psql -p 5434 -d postgres -c "SELECT datcollate, datctype FROM pg_database WHERE datname = 'template0';"
 ```
 
 Expected output:
 
 ```
-LC_COLLATE:                           en_US.UTF-8
-LC_CTYPE:                             en_US.UTF-8
+  datcollate  |  datctype
+--------------+-----------
+ en_US.UTF-8  | en_US.UTF-8
+(1 row)
+```
+
+```
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 stop
 ```
 
 ### Step 5 - Re-run pg_upgrade --check

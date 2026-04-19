@@ -26,7 +26,7 @@ Expected: Error about missing or invalid stanza.
 ### Step 2: Examine the current configuration
 
 ```bash
-sudo cat /etc/pgbackrest.conf
+sudo cat /etc/pgbackrest/pgbackrest.conf
 ```
 
 Look for these common misconfigurations:
@@ -65,10 +65,10 @@ The directory name there is the stanza name (e.g., `main`).
 
 ### Step 4: Fix the configuration
 
-Edit `/etc/pgbackrest.conf` with the correct settings:
+Edit `/etc/pgbackrest/pgbackrest.conf` with the correct settings:
 
 ```bash
-sudo nano /etc/pgbackrest.conf
+sudo vi /etc/pgbackrest/pgbackrest.conf
 ```
 
 The corrected config should look like:
@@ -144,7 +144,7 @@ sudo -u postgres pgbackrest --stanza=main check
 - **stanza-create** initializes the repo structure for a stanza. It creates the directory layout and initial metadata. It is idempotent - safe to re-run.
 - **pgbackrest check** validates the entire chain: config file, PostgreSQL connectivity, archive_command, and WAL archiving. It is the single best command for verifying pgBackRest health.
 - **pg1-path** must exactly match PostgreSQL's data_directory. Even a trailing slash difference can cause failures.
-- **Configuration file locations**: pgBackRest checks /etc/pgbackrest.conf by default. You can override with --config flag or PGBACKREST_CONFIG environment variable.
+- **Configuration file locations**: pgBackRest checks /etc/pgbackrest/pgbackrest.conf by default. You can override with --config flag or PGBACKREST_CONFIG environment variable.
 - **archive_command integration**: The archive_command in postgresql.conf must reference the same stanza name used in pgbackrest.conf. A mismatch breaks archiving silently.
 - **Multi-stanza setups**: A single pgbackrest.conf can contain multiple stanzas for different PostgreSQL clusters. Each stanza has its own pg1-path and backup schedule.
 
@@ -162,6 +162,6 @@ sudo -u postgres pgbackrest --stanza=main check
 
 5. **Disaster recovery documentation**: Where do you document the pgBackRest configuration for each cluster? If a DBA is restoring at 3 AM, can they find the correct settings?
 
-6. **Configuration backup**: Do you back up /etc/pgbackrest.conf itself? Where? How do you ensure the config backup is up to date?
+6. **Configuration backup**: Do you back up /etc/pgbackrest/pgbackrest.conf itself? Where? How do you ensure the config backup is up to date?
 
 7. **Testing config changes**: How do you test pgBackRest configuration changes without affecting production backups? Can you use --dry-run or a test stanza?

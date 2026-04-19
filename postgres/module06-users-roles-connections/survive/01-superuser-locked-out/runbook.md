@@ -143,17 +143,23 @@ ALTER ROLE
 
 ### Step 6 - Restore the original pg_hba.conf
 
-For this lab, restore the proper configuration that has scram-sha-256 for TCP and trust for local:
+The inject.sh saved a backup of your original pg_hba.conf. Restore it now:
 
 ```bash
 \q
 ```
 
 ```bash
+cp /opt/pgsql/data/pg_hba.conf.chaos-backup /opt/pgsql/data/pg_hba.conf
+```
+
+If the backup file does not exist, edit pg_hba.conf manually to ensure it has at least these lines (your server may have additional rules - keep them):
+
+```bash
 vi /opt/pgsql/data/pg_hba.conf
 ```
 
-Restore the file to:
+Required lines at minimum:
 
 ```
 # TYPE  DATABASE  USER  ADDRESS         METHOD
@@ -161,9 +167,9 @@ local   all       all                   trust
 host    all       all   127.0.0.1/32    scram-sha-256
 host    all       all   ::1/128         scram-sha-256
 host    all       all   0.0.0.0/0       scram-sha-256
-local   replication all                 trust
-host    replication all 127.0.0.1/32   scram-sha-256
 ```
+
+> **Concept - Preserve server-specific rules**: Each server may have additional pg_hba.conf rules (replication, backup server access, etc.). Never blindly overwrite pg_hba.conf with a generic template. Always restore from a backup or add only the missing lines.
 
 ```bash
 /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data reload

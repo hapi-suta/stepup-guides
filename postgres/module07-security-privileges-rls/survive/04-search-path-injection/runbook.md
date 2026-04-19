@@ -9,23 +9,25 @@
 ## Alert
 
 ```
-ALERT: Application returning unexpected username values.
-SELECT current_user is returning 'hacked_postgres'
-instead of the actual user. Queries using current_user()
-in RLS policies may be returning wrong results.
+ALERT: Application returning unexpected version values.
+SELECT version() is returning 'HACKED - PostgreSQL 0.0.0'
+instead of the real version string. Functions resolved through
+search_path may be compromised.
 ```
 
 ---
 
 ## Key Concepts for Revision
 
-- **search_path injection exploits name resolution** - When PostgreSQL resolves an unqualified function call like `current_user()`, it searches schemas in the order defined by `search_path`. If the `public` schema appears before `pg_catalog`, an attacker who can create functions in `public` can shadow built-in functions. The malicious function runs instead of the real one.
+- **search_path injection exploits name resolution** - When PostgreSQL resolves an unqualified function call like `version()`, it searches schemas in the order defined by `search_path`. If the `public` schema appears before `pg_catalog`, an attacker who can create functions in `public` can shadow built-in functions. The malicious function runs instead of the real one.
 
 - **SECURITY DEFINER amplifies the attack** - A function marked `SECURITY DEFINER` runs with the privileges of the function owner, not the caller. If the malicious function is owned by a superuser (or created by one unknowingly), it executes with superuser privileges regardless of who calls it.
 
 - **pg_catalog should always resolve first** - The `pg_catalog` schema contains all built-in functions. If `pg_catalog` is not explicitly listed in `search_path`, PostgreSQL implicitly searches it first. But if `public` is explicitly listed before `pg_catalog`, the public schema wins. Always ensure `pg_catalog` comes first or is not displaced.
 
 - **The public schema is writable by default** - In PostgreSQL versions before 15, any authenticated user can create objects in the `public` schema by default. This is the root cause of search_path injection attacks. PostgreSQL 15+ changed this default, but upgraded clusters may still have the old permissive setting.
+
+- **SQL keywords cannot be shadowed** - `current_user`, `session_user`, and `current_role` are SQL keywords parsed at the grammar level. They are NOT resolved through search_path and cannot be shadowed by functions. However, regular functions like `version()`, `current_setting()`, and `current_database()` ARE resolved through search_path and can be shadowed.
 
 ---
 
@@ -42,19 +44,19 @@ sudo -iu postgres
 ```
 
 ```sql
-SELECT current_user;
+SELECT version();
 ```
 
 Expected output:
 
 ```
-   current_user
------------------
- hacked_postgres
+              version
+------------------------------------
+ HACKED - PostgreSQL 0.0.0
 (1 row)
 ```
 
-The result has a `hacked_` prefix. This is not the real `current_user` - a shadowing function is intercepting the call.
+The result is fake. A shadowing function is intercepting the `version()` call.
 
 ### Step 2 - Check what functions exist in the public schema
 
@@ -63,36 +65,36 @@ SELECT n.nspname, p.proname, p.prosecdef, pg_get_functiondef(p.oid)
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
-  AND p.proname IN ('current_user', 'session_user', 'current_role');
+  AND p.proname IN ('version', 'current_database', 'current_setting');
 ```
 
 Expected output (yours will differ):
 
 ```
- nspname |   proname    | prosecdef |            pg_get_functiondef
----------+--------------+-----------+---------------------------------------------
- public  | current_user | t         | CREATE OR REPLACE FUNCTION public...
+ nspname | proname | prosecdef |            pg_get_functiondef
+---------+---------+-----------+---------------------------------------------
+ public  | version | t         | CREATE OR REPLACE FUNCTION public.version()...
 (1 row)
 ```
 
-A function named `current_user` exists in the `public` schema with `prosecdef = t` (SECURITY DEFINER). This is the malicious function.
+A function named `version` exists in the `public` schema with `prosecdef = t` (SECURITY DEFINER). This is the malicious function.
 
 ### Step 3 - Call the real function explicitly
 
 ```sql
-SELECT pg_catalog.current_user();
+SELECT pg_catalog.version();
 ```
 
-Expected output:
+Expected output (yours will differ):
 
 ```
- current_user
---------------
- postgres
+                                                  version
+-----------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-2), 64-bit
 (1 row)
 ```
 
-Using the fully-qualified `pg_catalog.current_user()` bypasses the shadow and returns the real value. This confirms the issue is a search_path problem, not a system compromise.
+Using the fully-qualified `pg_catalog.version()` bypasses the shadow and returns the real value. This confirms the issue is a search_path problem, not a system compromise.
 
 ### Step 4 - Check the current search_path
 
@@ -118,7 +120,7 @@ The `public` schema is in the search_path. Since there is no schema named `postg
 ### Step 1 - Drop the malicious function
 
 ```sql
-DROP FUNCTION IF EXISTS public.current_user();
+DROP FUNCTION IF EXISTS public.version();
 ```
 
 Expected output:
@@ -130,19 +132,19 @@ DROP FUNCTION
 ### Step 2 - Verify the real function works again
 
 ```sql
-SELECT current_user;
+SELECT version();
 ```
 
-Expected output:
+Expected output (yours will differ):
 
 ```
- current_user
---------------
- postgres
+                                                  version
+-----------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.13 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-2), 64-bit
 (1 row)
 ```
 
-No more `hacked_` prefix.
+The real version string is returned.
 
 ### Step 3 - Check for other suspicious functions in public schema
 
@@ -159,7 +161,7 @@ Review the results carefully. Any function with `prosecdef = t` (SECURITY DEFINE
 
 ### Step 4 - Lock down the search_path for the database
 
-Set the search_path to exclude `public` or ensure `pg_catalog` is listed explicitly first.
+Set the search_path to ensure `pg_catalog` is listed explicitly first.
 
 ```sql
 ALTER DATABASE stepup_store SET search_path = 'public', 'pg_catalog';
@@ -209,18 +211,18 @@ Run the validation script to confirm the scenario is resolved.
 
 Expected checks:
 - PostgreSQL is running
-- Malicious public.current_user() function is removed
-- current_user returns correct value without hacked_ prefix
-- pg_catalog.current_user() works correctly
+- Malicious public.version() function is removed
+- version() returns correct PostgreSQL version string
+- pg_catalog.version() works correctly
 - PostgreSQL accepts normal connections
 
 ---
 
 ## Interview Discussion Points
 
-1. **How does search_path injection work in practice?** - An attacker needs CREATE privileges on a schema that appears in the victim's search_path (typically `public`). They create a function with the same name as a built-in (like `current_user`). When the victim calls the unqualified function name, PostgreSQL resolves it to the attacker's function first. If the function is SECURITY DEFINER and owned by a superuser, the attacker's code runs with superuser privileges.
+1. **How does search_path injection work in practice?** - An attacker needs CREATE privileges on a schema that appears in the victim's search_path (typically `public`). They create a function with the same name as a built-in (like `version()`). When the victim calls the unqualified function name, PostgreSQL resolves it to the attacker's function first. If the function is SECURITY DEFINER and owned by a superuser, the attacker's code runs with superuser privileges.
 
-2. **Why is SECURITY DEFINER dangerous in this context?** - A SECURITY DEFINER function runs as its owner, not its caller. If a superuser creates a function in the public schema with SECURITY DEFINER, any user who calls that function executes code with superuser privileges. In a search_path injection, the malicious function in `public` replaces a system function, so every query that calls the system function now runs attacker-controlled code as the function's owner.
+2. **Which built-in identifiers can be shadowed and which cannot?** - SQL keywords like `current_user`, `session_user`, `current_role`, and `current_catalog` are parsed at the grammar level and CANNOT be shadowed through search_path. Regular functions like `version()`, `current_database()`, `current_setting()`, `pg_sleep()`, and `pg_catalog` functions CAN be shadowed. This distinction is critical for understanding the actual attack surface.
 
 3. **What changed in PostgreSQL 15 regarding the public schema?** - PostgreSQL 15 removed the default `CREATE` privilege on the `public` schema for the `PUBLIC` pseudo-role. In older versions, any authenticated user could create objects in `public`. This change significantly reduces the attack surface for search_path injection. However, databases upgraded from older versions retain the old permissions unless explicitly revoked.
 

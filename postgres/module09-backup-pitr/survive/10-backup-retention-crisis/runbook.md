@@ -24,7 +24,7 @@ Expected: No valid backups, errors about corrupt or missing data.
 
 ```bash
 sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 ```
 
 The database is still alive - this is your only source of data. Protect it.
@@ -56,8 +56,8 @@ Expected: base.tar.gz and pg_wal.tar.gz files.
 ### Step 4: Take logical dumps of all databases
 
 ```bash
-# labdb with custom format
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d labdb -Fc -f /opt/pgsql/backup/dumps/labdb.custom
+# stepup_store with custom format
+sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
 
 # appdb
 sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d appdb -Fc -f /opt/pgsql/backup/dumps/appdb.custom
@@ -72,7 +72,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_dumpall -p 5432 -f /opt/pgsql/backup/dumps
 Verify each dump:
 
 ```bash
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.custom | head -10
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | head -10
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/appdb.custom | head -10
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/blobdb.custom | head -10
 ```
@@ -84,7 +84,7 @@ Expected: Clean table-of-contents output for each dump.
 Fix the retention setting:
 
 ```bash
-sudo nano /etc/pgbackrest.conf
+sudo vi /etc/pgbackrest/pgbackrest.conf
 # Set repo1-retention-full=2 (or higher)
 ```
 

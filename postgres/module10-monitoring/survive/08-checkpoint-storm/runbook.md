@@ -25,7 +25,7 @@ Write performance is degraded due to constant flushing.
 
 - **max_wal_size** - The maximum amount of WAL that can accumulate between checkpoints. Default is `1GB`. When WAL reaches this size, PostgreSQL forces a checkpoint (a "requested" checkpoint). Setting it to `32MB` means a checkpoint is forced after every 32MB of WAL - on a busy system, this can mean checkpoints every few seconds.
 
-- **checkpoint_timeout** - The maximum time between automatic checkpoints. Default is `5min`. Setting it to `15s` means a time-based checkpoint fires every 15 seconds regardless of WAL volume.
+- **checkpoint_timeout** - The maximum time between automatic checkpoints. Default is `5min`. Setting it to `30s` (the minimum allowed) means a time-based checkpoint fires every 30 seconds regardless of WAL volume.
 
 - **pg_stat_bgwriter** - This view tracks checkpoint activity. `checkpoints_timed` counts time-based checkpoints. `checkpoints_req` counts WAL-size-triggered checkpoints. A high `checkpoints_req` relative to `checkpoints_timed` means `max_wal_size` is too small for the write volume.
 
@@ -87,7 +87,7 @@ Expected output (yours will differ):
             name             | setting | unit
 -----------------------------+---------+------
  checkpoint_completion_target| 0.1     |
- checkpoint_timeout          | 15      | s
+ checkpoint_timeout          | 30      | s
  max_wal_size                | 32      | MB
 (3 rows)
 ```

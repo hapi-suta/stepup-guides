@@ -37,7 +37,7 @@ sudo -u postgres ls -lt /opt/pgsql/data/pg_wal/ | head -10
 
 # Scan WAL for DELETE operations on the pitr_marker table
 # First get the relfilenode of pitr_marker
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c \
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \
   "SELECT pg_relation_filenode('pitr_marker');"
 
 # Then scan WAL for that relation
@@ -80,7 +80,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
 Wait for recovery to complete and verify the state:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d labdb -c "SELECT * FROM pitr_marker ORDER BY id;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
 ```
 
 Expected: GOOD_STATE row exists, no BAD_STATE rows.
@@ -89,21 +89,21 @@ Expected: GOOD_STATE row exists, no BAD_STATE rows.
 
 ```bash
 # Dump just the pitr_marker table from the scratch instance
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d labdb -t pitr_marker -Fc -f /tmp/pitr_marker.dump
+sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d stepup_store -t pitr_marker -Fc -f /tmp/pitr_marker.dump
 ```
 
 ### Step 6: Restore the correct data to production
 
 ```bash
 # Drop the current bad table and restore the good one
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "DROP TABLE IF EXISTS pitr_marker;"
-/usr/pgsql-16/bin/pg_restore -h localhost -p 5432 -U postgres -d labdb /tmp/pitr_marker.dump
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "DROP TABLE IF EXISTS pitr_marker;"
+/usr/pgsql-16/bin/pg_restore -h localhost -p 5432 -U postgres -d stepup_store /tmp/pitr_marker.dump
 ```
 
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT * FROM pitr_marker ORDER BY id;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
 ```
 
 Expected: GOOD_STATE row exists.

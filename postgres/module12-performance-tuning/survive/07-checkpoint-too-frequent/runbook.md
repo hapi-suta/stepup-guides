@@ -26,7 +26,7 @@ The ops team suspects a configuration change.
 
 - **checkpoint_completion_target spreads I/O** - This setting (0.0 to 1.0) controls what fraction of the checkpoint interval is used to write dirty pages. At 0.1, PostgreSQL tries to write all dirty pages in 10% of the time between checkpoints, creating intense I/O bursts. At 0.9 (recommended), writes are spread over 90% of the interval, smoothing I/O.
 
-- **checkpoint_timeout is the time-based trigger** - Even if `max_wal_size` is not reached, a checkpoint occurs every `checkpoint_timeout` seconds. Default is 5 minutes. Setting it to 15 seconds causes checkpoints at least that often regardless of WAL volume.
+- **checkpoint_timeout is the time-based trigger** - Even if `max_wal_size` is not reached, a checkpoint occurs every `checkpoint_timeout` seconds. Default is 5 minutes. Setting it to 30 seconds (the minimum allowed on PG16) causes checkpoints at least that often regardless of WAL volume.
 
 - **pg_stat_bgwriter tracks checkpoint frequency** - The `checkpoints_timed` and `checkpoints_req` columns show how many checkpoints were triggered by timeout vs WAL size. High `checkpoints_req` means WAL-triggered checkpoints are dominant, indicating `max_wal_size` is too small.
 
@@ -123,7 +123,7 @@ Expected output:
 ```
  checkpoint_timeout
 --------------------
- 15s
+ 30s
 (1 row)
 ```
 
@@ -144,7 +144,7 @@ Expected output:
 ```
 max_wal_size = '32MB'
 checkpoint_completion_target = '0.1'
-checkpoint_timeout = '15s'
+checkpoint_timeout = '30s'
 ```
 
 ---

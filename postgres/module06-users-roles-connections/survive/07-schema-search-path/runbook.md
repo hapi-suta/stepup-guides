@@ -41,8 +41,14 @@ sudo -iu postgres
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store
 ```
 
-```sql
-SET ROLE app_user;
+Connect as `app_user` with a fresh TCP session (per-role-in-database settings only apply on new connections, not with `SET ROLE`):
+
+```bash
+\q
+```
+
+```bash
+PGPASSWORD=apppass123 /usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store
 ```
 
 ```sql
@@ -52,13 +58,15 @@ SHOW search_path;
 Expected output (yours will differ):
 
 ```
- search_path
---------------
+   search_path
+-----------------
  decoy, pg_catalog
 (1 row)
 ```
 
 The search_path points to `decoy` instead of `public`. That is why the wrong table is being read.
+
+> **Concept - SET ROLE vs fresh login**: `SET ROLE app_user` does NOT load per-role-in-database settings from `pg_db_role_setting`. Those settings only take effect when a new session is established. Always test with a fresh login to see what the application actually sees.
 
 ### Step 2 - Confirm the wrong table is being hit
 
@@ -76,6 +84,20 @@ Expected output (yours will differ):
 ```
 
 This is the decoy table, not the real orders table.
+
+Switch back to postgres for the remaining steps:
+
+```bash
+\q
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store
+```
 
 ### Step 3 - Check where the search_path was set
 

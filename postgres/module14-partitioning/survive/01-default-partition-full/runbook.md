@@ -117,8 +117,10 @@ Detach the default partition to make it a standalone table:
 
 ```sql
 ALTER TABLE orders_chaos
-    DETACH PARTITION orders_chaos_default CONCURRENTLY;
+    DETACH PARTITION orders_chaos_default;
 ```
+
+(`CONCURRENTLY` is not allowed when a default partition exists. Use plain `DETACH PARTITION`.)
 
 ### Step 2 - Create correct bounded partitions
 
@@ -149,7 +151,21 @@ INSERT INTO orders_chaos
 SELECT * FROM orders_chaos_default;
 ```
 
-### Step 4 - Verify the default partition is now empty
+### Step 4 - Verify the rows were copied
+
+```sql
+SELECT COUNT(*) FROM orders_chaos;
+```
+
+Confirm all 5000 rows are now in the bounded partitions.
+
+### Step 5 - Delete rows from the detached default
+
+The INSERT in Step 3 copied rows into the new partitions but did NOT remove them from the detached default. You must delete them before re-attaching:
+
+```sql
+DELETE FROM orders_chaos_default;
+```
 
 ```sql
 SELECT COUNT(*) FROM orders_chaos_default;
@@ -164,7 +180,7 @@ Expected output:
 (1 row)
 ```
 
-### Step 5 - Re-attach an empty default partition for future safety
+### Step 6 - Re-attach an empty default partition for future safety
 
 ```sql
 ALTER TABLE orders_chaos
@@ -172,7 +188,7 @@ ALTER TABLE orders_chaos
     DEFAULT;
 ```
 
-### Step 6 - Prove pruning is working
+### Step 7 - Prove pruning is working
 
 ```sql
 EXPLAIN
@@ -189,7 +205,7 @@ Expected output (yours will differ):
 
 Only the January 2024 partition appears. Pruning is working.
 
-### Step 7 - Verify row count integrity
+### Step 8 - Verify row count integrity
 
 ```sql
 SELECT COUNT(*) FROM orders_chaos;

@@ -47,7 +47,7 @@ Expected: You will see a broken command like `/bin/false %f %p` instead of the c
 Check what pgBackRest expects:
 
 ```bash
-cat /etc/pgbackrest.conf
+cat /etc/pgbackrest/pgbackrest.conf
 ```
 
 The correct archive_command for pgBackRest is typically:

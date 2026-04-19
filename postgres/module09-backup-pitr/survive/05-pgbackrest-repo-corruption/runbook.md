@@ -111,7 +111,7 @@ sudo -u postgres pgbackrest --stanza=main \
 sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
   -D /tmp/pg-restore-test -o "-p 5433" start
 
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
 
 # Clean up
 sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-restore-test stop

@@ -12,13 +12,13 @@
 SSH to [NODE2] and try to list the dump contents:
 
 ```bash
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.custom
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
 Expected: Error output - the file header is corrupted and pg_restore cannot read it.
 
 ```bash
-file /opt/pgsql/backup/dumps/labdb.custom
+file /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
 This may show "data" instead of the expected "PostgreSQL custom database dump" signature.
@@ -41,13 +41,13 @@ You may find:
 If a directory-format dump exists:
 
 ```bash
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.dir/
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.dir/
 ```
 
 If a tar-format dump exists:
 
 ```bash
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.tar
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.tar
 ```
 
 ### Step 3: If no valid dump exists, take a fresh one
@@ -56,14 +56,14 @@ Connect to the primary and create new backups in multiple formats:
 
 ```bash
 # Custom format (most versatile)
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d labdb -Fc -f /opt/pgsql/backup/dumps/labdb.custom
+sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
 
 # Directory format (parallelizable, resilient)
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d labdb -Fd -j 4 -f /opt/pgsql/backup/dumps/labdb.dir
+sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fd -j 4 -f /opt/pgsql/backup/dumps/stepup_store.dir
 
 # Verify both are valid
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.custom
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.dir/
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.dir/
 ```
 
 > **Concept - Backup Format Diversity**: Maintaining dumps in multiple formats (custom, directory, tar) provides resilience. If one format is corrupted, you can fall back to another. Directory-format dumps are especially resilient because each table is a separate file - corruption of one file does not destroy the entire backup.
@@ -71,7 +71,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d labdb -Fd -j 4 -f /opt/pgs
 ### Step 4: Verify the new backup
 
 ```bash
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.custom | head -20
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | head -20
 ```
 
 Expected: Clean table-of-contents listing with table names, sequences, constraints, etc.
@@ -79,13 +79,13 @@ Expected: Clean table-of-contents listing with table names, sequences, constrain
 Also verify row counts by doing a test restore to /dev/null:
 
 ```bash
-/usr/pgsql-16/bin/pg_restore -f /dev/stdout /opt/pgsql/backup/dumps/labdb.custom | grep -c "INSERT\|COPY"
+/usr/pgsql-16/bin/pg_restore -f /dev/stdout /opt/pgsql/backup/dumps/stepup_store.custom | grep -c "INSERT\|COPY"
 ```
 
 ### Step 5: Remove the corrupted file
 
 ```bash
-rm /opt/pgsql/backup/dumps/labdb.custom.corrupt  # rename first if you want to keep for analysis
+rm /opt/pgsql/backup/dumps/stepup_store.custom.corrupt  # rename first if you want to keep for analysis
 ```
 
 ### Step 6: Set up backup verification

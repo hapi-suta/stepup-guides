@@ -140,7 +140,7 @@ GRANT SELECT, INSERT, UPDATE ON reports TO team_lead WITH GRANT OPTION;
 Expected output:
 
 ```
-ALTER ROLE
+GRANT
 ```
 
 The `WITH GRANT OPTION` flag allows team_lead to pass these privileges to others.

@@ -37,7 +37,7 @@ If pgbackrest info fails because the config references the missing data director
 
 ```bash
 # Check the config
-cat /etc/pgbackrest.conf
+cat /etc/pgbackrest/pgbackrest.conf
 
 # pgBackRest info should still work since it reads from the repo
 sudo -u postgres pgbackrest --stanza=main info --output=json
@@ -98,19 +98,19 @@ sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
 sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "\l"
 ```
 
-Confirm all expected databases are listed (labdb, postgres, and any others that existed before).
+Confirm all expected databases are listed (stepup_store, postgres, and any others that existed before).
 
 ### Step 7: Verify data integrity
 
 ```bash
 # Check employees table
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 
 # Check all public tables
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "\dt"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt"
 
 # Run a sample query to verify data is readable
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT * FROM employees LIMIT 5;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM employees LIMIT 5;"
 ```
 
 ### Step 8: Reconfigure pgBackRest and take a fresh backup

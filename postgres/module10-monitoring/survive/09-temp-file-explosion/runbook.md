@@ -104,7 +104,7 @@ A high `temp_files` count and large `temp_bytes` confirms excessive temp file us
 ### Step 4 - Use EXPLAIN to see a query spilling to disk
 
 ```sql
-EXPLAIN (ANALYZE, BUFFERS) SELECT val FROM temp_explosion_a ORDER BY val LIMIT 100;
+EXPLAIN (ANALYZE, BUFFERS) SELECT val FROM temp_explosion_a ORDER BY val;
 ```
 
 Expected output (yours will differ):
@@ -192,7 +192,7 @@ Expected output (yours will differ):
 ### Step 4 - Verify sorts now happen in memory
 
 ```sql
-EXPLAIN (ANALYZE, BUFFERS) SELECT val FROM temp_explosion_a ORDER BY val LIMIT 100;
+EXPLAIN (ANALYZE, BUFFERS) SELECT val FROM temp_explosion_a ORDER BY val;
 ```
 
 Expected output (yours will differ):

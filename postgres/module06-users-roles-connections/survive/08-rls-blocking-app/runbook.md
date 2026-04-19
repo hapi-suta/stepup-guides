@@ -190,11 +190,11 @@ ORDER BY policyname;
 Expected output:
 
 ```
-          policyname          | cmd |   roles
------------------------------+-----+------------
- app_user_insert_products    | a   | {app_user}
- app_user_select_products    | r   | {app_user}
- app_user_update_products    | w   | {app_user}
+          policyname          |  cmd   |   roles
+-----------------------------+--------+------------
+ app_user_insert_products    | INSERT | {app_user}
+ app_user_select_products    | SELECT | {app_user}
+ app_user_update_products    | UPDATE | {app_user}
 (3 rows)
 ```
 

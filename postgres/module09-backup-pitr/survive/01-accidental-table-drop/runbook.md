@@ -12,13 +12,13 @@
 SSH to [NODE1] and verify the table no longer exists:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "\dt employees"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt employees"
 ```
 
 Expected: "Did not find any relation named employees."
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: ERROR - relation "employees" does not exist.
@@ -38,7 +38,7 @@ Look for the most recent full or incremental backup taken BEFORE the drop. Note 
 Also check if a logical dump exists on [NODE2]:
 
 ```bash
-ssh [NODE2] "ls -lh /opt/pgsql/backup/dumps/labdb*"
+ssh [NODE2] "ls -lh /opt/pgsql/backup/dumps/stepup_store*"
 ```
 
 ### Step 3: Choose your recovery strategy
@@ -51,15 +51,15 @@ If a custom-format dump exists on [NODE2]:
 
 ```bash
 # On NODE2, extract just the employees table
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/labdb.custom | grep employees > /tmp/employees-toc.txt
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | grep employees > /tmp/employees-toc.txt
 
 # Review what will be restored
 cat /tmp/employees-toc.txt
 
 # Restore just the employees table to the primary
-/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d labdb \
+/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store \
   --use-list=/tmp/employees-toc.txt \
-  /opt/pgsql/backup/dumps/labdb.custom
+  /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
 **Option B - PITR side-restore (when no logical dump is available)**
@@ -80,13 +80,13 @@ sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
   -D /tmp/pg-scratch -o "-p 5433" start
 
 # Wait for recovery to complete
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
 
 # Dump just the employees table from the scratch instance
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d labdb -t employees -Fc -f /tmp/employees-only.dump
+sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d stepup_store -t employees -Fc -f /tmp/employees-only.dump
 
 # Restore to the real primary
-/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d labdb /tmp/employees-only.dump
+/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store /tmp/employees-only.dump
 
 # Clean up scratch instance
 sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-scratch stop
@@ -100,7 +100,7 @@ rm -rf /tmp/pg-scratch
 On [NODE1]:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT count(*) FROM employees;"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: >= 10000 rows (matching the pre-drop count from the state file).
@@ -108,7 +108,7 @@ Expected: >= 10000 rows (matching the pre-drop count from the state file).
 ### Step 5: Verify other tables are unaffected
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "\dt"
+sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt"
 ```
 
 Confirm all other tables still exist and have their data intact.
@@ -149,4 +149,4 @@ sudo -u postgres pgbackrest --stanza=main --type=diff backup
 
 6. **Side-restore resource planning**: A PITR side-restore needs disk space, a free port, and CPU/memory. How do you plan for this in your infrastructure? Do you keep a dedicated recovery server?
 
-7. **Multi-tenant impact**: If labdb, appdb, and blobdb share the same cluster, how does a full PITR affect the other databases? Why is selective restore preferred when only one object is affected?
+7. **Multi-tenant impact**: If stepup_store, appdb, and blobdb share the same cluster, how does a full PITR affect the other databases? Why is selective restore preferred when only one object is affected?
