@@ -108,6 +108,14 @@ Confirm data directory is `drwx------` and all files are `postgres:postgres`.
 
 ### Step 4 - Start PostgreSQL
 
+If `systemctl start` fails with "Start request repeated too quickly", systemd has hit its restart rate limit. Reset the failed state first:
+
+```bash
+sudo systemctl reset-failed postgresql-16
+```
+
+Then start:
+
 ```bash
 sudo systemctl start postgresql-16
 ```

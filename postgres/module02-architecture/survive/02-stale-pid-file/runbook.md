@@ -56,43 +56,53 @@ The first line is the PID. Note this number.
 
 ### Step 4 - Check if that PID is actually running
 
-```bash
-ps -p 99999
-```
-
-Replace 99999 with the PID from the file. If `ps` returns nothing (or a non-PostgreSQL process), the PID file is stale.
-
-### Step 5 - Double-check no PostgreSQL is running
+Replace `<PID>` with the PID from the file:
 
 ```bash
-ps aux | grep postgres
+ps -fp <PID>
 ```
 
-Confirm there is no postmaster process running.
+(`-f` shows full details including the command.) If the process is NOT a PostgreSQL postmaster (e.g., it is a `sleep` command or some other process), the PID file is stale.
+
+### Step 5 - Double-check no PostgreSQL postmaster is running
+
+```bash
+ps aux | grep 'postgres.*-D' | grep -v grep
+```
+
+If this returns nothing, no PostgreSQL postmaster is running. The PID file is definitely stale.
 
 ---
 
 ## Resolution
 
-### Step 1 - Remove the stale PID file
+### Step 1 - Kill the process holding the stale PID (if it exists)
+
+If `ps -fp <PID>` showed a non-PostgreSQL process (like `sleep`), kill it first:
+
+```bash
+sudo kill <PID>
+```
+
+### Step 2 - Remove the stale PID file
 
 ```bash
 sudo -u postgres rm /opt/pgsql/data/postmaster.pid
 ```
 
-### Step 2 - Start PostgreSQL
+### Step 3 - Start PostgreSQL
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
-### Step 3 - Verify it started
+### Step 4 - Verify it started
 
 ```bash
 sudo systemctl status postgresql-16
 ```
 
-### Step 4 - Test a connection
+### Step 5 - Test a connection
 
 ```bash
 sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
