@@ -35,7 +35,11 @@ Before diving into the fix, make sure you understand these concepts:
 Even when the pool is full, superuser_reserved_connections keeps slots open for the postgres user.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb
 ```
 
 ### Step 2 - Check total connection count vs limit
@@ -102,7 +106,15 @@ SELECT count(*) FROM pg_stat_activity;
 Open a new terminal and verify you can connect normally.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'connection works';"
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'connection works';"
+```
+
+```bash
+exit
 ```
 
 ---

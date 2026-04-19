@@ -16,7 +16,10 @@
 Run an EXPLAIN on a query that should use the index.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   EXPLAIN SELECT * FROM chaos_stats_test WHERE category = 42;
 "
 ```
@@ -28,7 +31,7 @@ You will see a **Seq Scan** with an estimated row count near 500 (based on the s
 Compare what the planner thinks vs actual row count.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname,
          n_live_tup,
          n_dead_tup,
@@ -46,7 +49,7 @@ Note:
 Now check the actual count.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT count(*) FROM chaos_stats_test;
 "
 ```
@@ -56,7 +59,7 @@ The actual count is ~1000, but the planner thinks there are ~500000 rows.
 ### Step 3 - Check Autovacuum/Autoanalyze Setting
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname, reloptions
   FROM pg_class
   WHERE relname = 'chaos_stats_test';
@@ -68,7 +71,7 @@ Autovacuum is disabled, which also disables autoanalyze for this table.
 ### Step 4 - Re-enable Autovacuum
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   ALTER TABLE chaos_stats_test SET (autovacuum_enabled = true);
 "
 ```
@@ -76,7 +79,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 ### Step 5 - Run ANALYZE
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   ANALYZE chaos_stats_test;
 "
 ```
@@ -86,7 +89,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 Run the same EXPLAIN again.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   EXPLAIN SELECT * FROM chaos_stats_test WHERE category = 42;
 "
 ```
@@ -96,13 +99,16 @@ You should now see an **Index Scan** on `idx_chaos_stats_category` with an estim
 ### Step 7 - Confirm Statistics Are Current
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname,
          n_live_tup,
          last_analyze
   FROM pg_stat_user_tables
   WHERE relname = 'chaos_stats_test';
 "
+```
+```bash
+exit
 ```
 
 The `n_live_tup` should now be close to 1000, and `last_analyze` should be recent.

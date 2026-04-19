@@ -14,7 +14,10 @@
 ### Step 1 - Check bgwriter Statistics
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT buffers_checkpoint,
          buffers_clean,
          buffers_backend,
@@ -28,7 +31,7 @@ Key observation: `buffers_backend` is high while `buffers_clean` is 0. This mean
 ### Step 2 - Check bgwriter Configuration
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SHOW bgwriter_lru_maxpages;
 "
 ```
@@ -38,7 +41,7 @@ The value is `0`, which completely disables the background writer's buffer clean
 Also check the checkpoint interval.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SHOW checkpoint_timeout;
 "
 ```
@@ -48,7 +51,7 @@ The value is `30min` - far too long. With bgwriter disabled and checkpoints 30 m
 ### Step 3 - Re-enable the Background Writer
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   ALTER SYSTEM SET bgwriter_lru_maxpages = 100;
 "
 ```
@@ -58,7 +61,7 @@ The default value is 100 pages per round. This means the bgwriter will clean up 
 ### Step 4 - Restore Checkpoint Timeout
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   ALTER SYSTEM SET checkpoint_timeout = '5min';
 "
 ```
@@ -68,7 +71,7 @@ The default is 5 minutes. This ensures dirty buffers are flushed periodically ev
 ### Step 5 - Reload Configuration
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT pg_reload_conf();
 "
 ```
@@ -76,7 +79,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 ### Step 6 - Verify Settings Applied
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SHOW bgwriter_lru_maxpages;
   SHOW checkpoint_timeout;
 "
@@ -89,7 +92,7 @@ Confirm `bgwriter_lru_maxpages` is 100 (or a reasonable non-zero value) and `che
 Flush currently dirty buffers immediately.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "CHECKPOINT;"
+/usr/pgsql-16/bin/psql -d labdb -c "CHECKPOINT;"
 ```
 
 ### Step 8 - Verify bgwriter Is Working
@@ -97,7 +100,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "CHECKPOINT;"
 Reset stats, run a small workload, and check that `buffers_clean` is now increasing.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT pg_stat_reset_shared('bgwriter');
 "
 ```
@@ -105,18 +108,21 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 Run a quick pgbench.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pgbench -c 2 -j 1 -T 10 -p 5432 labdb
+/usr/pgsql-16/bin/pgbench -c 2 -j 1 -T 10 -p 5432 labdb
 ```
 
 Check the stats again.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT buffers_clean,
          buffers_backend,
          buffers_checkpoint
   FROM pg_stat_bgwriter;
 "
+```
+```bash
+exit
 ```
 
 You should see `buffers_clean > 0`, confirming the bgwriter is active.

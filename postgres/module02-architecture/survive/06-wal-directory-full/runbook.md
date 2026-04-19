@@ -89,7 +89,11 @@ Look for:
 Connect and run a quick write test.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   CREATE TABLE IF NOT EXISTS wal_test_verify (id serial, ts timestamp default now());
   INSERT INTO wal_test_verify DEFAULT VALUES;
   SELECT * FROM wal_test_verify;
@@ -101,10 +105,14 @@ If the INSERT succeeds, WAL writes are working normally.
 ### Step 8 - Clean Up Test Table
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   DROP TABLE IF EXISTS chaos_wal_trigger;
   DROP TABLE IF EXISTS wal_test_verify;
 "
+```
+
+```bash
+exit
 ```
 
 ---

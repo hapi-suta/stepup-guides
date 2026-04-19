@@ -124,7 +124,18 @@ sudo systemctl start postgresql-16
 
 ```bash
 sudo systemctl status postgresql-16
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+```
+
+```bash
+exit
 ```
 
 ---

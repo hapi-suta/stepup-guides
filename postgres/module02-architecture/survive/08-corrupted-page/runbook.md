@@ -16,7 +16,10 @@
 Try to query the corrupted table.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT count(*) FROM chaos_corrupt_test;
 "
 ```
@@ -27,6 +30,10 @@ ERROR:  invalid page in block 0 of relation base/16384/16xxx
 ```
 
 This confirms a corrupted page header.
+
+```bash
+exit
+```
 
 ### Step 2 - Check PostgreSQL Logs
 
@@ -43,13 +50,19 @@ Look for lines mentioning:
 The error message includes the relation file path (e.g., `base/16384/16xxx`). Match it to a table name.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT c.relname, c.oid, pg_relation_filepath(c.oid)
   FROM pg_class c
   WHERE pg_relation_filepath(c.oid) IS NOT NULL
   ORDER BY c.oid DESC
   LIMIT 20;
 "
+```
+```bash
+exit
 ```
 
 Find the row where the filepath matches the error message.
@@ -61,10 +74,16 @@ The `zero_damaged_pages` parameter tells PostgreSQL to zero out corrupted pages 
 **WARNING**: This is a diagnostic tool, not a production fix. It permanently destroys data on the corrupted page when the page is accessed.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SET zero_damaged_pages = on;
   SELECT count(*) FROM chaos_corrupt_test;
 "
+```
+```bash
+exit
 ```
 
 PostgreSQL will report a WARNING about zeroing the page and return results from the remaining pages. The count will be less than 1000 because rows on page 0 are lost.
@@ -82,7 +101,10 @@ For this lab, since `chaos_corrupt_test` is a test table, we can safely drop it.
 ### Step 6 - Drop the Corrupted Table
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SET zero_damaged_pages = on;
   DROP TABLE IF EXISTS chaos_corrupt_test;
 "
@@ -95,7 +117,7 @@ You may need `zero_damaged_pages = on` for the DROP to succeed if PostgreSQL tri
 Check that no other tables are corrupted.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT schemaname, relname
   FROM pg_stat_user_tables;
 "
@@ -104,7 +126,10 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 Try a simple query on an existing table to confirm the database is functional.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT 1;"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT 1;"
+```
+```bash
+exit
 ```
 
 ---
@@ -137,7 +162,10 @@ PostgreSQL supports page-level checksums (enabled at `initdb` time with `--data-
 
 Check if checksums are enabled:
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep checksum
+sudo -iu postgres
+```
+```bash
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep checksum
 ```
 
 ### zero_damaged_pages
@@ -153,7 +181,10 @@ This parameter is a last-resort diagnostic tool. When set to `on`:
 PostgreSQL 14+ includes `pg_amcheck`, a tool to check for corruption across all tables and indexes:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_amcheck --all
+/usr/pgsql-16/bin/pg_amcheck --all
+```
+```bash
+exit
 ```
 
 This is useful after discovering corruption to determine if it is isolated or widespread.

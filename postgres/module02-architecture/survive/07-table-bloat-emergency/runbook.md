@@ -16,7 +16,11 @@
 Check `pg_stat_user_tables` for tables with high dead tuple counts.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname,
          n_live_tup,
          n_dead_tup,
@@ -40,7 +44,7 @@ You will see `chaos_bloat_test` with ~150000 dead tuples and a dead_pct over 70%
 The `pgstattuple` extension gives precise physical bloat measurements.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   CREATE EXTENSION IF NOT EXISTS pgstattuple;
   SELECT * FROM pgstattuple('chaos_bloat_test');
 "
@@ -54,7 +58,7 @@ Key fields to look at:
 ### Step 3 - Check Autovacuum Setting
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname, reloptions
   FROM pg_class
   WHERE relname = 'chaos_bloat_test';
@@ -66,7 +70,7 @@ The `reloptions` column will show `{autovacuum_enabled=false}`. This is why auto
 ### Step 4 - Re-enable Autovacuum
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   ALTER TABLE chaos_bloat_test SET (autovacuum_enabled = true);
 "
 ```
@@ -76,7 +80,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
 Do not wait for autovacuum to kick in - run a manual VACUUM with VERBOSE to see what it does.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   VACUUM VERBOSE chaos_bloat_test;
 "
 ```
@@ -88,7 +92,7 @@ The output will show how many dead tuples were removed and how many pages were f
 Run pgstattuple again to confirm the dead tuple percentage dropped.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT dead_tuple_count, dead_tuple_percent, free_percent
   FROM pgstattuple('chaos_bloat_test');
 "
@@ -99,11 +103,15 @@ After VACUUM, `dead_tuple_count` should be 0 or very low. Note that `free_percen
 ### Step 7 - Verify Autovacuum is Re-enabled
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
   SELECT relname, reloptions
   FROM pg_class
   WHERE relname = 'chaos_bloat_test';
 "
+```
+
+```bash
+exit
 ```
 
 The `reloptions` should no longer contain `autovacuum_enabled=false`.

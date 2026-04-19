@@ -87,7 +87,15 @@ sudo kill <PID>
 ### Step 2 - Remove the stale PID file
 
 ```bash
-sudo -u postgres rm /opt/pgsql/data/postmaster.pid
+sudo -iu postgres
+```
+
+```bash
+rm /opt/pgsql/data/postmaster.pid
+```
+
+```bash
+exit
 ```
 
 ### Step 3 - Start PostgreSQL
@@ -105,7 +113,15 @@ sudo systemctl status postgresql-16
 ### Step 5 - Test a connection
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+```
+
+```bash
+exit
 ```
 
 ---
