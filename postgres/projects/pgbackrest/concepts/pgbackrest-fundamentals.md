@@ -210,8 +210,8 @@ Monday       Tuesday     Wednesday   Thursday    Friday
    │             │            │            │            │
    │             └─depends──> │            │            │
    │             └─depends────────────────>│            │
-   │             └─depends───────────────────────────> │
-   └─────────────────────all diffs depend on this full─┘
+   │             └─depends───────────────────────────>  │
+   └─────────────────────all diffs depend on this full ─┘
 ```
 
 If you delete Monday's full backup, all four differential backups become useless - they only contain the changed files, not the complete database.
@@ -220,11 +220,11 @@ Incremental chains are even more fragile:
 
 ```
 Monday       Tuesday     Wednesday   Thursday    Friday
-  FULL ─────── INCR ─────── INCR ─────── INCR ─────── INCR
-   │             │            │            │            │
-   │             └──────────> │            │            │
-   │                          └──────────> │            │
-   │                                       └──────────>│
+  FULL ─────── INCR ─────── INCR ─────── INCR ───────   INCR
+   │             │            │            │               │
+   │             └──────────> │            │               │
+   │                          └──────────> │               │
+   │                                       └──────────>    │
    └──────────────chain: each link depends on the previous─┘
 ```
 
@@ -290,9 +290,9 @@ PostgreSQL                     pgBackRest                 Repository
     │                              │── read file ──>          │
     │                              │── compress ──>           │
     │                              │── checksum ──>           │
-    │                              │── write ─────────────────>│
+    │                              │── write ────────────────>│
     │                              │                          │
-    │<──── exit code 0 ───────────│                          │
+    │<──── exit code 0 ─────────── │                          │
     │                              │                          │
     │  (safe to recycle WAL file)  │                          │
 ```
