@@ -1,4 +1,6 @@
-# pgBackRest - Backup and Recovery
+# pgBackRest Lab - Single-Server Backup Architecture
+
+PostgreSQL 16 | Stanza: main | CentOS Stream 9
 
 Learn enterprise-grade PostgreSQL backup management using pgBackRest. This project takes you from installation through full and incremental backups, point-in-time recovery, retention policies, and real-world failure scenarios.
 
@@ -6,26 +8,34 @@ Learn enterprise-grade PostgreSQL backup management using pgBackRest. This proje
 
 ## Architecture
 
-Single-server setup with PostgreSQL and pgBackRest on the same machine:
+![pgBackRest Lab - Single-Server Backup Architecture](docs/architecture-diagram.png)
+
+Single-server setup - PostgreSQL engine and pgBackRest repository live on the same machine. Three core operations flow between them:
+
+1. **WAL Archiving** (archive-push) - PostgreSQL ships completed WAL segments to the pgBackRest repository via `archive_command`. This runs continuously in the background.
+2. **Backup Operations** (full/diff/incr) - pgBackRest reads the data directory and creates compressed backup sets in the repository. Scheduled via cron (Sun 02:00 full, Mon-Sat 02:00 diff).
+3. **Recovery Operations** (restore + archive-get) - pgBackRest restores backup files to the data directory and replays archived WAL segments for point-in-time recovery.
+
+### Server Layout
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                  pg-backup (CentOS Stream 9)             │
-│                                                          │
-│   PostgreSQL 16              pgBackRest Repository       │
-│   /opt/pgsql/data            /opt/pgsql/backup/          │
-│        │                       pgbackrest/               │
-│        │  archive-push            │                      │
-│        └────────────────────────> │  archive/main/       │
-│        │  restore (archive-get)   │  backup/main/        │
-│        <──────────────────────────┘                      │
-│                                                          │
-│   Databases:                                             │
-│   - labdb (~800 MB, pgbench)                             │
-│   - appdb (employees, departments)                       │
-│                                                          │
-│   Config: /etc/pgbackrest.conf                │
-└──────────────────────────────────────────────────────────┘
+pg-backup (AWS EC2 t3.small | CentOS Stream 9)
+├── PostgreSQL Engine                    pgBackRest Repository
+│   Port: 5432                           /opt/pgsql/backup/pgbackrest/
+│   Data: /opt/pgsql/data               ├── archive/main/
+│   WAL:  /opt/pgsql/data/pg_wal/       │   └── WAL segments (.lz4)
+│   ├── labdb (~800MB pgbench)           └── backup/main/
+│   └── appdb (employees/departments)        └── Full/Diff/Incr backup sets
+│
+│   archive_mode = on                    Config: /etc/pgbackrest.conf
+│   wal_level = replica                  repo1-retention-full = 2
+│                                        repo1-retention-diff = 3
+│   Cron Jobs (postgres user)            compress-type = lz4
+│   Sun 02:00 -> Full backup             process-max = 2
+│   Mon-Sat 02:00 -> Diff backup         start-fast = y
+│
+└── Log files: /var/log/pgbackrest/
+    (main-backup.log, main-expire.log, main-restore.log)
 ```
 
 ---
@@ -39,10 +49,15 @@ Single-server setup with PostgreSQL and pgBackRest on the same machine:
 | **Instance type** | t3.small (2 vCPU, 2 GB RAM) |
 | **PostgreSQL** | 16 |
 | **PGDATA** | `/opt/pgsql/data` |
+| **WAL directory** | `/opt/pgsql/data/pg_wal/` (postgres-managed) |
 | **pgBackRest repo** | `/opt/pgsql/backup/pgbackrest` |
 | **pgBackRest config** | `/etc/pgbackrest.conf` |
+| **pgBackRest logs** | `/var/log/pgbackrest/` |
 | **Stanza name** | `main` |
 | **Databases** | `labdb` (~800 MB pgbench), `appdb` (employees/departments) |
+| **Key settings** | `archive_mode=on`, `wal_level=replica` |
+| **Cipher** | none (single-server lab) |
+| **Replication** | none (streaming/standby discussed in concepts only) |
 
 ---
 
@@ -56,9 +71,9 @@ Step-by-step instructions to set up pgBackRest from scratch. Complete these in o
 | 02 | [Configure Stanza](build/02-configure-stanza.md) | 20 min |
 | 03 | [WAL Archiving](build/03-wal-archiving.md) | 25 min |
 | 04 | [Full Backup](build/04-full-backup.md) | 20 min |
-| 05 | Differential and Incremental Backups | 30 min |
-| 06 | Restore and Point-in-Time Recovery | 40 min |
-| 07 | Retention Policies and Scheduling | 25 min |
+| 05 | [Differential and Incremental Backups](build/05-differential-incremental.md) | 30 min |
+| 06 | [Restore and Point-in-Time Recovery](build/06-restore-and-pitr.md) | 40 min |
+| 07 | [Retention Policies and Scheduling](build/07-retention-and-scheduling.md) | 25 min |
 | | **Total** | **~3 hours** |
 
 ---
@@ -71,9 +86,9 @@ Hands-on practice using pgBackRest in realistic scenarios. Requires completed BU
 |---|---|---|
 | 01 | [Backup Inventory](use/01-backup-inventory.md) | 20 min |
 | 02 | [WAL Archiving Health](use/02-wal-archiving-health.md) | 25 min |
-| 03 | Restore Drill | 25 min |
-| 04 | PITR Precision | 30 min |
-| 05 | Backup Strategy Design | 20 min |
+| 03 | [Restore Drill](use/03-restore-drill.md) | 25 min |
+| 04 | [PITR Precision](use/04-pitr-precision.md) | 30 min |
+| 05 | [Backup Strategy Design](use/05-backup-strategy-design.md) | 20 min |
 | | **Total** | **~2 hours** |
 
 ---
