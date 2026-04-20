@@ -150,6 +150,8 @@ Check the journal for the error message:
 sudo journalctl -u postgresql-16 --no-pager -n 20
 ```
 
+`-u` filters by service name. `--no-pager` prints output directly instead of opening a scrollable view. `-n 20` limits output to the last 20 log entries.
+
 **Expected (key line):**
 
 ```

@@ -175,6 +175,8 @@ Expected output:
 psql -p 5432 -d labdb -c "SELECT 'Connected to PG16' AS status;"
 ```
 
+`-p 5432` connects on port 5432. `-d labdb` connects to the labdb database. `-c` runs a single SQL command and exits.
+
 Expected output:
 
 ```

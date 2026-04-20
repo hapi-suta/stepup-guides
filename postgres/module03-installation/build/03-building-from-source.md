@@ -521,13 +521,10 @@ Verify your work before moving on:
 Run this final check to confirm the test cluster was cleaned up:
 
 ```bash
-ls /tmp/pg-src-test 2>/dev/null && echo "WARNING: test cluster still exists" || echo "Clean - no leftover test cluster"
+ls /tmp/pg-src-test
 ```
 
-```
-Expected output:
-Clean - no leftover test cluster
-```
+If you see files listed, the test cluster still exists - go back and run the `rm -rf /tmp/pg-src-test` command from Step 6. If you see `ls: cannot access '/tmp/pg-src-test': No such file or directory`, the cleanup was successful.
 
 Confirm no postgres process is running on port 5434:
 

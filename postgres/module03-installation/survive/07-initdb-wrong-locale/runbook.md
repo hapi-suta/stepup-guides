@@ -144,6 +144,8 @@ sudo -iu postgres
 /usr/pgsql-15/bin/initdb -D /opt/pgsql/data15 --locale=en_US.UTF-8 --encoding=UTF8
 ```
 
+`-D` sets the data directory path. `--locale` sets the collation and character classification rules. `--encoding` sets the character encoding for stored data.
+
 Expected output (key lines):
 ```
 The files belonging to this database system will be owned by user "postgres".

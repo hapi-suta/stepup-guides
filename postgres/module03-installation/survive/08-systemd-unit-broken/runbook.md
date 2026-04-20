@@ -31,6 +31,8 @@ The key clue is the ExecStartPre failure - it runs before PostgreSQL even tries 
 sudo journalctl -xeu postgresql-16 --no-pager | tail -20
 ```
 
+`-x` adds explanatory help text. `-e` jumps to the end of the log. `-u` filters to this service. `--no-pager` prints to the terminal.
+
 Expected output (key lines):
 ```
 postgresql-16-check-db-dir[XXXX]: "/opt/pgsql/data-WRONG" is missing or empty.

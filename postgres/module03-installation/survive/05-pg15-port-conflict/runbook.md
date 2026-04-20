@@ -38,6 +38,8 @@ Expected output:
 sudo journalctl -xeu postgresql-15 --no-pager | tail -30
 ```
 
+`-x` adds explanatory help text. `-e` jumps to the end of the log. `-u` filters to this service. `--no-pager` prints to the terminal.
+
 Expected output (key line):
 ```
 FATAL:  could not bind IPv4 address "0.0.0.0": Address already in use
@@ -49,6 +51,8 @@ HINT:  Is another postmaster already running on port 5432? If not, wait a few se
 ```bash
 sudo ss -tlnp | grep 5432
 ```
+
+`-t` shows TCP sockets. `-l` shows only listening sockets. `-n` shows port numbers instead of names. `-p` shows which process owns each socket.
 
 Expected output:
 ```

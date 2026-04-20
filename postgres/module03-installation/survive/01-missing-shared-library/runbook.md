@@ -131,6 +131,8 @@ sudo -iu postgres
 /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SHOW shared_preload_libraries;"
 ```
 
+`-p 5432` connects on port 5432. `-d labdb` connects to the labdb database. `-c` runs a single SQL command and exits.
+
 Expected output:
 
 ```
@@ -142,7 +144,11 @@ Expected output:
 ### Step 5 - Verify the extension works
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements; SELECT count(*) FROM pg_stat_statements;"
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT count(*) FROM pg_stat_statements;"
 ```
 
 Expected output:

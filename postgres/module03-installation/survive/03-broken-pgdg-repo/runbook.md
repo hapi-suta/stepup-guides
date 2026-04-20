@@ -98,6 +98,8 @@ Replace the broken URL with the correct one:
 sudo sed -i 's|/pub/repos/BROKEN|/pub/repos/yum|g' /etc/yum.repos.d/pgdg-redhat-all.repo
 ```
 
+`-i` edits the file in place (instead of printing to screen). The `s|old|new|g` pattern substitutes all occurrences of `old` with `new`.
+
 ### Step 2 - Verify the fix
 
 ```bash

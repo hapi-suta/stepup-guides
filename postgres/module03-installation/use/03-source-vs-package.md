@@ -199,11 +199,13 @@ Success. You can now start the database server using:
     /opt/pg-src/bin/pg_ctl -D /tmp/pg-src-exercise -l logfile start
 ```
 
-Start the source-compiled server on port 5434. The `-o` flag passes options to the postgres server process:
+Start the source-compiled server on port 5434:
 
 ```bash
 /opt/pg-src/bin/pg_ctl -D /tmp/pg-src-exercise -l /tmp/pg-src-exercise.log start -o '-p 5434'
 ```
+
+`-D` specifies the data directory. `-l` sends server output to a log file instead of the terminal. `-o '-p 5434'` passes the `-p` option to the postgres process, setting the port to 5434.
 
 **Expected:**
 
@@ -322,14 +324,10 @@ rm -f /tmp/pg-src-exercise.log
 Verify cleanup:
 
 ```bash
-ls /tmp/pg-src-exercise 2>/dev/null && echo "WARNING: directory still exists" || echo "Clean"
+ls /tmp/pg-src-exercise
 ```
 
-**Expected:**
-
-```
-Clean
-```
+If you see `ls: cannot access '/tmp/pg-src-exercise': No such file or directory`, the directory was removed successfully. If you see files listed, go back and run the `rm -rf` command.
 
 Confirm nothing is listening on port 5434:
 

@@ -13,9 +13,22 @@ Answer each question before moving to Phase 3 (SURVIVE).
 
 Method 1 - Query the running server:
 
+Switch to the postgres OS user:
+
 ```bash
 sudo -iu postgres
+```
+
+Query the server version:
+
+```bash
 psql -c "SELECT version();"
+```
+
+Return to your previous user:
+
+```bash
+exit
 ```
 
 This returns the full version string including major version, architecture, and compiler. It always reflects the actual running server, regardless of which client you use.
@@ -145,15 +158,30 @@ The RPM includes virtually every optional feature (JIT, compression, Kerberos, I
 
 SSL example:
 
+Check the build flags to see if SSL was compiled in:
+
 ```bash
-# Compiled in - check the build flags:
 /usr/pgsql-16/bin/pg_config --configure | tr ' ' '\n' | grep ssl
 # Output: '--with-openssl'
+```
 
-# Enabled - check the runtime setting:
+Switch to the postgres user to check the runtime setting:
+
+```bash
 sudo -iu postgres
+```
+
+Query whether SSL is enabled:
+
+```bash
 psql -c "SHOW ssl;"
 # Output: off
+```
+
+Return to your previous user:
+
+```bash
+exit
 ```
 
 Even though `--with-openssl` is present, `ssl = off` means the server does not accept SSL connections. To enable it, you need to set `ssl = on` in `postgresql.conf` and provide certificate files (`server.crt`, `server.key`).
@@ -335,7 +363,11 @@ If permissions are wrong (e.g., `chmod 750`):
 ```bash
 sudo systemctl restart postgresql-16
 # Fails with: Active: failed
+```
 
+Check the logs to see the error:
+
+```bash
 sudo journalctl -u postgresql-16 --no-pager -n 20
 # FATAL: data directory "/opt/pgsql/data" has group or world access
 # DETAIL: Permissions should be u=rwx (0700) or u=rwx,g=rx (0750).
@@ -343,9 +375,21 @@ sudo journalctl -u postgresql-16 --no-pager -n 20
 
 Fix:
 
+Set the directory permissions to owner-only access:
+
 ```bash
 sudo chmod 0700 /opt/pgsql/data
+```
+
+Ensure the postgres user owns the directory:
+
+```bash
 sudo chown postgres:postgres /opt/pgsql/data
+```
+
+Start PostgreSQL now that permissions are correct:
+
+```bash
 sudo systemctl start postgresql-16
 ```
 
@@ -375,7 +419,18 @@ Requires only **reload**:
 
 ```bash
 sudo -iu postgres
+```
+
+Reload the configuration from inside psql:
+
+```bash
 psql -c "SELECT pg_reload_conf();"
+```
+
+Return to your previous user:
+
+```bash
+exit
 ```
 
 Or:
@@ -451,11 +506,25 @@ After editing, reload and verify:
 
 ```bash
 sudo -iu postgres
-psql -c "SELECT pg_reload_conf();"
+```
 
-# Check for syntax errors:
+Reload the configuration:
+
+```bash
+psql -c "SELECT pg_reload_conf();"
+```
+
+Check for syntax errors in the rules:
+
+```bash
 psql -c "SELECT line_number, type, database, user_name, address, auth_method, error
          FROM pg_hba_file_rules ORDER BY line_number;"
+```
+
+Return to your previous user:
+
+```bash
+exit
 ```
 
 If the `error` column is non-NULL for any row, that rule has a syntax error. A broken `pg_hba.conf` can lock everyone out, including you.
@@ -472,12 +541,16 @@ The difference is in compile-time flags. The RPM was built with `--with-lz4` and
 
 Verify the build flags:
 
+RPM build:
+
 ```bash
-# RPM build:
 /usr/pgsql-16/bin/pg_config --configure | tr ' ' '\n' | grep -E 'lz4|zstd'
 # Output: '--with-lz4'  '--with-zstd'
+```
 
-# Source build:
+Source build:
+
+```bash
 /opt/pg-src/bin/pg_config --configure | tr ' ' '\n' | grep -E 'lz4|zstd'
 # Output: (empty - not compiled in)
 ```

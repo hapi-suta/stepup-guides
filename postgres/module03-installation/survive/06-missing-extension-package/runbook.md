@@ -230,6 +230,8 @@ The PGDG repository organizes PostgreSQL into several packages:
 
 ### Useful RPM/DNF commands for DBAs
 
+**Reference only** - these are useful commands to remember, not steps to run now.
+
 ```bash
 # What package provides a specific file?
 rpm -qf /usr/pgsql-16/lib/pgcrypto.so
