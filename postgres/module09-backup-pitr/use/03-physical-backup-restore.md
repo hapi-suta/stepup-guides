@@ -13,11 +13,22 @@ Take a full physical backup with pg_basebackup, simulate a disaster, and restore
 
 ## Step 1 - Verify Prerequisites for pg_basebackup
 
-On **NODE1** (pg-primary), confirm the required settings:
+On **NODE1** (pg-primary), switch to the postgres user.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW wal_level;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW max_wal_senders;"
+sudo -iu postgres
+```
+
+Confirm the required settings. Check the WAL level:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SHOW wal_level;"
+```
+
+Check the maximum number of WAL sender processes:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SHOW max_wal_senders;"
 ```
 
 **Expected:**
@@ -30,10 +41,16 @@ sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW max_wal_senders;"
 
 ## Step 2 - Take a Base Backup in Plain Format
 
-On **NODE2** (pg-backup):
+On **NODE2** (pg-backup), switch to the postgres user.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_basebackup \
+sudo -iu postgres
+```
+
+Take the base backup:
+
+```bash
+/usr/pgsql-16/bin/pg_basebackup \
   -h [NODE1_IP] \
   -U replicator \
   -D /opt/pgsql/backup/pg_basebackup_plain \
@@ -85,7 +102,7 @@ ls /opt/pgsql/backup/pg_basebackup_plain/base/
 Confirm the OID-to-database mapping:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -h [NODE1_IP] -c "SELECT oid, datname FROM pg_database ORDER BY oid;"
+/usr/pgsql-16/bin/psql -h [NODE1_IP] -c "SELECT oid, datname FROM pg_database ORDER BY oid;"
 ```
 
 Match the OIDs from the query to the directories in `base/`.
@@ -96,11 +113,22 @@ Match the OIDs from the query to the directories in `base/`.
 
 ## Step 4 - Record the Current State Before Disaster
 
-On **NODE1** (pg-primary), record row counts for verification after restore:
+On **NODE1** (pg-primary), switch to the postgres user.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) AS pgbench_accounts_count FROM pgbench_accounts;"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) AS employee_count FROM employees;"
+sudo -iu postgres
+```
+
+Record row counts for verification after restore. Check pgbench_accounts:
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) AS pgbench_accounts_count FROM pgbench_accounts;"
+```
+
+Check employees:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) AS employee_count FROM employees;"
 ```
 
 Write these numbers down - you will verify them after restore.
@@ -115,7 +143,13 @@ Write these numbers down - you will verify them after restore.
 
 **WARNING:** This step destroys the data directory. Only proceed because you have a backup.
 
-On **NODE1** (pg-primary):
+On **NODE1** (pg-primary), exit the postgres user first.
+
+```bash
+exit
+```
+
+Stop the PostgreSQL service:
 
 ```bash
 sudo systemctl stop postgresql-16
@@ -124,22 +158,32 @@ sudo systemctl stop postgresql-16
 Verify it is stopped:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready
+sudo -iu postgres /usr/pgsql-16/bin/pg_isready
 ```
 
 **Expected:** `no response` or connection refused.
 
-Now wipe the data directory and WAL directory:
+Now wipe the data directory:
 
 ```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
 ```
 
-Verify they are empty:
+Verify the data directory is empty:
 
 ```bash
 ls -la /opt/pgsql/data/
+```
+
+Verify the WAL directory is empty:
+
+```bash
 ls -la /opt/pgsql/wal/
 ```
 
@@ -176,14 +220,19 @@ Remove the standby.signal file (we want this to come up as a primary, not a stan
 sudo rm -f /opt/pgsql/data/standby.signal
 ```
 
-Fix ownership:
+Fix ownership on the data directory:
 
 ```bash
 sudo chown -R postgres:postgres /opt/pgsql/data/
+```
+
+Fix ownership on the WAL directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/wal/
 ```
 
-Verify permissions on the data directory:
+Set correct permissions on the data directory - PostgreSQL requires mode 0700:
 
 ```bash
 sudo chmod 700 /opt/pgsql/data
@@ -195,10 +244,14 @@ Start PostgreSQL:
 sudo systemctl start postgresql-16
 ```
 
-Verify:
+Switch to the postgres user to verify the service is running.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/pg_isready
 ```
 
 **Expected:** `accepting connections`
@@ -210,14 +263,21 @@ sudo -u postgres /usr/pgsql-16/bin/pg_isready
 ## Step 7 - Verify All Databases Are Intact
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "\l"
+/usr/pgsql-16/bin/psql -c "\l"
 ```
 
 **Expected:** labdb, appdb, blobdb all listed.
 
+Check the pgbench_accounts row count:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
+```
+
+Check the employees row count:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** Row counts match the numbers you recorded in Step 4 (~33M pgbench_accounts, 100K employees).
@@ -226,10 +286,16 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employ
 
 ## Step 8 - Take a Compressed Tar Format Backup
 
-On **NODE2** (pg-backup):
+On **NODE2** (pg-backup), switch to the postgres user.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_basebackup \
+sudo -iu postgres
+```
+
+Take the compressed tar format backup:
+
+```bash
+/usr/pgsql-16/bin/pg_basebackup \
   -h [NODE1_IP] \
   -U replicator \
   -D /opt/pgsql/backup/pg_basebackup_tar \
@@ -260,11 +326,27 @@ ls -lh /opt/pgsql/backup/pg_basebackup_tar/
 
 ## Step 9 - Restore From Tar Format Backup
 
-Simulate another disaster on **NODE1**:
+Simulate another disaster on **NODE1**. Exit the postgres user first.
+
+```bash
+exit
+```
+
+Stop PostgreSQL:
 
 ```bash
 sudo systemctl stop postgresql-16
+```
+
+Wipe the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
 ```
 
@@ -285,20 +367,46 @@ sudo rm -rf /opt/pgsql/data/pg_wal
 sudo ln -s /opt/pgsql/wal /opt/pgsql/data/pg_wal
 ```
 
-Fix ownership and start:
+Fix ownership on the data directory:
 
 ```bash
 sudo chown -R postgres:postgres /opt/pgsql/data/
+```
+
+Fix ownership on the WAL directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/wal/
+```
+
+Set correct permissions on the data directory:
+
+```bash
 sudo chmod 700 /opt/pgsql/data
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql-16
 ```
 
-Verify:
+Switch to the postgres user to verify the restore.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employees;"
+sudo -iu postgres
+```
+
+Check the pgbench_accounts row count:
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
+```
+
+Check the employees row count:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** Same row counts as before (~33M pgbench_accounts, 100K employees).
@@ -307,10 +415,15 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM employ
 
 ## Step 10 - Compare Backup Approaches
 
-Compare the sizes:
+Compare the sizes. Check the plain backup size:
 
 ```bash
 du -sh /opt/pgsql/backup/pg_basebackup_plain
+```
+
+Check the compressed tar backup size:
+
+```bash
 du -sh /opt/pgsql/backup/pg_basebackup_tar
 ```
 
@@ -329,6 +442,12 @@ Summary comparison:
 | Direct start | Yes (copy and start) | No (must extract first) |
 
 > **Concept:** In production, choose based on your priorities. If RTO (recovery time) is critical, use plain format on fast local storage - you can start PostgreSQL immediately after copying. If storage cost or transfer speed matters (cloud backups, offsite copies), use tar with compression. Many teams use plain for local fast-recovery and tar for offsite archival.
+
+Exit the postgres user when done.
+
+```bash
+exit
+```
 
 ---
 

@@ -9,10 +9,18 @@
 
 ### Step 1: Assess the damage
 
-SSH to [NODE1] and confirm PostgreSQL is down:
+SSH to [NODE1] and confirm PostgreSQL is down.
+
+Switch to the postgres user:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
+sudo -iu postgres
+```
+
+Check if PostgreSQL is responding:
+
+```bash
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 Expected: "no response" or connection refused.
@@ -28,37 +36,80 @@ Expected: Directory does not exist or is empty.
 ### Step 2: Verify pgBackRest backups are available
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Expected: At least one valid full backup is listed. Note the most recent backup timestamp.
+
+Expected output (yours will differ):
+
+```
+stanza: main
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (16): 000000010000000000000001/000000010000000000000008
+
+        full backup: 20260419-140000F
+            timestamp start/stop: 2026-04-19 14:00:00 / 2026-04-19 14:05:32
+            wal start/stop: 000000010000000000000003 / 000000010000000000000003
+            database size: 45.2MB, database backup size: 45.2MB
+            ...
+```
 
 If pgbackrest info fails because the config references the missing data directory:
 
 ```bash
 # Check the config
 cat /etc/pgbackrest/pgbackrest.conf
+```
 
+```bash
 # pgBackRest info should still work since it reads from the repo
-sudo -u postgres pgbackrest --stanza=main info --output=json
+pgbackrest --stanza=main info --output=json
 ```
 
 > **Concept - Backup Independence**: pgBackRest stores backups independently of the PostgreSQL data directory. Even if the entire data directory is destroyed, backups in the repo are unaffected. This is why the repo should always be on a separate filesystem or remote storage.
 
 ### Step 3: Create the empty data directory
 
-PostgreSQL needs the data directory to exist with correct ownership before restore:
+PostgreSQL needs the data directory to exist with correct ownership before restore.
+
+Exit the postgres user to run commands as root:
+
+```bash
+exit
+```
+
+Create the data directory:
 
 ```bash
 sudo mkdir -p /opt/pgsql/data
+```
+
+Set the correct ownership so postgres can access it:
+
+```bash
 sudo chown postgres:postgres /opt/pgsql/data
+```
+
+Set permissions to 700 - PostgreSQL refuses to start if the data directory is world-readable:
+
+```bash
 sudo chmod 700 /opt/pgsql/data
+```
+
+Switch back to the postgres user:
+
+```bash
+sudo -iu postgres
 ```
 
 ### Step 4: Restore from pgBackRest
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main \
+pgbackrest --stanza=main \
   --delta \
   restore
 ```
@@ -76,6 +127,12 @@ sudo tail -f /var/log/pgbackrest/main-restore.log
 
 ### Step 5: Start PostgreSQL
 
+Exit the postgres user to run systemctl:
+
+```bash
+exit
+```
+
 ```bash
 sudo systemctl start postgresql-16
 ```
@@ -86,31 +143,59 @@ Check the logs for any errors during startup:
 sudo tail -30 /opt/pgsql/log/postgresql-*.log
 ```
 
+Switch back to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
 Verify PostgreSQL is running:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
+/usr/pgsql-16/bin/pg_isready -p 5432
 ```
 
 ### Step 6: Verify all databases exist
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "\l"
+/usr/pgsql-16/bin/psql -p 5432 -c "\l"
 ```
 
 Confirm all expected databases are listed (stepup_store, postgres, and any others that existed before).
 
+Expected output (yours will differ):
+
+```
+                                                   List of databases
+     Name      |  Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Access privileges
+---------------+----------+----------+-----------------+-------------+-------------+-------------------
+ postgres      | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |
+ stepup_store  | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |
+ template0     | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 | =c/postgres      +
+               |          |          |                 |             |             | postgres=CTc/postgres
+ template1     | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 | =c/postgres      +
+               |          |          |                 |             |             | postgres=CTc/postgres
+(4 rows)
+```
+
 ### Step 7: Verify data integrity
 
+Check the employees table row count:
+
 ```bash
-# Check employees table
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+```
 
-# Check all public tables
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt"
+Check all public tables:
 
-# Run a sample query to verify data is readable
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM employees LIMIT 5;"
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt"
+```
+
+Run a sample query to verify data is readable:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM employees LIMIT 5;"
 ```
 
 ### Step 8: Reconfigure pgBackRest and take a fresh backup
@@ -118,36 +203,42 @@ sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FRO
 After recovery, ensure pgBackRest is properly configured:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main check
 ```
 
 If the stanza needs updating:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main stanza-upgrade
+pgbackrest --stanza=main stanza-upgrade
 ```
 
 Take a fresh backup to protect the recovered state:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=full backup
+pgbackrest --stanza=main --type=full backup
 ```
 
 ### Step 9: Verify archiving works
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
+/usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
 ```
 
 Wait a few seconds, then check:
 
-```sql
-SELECT * FROM pg_stat_archiver;
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -c "SELECT * FROM pg_stat_archiver;"
 ```
 
 Confirm last_archived_time is recent and no new failures.
 
 ### Step 10: Clean up destroyed directory
+
+Exit the postgres user:
+
+```bash
+exit
+```
 
 Once you have confirmed the recovery is complete:
 

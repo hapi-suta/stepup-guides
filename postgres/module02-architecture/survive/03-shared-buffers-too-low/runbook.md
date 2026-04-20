@@ -41,12 +41,30 @@ FROM pg_stat_database
 WHERE datname = 'labdb';
 ```
 
-A healthy system shows 95%+. If you see below 90%, shared_buffers is likely too small.
+Expected output (yours will differ):
+
+```
+ datname | blks_read | blks_hit | cache_hit_pct
+---------+-----------+----------+---------------
+ labdb   |     48210 |    12054 |          20.0
+(1 row)
+```
+
+A cache_hit_pct of 20% or lower confirms the problem. A healthy system shows 95%+. If you see below 90%, shared_buffers is likely too small.
 
 ### Step 2 - Check current shared_buffers setting
 
 ```sql
 SHOW shared_buffers;
+```
+
+Expected output:
+
+```
+ shared_buffers
+----------------
+ 1MB
+(1 row)
 ```
 
 If this shows 1MB or something absurdly low, that is your problem.
@@ -97,6 +115,15 @@ sudo systemctl restart postgresql-16
 SHOW shared_buffers;
 ```
 
+Expected output:
+
+```
+ shared_buffers
+----------------
+ 128MB
+(1 row)
+```
+
 ### Step 4 - Warm up the cache and check hit ratio
 
 Run some queries to populate the buffer cache, then check the ratio.
@@ -111,6 +138,17 @@ SELECT datname,
 FROM pg_stat_database
 WHERE datname = 'labdb';
 ```
+
+Expected output (yours will differ):
+
+```
+ datname | cache_hit_pct
+---------+---------------
+ labdb   |          87.3
+(1 row)
+```
+
+The ratio should be noticeably higher than before. It may not reach 95%+ immediately - that takes sustained workload with adequate buffers.
 
 ---
 

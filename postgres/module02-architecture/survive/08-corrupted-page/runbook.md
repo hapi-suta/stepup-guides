@@ -45,6 +45,13 @@ Look for lines mentioning:
 - `invalid page in block 0`
 - The relation OID or file path
 
+Expected output (yours will differ):
+```
+2026-04-19 14:20:05.312 UTC [2345] ERROR:  invalid page in block 0 of relation base/16384/16421
+2026-04-19 14:20:05.312 UTC [2345] STATEMENT:  SELECT count(*) FROM chaos_corrupt_test;
+...
+```
+
 ### Step 3 - Identify the Table from the Error
 
 The error message includes the relation file path (e.g., `base/16384/16xxx`). Match it to a table name.
@@ -88,6 +95,16 @@ exit
 
 PostgreSQL will report a WARNING about zeroing the page and return results from the remaining pages. The count will be less than 1000 because rows on page 0 are lost.
 
+Expected output (yours will differ):
+```
+SET
+WARNING:  invalid page in block 0 of relation base/16384/16421; zeroing out page
+ count
+-------
+   909
+(1 row)
+```
+
 ### Step 5 - Understand Production Recovery Options
 
 In production, you would NOT use `zero_damaged_pages` on important data. Instead:
@@ -128,6 +145,15 @@ Try a simple query on an existing table to confirm the database is functional.
 ```bash
 /usr/pgsql-16/bin/psql -d labdb -c "SELECT 1;"
 ```
+
+Expected output:
+```
+ ?column?
+----------
+        1
+(1 row)
+```
+
 ```bash
 exit
 ```

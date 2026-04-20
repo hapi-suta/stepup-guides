@@ -19,6 +19,12 @@ Expected: GOOD_STATE row is missing, BAD_STATE rows are present. This means the 
 
 ### Step 2: Review the misleading recovery notes
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
 ```bash
 cat /tmp/pitr-recovery-notes.txt
 ```
@@ -31,17 +37,31 @@ The target time listed here is too far in the future. Recovering to this point w
 
 Use pg_waldump to examine WAL and find when the DELETE happened:
 
+List the most recent WAL files to find the ones covering recent activity:
+
 ```bash
-# Find the WAL files covering recent activity
-sudo -u postgres ls -lt /opt/pgsql/data/pg_wal/ | head -10
+ls -lt /opt/pgsql/data/pg_wal/ | head -10
+```
 
-# Scan WAL for DELETE operations on the pitr_marker table
-# First get the relfilenode of pitr_marker
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \
+Get the relfilenode of pitr_marker so you can search for it in WAL:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \
   "SELECT pg_relation_filenode('pitr_marker');"
+```
 
-# Then scan WAL for that relation
-sudo -u postgres /usr/pgsql-16/bin/pg_waldump /opt/pgsql/data/pg_wal/[WAL_FILE] 2>/dev/null | grep DELETE | head -5
+Scan WAL for DELETE operations on that relation (replace `[WAL_FILE]` with a recent file from the listing above):
+
+```bash
+/usr/pgsql-16/bin/pg_waldump /opt/pgsql/data/pg_wal/[WAL_FILE] 2>/dev/null | grep DELETE | head -5
+```
+
+Expected output (yours will differ):
+
+```
+rmgr: Heap        len (rec/tot):     54/   166, tx:     845, lsn: 0/0A000100, prev 0/09FFF0D8, desc: DELETE off 3 KEYS_UPDATED , blkref #0: rel 1663/16384/16521 blk 0
+rmgr: Heap        len (rec/tot):     54/   166, tx:     845, lsn: 0/0A000198, prev 0/0A000100, desc: DELETE off 2 KEYS_UPDATED , blkref #0: rel 1663/16384/16521 blk 0
+...
 ```
 
 Alternatively, check the PostgreSQL log for timestamps:
@@ -62,7 +82,7 @@ cat /tmp/stepup-07-state.env | grep CORRECT_TARGET
 
 ```bash
 # Use the correct target time (BEFORE the DELETE, AFTER the GOOD_STATE insert)
-sudo -u postgres pgbackrest --stanza=main \
+pgbackrest --stanza=main \
   --pg1-path=/tmp/pg-pitr-scratch \
   --type=time \
   --target="[CORRECT_TIMESTAMP]" \
@@ -73,14 +93,14 @@ sudo -u postgres pgbackrest --stanza=main \
 Start the scratch instance:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
+/usr/pgsql-16/bin/pg_ctl \
   -D /tmp/pg-pitr-scratch -o "-p 5433" start
 ```
 
 Wait for recovery to complete and verify the state:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
+/usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
 ```
 
 Expected: GOOD_STATE row exists, no BAD_STATE rows.
@@ -89,37 +109,62 @@ Expected: GOOD_STATE row exists, no BAD_STATE rows.
 
 ```bash
 # Dump just the pitr_marker table from the scratch instance
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d stepup_store -t pitr_marker -Fc -f /tmp/pitr_marker.dump
+/usr/pgsql-16/bin/pg_dump -p 5433 -d stepup_store -t pitr_marker -Fc -f /tmp/pitr_marker.dump
 ```
 
 ### Step 6: Restore the correct data to production
 
 ```bash
 # Drop the current bad table and restore the good one
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "DROP TABLE IF EXISTS pitr_marker;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "DROP TABLE IF EXISTS pitr_marker;"
 /usr/pgsql-16/bin/pg_restore -h localhost -p 5432 -U postgres -d stepup_store /tmp/pitr_marker.dump
 ```
 
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT * FROM pitr_marker ORDER BY id;"
 ```
 
-Expected: GOOD_STATE row exists.
+Expected output (yours will differ):
+
+```
+ id |   state    |         created_at
+----+------------+----------------------------
+  1 | GOOD_STATE | 2026-04-19 10:15:22.451938
+(1 row)
+```
 
 ### Step 7: Clean up the scratch instance
 
+Stop the scratch PostgreSQL instance:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-pitr-scratch stop
+/usr/pgsql-16/bin/pg_ctl -D /tmp/pg-pitr-scratch stop
+```
+
+Remove the scratch data directory:
+
+```bash
 rm -rf /tmp/pg-pitr-scratch
+```
+
+Remove the temporary dump file:
+
+```bash
 rm -f /tmp/pitr_marker.dump
 ```
 
 ### Step 8: Take a fresh backup
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=diff backup
+pgbackrest --stanza=main --type=diff backup
+```
+
+Return to your regular user:
+
+```bash
+exit
 ```
 
 ---

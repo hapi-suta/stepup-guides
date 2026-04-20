@@ -39,6 +39,14 @@ sudo -iu postgres
 
 You will see `chaos_bloat_test` with ~150000 dead tuples and a dead_pct over 70%.
 
+Expected output (yours will differ):
+```
+     relname      | n_live_tup | n_dead_tup | dead_pct | last_vacuum | last_autovacuum | last_analyze
+------------------+------------+------------+----------+-------------+-----------------+-------------
+ chaos_bloat_test |      50000 |     150000 |     75.0 |             |                 |
+(1 row)
+```
+
 ### Step 2 - Measure Exact Bloat with pgstattuple
 
 The `pgstattuple` extension gives precise physical bloat measurements.
@@ -66,6 +74,14 @@ Key fields to look at:
 ```
 
 The `reloptions` column will show `{autovacuum_enabled=false}`. This is why autovacuum has not cleaned up the dead tuples.
+
+Expected output:
+```
+     relname      |         reloptions
+------------------+-----------------------------
+ chaos_bloat_test | {autovacuum_enabled=false}
+(1 row)
+```
 
 ### Step 4 - Re-enable Autovacuum
 
@@ -99,6 +115,14 @@ Run pgstattuple again to confirm the dead tuple percentage dropped.
 ```
 
 After VACUUM, `dead_tuple_count` should be 0 or very low. Note that `free_percent` may still be high - VACUUM marks space as reusable but does not return it to the OS.
+
+Expected output:
+```
+ dead_tuple_count | dead_tuple_percent | free_percent
+------------------+--------------------+--------------
+                0 |                  0 |        74.81
+(1 row)
+```
 
 ### Step 7 - Verify Autovacuum is Re-enabled
 

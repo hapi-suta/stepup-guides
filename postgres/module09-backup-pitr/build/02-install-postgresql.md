@@ -240,10 +240,10 @@ We need to override it to point to our custom path.
 Open the systemd override editor:
 
 ```bash
-sudo systemctl edit postgresql-16
+sudo EDITOR=vi systemctl edit postgresql-16
 ```
 
-This opens a text editor (nano or vi depending on your system). Paste the content shown below, then save and exit (if nano: `Ctrl+X`, then `Y`, then `Enter` - if vi: press `Esc`, type `:wq`, press `Enter`). This creates an override file that tells PostgreSQL where your data directory is.
+This opens vi with the override file. Paste the content shown below, then save and exit (press `Esc`, type `:wq`, press `Enter`). This creates an override file that tells PostgreSQL where your data directory is.
 
 Add these lines in the editor (between the comment markers):
 

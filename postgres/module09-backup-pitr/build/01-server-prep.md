@@ -12,7 +12,7 @@ Before you can run any commands, you need to SSH into your servers. Your welcome
 
 ### Mac / Linux
 
-Open Terminal and run:
+Open **Terminal** (on Mac: press Cmd + Space, type Terminal, press Enter) and run:
 
 ```bash
 ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
@@ -20,106 +20,31 @@ ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
 
 If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter.
 
-### Windows - Option A: Command Prompt (Recommended)
+### Windows (MobaXterm)
 
-Open **Command Prompt** (search for "cmd" in the Start menu) and run:
+**MobaXterm** is a free terminal for Windows that works like a Linux terminal. Download it from **mobaxterm.mobatek.net** (Home Edition, free).
 
+Open MobaXterm. You will see a local terminal at the bottom - this is where you run commands.
+
+Save your SSH key first. Your welcome email has the key attached as a `.pem` file. Download the attachment, then run these commands in the MobaXterm terminal one at a time:
+
+```bash
+mkdir -p ~/.ssh && cp /drives/c/Users/*/Downloads/[YOUR-KEY-FILE].pem ~/.ssh/ && chmod 400 ~/.ssh/[YOUR-KEY-FILE].pem
 ```
-ssh -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
+
+If the file is not in Downloads, check your Desktop:
+
+```bash
+mkdir -p ~/.ssh && cp /drives/c/Users/*/Desktop/[YOUR-KEY-FILE].pem ~/.ssh/ && chmod 400 ~/.ssh/[YOUR-KEY-FILE].pem
+```
+
+Now connect:
+
+```bash
+ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
 ```
 
 If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter.
-
-### Windows - Option B: MobaXterm
-
-If you have MobaXterm installed, open it and click the terminal at the bottom. Then run:
-
-```
-ssh -i C:\Users\[YOUR-USERNAME]\Desktop\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
-```
-
-Adjust the path to wherever you saved the .pem file.
-
-### Windows Troubleshooting
-
-**"ssh is not recognized"**
-
-SSH is not installed or not in your PATH. Try these fixes in order:
-
-1. Try the full path to ssh:
-
-```
-C:\Windows\System32\OpenSSH\ssh.exe -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP]
-```
-
-2. If that also fails, check if OpenSSH is installed:
-
-```
-Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
-```
-
-If it says `NotPresent`, install it (run PowerShell as Administrator):
-
-```powershell
-Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-```
-
-Close PowerShell, reopen it, then try `ssh -V` to confirm it works.
-
-3. If it says `Installed` but ssh still doesn't work, the install is broken. Remove and reinstall (run PowerShell as Administrator):
-
-```powershell
-Remove-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-```
-
-Close PowerShell, reopen it, then try `ssh -V`.
-
-4. If none of the above work, use **MobaXterm** (Option B above) or **PuTTY** (Option C below).
-
-**"Permission denied (publickey)"**
-
-Your key file was not found or has the wrong name. Check:
-
-1. Make sure the file exists where you saved it:
-
-```
-dir C:\Users\[YOUR-USERNAME]\.ssh\*.pem
-dir C:\Users\[YOUR-USERNAME]\Desktop\*.pem
-dir C:\Users\[YOUR-USERNAME]\Downloads\*.pem
-```
-
-2. If the file was saved as `.pem.txt` instead of `.pem`, rename it:
-
-```
-ren C:\Users\[YOUR-USERNAME]\Desktop\[YOUR-KEY-FILE].pem.txt [YOUR-KEY-FILE].pem
-```
-
-Then try the ssh command again with the correct path.
-
-**"Identity file not accessible: No such file or directory"**
-
-Same issue - the file path is wrong. Run the `dir` commands above to find where the file actually is, then use that full path in your ssh command.
-
-### Windows - Option C: PuTTY (Last Resort)
-
-If SSH won't work on your machine at all, use PuTTY:
-
-1. Download and install PuTTY from `https://www.putty.org`
-
-2. Open **Command Prompt** and convert your .pem key to PuTTY format:
-
-```
-"C:\Program Files\PuTTY\puttygen.exe" C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].pem -o C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].ppk
-```
-
-3. Connect:
-
-```
-"C:\Program Files\PuTTY\putty.exe" -i C:\Users\[YOUR-USERNAME]\.ssh\[YOUR-KEY-FILE].ppk -ssh ec2-user@[NODE1_IP]
-```
-
-A PuTTY window will open. If it asks about a key fingerprint, click **Accept**. You should be logged in.
 
 ---
 
@@ -294,88 +219,64 @@ Expected output (yours will differ):
 > surprises in cron jobs, WAL timestamps, and log correlation across regions.
 > PITR recovery targets are especially sensitive to timezone confusion.
 
-## 7. Set up SSH key-based authentication
+## 7. Verify SSH key-based authentication
 
 SSH keys let you connect between servers without typing a password every time. This is required because backup tools (rsync, pgBackRest) need to transfer files automatically.
 
-### On NODE1
+Inter-node SSH has been pre-configured for you during server setup. Let's verify it works.
+
+### From NODE1
 
 **Run on NODE1 (pg-primary):**
-
-Generate an SSH key. The `-N ""` flag sets an empty passphrase (no password on the key). The `-t ed25519` flag uses a modern, secure key type:
-
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-```
-
-```
-Expected output:
-Generating public/private ed25519 key pair.
-Your identification has been saved in /home/ec2-user/.ssh/id_ed25519
-Your public key has been saved in /home/ec2-user/.ssh/id_ed25519.pub
-```
-
-Copy your public key to NODE2. This adds it to NODE2's authorized_keys so you can log in without a password:
-
-```bash
-ssh-copy-id ec2-user@pg-backup
-```
-
-### On NODE2
-
-**Run on NODE2 (pg-backup):**
-
-Generate an SSH key:
-
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-```
-
-Copy your public key to NODE1:
-
-```bash
-ssh-copy-id ec2-user@pg-primary
-```
-
-### Verify
-
-From NODE1, test connecting to NODE2:
 
 ```bash
 ssh ec2-user@pg-backup hostname
 ```
 
-From NODE2, test connecting to NODE1:
-
-```bash
-ssh ec2-user@pg-primary hostname
-```
-
-Expected: returns the other node's hostname without a password prompt.
+If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter. You should NOT be asked for a password.
 
 ```
 Expected output:
 pg-backup
 ```
 
+### From NODE2
+
+**Run on NODE2 (pg-backup):**
+
+```bash
+ssh ec2-user@pg-primary hostname
+```
+
+```
+Expected output:
+pg-primary
+```
+
+If either test asks for a password instead of connecting, contact your instructor.
+
 > **Concept - Bidirectional SSH**: WAL archiving needs NODE1 to push files to
 > NODE2 (rsync over SSH). pgBackRest needs SSH in both directions when running
 > in remote mode. Setting up keys now saves debugging later.
 
-## 8. Set up the postgres user SSH keys
+## 8. Verify the postgres user SSH keys
 
 The PostgreSQL processes run as the `postgres` user. Archive commands and
 pgBackRest also run as `postgres`, so this user needs SSH access too.
+
+The postgres user and its SSH keys have been pre-configured. Let's verify.
 
 ### On NODE1
 
 **Run on NODE1 (pg-primary):**
 
-Create the `postgres` OS user. The `|| true` at the end means "if the command fails (because the user already exists), that's okay - continue without an error."
+Create the postgres user (if it already exists, you'll see an error - that's OK, move on):
 
 ```bash
-sudo useradd -m -d /home/postgres -s /bin/bash postgres || true
+sudo useradd -m -d /home/postgres -s /bin/bash postgres
 ```
+
+(`-m` creates the home directory, `-d` sets it to `/home/postgres`, `-s` sets the login shell to bash.)
 
 Switch to the postgres user:
 
@@ -385,29 +286,17 @@ sudo -iu postgres
 
 **You are now the postgres user.**
 
-Create the `.ssh` directory:
+Test SSH to NODE2:
 
 ```bash
-mkdir -p ~/.ssh
+ssh postgres@pg-backup hostname
 ```
 
-Set permissions so only the postgres user can access this directory. SSH refuses to work if permissions are too open:
-
-```bash
-chmod 700 ~/.ssh
-```
-
-Generate an SSH key. The `-N ""` flag sets an empty passphrase:
-
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-```
+If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter. You should NOT be asked for a password.
 
 ```
 Expected output:
-Generating public/private ed25519 key pair.
-Your identification has been saved in /home/postgres/.ssh/id_ed25519
-Your public key has been saved in /home/postgres/.ssh/id_ed25519.pub
+pg-backup
 ```
 
 Exit back to ec2-user:
@@ -420,10 +309,10 @@ exit
 
 **Run on NODE2 (pg-backup):**
 
-Create the `postgres` OS user. The `|| true` at the end means "if the command fails (because the user already exists), that's okay - continue without an error."
+Create the postgres user:
 
 ```bash
-sudo useradd -m -d /home/postgres -s /bin/bash postgres || true
+sudo useradd -m -d /home/postgres -s /bin/bash postgres
 ```
 
 Switch to the postgres user:
@@ -434,97 +323,15 @@ sudo -iu postgres
 
 **You are now the postgres user.**
 
-Create the `.ssh` directory:
+Test SSH to NODE1:
 
 ```bash
-mkdir -p ~/.ssh
+ssh postgres@pg-primary hostname
 ```
-
-Set permissions so only the postgres user can access this directory:
-
-```bash
-chmod 700 ~/.ssh
-```
-
-Exit back to ec2-user:
-
-```bash
-exit
-```
-
-### Copy keys between nodes
-
-**Run on NODE1 (pg-primary):**
-
-Switch to the postgres user:
-
-```bash
-sudo -iu postgres
-```
-
-**You are now the postgres user.**
-
-Copy the key to NODE2:
-
-```bash
-ssh-copy-id postgres@pg-backup
-```
-
-Exit back to ec2-user:
-
-```bash
-exit
-```
-
-**Run on NODE2 (pg-backup):**
-
-Switch to the postgres user:
-
-```bash
-sudo -iu postgres
-```
-
-**You are now the postgres user.**
-
-Generate a key:
-
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-```
-
-Copy the key to NODE1:
-
-```bash
-ssh-copy-id postgres@pg-primary
-```
-
-Exit back to ec2-user:
-
-```bash
-exit
-```
-
-### Verify
-
-**Run on NODE1 (pg-primary):**
-
-Switch to postgres and test:
-
-```bash
-sudo -iu postgres
-```
-
-**You are now the postgres user.**
-
-```bash
-ssh postgres@pg-backup hostname
-```
-
-Expected: `pg-backup` without a password prompt.
 
 ```
 Expected output:
-pg-backup
+pg-primary
 ```
 
 Exit back to ec2-user:
@@ -532,6 +339,8 @@ Exit back to ec2-user:
 ```bash
 exit
 ```
+
+If either test asks for a password instead of connecting, contact your instructor.
 
 ## 9. Create custom mount point directories
 

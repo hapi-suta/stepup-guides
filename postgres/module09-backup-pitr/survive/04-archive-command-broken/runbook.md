@@ -9,7 +9,13 @@
 
 ### Step 1: Confirm archiving is failing
 
-SSH to [NODE1] and check pg_stat_archiver:
+SSH to [NODE1] and switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Now check pg_stat_archiver:
 
 ```sql
 SELECT
@@ -27,10 +33,17 @@ Expected: failed_count is increasing and last_failed_time is recent.
 ### Step 2: Check the PostgreSQL log for archiver errors
 
 ```bash
-sudo tail -50 /opt/pgsql/log/postgresql-*.log | grep -i archiv
+tail -50 /opt/pgsql/log/postgresql-*.log | grep -i archiv
 ```
 
-Expected: Messages like "archive command failed with exit code 1" or "archiver process failed".
+Expected output (yours will differ):
+
+```
+2026-04-19 14:32:01.003 UTC [1234] LOG:  archive command failed with exit code 1
+2026-04-19 14:32:01.003 UTC [1234] DETAIL:  The failed archive command was: /bin/false 00000001000000000000000A /opt/pgsql/data/pg_wal/00000001000000000000000A
+2026-04-19 14:32:06.010 UTC [1234] LOG:  archiver process (PID 1234) failed on 00000001000000000000000A
+...
+```
 
 > **Concept - Archiver Process**: PostgreSQL runs a dedicated archiver process that invokes archive_command for each completed WAL segment. If the command returns non-zero, the archiver retries periodically. Failed segments pile up in pg_wal and can fill the disk.
 
@@ -100,22 +113,36 @@ FROM pg_stat_archiver;
 Check how many segments are waiting in pg_wal:
 
 ```bash
-sudo -u postgres ls /opt/pgsql/data/pg_wal/ | wc -l
+ls /opt/pgsql/data/pg_wal/ | wc -l
 ```
 
 This count should decrease over time as the archiver catches up. Monitor for a minute:
 
 ```bash
-watch -n 5 'sudo -u postgres ls /opt/pgsql/data/pg_wal/ | wc -l'
+watch -n 5 'ls /opt/pgsql/data/pg_wal/ | wc -l'
 ```
+
+This refreshes every 5 seconds. Press Ctrl+C to stop.
 
 ### Step 8: Confirm archive continuity
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+pgbackrest --stanza=main verify
 ```
 
-Expected: No errors about missing WAL segments.
+Expected output (yours will differ):
+
+```
+P00   INFO: verify command begin 2.53: --log-level-console=info --repo1-path=/opt/pgsql/backup --stanza=main
+P00   INFO: stanza 'main' - archiveass verified, WAL segments are contiguous
+P00   INFO: verify command end: completed successfully
+```
+
+When you are done, exit back to ec2-user:
+
+```bash
+exit
+```
 
 ---
 

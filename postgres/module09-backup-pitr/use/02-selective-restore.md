@@ -15,14 +15,20 @@ Master selective restore techniques using pg_restore. By the end of this exercis
 
 On **NODE1** (pg-primary):
 
+Switch to the postgres user. All restore commands run as postgres.
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d appdb -F custom -f /opt/pgsql/backup/appdb_full.dump
+sudo -iu postgres
 ```
 
-Verify:
+```bash
+/usr/pgsql-16/bin/pg_dump -d appdb -F custom -f /opt/pgsql/backup/appdb_full.dump
+```
+
+Verify the dump contents:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump
 ```
 
 **Expected:** A numbered list showing all tables (employees, plus any other appdb tables), their data, indexes, constraints, and sequences.
@@ -34,7 +40,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_ful
 Export the TOC to a file:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump > /opt/pgsql/backup/appdb_toc.txt
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump > /opt/pgsql/backup/appdb_toc.txt
 ```
 
 View it:
@@ -72,25 +78,27 @@ Edit `/opt/pgsql/backup/appdb_toc_employees.txt` and comment out (`;`) all lines
 Create a target database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_selective;"
+/usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_selective;"
 ```
 
 Restore only the employees table:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_selective --use-list=/opt/pgsql/backup/appdb_toc_employees.txt /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore -d appdb_selective --use-list=/opt/pgsql/backup/appdb_toc_employees.txt /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify:
+Verify the table was restored:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_selective -c "\dt"
+/usr/pgsql-16/bin/psql -d appdb_selective -c "\dt"
 ```
 
 **Expected:** Only the employees table exists.
 
+Confirm the row count matches the original:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_selective -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d appdb_selective -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** 100,000 rows - the same count as in the original appdb.
@@ -102,23 +110,38 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_selective -c "SELECT count(*) F
 Create another target database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_single;"
+/usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_single;"
 ```
 
 Restore just the employees table without editing a TOC file:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_single -t employees /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore -d appdb_single -t employees /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify:
+List the tables in the restored database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_single -c "\dt"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_single -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d appdb_single -c "\dt"
 ```
 
-**Expected:** Only the employees table exists, with all 100,000 rows.
+Expected output (yours will differ):
+
+```
+             List of relations
+ Schema |   Name    | Type  |  Owner
+--------+-----------+-------+----------
+ public | employees | table | postgres
+(1 row)
+```
+
+Confirm all rows are present:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_single -c "SELECT count(*) FROM employees;"
+```
+
+**Expected:** 100,000 rows - same as the original appdb.
 
 > **Concept:** The `-t` flag is a shortcut for single-table restore. It is simpler than `--use-list` but less flexible - you cannot control which associated objects (indexes, constraints) come along. For precise control, `--use-list` is better. For quick single-table extraction, `-t` works well.
 
@@ -129,20 +152,25 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_single -c "SELECT count(*) FROM
 Create another target database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_twostep;"
+/usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_twostep;"
 ```
 
 Step one - restore schema only:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_twostep --schema-only /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore -d appdb_twostep --schema-only /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify tables exist but are empty:
+Confirm the tables exist:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_twostep -c "\dt"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d appdb_twostep -c "\dt"
+```
+
+Verify the tables are empty:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** All tables exist, all counts are 0.
@@ -150,13 +178,13 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FRO
 Step two - restore data only:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_twostep --data-only /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore -d appdb_twostep --data-only /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify:
+Verify the data loaded correctly:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** 100,000 rows - matches the original appdb.
@@ -170,28 +198,45 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_twostep -c "SELECT count(*) FRO
 Create another target database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_sections;"
+/usr/pgsql-16/bin/psql -c "CREATE DATABASE appdb_sections;"
 ```
 
-PostgreSQL divides a dump into three sections. Restore each separately:
+PostgreSQL divides a dump into three sections. Restore each separately.
+
+Restore pre-data - this creates tables, types, and functions (no indexes, no constraints):
 
 ```bash
-# Pre-data: tables, types, functions (no indexes, no constraints)
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_sections --section=pre-data /opt/pgsql/backup/appdb_full.dump
-
-# Data: COPY statements
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_sections --section=data /opt/pgsql/backup/appdb_full.dump
-
-# Post-data: indexes, constraints, triggers
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_sections --section=post-data /opt/pgsql/backup/appdb_full.dump
+/usr/pgsql-16/bin/pg_restore -d appdb_sections --section=pre-data /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify:
+Restore data - this runs the COPY statements to load rows:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_sections -c "\dt"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_sections -c "\di"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_sections -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/pg_restore -d appdb_sections --section=data /opt/pgsql/backup/appdb_full.dump
+```
+
+Restore post-data - this creates indexes, constraints, and triggers:
+
+```bash
+/usr/pgsql-16/bin/pg_restore -d appdb_sections --section=post-data /opt/pgsql/backup/appdb_full.dump
+```
+
+List the restored tables:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_sections -c "\dt"
+```
+
+List the restored indexes:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_sections -c "\di"
+```
+
+Verify the row count:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_sections -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** All tables, all indexes, all data present - identical to the original.
@@ -205,19 +250,28 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_sections -c "SELECT count(*) FR
 This is the most common pattern when migrating between environments (dev to staging, on-prem to cloud):
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/createdb appdb_migration
+/usr/pgsql-16/bin/createdb appdb_migration
+```
 
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_migration \
+Restore with ownership and privilege flags stripped:
+
+```bash
+/usr/pgsql-16/bin/pg_restore -d appdb_migration \
   --no-owner \
   --no-privileges \
   /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify:
+List the restored tables:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_migration -c "\dt"
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_migration -c "SELECT tableowner FROM pg_tables WHERE schemaname = 'public';"
+/usr/pgsql-16/bin/psql -d appdb_migration -c "\dt"
+```
+
+Confirm the table owner is the current user, not the original dump owner:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_migration -c "SELECT tableowner FROM pg_tables WHERE schemaname = 'public';"
 ```
 
 **Expected:** All tables are owned by the user who ran pg_restore (not the original owner from the dump).
@@ -231,20 +285,28 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_migration -c "SELECT tableowner
 Dump from appdb, restore into a completely new database:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/createdb appdb_copy
+/usr/pgsql-16/bin/createdb appdb_copy
+```
 
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d appdb_copy \
+Restore the full dump into the new database:
+
+```bash
+/usr/pgsql-16/bin/pg_restore -d appdb_copy \
   --no-owner \
   --no-privileges \
   /opt/pgsql/backup/appdb_full.dump
 ```
 
-Verify data integrity by comparing row counts:
+Verify data integrity by comparing row counts. Check the original first:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT 'employees' AS tbl, count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d appdb -c "SELECT 'employees' AS tbl, count(*) FROM employees;"
+```
 
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_copy -c "SELECT 'employees' AS tbl, count(*) FROM employees;"
+Now check the copy:
+
+```bash
+/usr/pgsql-16/bin/psql -d appdb_copy -c "SELECT 'employees' AS tbl, count(*) FROM employees;"
 ```
 
 **Expected:** Identical row counts in both databases (100,000 employees).
@@ -258,7 +320,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_copy -c "SELECT 'employees' AS 
 After restoring appdb_copy, verify that foreign key relationships are intact:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_copy -c "
+/usr/pgsql-16/bin/psql -d appdb_copy -c "
 SELECT
     tc.constraint_name,
     tc.table_name,
@@ -279,7 +341,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY';
 Test referential integrity (if foreign keys exist):
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb_copy -c "
+/usr/pgsql-16/bin/psql -d appdb_copy -c "
 INSERT INTO employees (name, department, hired_at)
 VALUES ('fk_test_user', 'NonexistentDept', NOW());
 "
@@ -291,13 +353,36 @@ VALUES ('fk_test_user', 'NonexistentDept', NOW());
 
 ## Step 10 - Clean Up Test Databases
 
+Drop each test database one at a time:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_selective;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_single;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_twostep;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_sections;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_migration;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_copy;"
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_selective;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_single;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_twostep;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_sections;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_migration;"
+```
+
+```bash
+/usr/pgsql-16/bin/psql -c "DROP DATABASE IF EXISTS appdb_copy;"
+```
+
+Switch back to your regular user:
+
+```bash
+exit
 ```
 
 ---

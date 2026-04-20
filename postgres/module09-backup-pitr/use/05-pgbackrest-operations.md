@@ -15,8 +15,16 @@ Master pgBackRest backup types, verification, restore modes, and retention manag
 
 On **NODE2** (pg-backup) or wherever pgBackRest is configured to run:
 
+Switch to the postgres user. All pgBackRest commands run as postgres.
+
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=full backup
+sudo -iu postgres
+```
+
+Take a full backup:
+
+```bash
+pgbackrest --stanza=main --type=full backup
 ```
 
 **Expected:**
@@ -28,7 +36,7 @@ INFO: backup command end: completed successfully
 Examine the backup info:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 **Expected:**
@@ -57,7 +65,7 @@ stanza: main
 On **NODE1** (pg-primary):
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+psql -d labdb -c "
 INSERT INTO employees (name, department, hired_at)
 SELECT
     'diff_test_' || generate_series(1, 500),
@@ -69,19 +77,19 @@ SELECT
 Force a checkpoint to flush changes to disk:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "CHECKPOINT;"
+psql -d labdb -c "CHECKPOINT;"
 ```
 
 Take a differential backup:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=diff backup
+pgbackrest --stanza=main --type=diff backup
 ```
 
 Check info:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 **Expected:** Two backups listed - the full and the new differential. The differential should be significantly smaller:
@@ -103,7 +111,7 @@ sudo -u postgres pgbackrest --stanza=main info
 On **NODE1**:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+psql -d labdb -c "
 INSERT INTO employees (name, department, hired_at)
 SELECT
     'incr_test_' || generate_series(1, 200),
@@ -113,19 +121,19 @@ SELECT
 ```
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "CHECKPOINT;"
+psql -d labdb -c "CHECKPOINT;"
 ```
 
 Take an incremental backup:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=incr backup
+pgbackrest --stanza=main --type=incr backup
 ```
 
 Check info:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 **Expected:** Three backups listed. The incremental is the smallest:
@@ -145,7 +153,7 @@ sudo -u postgres pgbackrest --stanza=main info
 ## Step 4 - Compare Backup Sizes
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Summarize what you see:
@@ -163,7 +171,7 @@ Summarize what you see:
 ## Step 5 - Verify Backup Integrity
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+pgbackrest --stanza=main verify
 ```
 
 **Expected:**
@@ -184,39 +192,74 @@ WARN: backup '20260417-104500F' file '/path/to/file' checksum mismatch
 
 ## Step 6 - Restore a Full Backup to a Clean Directory
 
-Stop PostgreSQL on **NODE1**:
+Exit back to ec2-user to stop PostgreSQL on **NODE1**:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl stop postgresql-16
 ```
 
-Wipe the data directory and WAL directory:
+Wipe the data directory:
 
 ```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
+```
+
+Switch back to postgres:
+
+```bash
+sudo -iu postgres
 ```
 
 Restore the latest backup set:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --delta restore
+pgbackrest --stanza=main --delta restore
 ```
 
 Wait - the data directory is empty, so `--delta` will copy everything. This is equivalent to a full restore when starting from nothing. pgBackRest knows about the custom mount points from its configuration and will restore PGDATA to `/opt/pgsql/data` and recreate the pg_wal symlink to `/opt/pgsql/wal`.
 
-Start PostgreSQL:
+Exit back to ec2-user to start PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
-Verify:
+Switch back to postgres to verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'diff_test_%';"
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'incr_test_%';"
+sudo -iu postgres
+```
+
+Check total employee count:
+
+```bash
+psql -d labdb -c "SELECT count(*) FROM employees;"
+```
+
+Check diff_test rows were restored:
+
+```bash
+psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'diff_test_%';"
+```
+
+Check incr_test rows were restored:
+
+```bash
+psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'incr_test_%';"
 ```
 
 **Expected:** All data from the full, differential, and incremental backups is present. pgBackRest automatically assembles the chain.
@@ -227,18 +270,38 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 
 ## Step 7 - PITR With pgBackRest
 
-Stop PostgreSQL:
+Exit back to ec2-user to stop PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl stop postgresql-16
+```
+
+Wipe the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
+```
+
+Switch back to postgres:
+
+```bash
+sudo -iu postgres
 ```
 
 Restore to a specific point in time:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main \
+pgbackrest --stanza=main \
   --type=time \
   --target="2026-04-17 10:50:00+00" \
   --target-action=promote \
@@ -247,20 +310,32 @@ sudo -u postgres pgbackrest --stanza=main \
 
 Replace the timestamp with a time between your differential and incremental backups.
 
-Start PostgreSQL:
+Exit back to ec2-user to start PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
-Verify:
+Switch back to postgres to verify:
 
 ```bash
-# diff_test rows should exist (inserted before the target time)
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'diff_test_%';"
+sudo -iu postgres
+```
 
-# incr_test rows should NOT exist (inserted after the target time)
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'incr_test_%';"
+diff_test rows should exist (inserted before the target time):
+
+```bash
+psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'diff_test_%';"
+```
+
+incr_test rows should NOT exist (inserted after the target time):
+
+```bash
+psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'incr_test_%';"
 ```
 
 **Expected:**
@@ -275,16 +350,26 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 
 Delta restore is for when the data directory is not empty - it only replaces files that differ from the backup.
 
-First, restore the full latest backup normally:
+First, restore the full latest backup normally. Exit back to ec2-user to stop PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl stop postgresql-16
 ```
 
+Switch back to postgres:
+
+```bash
+sudo -iu postgres
+```
+
 Instead of wiping, restore with delta directly over the existing data directory:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --delta restore
+pgbackrest --stanza=main --delta restore
 ```
 
 **Expected:** pgBackRest reports which files it replaced and which it skipped:
@@ -294,16 +379,26 @@ INFO: restore file ... (exists and matches backup, skip)
 INFO: restore file ... (does not match backup, replace)
 ```
 
-Start PostgreSQL:
+Exit back to ec2-user to start PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
+Switch back to postgres to verify:
+
+```bash
+sudo -iu postgres
+```
+
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 > **Concept:** Delta restore is dramatically faster than a full restore when most files are unchanged - for example, after minor corruption or after a failed upgrade rollback. pgBackRest checksums each existing file against the backup and only replaces mismatches. On a 1TB database where only 10GB changed, delta restore finishes in minutes instead of hours.
@@ -312,34 +407,68 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 
 ## Step 9 - Selective Database Restore
 
-Restore only labdb from the backup (skip appdb and blobdb):
+Restore only labdb from the backup (skip appdb and blobdb). Exit back to ec2-user to stop PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl stop postgresql-16
-sudo rm -rf /opt/pgsql/data/*
-sudo rm -rf /opt/pgsql/wal/*
+```
 
-sudo -u postgres pgbackrest --stanza=main \
+Wipe the data directory:
+
+```bash
+sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
+sudo rm -rf /opt/pgsql/wal/*
+```
+
+Switch back to postgres:
+
+```bash
+sudo -iu postgres
+```
+
+Restore with only labdb included:
+
+```bash
+pgbackrest --stanza=main \
   --db-include=labdb \
   restore
 ```
 
-Start PostgreSQL:
+Exit back to ec2-user to start PostgreSQL:
+
+```bash
+exit
+```
 
 ```bash
 sudo systemctl start postgresql-16
 ```
 
+Switch back to postgres to verify:
+
+```bash
+sudo -iu postgres
+```
+
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
+psql -d labdb -c "SELECT count(*) FROM pgbench_accounts;"
 ```
 
 **Expected:** labdb is fully functional with ~33M pgbench_accounts rows.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT 1;"
+psql -d appdb -c "SELECT 1;"
 ```
 
 **Expected:** Error or empty database - appdb data was not restored (the database entry exists in the catalog but tables are empty).
@@ -353,7 +482,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d appdb -c "SELECT 1;"
 Check current retention settings:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Set retention to keep only 2 full backups (in `/etc/pgbackrest/pgbackrest.conf`):
@@ -366,13 +495,13 @@ repo1-retention-full=2
 Run expire:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main expire
+pgbackrest --stanza=main expire
 ```
 
 Check info again:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 **Expected:** Old backups beyond the retention window are removed. WAL archives that are no longer needed by any remaining backup are also cleaned up.
@@ -413,6 +542,12 @@ Before continuing, confirm:
 - [ ] You used delta restore and understand when it saves time
 - [ ] You performed a selective database restore with `--db-include`
 - [ ] You expired old backups and understand retention settings
+
+When you are done, exit back to ec2-user:
+
+```bash
+exit
+```
 
 ---
 

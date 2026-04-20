@@ -26,6 +26,15 @@ sudo -iu postgres
 "
 ```
 
+Expected output (yours will differ):
+
+```
+ buffers_checkpoint | buffers_clean | buffers_backend | buffers_backend_fsync
+--------------------+---------------+-----------------+-----------------------
+              12845 |             0 |            9372 |                     0
+(1 row)
+```
+
 Key observation: `buffers_backend` is high while `buffers_clean` is 0. This means the background writer is not cleaning dirty buffers, forcing backend processes to do it themselves.
 
 ### Step 2 - Check bgwriter Configuration
@@ -34,6 +43,15 @@ Key observation: `buffers_backend` is high while `buffers_clean` is 0. This mean
 /usr/pgsql-16/bin/psql -d labdb -c "
   SHOW bgwriter_lru_maxpages;
 "
+```
+
+Expected output:
+
+```
+ bgwriter_lru_maxpages
+-----------------------
+ 0
+(1 row)
 ```
 
 The value is `0`, which completely disables the background writer's buffer cleaning.
@@ -85,6 +103,20 @@ The default is 5 minutes. This ensures dirty buffers are flushed periodically ev
 "
 ```
 
+Expected output:
+
+```
+ bgwriter_lru_maxpages
+-----------------------
+ 100
+(1 row)
+
+ checkpoint_timeout
+--------------------
+ 5min
+(1 row)
+```
+
 Confirm `bgwriter_lru_maxpages` is 100 (or a reasonable non-zero value) and `checkpoint_timeout` is 5min or similar.
 
 ### Step 7 - Force a Checkpoint
@@ -111,6 +143,8 @@ Run a quick pgbench.
 /usr/pgsql-16/bin/pgbench -c 2 -j 1 -T 10 -p 5432 labdb
 ```
 
+`-c 2` sets 2 concurrent clients, `-j 1` uses 1 worker thread, `-T 10` runs for 10 seconds, `-p 5432` connects to port 5432.
+
 Check the stats again.
 
 ```bash
@@ -123,6 +157,15 @@ Check the stats again.
 ```
 ```bash
 exit
+```
+
+Expected output (yours will differ):
+
+```
+ buffers_clean | buffers_backend | buffers_checkpoint
+---------------+-----------------+--------------------
+           247 |              38 |                  0
+(1 row)
 ```
 
 You should see `buffers_clean > 0`, confirming the bgwriter is active.

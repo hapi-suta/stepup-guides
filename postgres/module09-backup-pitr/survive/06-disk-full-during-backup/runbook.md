@@ -17,11 +17,25 @@ df -h
 
 Look for the filesystem that holds `/opt/pgsql/backup/pgbackrest` (or wherever backups are stored). It should be at or near 100% usage.
 
+Expected output (yours will differ):
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       20G   19G  512M  98% /
+/dev/xvdb1       10G   10G     0 100% /opt/pgsql/backup
+...
+```
+
 ### Step 2: Identify what is consuming space
 
 ```bash
 sudo du -sh /opt/pgsql/backup/pgbackrest/*
+```
+
+```bash
 sudo du -sh /tmp/*
+```
+
+```bash
 sudo du -sh /opt/pgsql/log/*
 ```
 
@@ -48,16 +62,26 @@ df -h
 
 ### Step 4: Check for additional space recovery opportunities
 
-Review pgBackRest backup retention:
+Review pgBackRest backup retention. Switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+sudo -iu postgres
+```
+
+```bash
+pgbackrest --stanza=main info
 ```
 
 If there are old expired backups still on disk:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main expire
+pgbackrest --stanza=main expire
+```
+
+Exit the postgres user:
+
+```bash
+exit
 ```
 
 Clean up old PostgreSQL logs:
@@ -66,15 +90,27 @@ Clean up old PostgreSQL logs:
 sudo find /opt/pgsql/log -name '*.log' -mtime +7 -delete
 ```
 
+`-mtime +7` matches files older than 7 days. `-delete` removes them.
+
 > **Concept - Backup Retention and Disk Planning**: Backup storage must be sized to hold retention-full number of full backups plus all differentials and WAL segments. A common mistake is sizing for current database size without accounting for growth, WAL volume, and retention depth.
 
 ### Step 5: Retry the backup
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=full backup
+sudo -iu postgres
 ```
 
-Monitor for success. Check the log if it fails again:
+```bash
+pgbackrest --stanza=main --type=full backup
+```
+
+Monitor for success. Check the log if it fails again. Exit postgres first to read the system log:
+
+```bash
+exit
+```
 
 ```bash
 sudo tail -20 /var/log/pgbackrest/main-backup.log
@@ -82,17 +118,45 @@ sudo tail -20 /var/log/pgbackrest/main-backup.log
 
 ### Step 6: Verify the backup completed successfully
 
+Switch back to the postgres user:
+
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+sudo -iu postgres
+```
+
+```bash
+pgbackrest --stanza=main info
 ```
 
 Expected: A new full backup with a recent timestamp and valid size.
 
+Expected output (yours will differ):
+```
+stanza: main
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (16): 000000010000000000000001/000000010000000000000008
+
+        full backup: 20260419-143000F
+            timestamp start/stop: 2026-04-19 14:30:00+00 / 2026-04-19 14:32:15+00
+            wal start/stop: 000000010000000000000007 / 000000010000000000000008
+            database size: 35.2MB, database backup size: 35.2MB
+            ...
+```
+
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main check
 ```
 
 Expected: "check command end: completed successfully"
+
+Exit the postgres user:
+
+```bash
+exit
+```
 
 ### Step 7: Review disk space after backup
 

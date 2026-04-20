@@ -64,13 +64,29 @@ Exit psql:
 exit
 ```
 
-Open 20 background psql sessions using a loop. Each session runs `pg_sleep(600)` to stay alive for 10 minutes:
+Create a small script that opens 20 background connections:
 
 ```bash
-for i in $(seq 1 20); do psql -U postgres -d labdb -c "SELECT pg_sleep(600);" & done
+vi /tmp/open-connections.sh
 ```
 
-This runs 20 psql commands in the background. Each one occupies a connection slot.
+Paste the following script, then save and exit (press `Esc`, type `:wq`, press `Enter`):
+
+```bash
+#!/bin/bash
+for i in $(seq 1 20); do
+  psql -U postgres -d labdb -c "SELECT pg_sleep(600);" &
+done
+echo "Opened 20 background connections"
+```
+
+Run the script:
+
+```bash
+bash /tmp/open-connections.sh
+```
+
+This script opens 20 connections in the background. Each one runs `pg_sleep(600)` which holds the connection open for 10 minutes.
 
 Wait a few seconds for all connections to establish, then verify:
 

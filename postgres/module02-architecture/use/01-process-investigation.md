@@ -16,10 +16,10 @@ Identify every PostgreSQL background process, map each one to its role, and prov
 On **NODE1** (pg-primary):
 
 ```bash
-ps aux | grep postgres | grep -v grep
+pgrep -a postgres
 ```
 
-(`grep -v grep` removes the grep process itself from the results.)
+(`pgrep` searches for processes by name. `-a` shows the full command line for each match.)
 
 **Expected:** You will see a list of processes including the postmaster and several background workers. Each line shows the process owner (`postgres`), PID, and a description such as `checkpointer`, `background writer`, `walwriter`, `autovacuum launcher`, `archiver`, `logger`, and `logical replication launcher`.
 
@@ -64,7 +64,7 @@ postgres,9593 -D /opt/pgsql/data
   |-postgres,9601
 ```
 
-Each child is a direct descendant of the postmaster. You can cross-reference these PIDs with the `ps aux` output from Step 1 to identify which process is the checkpointer, background writer, walwriter, etc.
+Each child is a direct descendant of the postmaster. You can cross-reference these PIDs with the `pgrep -a postgres` output from Step 1 to identify which process is the checkpointer, background writer, walwriter, etc.
 
 > **Concept:** The process tree proves the parent-child relationship. The postmaster (PID from `postmaster.pid`) is the root. Every background worker and every client backend is a direct child. This matters operationally because sending `kill -9` to the postmaster kills all children and triggers immediate-mode shutdown - data corruption is possible. Never do this in production.
 

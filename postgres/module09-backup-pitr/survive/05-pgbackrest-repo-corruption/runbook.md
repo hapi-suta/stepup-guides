@@ -9,10 +9,16 @@
 
 ### Step 1: Confirm pgBackRest reports errors
 
-SSH to [NODE1] and check backup status:
+SSH to [NODE1] and switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+sudo -iu postgres
+```
+
+Check backup status:
+
+```bash
+pgbackrest --stanza=main info
 ```
 
 Expected: Errors, missing backup info, or corrupted output.
@@ -20,10 +26,23 @@ Expected: Errors, missing backup info, or corrupted output.
 Also run a verify:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+pgbackrest --stanza=main verify
 ```
 
 This will report specific files that are corrupted or missing.
+
+Expected output (yours will differ):
+```
+ERROR: [028]: backup '20260419-120000F' manifest checksum error
+       repo1: 3/8 backup file(s) failed verification
+       repo1: WAL segment 000000010000000000000005 checksum invalid
+```
+
+Exit the postgres user before continuing:
+
+```bash
+exit
+```
 
 > **Concept - pgBackRest Verify**: The verify command checks every file in the repository against stored checksums. It can detect bit rot, truncation, and missing files. Run it regularly as a monitoring check.
 
@@ -62,21 +81,27 @@ sudo rm -rf /opt/pgsql/backup/pgbackrest/backup/main/[CORRUPTED_BACKUP_LABEL]
 
 ### Step 4: Take a new full backup
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=full backup
+sudo -iu postgres
+```
+
+```bash
+pgbackrest --stanza=main --type=full backup
 ```
 
 This will take several minutes depending on database size. Monitor progress:
 
 ```bash
 # In another terminal
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 ### Step 5: Verify the new backup
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Expected: A valid full backup with correct size and timestamp.
@@ -84,15 +109,23 @@ Expected: A valid full backup with correct size and timestamp.
 Run a deeper check:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main check
 ```
 
 Expected: "check command end: completed successfully"
 
+Expected output (yours will differ):
+```
+P00   INFO: check command begin 0.0.0: ...
+P00   INFO: check repo1 (path)
+P00   INFO: switch wal not performed because archive-check is not enabled
+P00   INFO: check command end: completed successfully
+```
+
 ### Step 6: Verify stanza health
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+pgbackrest --stanza=main verify
 ```
 
 Expected: No errors. All WAL segments and backup files pass checksum validation.
@@ -102,19 +135,39 @@ Expected: No errors. All WAL segments and backup files pass checksum validation.
 Do a quick restore to a scratch location to confirm the backup is usable:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main \
+pgbackrest --stanza=main \
   --pg1-path=/tmp/pg-restore-test \
   --type=immediate \
   --target-action=promote \
   restore
+```
 
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
+Start the restored cluster on port 5433. `pg_ctl start` launches PostgreSQL as a background process and returns once the server is ready to accept connections:
+
+```bash
+/usr/pgsql-16/bin/pg_ctl \
   -D /tmp/pg-restore-test -o "-p 5433" start
+```
 
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
+```bash
+/usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
+```
 
-# Clean up
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-restore-test stop
+Clean up - stop the test cluster and remove the directory:
+
+```bash
+/usr/pgsql-16/bin/pg_ctl -D /tmp/pg-restore-test stop
+```
+
+Exit the postgres user:
+
+```bash
+exit
+```
+
+Remove the scratch restore directory:
+
+```bash
 rm -rf /tmp/pg-restore-test
 ```
 

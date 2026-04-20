@@ -9,19 +9,36 @@
 
 ### Step 1: Confirm pgBackRest is broken
 
-SSH to [NODE1] and run a stanza check:
+SSH to [NODE1] and switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+sudo -iu postgres
 ```
 
-Expected: Error - stanza "main" not found or invalid pg1-path.
+Run a stanza check:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main check
+```
+
+Expected output (yours will differ):
+
+```
+ERROR: [044]: unable to find stanza 'main'
+       HINT: has a stanza-create been run?
+```
+
+```bash
+pgbackrest --stanza=main info
 ```
 
 Expected: Error about missing or invalid stanza.
+
+Return to your regular user for the next step (we need sudo to read the config file):
+
+```bash
+exit
+```
 
 ### Step 2: Examine the current configuration
 
@@ -94,10 +111,16 @@ Key fixes:
 
 ### Step 5: Check if stanza needs recreation
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
 If the stanza name was changed, you may need to verify the stanza:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main stanza-create
+pgbackrest --stanza=main stanza-create
 ```
 
 This is safe to run even if the stanza already exists - it will verify and update as needed.
@@ -105,13 +128,17 @@ This is safe to run even if the stanza already exists - it will verify and updat
 ### Step 6: Verify the fix
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main check
 ```
 
-Expected: "check command end: completed successfully"
+Expected output (yours will differ):
+
+```
+P00   INFO: check command end: completed successfully (200ms)
+```
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Expected: Shows valid backup information with stanza name "main".
@@ -119,7 +146,7 @@ Expected: Shows valid backup information with stanza name "main".
 ### Step 7: Verify a backup can be taken
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=diff backup
+pgbackrest --stanza=main --type=diff backup
 ```
 
 This confirms the entire backup pipeline is working end-to-end.
@@ -133,7 +160,13 @@ SELECT pg_switch_wal();
 Wait a few seconds, then:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main check
+```
+
+Return to your regular user:
+
+```bash
+exit
 ```
 
 ---

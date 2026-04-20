@@ -13,10 +13,14 @@ Learn every pg_dump output format, understand what each produces, and know when 
 
 ## Step 1 - Dump labdb in Plain Format
 
-On **NODE1** (pg-primary):
+On **NODE1** (pg-primary), switch to the postgres user. All backup commands in this exercise run as postgres.
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb -F plain -f /opt/pgsql/backup/labdb_plain.sql
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/pg_dump -d labdb -F plain -f /opt/pgsql/backup/labdb_plain.sql
 ```
 
 Examine the output:
@@ -24,6 +28,8 @@ Examine the output:
 ```bash
 head -50 /opt/pgsql/backup/labdb_plain.sql
 ```
+
+> `-50` tells `head` to show the first 50 lines of the file.
 
 **Expected:** A readable SQL file starting with `--` comments, followed by `SET` statements, `CREATE TABLE`, `COPY` data blocks, and `ALTER TABLE` for constraints. Because labdb has ~33M rows in pgbench_accounts (scale 330), the COPY block for that table alone is massive.
 
@@ -34,13 +40,13 @@ head -50 /opt/pgsql/backup/labdb_plain.sql
 ## Step 2 - Dump labdb in Custom Format
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb -F custom -f /opt/pgsql/backup/labdb_custom.dump
+/usr/pgsql-16/bin/pg_dump -d labdb -F custom -f /opt/pgsql/backup/labdb_custom.dump
 ```
 
 Examine the table of contents:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/labdb_custom.dump
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/labdb_custom.dump
 ```
 
 **Expected:** A numbered list of objects showing the order they will be restored - schemas, tables, data, indexes, constraints, triggers. You will see pgbench_accounts, pgbench_branches, pgbench_history, and pgbench_tellers among the entries.
@@ -66,7 +72,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/labdb_cus
 ## Step 3 - Dump labdb in Directory Format
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb -F directory -f /opt/pgsql/backup/labdb_dir
+/usr/pgsql-16/bin/pg_dump -d labdb -F directory -f /opt/pgsql/backup/labdb_dir
 ```
 
 Examine the directory structure:
@@ -95,7 +101,7 @@ Each table's data is stored in a separate compressed file. The `toc.dat` file is
 ## Step 4 - Dump labdb in Tar Format
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb -F tar -f /opt/pgsql/backup/labdb_tar.tar
+/usr/pgsql-16/bin/pg_dump -d labdb -F tar -f /opt/pgsql/backup/labdb_tar.tar
 ```
 
 Examine the archive:
@@ -110,8 +116,15 @@ tar tf /opt/pgsql/backup/labdb_tar.tar | head -20
 
 ## Step 5 - Compare File Sizes
 
+List the three single-file backups with human-readable sizes:
+
 ```bash
 ls -lh /opt/pgsql/backup/labdb_plain.sql /opt/pgsql/backup/labdb_custom.dump /opt/pgsql/backup/labdb_tar.tar
+```
+
+The directory format is a folder, so use `du` to get its total size:
+
+```bash
 du -sh /opt/pgsql/backup/labdb_dir
 ```
 
@@ -130,7 +143,7 @@ Custom format is the smallest. Plain SQL and tar are the largest.
 ## Step 6 - Parallel Dump With Directory Format
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d appdb -F directory --jobs=4 -f /opt/pgsql/backup/appdb_parallel
+/usr/pgsql-16/bin/pg_dump -d appdb -F directory --jobs=4 -f /opt/pgsql/backup/appdb_parallel
 ```
 
 ```bash
@@ -148,13 +161,13 @@ ls -la /opt/pgsql/backup/appdb_parallel/
 Schema only:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb --schema-only -f /opt/pgsql/backup/labdb_schema.sql
+/usr/pgsql-16/bin/pg_dump -d labdb --schema-only -f /opt/pgsql/backup/labdb_schema.sql
 ```
 
 Data only:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb --data-only -f /opt/pgsql/backup/labdb_data.sql
+/usr/pgsql-16/bin/pg_dump -d labdb --data-only -f /opt/pgsql/backup/labdb_data.sql
 ```
 
 Compare:
@@ -162,6 +175,8 @@ Compare:
 ```bash
 wc -l /opt/pgsql/backup/labdb_schema.sql /opt/pgsql/backup/labdb_data.sql /opt/pgsql/backup/labdb_plain.sql
 ```
+
+(`wc -l` counts the number of lines in each file, giving you a rough sense of how much content is in each format.)
 
 **Expected:** The schema file contains only DDL (CREATE TABLE, indexes, constraints) - a few hundred lines. The data file contains only COPY statements - millions of lines for the 33M pgbench_accounts rows. Together they roughly equal the full dump.
 
@@ -172,13 +187,13 @@ wc -l /opt/pgsql/backup/labdb_schema.sql /opt/pgsql/backup/labdb_data.sql /opt/p
 ## Step 8 - Dump a Single Table
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d labdb -t pgbench_accounts -F custom -f /opt/pgsql/backup/pgbench_accounts_only.dump
+/usr/pgsql-16/bin/pg_dump -d labdb -t pgbench_accounts -F custom -f /opt/pgsql/backup/pgbench_accounts_only.dump
 ```
 
 Verify the contents:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/pgbench_accounts_only.dump
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/pgbench_accounts_only.dump
 ```
 
 **Expected:** Only entries related to the pgbench_accounts table - the table definition, its data, and indexes.
@@ -188,13 +203,13 @@ sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/pgbench_a
 ## Step 9 - Dump With Exclusions
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -d appdb --exclude-table=orders -F custom -f /opt/pgsql/backup/appdb_no_orders.dump
+/usr/pgsql-16/bin/pg_dump -d appdb --exclude-table=orders -F custom -f /opt/pgsql/backup/appdb_no_orders.dump
 ```
 
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_no_orders.dump | grep -i orders
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_no_orders.dump | grep -i orders
 ```
 
 **Expected:** No output - the orders table is excluded from the dump.
@@ -206,7 +221,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_no_
 ## Step 10 - Dump Global Objects With pg_dumpall
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dumpall --globals-only -f /opt/pgsql/backup/globals.sql
+/usr/pgsql-16/bin/pg_dumpall --globals-only -f /opt/pgsql/backup/globals.sql
 ```
 
 Examine:
@@ -233,6 +248,14 @@ Consider these scenarios and match each to the best format:
 | Backup going to a tape archive system | Tar |
 | Schema versioning in git | Plain (schema-only) |
 | Migrating between PostgreSQL major versions | Custom or Plain |
+
+---
+
+Switch back to ec2-user.
+
+```bash
+exit
+```
 
 ---
 

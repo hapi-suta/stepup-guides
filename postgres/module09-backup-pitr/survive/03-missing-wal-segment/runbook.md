@@ -9,10 +9,22 @@
 
 ### Step 1: Identify the missing segment
 
-Attempt a PITR dry run or check pgBackRest verify:
+Attempt a PITR dry run or check pgBackRest verify. First, switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+sudo -iu postgres
+```
+
+Run pgBackRest's verify command. The `--stanza` flag tells pgBackRest which backup configuration to check:
+
+```bash
+pgbackrest --stanza=main verify
+```
+
+Expected output (yours will differ):
+```
+ERROR: [044]: WAL segment 000000010000000000000006 is missing
+       HINT: this is a gap in the WAL archive
 ```
 
 Or look at the archive directory for gaps. List WAL files in order:
@@ -21,33 +33,57 @@ Or look at the archive directory for gaps. List WAL files in order:
 ls -1 /opt/pgsql/backup/archive/ | sort | head -20
 ```
 
+```bash
+exit
+```
+
 Look for a gap in the sequence (e.g., 000000010000000000000005 exists, 000000010000000000000006 is missing, 000000010000000000000007 exists).
 
 > **Concept - WAL Continuity**: WAL segments must be continuous for PITR to work. Each segment picks up exactly where the previous one left off. A gap means the database cannot replay past that point - recovery stops at the last segment before the gap.
 
 ### Step 2: Check the primary's pg_wal directory
 
-The missing segment might still exist on the primary if it has not been recycled:
+The missing segment might still exist on the primary if it has not been recycled. SSH to [NODE1] and switch to the postgres user:
 
 ```bash
-# SSH to [NODE1]
-sudo -u postgres ls /opt/pgsql/data/pg_wal/ | sort
+sudo -iu postgres
+```
+
+List the WAL directory contents to look for the missing segment:
+
+```bash
+ls /opt/pgsql/data/pg_wal/ | sort
 ```
 
 Look for the missing segment name. PostgreSQL keeps WAL segments in pg_wal until they are archived and no longer needed for replication or crash recovery.
 
+```bash
+exit
+```
+
 ### Step 3: Copy the segment to the archive
 
-If found on the primary:
+If found on the primary, switch to the postgres user on NODE1:
 
 ```bash
-# From NODE1, copy to NODE2's archive
-sudo -u postgres scp /opt/pgsql/data/pg_wal/[SEGMENT_NAME] \
-  [SSH_USER]@[NODE2]:/opt/pgsql/backup/archive/
+sudo -iu postgres
+```
 
-# If the archive uses compression, compress it
+Copy the missing segment from the primary's pg_wal directory to NODE2's archive. The `scp` command securely copies files between servers:
+
+```bash
+scp /opt/pgsql/data/pg_wal/[SEGMENT_NAME] \
+  [SSH_USER]@[NODE2]:/opt/pgsql/backup/archive/
+```
+
+```bash
+exit
+```
+
+If the archive uses compression, compress the copied file on NODE2 to match. Use the same compression format as the other archive files (gzip, lz4, or zstd):
+
+```bash
 gzip /opt/pgsql/backup/archive/[SEGMENT_NAME]
-# or use the same compression the other files use (lz4, zstd)
 ```
 
 Ensure ownership and permissions match the other archive files:
@@ -68,41 +104,92 @@ List the archive and confirm no more gaps:
 ls -1 /opt/pgsql/backup/archive/ | sort
 ```
 
-Or run pgBackRest verify again:
+Or run pgBackRest verify again as the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main verify
+sudo -iu postgres
+```
+
+```bash
+pgbackrest --stanza=main verify
 ```
 
 Expected: No errors about missing WAL segments.
 
+```bash
+exit
+```
+
 ### Step 5: Test PITR capability
 
-Do a quick PITR to a scratch location to confirm recovery works:
+Do a quick PITR to a scratch location to confirm recovery works. Switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main \
+sudo -iu postgres
+```
+
+Restore a backup to a temporary directory. The `--pg1-path` flag sets the restore destination, `--type=immediate` stops recovery as soon as consistency is reached, and `--target-action=promote` makes the instance writable after recovery:
+
+```bash
+pgbackrest --stanza=main \
   --pg1-path=/tmp/pg-pitr-test \
   --type=immediate \
   --target-action=promote \
   restore
+```
 
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
-  -D /tmp/pg-pitr-test -o "-p 5433" start
+Start the restored instance on port 5433 so it does not conflict with the production server. The `-D` flag points to the data directory, and `-o` passes options (here, the port) to the postgres process:
 
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -c "SELECT pg_is_in_recovery();"
-# Expected: f (promoted successfully)
+```bash
+/usr/pgsql-16/bin/pg_ctl -D /tmp/pg-pitr-test -o "-p 5433" start
+```
 
-# Clean up
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-pitr-test stop
-rm -rf /tmp/pg-pitr-test
+Verify the instance promoted successfully. A result of `f` (false) means it is no longer in recovery - it promoted and is writable:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5433 -c "SELECT pg_is_in_recovery();"
+```
+
+Expected output (yours will differ):
+```
+ pg_is_in_recovery
+-------------------
+ f
+(1 row)
+```
+
+Stop the test instance now that verification is complete:
+
+```bash
+/usr/pgsql-16/bin/pg_ctl -D /tmp/pg-pitr-test stop
+```
+
+```bash
+exit
+```
+
+Remove the temporary data directory to free disk space:
+
+```bash
+sudo rm -rf /tmp/pg-pitr-test
 ```
 
 ### Step 6: Force a WAL switch to confirm archiving is current
 
+On NODE1, switch to the postgres user:
+
 ```bash
-# On NODE1
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
+sudo -iu postgres
+```
+
+Force a WAL segment switch. This creates a new segment and triggers archiving so you can confirm the archive pipeline is working:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
+```
+
+```bash
+exit
 ```
 
 Wait a few seconds, then verify the new segment appears in the archive on [NODE2].

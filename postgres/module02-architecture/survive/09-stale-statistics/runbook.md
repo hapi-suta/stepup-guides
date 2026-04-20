@@ -24,6 +24,16 @@ sudo -iu postgres
 "
 ```
 
+Expected output (yours will differ):
+
+```
+                                                  QUERY PLAN
+--------------------------------------------------------------------------------------------------------------
+ Seq Scan on chaos_stats_test  (cost=0.00..9217.00 rows=500 width=12)
+   Filter: (category = 42)
+(2 rows)
+```
+
 You will see a **Seq Scan** with an estimated row count near 500 (based on the stale 500000-row estimate). With only 1000 actual rows and category having 1000 distinct values, the planner should estimate ~1 row and choose an **Index Scan**.
 
 ### Step 2 - Check Statistics vs Reality
@@ -40,6 +50,15 @@ Compare what the planner thinks vs actual row count.
   FROM pg_stat_user_tables
   WHERE relname = 'chaos_stats_test';
 "
+```
+
+Expected output (yours will differ):
+
+```
+     relname      | n_live_tup | n_dead_tup |       last_analyze        | last_autoanalyze
+------------------+------------+------------+---------------------------+------------------
+ chaos_stats_test |     500000 |     499000 | 2026-04-19 10:05:12.34+00 |
+(1 row)
 ```
 
 Note:
@@ -94,6 +113,16 @@ Run the same EXPLAIN again.
 "
 ```
 
+Expected output (yours will differ):
+
+```
+                                                      QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_chaos_stats_category on chaos_stats_test  (cost=0.28..8.29 rows=1 width=12)
+   Index Cond: (category = 42)
+(2 rows)
+```
+
 You should now see an **Index Scan** on `idx_chaos_stats_category` with an estimated row count of ~1. The planner now has accurate statistics.
 
 ### Step 7 - Confirm Statistics Are Current
@@ -109,6 +138,15 @@ You should now see an **Index Scan** on `idx_chaos_stats_category` with an estim
 ```
 ```bash
 exit
+```
+
+Expected output (yours will differ):
+
+```
+     relname      | n_live_tup |       last_analyze
+------------------+------------+---------------------------
+ chaos_stats_test |       1000 | 2026-04-19 10:12:45.67+00
+(1 row)
 ```
 
 The `n_live_tup` should now be close to 1000, and `last_analyze` should be recent.

@@ -9,29 +9,61 @@
 
 ### Step 1: Confirm the table is gone
 
-SSH to [NODE1] and verify the table no longer exists:
+SSH to [NODE1] and verify the table no longer exists.
+
+Switch to the postgres user:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt employees"
+sudo -iu postgres
 ```
 
-Expected: "Did not find any relation named employees."
+Check whether the employees table exists:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+psql -p 5432 -d stepup_store -c "\dt employees"
+```
+
+Expected output (yours will differ):
+
+```
+Did not find any relation named "employees".
+```
+
+Try to query the table to confirm it is truly gone:
+
+```bash
+psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: ERROR - relation "employees" does not exist.
 
+Exit back to ec2-user:
+
+```bash
+exit
+```
+
 ### Step 2: Check what backups are available
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
 
 List pgBackRest backups:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
 ```
 
 Look for the most recent full or incremental backup taken BEFORE the drop. Note the backup timestamp.
+
+Exit back to ec2-user:
+
+```bash
+exit
+```
 
 > **Concept - Backup Types**: pgBackRest supports full, differential, and incremental backups. For a single-table restore, any backup type works as long as it contains the table data. The key is that the backup was taken BEFORE the DROP happened.
 
@@ -47,49 +79,98 @@ You have two options:
 
 **Option A - Selective pg_restore from logical dump (preferred for single table)**
 
-If a custom-format dump exists on [NODE2]:
+If a custom-format dump exists on [NODE2], SSH to [NODE2].
+
+Switch to the postgres user:
 
 ```bash
-# On NODE2, extract just the employees table
-/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | grep employees > /tmp/employees-toc.txt
+sudo -iu postgres
+```
 
-# Review what will be restored
+Extract just the employees table entries from the dump's table of contents. The `--list` flag prints every object in the dump, and we filter for lines mentioning "employees":
+
+```bash
+pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | grep employees > /tmp/employees-toc.txt
+```
+
+Review what will be restored:
+
+```bash
 cat /tmp/employees-toc.txt
+```
 
-# Restore just the employees table to the primary
-/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store \
+Restore just the employees table to the primary. The `--use-list` flag tells pg_restore to only restore items listed in the TOC file instead of everything in the dump:
+
+```bash
+pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store \
   --use-list=/tmp/employees-toc.txt \
   /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
-**Option B - PITR side-restore (when no logical dump is available)**
-
-Restore the entire cluster to a scratch location, extract the table, copy it back:
+Exit back to ec2-user:
 
 ```bash
-# On NODE2 or a scratch server, restore to a temporary directory
-sudo -u postgres pgbackrest --stanza=main \
+exit
+```
+
+**Option B - PITR side-restore (when no logical dump is available)**
+
+Restore the entire cluster to a scratch location, extract the table, copy it back. On [NODE2] or a scratch server, switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Restore the backup to a temporary directory at a point in time before the drop. `--pg1-path` sets the target data directory, `--type=time` tells pgBackRest to do point-in-time recovery, `--target` is the timestamp to recover to, and `--target-action=promote` makes the instance writable after recovery:
+
+```bash
+pgbackrest --stanza=main \
   --pg1-path=/tmp/pg-scratch \
   --type=time \
   --target="[TIMESTAMP_BEFORE_DROP]" \
   --target-action=promote \
   restore
+```
 
-# Start a temporary PG instance on a different port
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl \
-  -D /tmp/pg-scratch -o "-p 5433" start
+Start a temporary PostgreSQL instance on port 5433 so it does not conflict with production. The `-o` flag passes options to the postgres process:
 
-# Wait for recovery to complete
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
+```bash
+pg_ctl -D /tmp/pg-scratch -o "-p 5433" start
+```
 
-# Dump just the employees table from the scratch instance
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d stepup_store -t employees -Fc -f /tmp/employees-only.dump
+Verify recovery completed and the employees table has data:
 
-# Restore to the real primary
-/usr/pgsql-16/bin/pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store /tmp/employees-only.dump
+```bash
+psql -p 5433 -d stepup_store -c "SELECT count(*) FROM employees;"
+```
 
-# Clean up scratch instance
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /tmp/pg-scratch stop
+Dump just the employees table from the scratch instance. `-t` selects a single table, `-Fc` uses custom format, and `-f` sets the output file:
+
+```bash
+pg_dump -p 5433 -d stepup_store -t employees -Fc -f /tmp/employees-only.dump
+```
+
+Restore the employees table to the real primary:
+
+```bash
+pg_restore -h [NODE1] -p 5432 -U postgres -d stepup_store /tmp/employees-only.dump
+```
+
+Stop the scratch instance:
+
+```bash
+pg_ctl -D /tmp/pg-scratch stop
+```
+
+Exit back to ec2-user:
+
+```bash
+exit
+```
+
+Remove the scratch data directory:
+
+```bash
 rm -rf /tmp/pg-scratch
 ```
 
@@ -97,10 +178,25 @@ rm -rf /tmp/pg-scratch
 
 ### Step 4: Verify the table is restored
 
-On [NODE1]:
+On [NODE1], switch to the postgres user:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+sudo -iu postgres
+```
+
+Check that the employees table has data:
+
+```bash
+psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+```
+
+Expected output (yours will differ):
+
+```
+ count
+-------
+ 10000
+(1 row)
 ```
 
 Expected: >= 10000 rows (matching the pre-drop count from the state file).
@@ -108,17 +204,23 @@ Expected: >= 10000 rows (matching the pre-drop count from the state file).
 ### Step 5: Verify other tables are unaffected
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "\dt"
+psql -p 5432 -d stepup_store -c "\dt"
 ```
 
 Confirm all other tables still exist and have their data intact.
 
 ### Step 6: Take a fresh backup
 
-After confirming the restore is clean, take a new backup so this recovered state is protected:
+After confirming the restore is clean, take a new backup so this recovered state is protected. The `--type=diff` flag creates a differential backup, which only stores changes since the last full backup:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=diff backup
+pgbackrest --stanza=main --type=diff backup
+```
+
+Exit back to ec2-user:
+
+```bash
+exit
 ```
 
 ---

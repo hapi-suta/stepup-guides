@@ -9,13 +9,27 @@
 
 ### Step 1: Confirm the dump file is corrupt
 
-SSH to [NODE2] and try to list the dump contents:
+SSH to [NODE2].
+
+Switch to the postgres user.
+
+```bash
+sudo -iu postgres
+```
+
+Try to list the dump contents:
 
 ```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
-Expected: Error output - the file header is corrupted and pg_restore cannot read it.
+Expected output (yours will differ):
+
+```
+pg_restore: error: did not find magic string in file header
+```
+
+This means the file header is corrupted and pg_restore cannot read it.
 
 ```bash
 file /opt/pgsql/backup/dumps/stepup_store.custom
@@ -52,17 +66,33 @@ If a tar-format dump exists:
 
 ### Step 3: If no valid dump exists, take a fresh one
 
-Connect to the primary and create new backups in multiple formats:
+Connect to the primary. If you are not already the postgres user, switch now.
 
 ```bash
-# Custom format (most versatile)
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
+sudo -iu postgres
+```
 
-# Directory format (parallelizable, resilient)
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fd -j 4 -f /opt/pgsql/backup/dumps/stepup_store.dir
+Create a custom-format dump. This is the most versatile format for selective restores.
 
-# Verify both are valid
+```bash
+/usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
+```
+
+Create a directory-format dump. The `-Fd` flag tells pg_dump to write a directory-format archive. The `-j 4` flag runs 4 parallel jobs to dump tables at the same time, which is faster on multi-core servers.
+
+```bash
+/usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fd -j 4 -f /opt/pgsql/backup/dumps/stepup_store.dir
+```
+
+Verify the custom-format dump is valid.
+
+```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom
+```
+
+Verify the directory-format dump is valid.
+
+```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.dir/
 ```
 
@@ -76,7 +106,7 @@ sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fd -j 4 -f /
 
 Expected: Clean table-of-contents listing with table names, sequences, constraints, etc.
 
-Also verify row counts by doing a test restore to /dev/null:
+Also verify row counts by doing a test restore to /dev/null. The `grep -c "INSERT\|COPY"` part counts how many INSERT or COPY statements appear in the dump output - these are the commands that load actual data into tables, so a non-zero count confirms data is present.
 
 ```bash
 /usr/pgsql-16/bin/pg_restore -f /dev/stdout /opt/pgsql/backup/dumps/stepup_store.custom | grep -c "INSERT\|COPY"
@@ -84,17 +114,47 @@ Also verify row counts by doing a test restore to /dev/null:
 
 ### Step 5: Remove the corrupted file
 
+First, rename the corrupted file in case you want to keep it for analysis later.
+
 ```bash
-rm /opt/pgsql/backup/dumps/stepup_store.custom.corrupt  # rename first if you want to keep for analysis
+mv /opt/pgsql/backup/dumps/stepup_store.custom.corrupt /opt/pgsql/backup/dumps/stepup_store.custom.corrupt.bak
+```
+
+Once you have confirmed the new backup is valid, remove the corrupted file.
+
+```bash
+rm /opt/pgsql/backup/dumps/stepup_store.custom.corrupt.bak
 ```
 
 ### Step 6: Set up backup verification
 
-Add a post-backup verification step to your backup scripts:
+Add a post-backup verification step to your backup scripts. Run `pg_restore --list` against the dump file after every backup.
 
 ```bash
-# After every pg_dump, verify the output
-/usr/pgsql-16/bin/pg_restore --list "$DUMP_FILE" > /dev/null 2>&1 || echo "BACKUP VERIFICATION FAILED"
+/usr/pgsql-16/bin/pg_restore --list "$DUMP_FILE"
+```
+
+If this shows an error, the backup file is still corrupted. A clean run produces a table-of-contents listing with no errors.
+
+Expected output (yours will differ):
+
+```
+;
+; Archive created at 2026-04-19 10:30:00 UTC
+;     dbname: stepup_store
+;     TOC Entries: 42
+;
+; Selected TOC Entries:
+;
+200; 1259 16385 TABLE public customers postgres
+201; 1259 16392 TABLE public orders postgres
+...
+```
+
+Exit the postgres user when you are done.
+
+```bash
+exit
 ```
 
 ---

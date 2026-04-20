@@ -9,11 +9,24 @@
 
 ### Step 1: Assess the damage
 
-SSH to [NODE1] and check pgBackRest status:
+SSH to [NODE1] and check pgBackRest status.
+
+Switch to the postgres user:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
-sudo -u postgres pgbackrest --stanza=main verify
+sudo -iu postgres
+```
+
+Check the current backup inventory:
+
+```bash
+pgbackrest --stanza=main info
+```
+
+Verify backup integrity:
+
+```bash
+pgbackrest --stanza=main verify
 ```
 
 Expected: No valid backups, errors about corrupt or missing data.
@@ -22,9 +35,16 @@ Expected: No valid backups, errors about corrupt or missing data.
 
 ### Step 2: Verify the database is still running
 
+Check if PostgreSQL is responding:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/pg_isready -p 5432
+```
+
+Confirm data is still accessible:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM employees;"
 ```
 
 The database is still alive - this is your only source of data. Protect it.
@@ -34,11 +54,23 @@ The database is still alive - this is your only source of data. Protect it.
 Since pgBackRest is broken, fall back to pg_basebackup:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_basebackup \
+/usr/pgsql-16/bin/pg_basebackup \
   -p 5432 \
   -D /opt/pgsql/backup/basebackup-emergency \
   -Ft -z \
   -P --checkpoint=fast
+```
+
+Flag breakdown:
+- `-Ft` - Output in tar format (one .tar file per tablespace, easier to store and transfer)
+- `-z` - Compress the tar files with gzip (saves disk space)
+- `-P` - Show progress during the backup (percentage complete and throughput)
+- `--checkpoint=fast` - Request an immediate checkpoint instead of waiting for the next scheduled one (starts the backup faster but causes a brief I/O spike)
+
+Expected output (yours will differ):
+
+```
+89522/89522 kB (100%), 1/1 tablespace
 ```
 
 This creates a tar-format, compressed base backup of the entire cluster.
@@ -55,31 +87,57 @@ Expected: base.tar.gz and pg_wal.tar.gz files.
 
 ### Step 4: Take logical dumps of all databases
 
+Dump stepup_store in custom format (supports selective restore of individual tables):
+
 ```bash
-# stepup_store with custom format
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
-
-# appdb
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d appdb -Fc -f /opt/pgsql/backup/dumps/appdb.custom
-
-# blobdb
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5432 -d blobdb -Fc -f /opt/pgsql/backup/dumps/blobdb.custom
-
-# Full cluster dump (roles, tablespaces, etc.)
-sudo -u postgres /usr/pgsql-16/bin/pg_dumpall -p 5432 -f /opt/pgsql/backup/dumps/full-cluster.sql
+/usr/pgsql-16/bin/pg_dump -p 5432 -d stepup_store -Fc -f /opt/pgsql/backup/dumps/stepup_store.custom
 ```
 
-Verify each dump:
+Dump the appdb database:
+
+```bash
+/usr/pgsql-16/bin/pg_dump -p 5432 -d appdb -Fc -f /opt/pgsql/backup/dumps/appdb.custom
+```
+
+Dump the blobdb database:
+
+```bash
+/usr/pgsql-16/bin/pg_dump -p 5432 -d blobdb -Fc -f /opt/pgsql/backup/dumps/blobdb.custom
+```
+
+Dump the full cluster including roles, tablespaces, and all databases:
+
+```bash
+/usr/pgsql-16/bin/pg_dumpall -p 5432 -f /opt/pgsql/backup/dumps/full-cluster.sql
+```
+
+Verify the stepup_store dump by listing its table of contents:
 
 ```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/stepup_store.custom | head -10
+```
+
+Verify the appdb dump:
+
+```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/appdb.custom | head -10
+```
+
+Verify the blobdb dump:
+
+```bash
 /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/dumps/blobdb.custom | head -10
 ```
 
 Expected: Clean table-of-contents output for each dump.
 
 ### Step 5: Fix pgBackRest retention and take a fresh backup
+
+Exit the postgres user to edit the config as root:
+
+```bash
+exit
+```
 
 Fix the retention setting:
 
@@ -93,22 +151,53 @@ Clean up the corrupted backup:
 ```bash
 # Remove corrupt backup entries
 sudo rm -rf /opt/pgsql/backup/pgbackrest/backup/main/*
+```
 
-# Recreate the stanza
-sudo -u postgres pgbackrest --stanza=main stanza-create
+Switch back to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Recreate the stanza:
+
+```bash
+pgbackrest --stanza=main stanza-create
 ```
 
 Take a new full backup:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main --type=full backup
+pgbackrest --stanza=main --type=full backup
 ```
 
-Verify:
+Verify the backup exists:
 
 ```bash
-sudo -u postgres pgbackrest --stanza=main info
-sudo -u postgres pgbackrest --stanza=main check
+pgbackrest --stanza=main info
+```
+
+Expected output (yours will differ):
+
+```
+stanza: main
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (16): 000000010000000000000010/000000010000000000000012
+
+        full backup: 20260419-160000F
+            timestamp start/stop: 2026-04-19 16:00:00 / 2026-04-19 16:04:18
+            wal start/stop: 000000010000000000000011 / 000000010000000000000011
+            database size: 45.2MB, database backup size: 45.2MB
+            ...
+```
+
+Verify the backup passes integrity checks:
+
+```bash
+pgbackrest --stanza=main check
 ```
 
 Expected: One valid full backup, check passes.
@@ -117,10 +206,22 @@ Expected: One valid full backup, check passes.
 
 ### Step 6: Verify WAL archiving is working
 
+Force a WAL segment switch so there is something new to archive:
+
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
+/usr/pgsql-16/bin/psql -p 5432 -c "SELECT pg_switch_wal();"
+```
+
+Wait 5 seconds for the archiver process to pick up the new WAL segment and send it to the repo:
+
+```bash
 sleep 5
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -c "
+```
+
+Check the archiver status to confirm the new segment was archived:
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -c "
   SELECT last_archived_wal, last_archived_time, failed_count
   FROM pg_stat_archiver;
 "
@@ -130,20 +231,33 @@ Expected: Recent archive time, failed_count stable.
 
 ### Step 7: Document the backup inventory
 
-Verify you now have multiple backup methods working:
+Verify you now have multiple backup methods working.
+
+Check pgBackRest:
 
 ```bash
-# pgBackRest
-sudo -u postgres pgbackrest --stanza=main info
+pgbackrest --stanza=main info
+```
 
-# pg_basebackup
+Check the emergency pg_basebackup:
+
+```bash
 ls -lh /opt/pgsql/backup/basebackup-emergency/
+```
 
-# Logical dumps
+Check the logical dumps:
+
+```bash
 ls -lh /opt/pgsql/backup/dumps/
 ```
 
 All three should show valid, recent backups.
+
+Exit the postgres user:
+
+```bash
+exit
+```
 
 ---
 

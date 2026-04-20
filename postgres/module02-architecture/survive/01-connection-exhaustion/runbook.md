@@ -51,6 +51,17 @@ SELECT count(*) AS active_connections,
 FROM pg_stat_activity;
 ```
 
+Expected output (yours will differ):
+
+```
+ active_connections | max_connections | reserved
+--------------------+-----------------+----------
+                 98 | 100             | 3
+(1 row)
+```
+
+The active_connections value near or at max_connections confirms the pool is exhausted. The 3 reserved slots are why you were still able to connect as the postgres superuser.
+
 ### Step 3 - Break down connections by state
 
 ```sql
@@ -80,11 +91,35 @@ FROM pg_stat_activity
 WHERE query LIKE '%pg_sleep%';
 ```
 
+### Step 6 - Exit psql and switch back to ec2-user
+
+```
+\q
+```
+
+Exit psql.
+
+```bash
+exit
+```
+
+Switch back to ec2-user before applying the fix.
+
 ---
 
 ## Resolution
 
-### Step 1 - Terminate all pg_sleep sessions
+### Step 1 - Reconnect as superuser
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/psql -p 5432 -d labdb
+```
+
+### Step 2 - Terminate all pg_sleep sessions
 
 ```sql
 SELECT pg_terminate_backend(pid)
@@ -93,7 +128,7 @@ WHERE query LIKE '%pg_sleep%'
   AND pid != pg_backend_pid();
 ```
 
-### Step 2 - Verify connections dropped
+### Step 3 - Verify connections dropped
 
 Wait a moment, then check the count.
 
@@ -101,7 +136,21 @@ Wait a moment, then check the count.
 SELECT count(*) FROM pg_stat_activity;
 ```
 
-### Step 3 - Test a new connection
+### Step 4 - Exit psql and postgres user
+
+```
+\q
+```
+
+Exit psql.
+
+```bash
+exit
+```
+
+Switch back to ec2-user.
+
+### Step 5 - Test a new connection
 
 Open a new terminal and verify you can connect normally.
 
@@ -125,6 +174,16 @@ Run the validation script to confirm the scenario is resolved.
 
 ```bash
 ./validate.sh
+```
+
+Expected output (yours will differ):
+
+```
+[PASS] PostgreSQL is running
+[PASS] Connection count (4) is below max_connections (100)
+[PASS] New psql connection succeeded
+[PASS] No pg_sleep sessions remain
+Result: ALL CHECKS PASSED
 ```
 
 Expected checks:

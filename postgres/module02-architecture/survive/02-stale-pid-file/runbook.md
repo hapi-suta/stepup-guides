@@ -34,12 +34,29 @@ Before diving into the fix, make sure you understand these concepts:
 sudo systemctl status postgresql-16
 ```
 
+Expected output (yours will differ):
+
+```
+● postgresql-16.service - PostgreSQL 16 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled)
+     Active: failed (Result: exit-code) since Sat 2026-04-19 14:22:08 UTC; 3min ago
+    Process: 4821 ExecStart=/usr/pgsql-16/bin/postmaster -D /opt/pgsql/data (code=exited, status=1/FAILURE)
+...
+```
+
 Look for "failed" or "inactive" status.
 
 ### Step 2 - Check PostgreSQL logs
 
 ```bash
 sudo tail -30 /opt/pgsql/log/postgresql-*.log
+```
+
+Expected output:
+
+```
+FATAL:  lock file "postmaster.pid" already exists
+HINT:  Is another postmaster (PID 3217) running in data directory "/opt/pgsql/data"?
 ```
 
 Look for messages like:
@@ -67,10 +84,18 @@ ps -fp <PID>
 ### Step 5 - Double-check no PostgreSQL postmaster is running
 
 ```bash
-ps aux | grep 'postgres.*-D' | grep -v grep
+pgrep -fa 'postgres.*-D'
 ```
 
-If this returns nothing, no PostgreSQL postmaster is running. The PID file is definitely stale.
+(`pgrep` searches for processes by name. `-f` matches against the full command line, `-a` displays it.)
+
+If this returns nothing (no output at all), no PostgreSQL postmaster is running. The PID file is definitely stale.
+
+If a postmaster were actually running, you would see:
+
+```
+postgres  4521  0.0  1.2 294312 12544 ?  Ss  14:10  0:00 /usr/pgsql-16/bin/postmaster -D /opt/pgsql/data
+```
 
 ---
 
@@ -110,6 +135,15 @@ sudo systemctl start postgresql-16
 sudo systemctl status postgresql-16
 ```
 
+Expected output (yours will differ):
+
+```
+● postgresql-16.service - PostgreSQL 16 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled)
+     Active: active (running) since Sat 2026-04-19 14:28:15 UTC; 5s ago
+...
+```
+
 ### Step 5 - Test a connection
 
 ```bash
@@ -118,6 +152,15 @@ sudo -iu postgres
 
 ```bash
 /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+```
+
+Expected output:
+
+```
+      ?column?
+--------------------
+ PostgreSQL is back
+(1 row)
 ```
 
 ```bash

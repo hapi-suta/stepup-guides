@@ -13,12 +13,28 @@ Perform point-in-time recovery to a named restore point, a specific timestamp, a
 
 ## Step 1 - Verify Continuous Archiving Is Active
 
-On **NODE1** (pg-primary):
+On **NODE1** (pg-primary), switch to the postgres user:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW archive_mode;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW archive_command;"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SHOW wal_level;"
+sudo -iu postgres
+```
+
+Check that archive mode is enabled:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SHOW archive_mode;"
+```
+
+Check the archive command that copies WAL files:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SHOW archive_command;"
+```
+
+Check the WAL level:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SHOW wal_level;"
 ```
 
 **Expected:**
@@ -41,7 +57,7 @@ ls -la /opt/pgsql/backup/archive/ | head -10
 On **NODE2** (pg-backup):
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_basebackup \
+/usr/pgsql-16/bin/pg_basebackup \
   -h [NODE1_IP] \
   -U replicator \
   -D /opt/pgsql/backup/pitr_base \
@@ -65,7 +81,7 @@ ls /opt/pgsql/backup/pitr_base/PG_VERSION
 On **NODE1** (pg-primary), connect to labdb:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_create_restore_point('before_delete');"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_create_restore_point('before_delete');"
 ```
 
 **Expected:**
@@ -85,7 +101,7 @@ Note this LSN - you will use it later.
 ## Step 4 - Insert Batch A (1000 Rows)
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
 INSERT INTO employees (name, department, hired_at)
 SELECT
     'batch_a_' || generate_series(1, 1000),
@@ -102,7 +118,7 @@ SELECT
 Verify:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
 ```
 
 **Expected:** `1000`
@@ -112,7 +128,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 ## Step 5 - Record the Exact Timestamp
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT now() AS pitr_target_time;"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT now() AS pitr_target_time;"
 ```
 
 **Write this timestamp down exactly.** Example: `2026-04-17 10:45:23.456789+00`
@@ -120,7 +136,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT now() AS pitr_target
 Force a WAL switch to ensure the timestamp is archived:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
 ```
 
 ---
@@ -128,13 +144,13 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
 ## Step 6 - Simulate Disaster: Delete All Employees
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "DELETE FROM employees;"
+/usr/pgsql-16/bin/psql -d labdb -c "DELETE FROM employees;"
 ```
 
 Verify the damage:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:** `0` - all data is gone.
@@ -144,7 +160,7 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 ## Step 7 - Insert Batch B (500 Rows Post-Disaster)
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "
+/usr/pgsql-16/bin/psql -d labdb -c "
 INSERT INTO employees (name, department, hired_at)
 SELECT
     'batch_b_' || generate_series(1, 500),
@@ -156,7 +172,7 @@ SELECT
 Force another WAL switch:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
 ```
 
 > **Concept:** This creates a realistic scenario. After the disaster (DELETE), new legitimate data was written (batch B). A naive restore would lose batch B. This is why PITR must target the exact moment before the DELETE - not "the latest backup." Understanding this timeline is critical for production incidents.
@@ -168,12 +184,18 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_switch_wal();"
 Note the current LSN for the LSN-based PITR exercise later:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_current_wal_lsn() AS current_lsn;"
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT pg_current_wal_lsn() AS current_lsn;"
 ```
 
 ---
 
 ## Step 9 - PITR to the Named Restore Point
+
+Exit the postgres user to run systemctl commands as ec2-user:
+
+```bash
+exit
+```
 
 Stop NODE1:
 
@@ -181,24 +203,41 @@ Stop NODE1:
 sudo systemctl stop postgresql-16
 ```
 
-Wipe the data directory and WAL directory:
+Wipe the data directory:
 
 ```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
 ```
 
-Copy the base backup:
+Copy the base backup into the data directory:
 
 ```bash
 sudo cp -a /opt/pgsql/backup/pitr_base/* /opt/pgsql/data/
 ```
 
-Recreate the pg_wal symlink and copy WAL files:
+Copy any WAL files from the base backup to the WAL directory:
 
 ```bash
-sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/ 2>/dev/null || true
+sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/
+```
+
+If you see "No such file or directory", that's OK - it means there's nothing to copy.
+
+Remove the pg_wal directory from the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/pg_wal
+```
+
+Create a symlink so PostgreSQL finds WAL files in the right place:
+
+```bash
 sudo ln -s /opt/pgsql/wal /opt/pgsql/data/pg_wal
 ```
 
@@ -218,32 +257,63 @@ Create the recovery signal:
 sudo touch /opt/pgsql/data/recovery.signal
 ```
 
-Fix ownership and start:
+Fix ownership on the data directory:
 
 ```bash
 sudo chown -R postgres:postgres /opt/pgsql/data/
+```
+
+Fix ownership on the WAL directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/wal/
+```
+
+Set correct permissions on the data directory:
+
+```bash
 sudo chmod 700 /opt/pgsql/data
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql-16
 ```
 
-Check recovery status:
+Switch back to the postgres user to check recovery status:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
 ```
 
-**Expected:** `t` - the server is paused at the restore point.
-
-Verify the data:
+Check if the server is in recovery mode:
 
 ```bash
-# Batch A should NOT exist yet (it was inserted AFTER the restore point)
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
+/usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
+```
 
-# The DELETE should NOT have happened
-# Original employees should be present
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
+**Expected output (yours will differ):**
+
+```
+ pg_is_in_recovery
+-------------------
+ t
+(1 row)
+```
+
+The server is paused at the restore point.
+
+Check the batch A row count (should not exist - it was inserted after the restore point):
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
+```
+
+Check the total employee count (original employees should be present, the DELETE should not have happened):
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:**
@@ -256,17 +326,22 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 
 ## Step 10 - Promote After Verification
 
-Once you confirm the data looks correct:
+Once you confirm the data looks correct, resume WAL replay:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_wal_replay_resume();"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_promote();"
+/usr/pgsql-16/bin/psql -c "SELECT pg_wal_replay_resume();"
 ```
 
-Verify:
+Promote the server to primary:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
+/usr/pgsql-16/bin/psql -c "SELECT pg_promote();"
+```
+
+Verify the server is no longer in recovery:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
 ```
 
 **Expected:** `f` - the server is now a primary.
@@ -277,20 +352,53 @@ sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
 
 Repeat the restore process but target the timestamp you recorded in Step 5.
 
-Stop, wipe, and copy the base backup again:
+Exit the postgres user to run systemctl commands as ec2-user:
+
+```bash
+exit
+```
+
+Stop PostgreSQL:
 
 ```bash
 sudo systemctl stop postgresql-16
+```
+
+Wipe the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
+```
+
+Copy the base backup into the data directory:
+
+```bash
 sudo cp -a /opt/pgsql/backup/pitr_base/* /opt/pgsql/data/
 ```
 
-Recreate the pg_wal symlink:
+Copy any WAL files from the base backup to the WAL directory:
 
 ```bash
-sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/ 2>/dev/null || true
+sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/
+```
+
+If you see "No such file or directory", that's OK - it means there's nothing to copy.
+
+Remove the pg_wal directory from the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/pg_wal
+```
+
+Create the symlink for WAL files:
+
+```bash
 sudo ln -s /opt/pgsql/wal /opt/pgsql/data/pg_wal
 ```
 
@@ -306,25 +414,58 @@ EOF
 
 Replace the timestamp with the exact value from Step 5.
 
+Create the recovery signal file:
+
 ```bash
 sudo touch /opt/pgsql/data/recovery.signal
+```
+
+Fix ownership on the data directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/data/
+```
+
+Fix ownership on the WAL directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/wal/
+```
+
+Set correct permissions on the data directory:
+
+```bash
 sudo chmod 700 /opt/pgsql/data
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql-16
 ```
 
-Verify:
+Switch back to the postgres user to verify:
 
 ```bash
-# Batch A should exist (inserted before the timestamp)
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
+sudo -iu postgres
+```
 
-# Batch B should NOT exist (inserted after the DELETE, which is after the timestamp)
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_b_%';"
+Check batch A count (should exist - inserted before the timestamp):
 
-# The DELETE should NOT have happened
-sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_a_%';"
+```
+
+Check batch B count (should not exist - inserted after the DELETE, which is after the timestamp):
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees WHERE name LIKE 'batch_b_%';"
+```
+
+Check total employee count (the DELETE should not have happened):
+
+```bash
+/usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 **Expected:**
@@ -332,11 +473,16 @@ sudo -u postgres /usr/pgsql-16/bin/psql -d labdb -c "SELECT count(*) FROM employ
 - batch_b count: `0`
 - Total: original count + 1000
 
-Promote:
+Resume WAL replay:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_wal_replay_resume();"
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_promote();"
+/usr/pgsql-16/bin/psql -c "SELECT pg_wal_replay_resume();"
+```
+
+Promote the server to primary:
+
+```bash
+/usr/pgsql-16/bin/psql -c "SELECT pg_promote();"
 ```
 
 > **Concept:** Timestamp-based PITR is the most common in practice because operators usually know "the bad thing happened around 10:45 AM." The risk is timezone confusion - always use timestamps with explicit timezone offsets. If your `recovery_target_time` is in the wrong timezone, you might recover to the wrong moment.
@@ -347,20 +493,53 @@ sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_promote();"
 
 For completeness, perform one more recovery targeting a specific LSN.
 
-Stop, wipe, and copy the base backup:
+Exit the postgres user to run systemctl commands as ec2-user:
+
+```bash
+exit
+```
+
+Stop PostgreSQL:
 
 ```bash
 sudo systemctl stop postgresql-16
+```
+
+Wipe the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/*
+```
+
+Wipe the WAL directory:
+
+```bash
 sudo rm -rf /opt/pgsql/wal/*
+```
+
+Copy the base backup into the data directory:
+
+```bash
 sudo cp -a /opt/pgsql/backup/pitr_base/* /opt/pgsql/data/
 ```
 
-Recreate the pg_wal symlink:
+Copy any WAL files from the base backup to the WAL directory:
 
 ```bash
-sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/ 2>/dev/null || true
+sudo cp -a /opt/pgsql/data/pg_wal/* /opt/pgsql/wal/
+```
+
+If you see "No such file or directory", that's OK - it means there's nothing to copy.
+
+Remove the pg_wal directory from the data directory:
+
+```bash
 sudo rm -rf /opt/pgsql/data/pg_wal
+```
+
+Create the symlink for WAL files:
+
+```bash
 sudo ln -s /opt/pgsql/wal /opt/pgsql/data/pg_wal
 ```
 
@@ -374,18 +553,46 @@ recovery_target_action = 'promote'
 EOF
 ```
 
+Create the recovery signal file:
+
 ```bash
 sudo touch /opt/pgsql/data/recovery.signal
+```
+
+Fix ownership on the data directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/data/
+```
+
+Fix ownership on the WAL directory:
+
+```bash
 sudo chown -R postgres:postgres /opt/pgsql/wal/
+```
+
+Set correct permissions on the data directory:
+
+```bash
 sudo chmod 700 /opt/pgsql/data
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql-16
+```
+
+Switch back to the postgres user to verify:
+
+```bash
+sudo -iu postgres
 ```
 
 Verify the server promoted automatically (because `recovery_target_action = 'promote'`):
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
+/usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
 ```
 
 **Expected:** `f`
@@ -398,18 +605,28 @@ sudo -u postgres /usr/pgsql-16/bin/psql -c "SELECT pg_is_in_recovery();"
 
 This is the production-safe approach: instead of restoring over your live database, restore to a separate directory, extract the lost data, and re-insert it into production.
 
-On **NODE2** (pg-backup), set up a scratch PostgreSQL instance:
+On **NODE2** (pg-backup), switch to the postgres user:
 
 ```bash
-# Create a scratch data directory
-sudo mkdir -p /opt/pgsql/backup/pitr_scratch
-sudo cp -a /opt/pgsql/backup/pitr_base/* /opt/pgsql/backup/pitr_scratch/
+sudo -iu postgres
+```
+
+Create a scratch data directory:
+
+```bash
+mkdir -p /opt/pgsql/backup/pitr_scratch
+```
+
+Copy the base backup into the scratch directory:
+
+```bash
+cp -a /opt/pgsql/backup/pitr_base/* /opt/pgsql/backup/pitr_scratch/
 ```
 
 Configure recovery on the scratch instance:
 
 ```bash
-sudo tee -a /opt/pgsql/backup/pitr_scratch/postgresql.auto.conf << 'EOF'
+tee -a /opt/pgsql/backup/pitr_scratch/postgresql.auto.conf << 'EOF'
 restore_command = 'cp /opt/pgsql/backup/archive/%f %p'
 recovery_target_time = '2026-04-17 10:45:23.456789+00'
 recovery_target_action = 'promote'
@@ -417,15 +634,16 @@ port = 5433
 EOF
 ```
 
+Create the recovery signal file:
+
 ```bash
-sudo touch /opt/pgsql/backup/pitr_scratch/recovery.signal
-sudo chown -R postgres:postgres /opt/pgsql/backup/pitr_scratch/
+touch /opt/pgsql/backup/pitr_scratch/recovery.signal
 ```
 
 Start the scratch instance on a different port:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch start
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch start
 ```
 
 Verify it is running:
@@ -434,29 +652,38 @@ Verify it is running:
 /usr/pgsql-16/bin/pg_isready -p 5433
 ```
 
-**Expected:** `accepting connections`
+**Expected output (yours will differ):**
+
+```
+/tmp:5433 - accepting connections
+```
 
 Extract the lost data from the scratch instance and insert into production:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d labdb -t employees --data-only | \
-  sudo -u postgres /usr/pgsql-16/bin/psql -h [NODE1_IP] -d labdb
+/usr/pgsql-16/bin/pg_dump -p 5433 -d labdb -t employees --data-only | \
+  /usr/pgsql-16/bin/psql -h [NODE1_IP] -d labdb
 ```
 
-Or for more surgical extraction:
+Or for more surgical extraction - export specific rows from the scratch instance and pipe them into production:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/psql -p 5433 -d labdb -c \
+/usr/pgsql-16/bin/psql -p 5433 -d labdb -c \
   "COPY (SELECT * FROM employees WHERE name LIKE 'batch_a_%') TO STDOUT WITH CSV" | \
-  sudo -u postgres /usr/pgsql-16/bin/psql -h [NODE1_IP] -d labdb -c \
+  /usr/pgsql-16/bin/psql -h [NODE1_IP] -d labdb -c \
   "COPY employees (id, name, department, hired_at) FROM STDIN WITH CSV"
 ```
 
-Stop and clean up the scratch instance:
+Stop the scratch instance:
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch stop
-sudo rm -rf /opt/pgsql/backup/pitr_scratch
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch stop
+```
+
+Clean up the scratch directory:
+
+```bash
+rm -rf /opt/pgsql/backup/pitr_scratch
 ```
 
 > **Concept:** The side-restore pattern is the safest way to recover lost data in production. It does not touch your live database. You spin up a temporary instance from a backup, recover to the point before the data loss, extract what you need, and pipe it back into production. This avoids downtime and preserves any new data written after the incident. Every DBA should have this pattern in their toolkit.
@@ -473,6 +700,12 @@ sudo rm -rf /opt/pgsql/backup/pitr_scratch
 | Total server loss, need full recovery | PITR from base backup + WAL |
 | Need to restore one table into a different database | Logical |
 | Corruption discovered hours after it happened | PITR to before corruption |
+
+Exit back to ec2-user when you are done:
+
+```bash
+exit
+```
 
 ---
 

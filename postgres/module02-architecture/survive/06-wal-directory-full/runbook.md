@@ -21,6 +21,15 @@ sudo systemctl status postgresql-16
 
 You should see the service is inactive (dead) or failed.
 
+Expected output (yours will differ):
+```
+● postgresql-16.service - PostgreSQL 16 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled)
+     Active: failed (Result: exit-code) since Sat 2026-04-19 14:32:10 UTC
+    Process: 1234 ExecStart=/usr/pgsql-16/bin/postmaster -D /opt/pgsql/data (code=exited, status=1/FAILURE)
+...
+```
+
 Check the PostgreSQL logs for the PANIC message.
 
 ```bash
@@ -38,6 +47,12 @@ df -h /opt/pgsql/wal
 ```
 
 The output will show the partition is at 95%+ usage. Note the "Avail" column - it should be very low.
+
+Expected output (yours will differ):
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvdf       2.0G  1.9G   48M  98% /opt/pgsql/wal
+```
 
 ### Step 3 - Identify the Problem File
 
@@ -62,6 +77,12 @@ df -h /opt/pgsql/wal
 ```
 
 The usage should now be well below 90%.
+
+Expected output (yours will differ):
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvdf       2.0G   33M  1.9G   2% /opt/pgsql/wal
+```
 
 ### Step 5 - Start PostgreSQL
 
@@ -101,6 +122,16 @@ sudo -iu postgres
 ```
 
 If the INSERT succeeds, WAL writes are working normally.
+
+Expected output (yours will differ):
+```
+CREATE TABLE
+INSERT 0 1
+ id |             ts
+----+----------------------------
+  1 | 2026-04-19 14:35:22.491832
+(1 row)
+```
 
 ### Step 8 - Clean Up Test Table
 

@@ -43,6 +43,13 @@ Look for "failed" status.
 sudo tail -20 /opt/pgsql/log/postgresql-*.log
 ```
 
+Expected output:
+
+```
+FATAL:  data directory "/opt/pgsql/data" has group or world access
+DETAIL:  Permissions should be u=rwx (0700) or u=rwx,g=rx (0750).
+```
+
 Look for messages like:
 - "data directory has wrong ownership"
 - "data directory has group or world access"
@@ -54,7 +61,13 @@ Look for messages like:
 ls -la /opt/pgsql/ | grep data
 ```
 
-The data directory should show `drwx------` (0700). If you see `drwxr-xr-x` (0755), that is the problem.
+Expected output (yours will differ):
+
+```
+drwxr-xr-x  20 postgres postgres 4096 Apr 19 14:10 data
+```
+
+The data directory should show `drwx------` (0700). If you see `drwxr-xr-x` (0755) as above, that is the problem.
 
 ### Step 4 - Check ownership of key files
 
@@ -104,6 +117,13 @@ ls -la /opt/pgsql/ | grep data
 ls -la /opt/pgsql/data/postgresql.conf
 ```
 
+Expected output (yours will differ):
+
+```
+drwx------  20 postgres postgres 4096 Apr 19 14:10 data
+-rw-------   1 postgres postgres 29526 Apr 19 13:45 /opt/pgsql/data/postgresql.conf
+```
+
 Confirm data directory is `drwx------` and all files are `postgres:postgres`.
 
 ### Step 4 - Start PostgreSQL
@@ -132,6 +152,15 @@ sudo -iu postgres
 
 ```bash
 /usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT 'PostgreSQL is back';"
+```
+
+Expected output:
+
+```
+      ?column?
+--------------------
+ PostgreSQL is back
+(1 row)
 ```
 
 ```bash

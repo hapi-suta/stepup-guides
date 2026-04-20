@@ -232,6 +232,10 @@ pgbackrest --stanza=main info
 pgbackrest --stanza=main restore
 ```
 
+> **Note:** These are examples showing how the stanza name appears in every
+> pgBackRest command. Do not run these now - you will run them step-by-step
+> in Build Guide 07.
+
 > **Concept:** The `stanza-create` command initializes the repository structure
 > and writes metadata about the PostgreSQL cluster (version, system identifier).
 > Always run `pgbackrest --stanza=main check` after creation to verify that
@@ -819,6 +823,14 @@ pgbackrest --stanza=main --delta \
   restore
 ```
 
+Flag breakdown:
+- `--stanza=main` - identifies which PostgreSQL cluster to restore
+- `--delta` - only restores files that differ from what is already on disk (faster than a full copy)
+- `--type=time` - tells pgBackRest to stop WAL replay at a specific timestamp
+- `--target=...` - the timestamp to recover to (must be quoted because of the space)
+- `--target-action=promote` - automatically promote to read-write primary when recovery reaches the target
+- `restore` - the pgBackRest command (always comes last)
+
 Recovery target types:
 
 | Type | Flag | Example | Use Case |
@@ -1252,12 +1264,20 @@ ERROR: [055]: unable to acquire lock on file '/tmp/pgbackrest/main-backup.lock'
 ```
 
 Cause: Another pgBackRest backup process is already running.
-Fix: Wait for the running backup to complete, or if it crashed:
+Fix: Wait for the running backup to complete, or if it crashed, investigate manually:
+
+Check whether a lock file exists:
 ```bash
 ls -la /tmp/pgbackrest/main-*.lock
-# Verify no pgbackrest processes are running:
+```
+
+Verify no pgbackrest processes are still running:
+```bash
 ps aux | grep pgbackrest
-# If safe to clear:
+```
+
+If no processes are running and the lock is stale, remove it:
+```bash
 rm /tmp/pgbackrest/main-backup.lock
 ```
 
@@ -1266,10 +1286,20 @@ rm /tmp/pgbackrest/main-backup.lock
 **Error: `pg_control exists and PostgreSQL is running`**
 
 Cause: Trying to restore while PostgreSQL is still running.
-Fix: Stop PostgreSQL before restoring:
+Fix: You must stop PostgreSQL before restoring.
+
+Stop PostgreSQL first - you cannot restore into a running cluster:
 ```bash
 sudo systemctl stop postgresql-16
+```
+
+Run the restore:
+```bash
 pgbackrest --stanza=main --delta restore
+```
+
+Start PostgreSQL after the restore completes:
+```bash
 sudo systemctl start postgresql-16
 ```
 
@@ -1293,25 +1323,69 @@ Fix:
 
 ### How to verify backup integrity
 
+> **Note:** These are individual reference commands for verifying backup
+> integrity. Run them one at a time as needed - this is not a sequence to
+> execute all at once.
+
+List all backups with details (date, size, type, WAL range):
 ```bash
-# List all backups with details
 pgbackrest --stanza=main info
+```
 
-# JSON output for scripting
+Expected output (yours will differ):
+```
+stanza: main
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (16): 000000010000000000000001/000000010000000000000005
+
+        full backup: 20260415-120000F
+            timestamp start/stop: 2026-04-15 12:00:00+00 / 2026-04-15 12:05:30+00
+            wal start/stop: 000000010000000000000003 / 000000010000000000000003
+            database size: 5.1GB, database backup size: 5.1GB
+            repo1: backup set size: 1.1GB, backup size: 1.1GB
+        ...
+```
+
+Get JSON output for scripting and monitoring tools:
+```bash
 pgbackrest --stanza=main info --output=json
+```
 
-# Verify repository integrity (pgBackRest 2.36+)
+Verify repository integrity - checks every file against its stored checksum (pgBackRest 2.36+):
+```bash
 pgbackrest --stanza=main verify
+```
 
-# Check a specific backup's manifest
+Expected output (yours will differ):
+```
+stanza: main
+    status: ok
+    archiveId: 16-1, total WAL checked: 5, total valid WAL: 5
+    backup: 20260415-120000F, status: valid, total file checked: 1234, total valid file: 1234
+```
+
+Check a specific backup's manifest by its label:
+```bash
 pgbackrest --stanza=main info --set=20260415-120000F
+```
 
-# Test restore without actually restoring (restore to /tmp)
+Test restore without affecting production - restores to a temporary directory:
+```bash
 pgbackrest --stanza=main \
   --pg1-path=/tmp/pgbackrest-test \
   --delta restore
-# Then check the data directory contents and remove
+```
+
+Check that the data directory was populated:
+```bash
 ls /tmp/pgbackrest-test/
+```
+
+Clean up the test directory when done:
+```bash
 rm -rf /tmp/pgbackrest-test/
 ```
 

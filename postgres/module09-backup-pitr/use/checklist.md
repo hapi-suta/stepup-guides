@@ -40,7 +40,7 @@ On CentOS Stream 9 with PostgreSQL 16, use the full binary paths: `/usr/pgsql-16
 
 `pg_dumpall` dumps all databases in the cluster plus global objects (roles, tablespaces). Use `pg_dumpall --globals-only` to capture just the globals without database data. You need this alongside `pg_dump` backups - otherwise a restore fails because the owning roles do not exist.
 
-On CentOS: `sudo -u postgres /usr/pgsql-16/bin/pg_dumpall --globals-only -f /opt/pgsql/backup/globals.sql`
+On CentOS, switch to the postgres user first (`sudo -iu postgres`), then run: `/usr/pgsql-16/bin/pg_dumpall --globals-only -f /opt/pgsql/backup/globals.sql`
 </details>
 
 ---
@@ -67,14 +67,47 @@ On CentOS: `sudo -u postgres /usr/pgsql-16/bin/pg_dumpall --globals-only -f /opt
 Two approaches:
 
 **Quick method:**
+
+Switch to the postgres user first:
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_restore -d targetdb -t employees /opt/pgsql/backup/appdb_full.dump
+sudo -iu postgres
 ```
 
+Then run the restore:
+```bash
+/usr/pgsql-16/bin/pg_restore -d targetdb -t employees /opt/pgsql/backup/appdb_full.dump
+```
+
+Expected output (yours will differ):
+```
+$ /usr/pgsql-16/bin/pg_restore -d targetdb -t employees /opt/pgsql/backup/appdb_full.dump
+$
+```
+No output means success. If there were errors, pg_restore prints them to stderr.
+
 **Precise method (TOC editing):**
-1. `sudo -u postgres /usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump > /opt/pgsql/backup/toc.txt`
+
+Switch to the postgres user first:
+```bash
+sudo -iu postgres
+```
+
+1. Generate the TOC listing:
+```bash
+/usr/pgsql-16/bin/pg_restore --list /opt/pgsql/backup/appdb_full.dump > /opt/pgsql/backup/toc.txt
+```
+
 2. Edit `/opt/pgsql/backup/toc.txt` - comment out (`;`) all lines not related to the employees table
-3. `sudo -u postgres /usr/pgsql-16/bin/pg_restore -d targetdb --use-list=/opt/pgsql/backup/toc.txt /opt/pgsql/backup/appdb_full.dump`
+
+3. Restore using the filtered TOC:
+```bash
+/usr/pgsql-16/bin/pg_restore -d targetdb --use-list=/opt/pgsql/backup/toc.txt /opt/pgsql/backup/appdb_full.dump
+```
+
+When done, exit back to ec2-user:
+```bash
+exit
+```
 
 The TOC method gives you surgical control over exactly which objects (table definition, data, indexes, constraints) get restored. The `-t` shortcut is simpler but includes all associated objects automatically.
 </details>
@@ -99,7 +132,20 @@ Flag meanings:
 - `-Xs` - stream WAL during backup (opens a second connection to capture WAL generated during the backup, making it self-contained)
 - `-P` - show progress (displays a percentage and data rate during the backup)
 
-On CentOS: `sudo -u postgres /usr/pgsql-16/bin/pg_basebackup -h [NODE1_IP] -U replicator -D /opt/pgsql/backup/pg_basebackup_plain -Fp -Xs -P`
+On CentOS, switch to the postgres user first:
+```bash
+sudo -iu postgres
+```
+
+Then run the backup:
+```bash
+/usr/pgsql-16/bin/pg_basebackup -h [NODE1_IP] -U replicator -D /opt/pgsql/backup/pg_basebackup_plain -Fp -Xs -P
+```
+
+When done, exit back to ec2-user:
+```bash
+exit
+```
 </details>
 
 ---
@@ -175,9 +221,22 @@ Steps:
 1. Copy base backup to a scratch directory (e.g., `/opt/pgsql/backup/pitr_scratch`)
 2. Configure recovery target in the scratch directory's `postgresql.auto.conf`
 3. Set a different port (e.g., `port = 5433`)
-4. Start the scratch instance: `sudo -u postgres /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch start`
-5. Extract data: `sudo -u postgres /usr/pgsql-16/bin/pg_dump -p 5433 -d dbname -t tablename | sudo -u postgres /usr/pgsql-16/bin/psql -d dbname`
-6. Stop and remove the scratch instance
+4. Switch to the postgres user:
+   ```bash
+   sudo -iu postgres
+   ```
+5. Start the scratch instance:
+   ```bash
+   /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/backup/pitr_scratch start
+   ```
+6. Extract data from the scratch instance and load it into production:
+   ```bash
+   /usr/pgsql-16/bin/pg_dump -p 5433 -d dbname -t tablename | /usr/pgsql-16/bin/psql -d dbname
+   ```
+7. Stop and remove the scratch instance, then exit back to ec2-user:
+   ```bash
+   exit
+   ```
 
 Use it when you need to recover specific data (a dropped table, deleted rows) without taking production offline. It preserves any new data written after the incident.
 </details>

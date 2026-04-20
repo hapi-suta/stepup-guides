@@ -45,6 +45,15 @@ Look at the "available" column. If it is very low (under 100MB), the system is u
 SHOW work_mem;
 ```
 
+Expected output:
+
+```
+ work_mem
+----------
+ 2GB
+(1 row)
+```
+
 If this shows 2GB, that is the root cause. 2GB per sort operation with multiple concurrent sessions will exhaust any reasonably-sized server.
 
 ### Step 3 - Calculate the risk
@@ -54,6 +63,15 @@ SELECT count(*) AS active_sessions,
        current_setting('work_mem') AS work_mem_per_op
 FROM pg_stat_activity
 WHERE state = 'active';
+```
+
+Expected output (yours will differ):
+
+```
+ active_sessions | work_mem_per_op
+-----------------+-----------------
+              16 | 2GB
+(1 row)
 ```
 
 15 sessions x 2GB work_mem = 30GB theoretical maximum per sort node. Most lab servers have 1-2GB total RAM.
@@ -83,6 +101,19 @@ WHERE query LIKE '%chaos_sort_data%'
   AND pid != pg_backend_pid();
 ```
 
+Expected output (yours will differ):
+
+```
+ pg_terminate_backend
+----------------------
+ t
+ t
+ t
+...
+```
+
+Each `t` (true) means one session was successfully terminated.
+
 ### Step 2 - Also kill any pg_sleep sessions left behind
 
 ```sql
@@ -107,13 +138,30 @@ SELECT pg_reload_conf();
 SHOW work_mem;
 ```
 
+Expected output:
+
+```
+ work_mem
+----------
+ 4MB
+(1 row)
+```
+
 ### Step 5 - Verify memory recovered
 
 ```bash
 free -m
 ```
 
-Available memory should be recovering.
+Expected output (yours will differ):
+
+```
+               total        used        free      shared  buff/cache   available
+Mem:            1837         312         841          24         683        1374
+Swap:              0           0           0
+```
+
+The "available" column should now be well above 100MB. Compare this to the near-zero value you saw in Step 1.
 
 ---
 
