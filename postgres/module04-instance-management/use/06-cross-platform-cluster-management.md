@@ -51,6 +51,13 @@ This single command shows every cluster on the server - version, name, port, sta
 sudo systemctl list-units 'postgresql*' --type=service --all
 ```
 
+Expected output (yours will differ):
+```
+  UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+  postgresql-16.service    loaded active running PostgreSQL 16 database server
+...
+```
+
 Then for each service, check its PGDATA, port, and status separately.
 
 ### pg_createcluster - Create a new cluster
@@ -59,7 +66,7 @@ Then for each service, check its PGDATA, port, and status separately.
 sudo pg_createcluster 16 test --port=5435
 ```
 
-This single command does everything that takes 5-6 steps on CentOS:
+This creates a new PostgreSQL 16 cluster named "test" listening on port 5435. It does everything that takes 5-6 steps on CentOS:
 1. Creates the data directory at `/var/lib/postgresql/16/test/`
 2. Runs `initdb` with the system locale
 3. Sets the port in `postgresql.conf`
@@ -100,9 +107,7 @@ Then manually edit `postgresql.conf` for the port, create a systemd unit file, a
 sudo pg_dropcluster 16 test --stop
 ```
 
-(`--stop` stops the cluster before removing it.)
-
-This removes the data directory, the systemd unit, and the log file in one command.
+This stops the cluster and then removes the data directory, the systemd unit, and the log file in one command. The `--stop` flag stops the cluster before removing it.
 
 **CentOS equivalent (manual):**
 
@@ -219,6 +224,8 @@ Expected output (Ubuntu):
 (1 row)
 ```
 
+This works regardless of OS because PostgreSQL itself knows where its config was loaded from.
+
 Also useful:
 
 ```sql
@@ -261,6 +268,8 @@ sudo systemctl status postgresql-16
 sudo systemctl status postgresql@16-main
 ```
 
+The service name follows the `postgresql@version-cluster` pattern, so a cluster named "main" on version 16 becomes `postgresql@16-main`.
+
 Or the Ubuntu shortcut:
 ```bash
 pg_lsclusters
@@ -273,12 +282,14 @@ pg_lsclusters
 sudo systemctl enable postgresql-16
 ```
 
+This registers the service to start automatically when the server boots.
+
 **Ubuntu:**
 ```bash
 sudo systemctl enable postgresql@16-main
 ```
 
-(Ubuntu auto-enables on `apt install`, so you rarely need this.)
+Ubuntu auto-enables on `apt install`, so you rarely need this command.
 
 ### Check logs
 
@@ -291,6 +302,8 @@ Or:
 ```bash
 sudo journalctl -u postgresql-16 --no-pager -n 50
 ```
+
+`-u` filters by systemd unit name. `--no-pager` prints directly to terminal. `-n 50` shows only the last 50 lines.
 
 **Ubuntu:**
 ```bash

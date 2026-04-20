@@ -196,6 +196,8 @@ This skips rows stored in block 1 (the corrupted block).
 /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data-checksum stop -m fast
 ```
 
+`-m fast` uses fast shutdown mode, which disconnects all clients immediately and shuts down cleanly without waiting for clients to disconnect on their own.
+
 Expected output:
 
 ```

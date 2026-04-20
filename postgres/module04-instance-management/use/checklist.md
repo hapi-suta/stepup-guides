@@ -156,7 +156,13 @@ What are the `pg_isready` exit codes and what does each mean?
 | 2 | No response from server (server not running or wrong host/port) |
 | 3 | No connection attempt was made (invalid parameters) |
 
-These are useful for scripting health checks. For example: `pg_isready -p 5432 && echo "UP" || echo "DOWN"`
+These are useful for scripting health checks. For example:
+
+```bash
+pg_isready -p 5432
+```
+
+If the exit code is 0, the server is accepting connections (UP). If it returns 2, the server is not accepting connections (DOWN). You can check the exit code with `echo $?` after running the command.
 
 </details>
 

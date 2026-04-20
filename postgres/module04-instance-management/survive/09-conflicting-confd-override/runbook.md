@@ -38,7 +38,11 @@ Before diving into the fix, make sure you understand these concepts:
 ### Step 1 - Check if PostgreSQL is accepting connections on port 5432
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
 ```
 
 Expected output (yours will differ):
@@ -48,6 +52,10 @@ localhost:5432 - no response
 ```
 
 Port 5432 is not responding. But is PostgreSQL actually running?
+
+```bash
+exit
+```
 
 ### Step 2 - Check if the PostgreSQL process is alive
 
@@ -171,13 +179,21 @@ sudo systemctl restart postgresql-16
 ### Step 4 - Verify PostgreSQL is on port 5432
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
 ```
 
 Expected output (yours will differ):
 
 ```
 localhost:5432 - accepting connections
+```
+
+```bash
+exit
 ```
 
 ### Step 5 - Confirm via psql

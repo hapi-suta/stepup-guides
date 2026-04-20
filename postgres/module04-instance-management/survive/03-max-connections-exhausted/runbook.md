@@ -121,6 +121,8 @@ exit
 sudo ps aux | grep "postgres:" | grep -v grep | wc -l
 ```
 
+`ps aux` lists all running processes. `grep 'postgres:'` filters for PostgreSQL backend processes. `grep -v grep` removes the grep command itself from the results. `wc -l` counts the matching lines.
+
 Expected output (yours will differ):
 
 ```
@@ -156,6 +158,8 @@ postgres  12346  0.0  0.1 ... postgres: labdb postgres [local] active
 ```bash
 sudo kill $(ps aux | grep "pg_sleep" | grep -v grep | awk '{print $2}')
 ```
+
+This finds all processes running `pg_sleep` and terminates them. `awk '{print $2}'` extracts the PID (second column) from the `ps` output. The `$()` runs the pipeline and passes the PIDs to `kill`.
 
 ### Step 3 - Verify you can now connect
 

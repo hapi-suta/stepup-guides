@@ -537,10 +537,18 @@ localhost
 > **Concept: postmaster.pid anatomy**
 > Each line in `postmaster.pid` has a specific meaning: Line 1 is the process ID. Line 2 is the PGDATA path. Line 3 is the start timestamp (Unix epoch). Line 4 is the port number. Line 5 is the Unix socket directory. Line 6 is the listen address. Line 7 is shared memory information. If this file exists but the process is not running, PostgreSQL will refuse to start - you may need to remove the stale PID file manually (after confirming the process is truly gone).
 
-Verify the PID is a real running process. Use `ps` to check:
+Verify the PID is a real running process. First, read the PID from the file:
 
 ```bash
-ps -p $(head -1 /opt/pgsql/data/postmaster.pid) -o pid,user,command
+head -1 /opt/pgsql/data/postmaster.pid
+```
+
+Note the PID number from the output (for example, `1234`).
+
+Now use `ps` to check if that process is running. Replace `<PID>` with the number from the previous command:
+
+```bash
+ps -p <PID> -o pid,user,command
 ```
 
 Expected output (yours will differ):
@@ -597,7 +605,7 @@ Expected output (yours will differ):
 ...
 ```
 
-View the last 10 lines of today's log. The `-10` flag shows the last 10 lines:
+View the last 10 lines of today's log. The `-10` flag shows the last 10 lines. The `$(date +%Y-%m-%d)` part inserts today's date in YYYY-MM-DD format to match the log filename pattern:
 
 ```bash
 tail -10 /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log
@@ -641,7 +649,7 @@ Apr 19 11:28:15 ip-10-0-1-100 postmaster[1234]: LOG:  checkpoint complete: ...
 ...
 ```
 
-The `-u` flag filters for a specific systemd unit. The `-n 10` flag shows the last 10 entries.
+The `-u` flag filters for a specific systemd unit. `--no-pager` prints output directly to the terminal instead of opening a scrollable viewer. The `-n 10` flag shows the last 10 entries.
 
 ---
 

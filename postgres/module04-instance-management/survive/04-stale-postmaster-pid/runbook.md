@@ -97,6 +97,8 @@ Line 1 shows a PID that is NOT a PostgreSQL process. Check what process owns tha
 ps -p $(head -1 /opt/pgsql/data/postmaster.pid) -o pid,user,comm
 ```
 
+`-p` filters to only the given PID. `-o pid,user,comm` selects which columns to display: process ID, owning user, and command name.
+
 Expected output (yours will differ):
 
 ```
@@ -175,8 +177,12 @@ The key line is "database system is ready to accept connections" - PostgreSQL st
 The stale PID belonged to a `sleep` process. Kill it so it doesn't waste resources:
 
 ```bash
-kill $(cat /tmp/chaos-04-state.env 2>/dev/null | grep DECOY_PID | cut -d= -f2) 2>/dev/null || true
+kill $(cat /tmp/chaos-04-state.env 2>/dev/null | grep DECOY_PID | cut -d= -f2) 2>/dev/null
 ```
+
+`cat` reads the state file, `grep` finds the line with the PID, `cut -d= -f2` extracts the value after the `=` sign. `2>/dev/null` hides error messages if the file doesn't exist.
+
+If you see "No such process", that's OK - the decoy process may have already stopped.
 
 ### Step 6 - Verify PostgreSQL is running and accepting connections
 

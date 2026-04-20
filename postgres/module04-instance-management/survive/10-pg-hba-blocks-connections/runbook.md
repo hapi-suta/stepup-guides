@@ -60,13 +60,21 @@ exit
 ### Step 2 - Confirm PostgreSQL is actually running
 
 ```bash
-sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5432
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
 ```
 
 Expected output (yours will differ):
 
 ```
 /var/run/postgresql:5432 - accepting connections
+```
+
+```bash
+exit
 ```
 
 `pg_isready` succeeds because it only checks if the postmaster is accepting TCP/socket connections at the protocol level. It does not perform HBA authentication. The server is healthy - just misconfigured for access.
