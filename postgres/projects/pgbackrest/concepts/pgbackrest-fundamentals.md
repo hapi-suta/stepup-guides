@@ -65,19 +65,19 @@ In this lab, all three components live on the same server as PostgreSQL:
 ┌────────────────────────────────────────────────────────────────┐
 │                       CentOS Stream 9                          │
 │                                                                │
-│  ┌─────────────────────┐       ┌────────────────────────────┐  │
-│  │   PostgreSQL 16      │       │   pgBackRest Repository    │  │
-│  │                      │       │                            │  │
-│  │  PGDATA:             │       │  /opt/pgsql/backup/        │  │
-│  │  /opt/pgsql/data     │       │    pgbackrest/             │  │
-│  │                      │       │    ├── archive/            │  │
-│  │  archive_command ──────────> │    │   └── main/           │  │
-│  │   (archive-push)     │       │    │       └── 16-1/       │  │
-│  │                      │       │    └── backup/             │  │
-│  │  restore_command <────────── │        └── main/           │  │
-│  │   (archive-get)      │       │            ├── (backups)   │  │
-│  │                      │       │            └── (manifests) │  │
-│  └─────────────────────┘       └────────────────────────────┘  │
+│  ┌──────────────────────┐       ┌───────────────────────────┐  │
+│  │   PostgreSQL 16      │       │   pgBackRest Repository   │  │
+│  │                      │       │                           │  │
+│  │  PGDATA:             │       │  /opt/pgsql/backup/       │  │
+│  │  /opt/pgsql/data     │       │    pgbackrest/            │  │
+│  │                      │       │    ├── archive/           │  │
+│  │  archive_command ──────────> │    │   └── main/          │  │
+│  │   (archive-push)     │       │    │       └── 16-1/      │  │
+│  │                      │       │    └── backup/            │  │
+│  │  restore_command <────────── │        └── main/          │  │
+│  │   (archive-get)      │       │            ├── (backups   │  │
+│  │                      │       │            └── (manifests │  │
+│  └──────────────────────┘       └───────────────────────────┘  │
 │                                                                │
 │  Config: /etc/pgbackrest.conf                                  │
 │  Binary: /usr/bin/pgbackrest                                   │
