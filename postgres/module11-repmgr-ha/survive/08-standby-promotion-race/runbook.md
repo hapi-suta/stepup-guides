@@ -9,14 +9,26 @@
 
 ### Step 1: Confirm two primaries exist
 
-Check every data node:
+Switch to the postgres user:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  echo -n "$host: "
-  sudo -iu postgres psql -h $host -U repmgr -d repmgr -tAc \
-    "SELECT pg_is_in_recovery();" 2>/dev/null || echo "unreachable"
-done
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
+Check every data node one at a time:
+
+```bash
+psql -h pg-repmgr-1 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-2 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-3 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
 ```
 
 Expected: TWO nodes return `f`. This confirms split-brain.
@@ -30,16 +42,16 @@ Expected: TWO nodes return `f`. This confirms split-brain.
 
 On each primary, check how much data it has:
 
-```bash
-# On node A
-sudo -iu postgres psql -c "
-SELECT pg_current_wal_lsn(),
-       pg_current_wal_insert_lsn();"
+On node A:
 
-# On node B
-sudo -iu postgres psql -c "
-SELECT pg_current_wal_lsn(),
-       pg_current_wal_insert_lsn();"
+```bash
+psql -c "SELECT pg_current_wal_lsn(), pg_current_wal_insert_lsn();"
+```
+
+On node B:
+
+```bash
+psql -c "SELECT pg_current_wal_lsn(), pg_current_wal_insert_lsn();"
 ```
 
 Also check row counts to understand divergence:
@@ -55,11 +67,14 @@ Choose the node with the most complete dataset as the winner.
 
 Before destroying the loser's divergent state, export any unique data:
 
+On the loser node:
+
 ```bash
-# On the loser node
-sudo -iu postgres pg_dump -t employees --data-only \
+pg_dump -t employees --data-only \
   --column-inserts stepup > /tmp/loser_divergent_data.sql
 ```
+
+The `-t` flag selects a single table, `--data-only` skips schema, `--column-inserts` generates INSERT statements.
 
 ### Step 4: Shut down PostgreSQL on the loser
 
@@ -72,16 +87,17 @@ sudo systemctl stop postgresql
 On the loser node:
 
 ```bash
-sudo -iu postgres /usr/lib/postgresql/16/bin/pg_rewind \
+/usr/lib/postgresql/16/bin/pg_rewind \
   --target-pgdata=/var/lib/postgresql/16/main \
   --source-server="host=<WINNER_HOSTNAME> port=5432 user=repmgr dbname=repmgr"
 ```
 
 If pg_rewind fails (common when timelines diverged significantly):
 
+Full reclone:
+
 ```bash
-# Full reclone
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h <WINNER_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
@@ -95,7 +111,7 @@ sudo systemctl start postgresql
 Verify it is now a standby:
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `t`.
@@ -105,19 +121,19 @@ Expected: `t`.
 On the winner (the surviving primary):
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf primary register --force
+repmgr -f /etc/repmgr.conf primary register --force
 ```
 
 On the demoted node (now standby):
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 On the old crashed primary (if rejoined):
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<WINNER_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -126,17 +142,36 @@ Or reclone and register:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <WINNER_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 8: Verify single primary and streaming replication
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
 ```
 
 Confirm exactly ONE primary, all others standby/witness, all running.
@@ -150,10 +185,22 @@ FROM pg_stat_replication;
 
 ### Step 9: Restart repmgrd on all nodes
 
+Run this on each node one at a time:
+
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  ssh root@$host "sudo systemctl start repmgrd"
-done
+ssh root@pg-repmgr-1 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl start repmgrd"
 ```
 
 ### Step 10: Verify data consistency

@@ -11,12 +11,22 @@
 
 SSH to [NODE1] (primary) and check pg_stat_replication:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state, sent_lsn, replay_lsn,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
 "
+```
+
+```bash
+exit
 ```
 
 If `state` is `streaming` and lag is small, the WAL receiver may have already reconnected automatically. If the result is empty or state is not `streaming`, proceed to diagnose.
@@ -34,29 +44,54 @@ Look for messages like:
 - "connection to primary lost"
 - "started streaming WAL from primary" (reconnection)
 
+Expected output (yours will differ):
+```
+LOG:  could not receive data from WAL stream: server closed the connection unexpectedly
+LOG:  started streaming WAL from primary at 0/A000000 on timeline 2
+...
+```
+
 > **Concept - WAL Receiver Reconnection**: The standby's WAL receiver process automatically retries connections to the primary. The retry interval is controlled by wal_retrieve_retry_interval (default: 5 seconds). After a brief network interruption, replication should resume without manual intervention.
 
 ### Step 3: Check for dangling iptables rules
 
 On [NODE2], verify no firewall rules are blocking PostgreSQL traffic:
 
+List all firewall rules and filter for port 5432. `-L` lists rules, `-n` shows numeric addresses (no DNS lookups):
+
 ```bash
 sudo iptables -L -n | grep 5432
+```
+
+Check INPUT chain with line numbers (`--line-numbers` shows the rule position, useful for deletion):
+
+```bash
 sudo iptables -L INPUT -n --line-numbers | grep 5432
+```
+
+Check OUTPUT chain:
+
+```bash
 sudo iptables -L OUTPUT -n --line-numbers | grep 5432
 ```
 
 If any DROP rules targeting port 5432 exist, remove them:
 
+`-D` deletes a rule from the chain. These commands remove the DROP rules that were blocking PostgreSQL traffic:
+
 ```bash
 sudo iptables -D INPUT -p tcp --sport 5432 -s [NODE1_IP] -j DROP
+```
+
+```bash
 sudo iptables -D OUTPUT -p tcp --dport 5432 -d [NODE1_IP] -j DROP
 ```
 
-Also check on the primary:
+Also check on the primary.
+
+On [NODE1]:
 
 ```bash
-# On [NODE1]
 sudo iptables -L -n | grep 5432
 ```
 
@@ -66,23 +101,38 @@ sudo iptables -L -n | grep 5432
 
 If replication has not auto-recovered after the iptables rules are cleared, restart the standby:
 
+On [NODE2]:
+
 ```bash
-# On [NODE2]
 sudo systemctl restart postgresql
 ```
 
-Or, less disruptive, kill just the WAL receiver to force a reconnect:
+Or, less disruptive, kill just the WAL receiver to force a reconnect. Switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE backend_type = 'walreceiver';"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE backend_type = 'walreceiver';"
+```
+
+```bash
+exit
 ```
 
 ### Step 5: Verify replication is streaming
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
@@ -91,15 +141,34 @@ sudo -u postgres psql -c "
 
 Expected: `state` is `streaming` and `lag_bytes` is decreasing.
 
-### Step 6: Verify standby caught up
-
-Wait for lag to reach near-zero:
+Expected output (yours will differ):
+```
+ client_addr  |   state   | lag_bytes
+--------------+-----------+-----------
+ 10.0.1.52    | streaming |      4096
+```
 
 ```bash
-sudo -u postgres psql -c "
+exit
+```
+
+### Step 6: Verify standby caught up
+
+Wait for lag to reach near-zero. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
 "
+```
+
+```bash
+exit
 ```
 
 Expected: `lag_bytes` is under 1 MB and stable.

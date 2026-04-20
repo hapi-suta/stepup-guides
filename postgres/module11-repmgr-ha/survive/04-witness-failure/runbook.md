@@ -9,10 +9,19 @@
 
 ### Step 1: Check if auto-failover occurred
 
-On either standby:
+On either standby, switch to the postgres user:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+```bash
 tail -50 /var/log/postgresql/repmgr.log
 ```
 
@@ -22,7 +31,7 @@ quorum, and the standbys may still be in recovery mode waiting.
 ### Step 2: Check standby status
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 If `t` on both standbys, auto-failover did NOT occur. Proceed with manual
@@ -33,7 +42,7 @@ promotion.
 Choose the standby with the lowest replication lag. Check from each standby:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT pg_last_wal_receive_lsn(),
        pg_last_wal_replay_lsn(),
        pg_last_xact_replay_timestamp();"
@@ -42,12 +51,12 @@ SELECT pg_last_wal_receive_lsn(),
 Promote the standby that received the most WAL (highest `pg_last_wal_receive_lsn`):
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 Verify:
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `f`.
@@ -57,7 +66,7 @@ Expected: `f`.
 On the standby that was NOT promoted:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby follow \
+repmgr -f /etc/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_NODE_ID>
 ```
 
@@ -76,13 +85,16 @@ On NODE4:
 
 ```bash
 sudo systemctl start postgresql
+```
+
+```bash
 sudo systemctl start repmgrd
 ```
 
 Re-register the witness to point at the new primary:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf witness register --force \
+repmgr -f /etc/repmgr.conf witness register --force \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr
 ```
 
@@ -91,7 +103,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf witness register --force \
 On the old primary:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -100,11 +112,20 @@ If rejoin fails:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 8: Restart repmgrd on the old primary
@@ -116,8 +137,21 @@ sudo systemctl start repmgrd
 ### Step 9: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes should be running with correct roles.

@@ -41,8 +41,10 @@ sudo -iu postgres
 ```
 
 ```bash
-du -sh /opt/pgsql/data/base/pgsql_tmp/ 2>/dev/null || echo "Directory empty or does not exist"
+du -sh /opt/pgsql/data/base/pgsql_tmp/
 ```
+
+If the directory does not exist, you will see a "No such file or directory" message - that means no temp files are currently on disk.
 
 Expected output (yours will differ):
 
@@ -117,6 +119,14 @@ Expected output (yours will differ):
 ```
 
 The `Sort Method: external merge  Disk: 4816kB` confirms the sort spilled to disk. With adequate `work_mem`, this would show `Sort Method: quicksort  Memory: ...` instead.
+
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
 
 ```bash
 exit
@@ -205,6 +215,14 @@ Expected output (yours will differ):
 ```
 
 `Sort Method: quicksort  Memory: 3842kB` means the sort completed in memory - no temp files.
+
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
 
 ```bash
 exit

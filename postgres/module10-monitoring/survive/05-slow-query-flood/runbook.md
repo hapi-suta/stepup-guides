@@ -45,19 +45,27 @@ Expected output (yours will differ):
 -rw------- 1 postgres postgres 234M Apr 19 10:30 postgresql-2026-04-19.log
 ```
 
-Check log growth over 5 seconds.
+Check log growth over 5 seconds. First, capture the current file size in bytes.
+
+(`stat -c%s` = print just the file size in bytes. This is a Linux-specific flag.)
 
 ```bash
 SIZE1=$(stat -c%s /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log)
 ```
 
+Wait 5 seconds for the log to grow.
+
 ```bash
 sleep 5
 ```
 
+Capture the file size again.
+
 ```bash
 SIZE2=$(stat -c%s /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log)
 ```
+
+Print the difference.
 
 ```bash
 echo "Growth in 5 seconds: $(( SIZE2 - SIZE1 )) bytes"
@@ -166,17 +174,25 @@ Wait 10 seconds and check growth rate again.
 exit
 ```
 
+Capture the current file size in bytes.
+
 ```bash
 SIZE1=$(stat -c%s /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log)
 ```
+
+Wait 10 seconds.
 
 ```bash
 sleep 10
 ```
 
+Capture the file size again.
+
 ```bash
 SIZE2=$(stat -c%s /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log)
 ```
+
+Print the difference.
 
 ```bash
 echo "Growth in 10 seconds: $(( SIZE2 - SIZE1 )) bytes"

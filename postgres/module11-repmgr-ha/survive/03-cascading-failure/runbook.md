@@ -9,21 +9,45 @@
 
 ### Step 1: Assess the damage
 
-Check which nodes are still reachable:
+Switch to the postgres user:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  echo -n "$host: "
-  pg_isready -h $host -p 5432 2>/dev/null && echo "UP" || echo "DOWN"
-done
+sudo -iu postgres
 ```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
+Check which nodes are still reachable:
+
+Check each node one at a time:
+
+```bash
+pg_isready -h pg-repmgr-1 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-2 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-3 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-w -p 5432
+```
+
+The `-h` flag specifies the hostname, `-p` specifies the port. Nodes that are down will show a connection error.
 
 ### Step 2: Check if repmgrd auto-promoted the surviving standby
 
 On the surviving standby:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+```bash
 tail -50 /var/log/postgresql/repmgr.log
 ```
 
@@ -36,19 +60,19 @@ whether quorum was met. With 2 of 4 nodes down, quorum might not be achievable
 If the surviving standby is still in recovery:
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 If it returns `t`, promote manually:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 Verify:
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `f`.
@@ -73,19 +97,26 @@ stopped.
 
 On the victim standby:
 
-```bash
-# Start PostgreSQL first
-sudo systemctl start postgresql
+Start PostgreSQL first:
 
-# It may auto-reconnect if it was just stopped. Check:
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+```bash
+sudo systemctl start postgresql
 ```
 
-If it does not reconnect, rejoin:
+It may auto-reconnect if it was just stopped. Check:
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
+```
+
+If it does not reconnect, rejoin. Stop PostgreSQL first:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -93,11 +124,17 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
 Or reclone:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 6: Rejoin the old primary
@@ -105,7 +142,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
 On the old primary:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -114,11 +151,20 @@ If rejoin fails:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 7: Restart repmgrd on rejoined nodes
@@ -132,15 +178,28 @@ sudo systemctl start repmgrd
 Re-register the witness to point at the new primary:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf witness register --force \
+repmgr -f /etc/repmgr.conf witness register --force \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr
 ```
 
 ### Step 9: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-3 | ...
+ 2  | pg-repmgr-2  | standby |   running | pg-repmgr-3 | ...
+ 3  | pg-repmgr-3  | primary | * running |             | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-3 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes should be running: 1 primary, 2 standbys, 1 witness.

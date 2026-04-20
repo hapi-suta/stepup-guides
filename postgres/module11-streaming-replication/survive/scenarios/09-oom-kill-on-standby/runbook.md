@@ -13,7 +13,20 @@ SSH to [NODE2] and check the service:
 
 ```bash
 sudo systemctl status postgresql
-sudo -u postgres pg_isready -p 5432
+```
+
+Check if PostgreSQL is accepting connections. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
+```
+
+```bash
+exit
 ```
 
 Expected: Service is not running or shows "Main process exited" with a signal.
@@ -22,18 +35,31 @@ Expected: Service is not running or shows "Main process exited" with a signal.
 
 On [NODE2], look for OOM killer messages:
 
+Check the kernel ring buffer for OOM messages. The pipe to `grep -i` filters case-insensitively, and `tail -10` shows only the last 10 matches:
+
 ```bash
 sudo dmesg | grep -i "out of memory" | tail -10
+```
+
+Also check the system log:
+
+```bash
 sudo grep -i "oom" /var/log/syslog | tail -10
 ```
 
-Or on systems using journald:
+Or on systems using journald (`-k` shows only kernel messages):
 
 ```bash
 sudo journalctl -k | grep -i "oom" | tail -10
 ```
 
 Look for: "Out of memory: Killed process XXXX (postgres)"
+
+Expected output (yours will differ):
+```
+[12345.678901] Out of memory: Killed process 1234 (postgres) total-vm:1234567kB, anon-rss:987654kB
+...
+```
 
 > **Concept - OOM Killer**: When Linux runs out of memory, the kernel's OOM killer selects and terminates processes to free memory. PostgreSQL processes are frequent targets because they can consume large amounts of memory for sort operations, hash joins, and shared buffers.
 
@@ -49,14 +75,24 @@ Look for: "server process was terminated by signal 9: Killed" followed by "termi
 
 After a SIGKILL, PostgreSQL may leave a stale PID file:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres ls -la /var/lib/postgresql/16/main/postmaster.pid
+sudo -iu postgres
+```
+
+```bash
+ls -la /var/lib/postgresql/16/main/postmaster.pid
 ```
 
 If the PID file exists but the process is not running, PostgreSQL's startup will handle it. If startup fails with "lock file postmaster.pid already exists":
 
 ```bash
-sudo -u postgres rm /var/lib/postgresql/16/main/postmaster.pid
+rm /var/lib/postgresql/16/main/postmaster.pid
+```
+
+```bash
+exit
 ```
 
 ### Step 5: Restart PostgreSQL
@@ -71,7 +107,20 @@ Verify it started:
 
 ```bash
 sudo systemctl status postgresql
-sudo -u postgres pg_isready -p 5432
+```
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
+```
+
+```bash
+exit
 ```
 
 > **Concept - Crash Recovery**: After an unclean shutdown (SIGKILL), PostgreSQL performs crash recovery on startup. It replays WAL from the last checkpoint to restore the database to a consistent state. This is automatic and usually takes seconds.
@@ -80,20 +129,46 @@ sudo -u postgres pg_isready -p 5432
 
 On [NODE2]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `t` (true).
 
-On [NODE1] (primary), verify replication resumed:
+```bash
+exit
+```
+
+On [NODE1] (primary), verify replication resumed. Switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
 "
+```
+
+Expected output (yours will differ):
+```
+ client_addr  |   state   | lag_bytes
+--------------+-----------+-----------
+ 10.0.1.52    | streaming |      2048
+...
+```
+
+```bash
+exit
 ```
 
 Expected: `state` is `streaming` and lag is decreasing.
@@ -112,10 +187,31 @@ Counts should match once the standby catches up.
 
 Check current memory settings:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SHOW shared_buffers;"
-sudo -u postgres psql -c "SHOW work_mem;"
-sudo -u postgres psql -c "SHOW maintenance_work_mem;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SHOW shared_buffers;"
+```
+
+```bash
+psql -c "SHOW work_mem;"
+```
+
+```bash
+psql -c "SHOW maintenance_work_mem;"
+```
+
+```bash
+exit
+```
+
+Check system memory. `-h` shows sizes in human-readable format:
+
+```bash
 free -h
 ```
 

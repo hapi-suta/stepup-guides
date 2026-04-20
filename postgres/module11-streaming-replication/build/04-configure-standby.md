@@ -16,13 +16,24 @@ sudo systemctl stop postgresql
 
 The standby needs to start from a copy of the primary, not its own initdb.
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres rm -rf /var/lib/postgresql/16/main/*
+sudo -iu postgres
+```
+
+```bash
+rm -rf /var/lib/postgresql/16/main/*
 ```
 
 Verify it is empty:
+
 ```bash
-sudo -iu postgres ls -la /var/lib/postgresql/16/main/
+ls -la /var/lib/postgresql/16/main/
+```
+
+```bash
+exit
 ```
 
 Expected: empty directory.
@@ -34,8 +45,14 @@ Expected: empty directory.
 
 ## 3. Run pg_basebackup from the primary
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres pg_basebackup \
+sudo -iu postgres
+```
+
+```bash
+pg_basebackup \
   -h pg-primary \
   -U replicator \
   -D /var/lib/postgresql/16/main \
@@ -56,18 +73,30 @@ Expected: progress bar reaching 100%, ending with a basebackup completion messag
 >   This is what tells PostgreSQL to start in standby mode.
 > - `-S standby_slot`: use the replication slot we created on the primary.
 
+```bash
+exit
+```
+
 ## 4. Verify the standby.signal file exists
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres ls -la /var/lib/postgresql/16/main/standby.signal
+sudo -iu postgres
+```
+
+```bash
+ls -la /var/lib/postgresql/16/main/standby.signal
 ```
 
 Expected: file exists (can be empty, its presence is what matters).
 
 ## 5. Check postgresql.auto.conf for primary_conninfo
 
+Still as the postgres user (if you exited, run `sudo -iu postgres` again):
+
 ```bash
-sudo -iu postgres cat /var/lib/postgresql/16/main/postgresql.auto.conf
+cat /var/lib/postgresql/16/main/postgresql.auto.conf
 ```
 
 Expected: a `primary_conninfo` line pointing to the primary, with the replication
@@ -80,8 +109,10 @@ slot reference.
 
 ## 6. Configure postgresql.conf on the standby
 
+Still as the postgres user:
+
 ```bash
-sudo -iu postgres vim /etc/postgresql/16/main/postgresql.conf
+vim /etc/postgresql/16/main/postgresql.conf
 ```
 
 Set:
@@ -96,15 +127,26 @@ hot_standby = on
 > recovery. In production, hot standby is almost always enabled so the standby
 > can serve read traffic.
 
+Save and exit vim, then exit back to root:
+
+```bash
+exit
+```
+
 ## 7. Start PostgreSQL on the standby
 
 ```bash
 sudo systemctl start postgresql
 ```
 
-Check the log for successful startup:
+Check the log for successful startup. Switch to the postgres user:
+
 ```bash
-sudo -iu postgres tail -20 /var/log/postgresql/postgresql-16-main.log
+sudo -iu postgres
+```
+
+```bash
+tail -20 /var/log/postgresql/postgresql-16-main.log
 ```
 
 Expected: messages about entering standby mode, connecting to primary, starting
@@ -112,8 +154,10 @@ WAL streaming.
 
 ## 8. Verify the standby is in recovery mode
 
+Still as the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `t`.
@@ -121,7 +165,7 @@ Expected: `t`.
 ## 9. Verify data replicated
 
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: `10000` (same as primary).
@@ -129,10 +173,14 @@ Expected: `10000` (same as primary).
 ## 10. Verify the standby rejects writes
 
 ```bash
-sudo -iu postgres psql -d labdb -c "INSERT INTO employees (name, department) VALUES ('test', 'test');"
+psql -d labdb -c "INSERT INTO employees (name, department) VALUES ('test', 'test');"
 ```
 
 Expected: `ERROR: cannot execute INSERT in a read-only transaction`.
+
+```bash
+exit
+```
 
 ---
 

@@ -9,6 +9,14 @@
 
 ### Step 1: Identify the partition
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
 Check repmgr logs on the standbys for connection failures:
 
 ```bash
@@ -28,7 +36,7 @@ If repmgrd had enough quorum (standbys + witness agree the primary is unreachabl
 it will have promoted a standby. Check from any standby:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Look for a new primary. If a standby was promoted, verify the old primary is
@@ -38,14 +46,21 @@ marked as `- failed`.
 
 This is the critical split-brain check. Test every data node:
 
+Run this on each data node one at a time:
+
 ```bash
-# Check each node
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  echo -n "$host: "
-  sudo -iu postgres psql -h $host -U repmgr -d repmgr -tAc \
-    "SELECT pg_is_in_recovery();" 2>/dev/null || echo "unreachable"
-done
+psql -h pg-repmgr-1 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
 ```
+
+```bash
+psql -h pg-repmgr-2 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-3 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+The `-t` flag removes headers, `-A` removes alignment padding, `-c` runs a single command.
 
 Expected: exactly ONE node returns `f` (primary). If TWO nodes return `f`, you
 have split-brain - proceed to emergency fencing (Step 3b).
@@ -54,9 +69,13 @@ have split-brain - proceed to emergency fencing (Step 3b).
 
 If the old primary is still accepting writes while isolated:
 
+On the old primary - stop PostgreSQL immediately:
+
 ```bash
-# On the old primary - stop PostgreSQL immediately
 sudo systemctl stop postgresql
+```
+
+```bash
 sudo systemctl stop repmgrd
 ```
 
@@ -81,25 +100,38 @@ ssh root@<OLD_PRIMARY> 'pg_isready -h pg-repmgr-2 -p 5432'
 
 On the old primary:
 
-```bash
-# If PostgreSQL is still running, stop it
-sudo systemctl stop postgresql
-sudo systemctl stop repmgrd
+If PostgreSQL is still running, stop it:
 
-# Rejoin using pg_rewind
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+```bash
+sudo systemctl stop postgresql
+```
+
+```bash
+sudo systemctl stop repmgrd
+```
+
+Rejoin using pg_rewind:
+
+```bash
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
 
-If rejoin fails:
+If rejoin fails, do a full reclone:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 6: Restart repmgrd on the rejoined node
@@ -111,8 +143,31 @@ sudo systemctl start repmgrd
 ### Step 7: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
+```
+
+Expected output (yours will differ):
+```
+ Name         | ID | 1 | 2 | 3 | 4
+--------------+----+---+---+---+---
+ pg-repmgr-1  |  1 | * | * | * | *
+ pg-repmgr-2  |  2 | * | * | * | *
+ pg-repmgr-3  |  3 | * | * | * | *
+ pg-repmgr-w  |  4 | * | * | * | *
 ```
 
 All 4 nodes should be running with full connectivity.

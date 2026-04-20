@@ -9,6 +9,14 @@
 
 ### Step 1: Confirm disk usage on the primary
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
 ```bash
 df -h /var/lib/postgresql/16/main/pg_wal
 ```
@@ -53,7 +61,10 @@ Usage should drop significantly.
 ### Step 4: Check if PostgreSQL is still running
 
 ```bash
-sudo -iu postgres pg_isready -p 5432
+pg_isready -p 5432
+```
+
+```bash
 sudo systemctl status postgresql
 ```
 
@@ -113,7 +124,7 @@ The LSN should advance between queries.
 On the primary:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT client_addr,
        state,
        sent_lsn,
@@ -139,13 +150,22 @@ sudo systemctl restart postgresql
 
 Ensure no other space issues remain:
 
+Check for other large non-WAL files:
+
 ```bash
-# Check for other large non-WAL files
 find /var/lib/postgresql/16/main/pg_wal -type f ! -name '????????????????????????' \
   ! -path '*/archive_status/*' -ls
+```
 
-# Check overall disk usage
+This finds files in pg_wal whose names do not match the 24-character WAL naming pattern.
+
+Check overall disk usage:
+
+```bash
 du -sh /var/lib/postgresql/16/main/pg_wal/
+```
+
+```bash
 df -h /var/lib/postgresql/16/main
 ```
 
@@ -157,7 +177,17 @@ df -h /var/lib/postgresql/16/main
 ### Step 9: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | primary | * running |             | ...
+ 2  | pg-repmgr-2  | standby |   running | pg-repmgr-1 | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-1 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-1 | ...
 ```
 
 All 4 nodes running, replication streaming, no errors.

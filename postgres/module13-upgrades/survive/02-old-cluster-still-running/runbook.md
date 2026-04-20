@@ -140,14 +140,16 @@ Expected output:
 ### Step 3 - Verify no postmaster.pid remains
 
 ```
-ls /opt/pgsql/data15/postmaster.pid 2>/dev/null && echo "PID file still exists" || echo "PID file gone"
+ls /opt/pgsql/data15/postmaster.pid
 ```
 
-Expected output:
+If the file does not exist, you will see:
 
 ```
-PID file gone
+ls: cannot access '/opt/pgsql/data15/postmaster.pid': No such file or directory
 ```
+
+That means the PID file was cleaned up and the cluster shut down properly.
 
 If `postmaster.pid` still exists after stopping, the cluster did not shut down cleanly. This can happen after a crash. Remove the file only if you are certain the process is no longer running.
 

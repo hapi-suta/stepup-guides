@@ -9,7 +9,11 @@ Run every step on ALL FOUR servers unless noted otherwise.
 ## 1. Update the OS
 
 ```bash
-apt update && apt upgrade -y
+apt update
+```
+
+```bash
+apt upgrade -y
 ```
 
 Expected: packages updated, no errors.
@@ -49,11 +53,23 @@ cat >> /etc/hosts <<EOF
 EOF
 ```
 
-Verify:
+Verify each hostname resolves. Run these one at a time:
+
 ```bash
 ping -c 2 pg-repmgr-1
+```
+
+The `-c 2` flag sends only 2 ping packets, then stops.
+
+```bash
 ping -c 2 pg-repmgr-2
+```
+
+```bash
 ping -c 2 pg-repmgr-3
+```
+
+```bash
 ping -c 2 pg-repmgr-w
 ```
 
@@ -65,9 +81,29 @@ Allow PostgreSQL and SSH between all nodes:
 
 ```bash
 apt install -y ufw
+```
+
+The `-y` flag auto-confirms the install prompt.
+
+```bash
 ufw allow 22/tcp
+```
+
+This allows SSH connections through the firewall.
+
+```bash
 ufw allow 5432/tcp
+```
+
+This allows PostgreSQL connections through the firewall.
+
+```bash
 ufw --force enable
+```
+
+The `--force` flag skips the "are you sure?" prompt. This activates the firewall.
+
+```bash
 ufw status
 ```
 
@@ -88,6 +124,9 @@ apt install -y vim curl wget gnupg2 lsb-release sudo net-tools
 
 ```bash
 timedatectl set-timezone UTC
+```
+
+```bash
 timedatectl
 ```
 
@@ -97,87 +136,116 @@ Expected: `Time zone: UTC`.
 > Timezone-aware applications convert for display. This prevents daylight saving
 > surprises in cron jobs, WAL timestamps, and log correlation across regions.
 
-## 7. Set up SSH key-based auth between all nodes
+## 7. Verify SSH key-based auth between all nodes
 
 From each node, you need passwordless SSH to every other node. This is required
 because repmgr executes remote commands (like `repmgr standby switchover`) over SSH.
 
-On ALL FOUR servers:
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-```
+Inter-node SSH has been pre-configured for you during server setup. Let's verify it works.
 
-Then copy keys between all nodes. From NODE1:
-```bash
-ssh-copy-id root@pg-repmgr-2
-ssh-copy-id root@pg-repmgr-3
-ssh-copy-id root@pg-repmgr-w
-```
+From each node, test connecting to every other node. If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter. You should NOT be asked for a password.
 
-From NODE2:
-```bash
-ssh-copy-id root@pg-repmgr-1
-ssh-copy-id root@pg-repmgr-3
-ssh-copy-id root@pg-repmgr-w
-```
+From NODE1:
 
-From NODE3:
 ```bash
-ssh-copy-id root@pg-repmgr-1
-ssh-copy-id root@pg-repmgr-2
-ssh-copy-id root@pg-repmgr-w
-```
-
-From NODE4:
-```bash
-ssh-copy-id root@pg-repmgr-1
-ssh-copy-id root@pg-repmgr-2
-ssh-copy-id root@pg-repmgr-3
-```
-
-Verify from each node:
-```bash
-ssh root@pg-repmgr-1 hostname
 ssh root@pg-repmgr-2 hostname
+```
+
+```bash
 ssh root@pg-repmgr-3 hostname
+```
+
+```bash
 ssh root@pg-repmgr-w hostname
 ```
 
-Expected: returns each node's hostname without password prompt.
+From NODE2:
+
+```bash
+ssh root@pg-repmgr-1 hostname
+```
+
+```bash
+ssh root@pg-repmgr-3 hostname
+```
+
+```bash
+ssh root@pg-repmgr-w hostname
+```
+
+From NODE3:
+
+```bash
+ssh root@pg-repmgr-1 hostname
+```
+
+```bash
+ssh root@pg-repmgr-2 hostname
+```
+
+```bash
+ssh root@pg-repmgr-w hostname
+```
+
+From NODE4:
+
+```bash
+ssh root@pg-repmgr-1 hostname
+```
+
+```bash
+ssh root@pg-repmgr-2 hostname
+```
+
+```bash
+ssh root@pg-repmgr-3 hostname
+```
+
+Expected: returns each node's hostname without password prompt. If any test asks for a password, contact your instructor.
 
 > **Concept - SSH for repmgr operations**: Unlike basic streaming replication,
 > repmgr needs SSH access between nodes. During a switchover, repmgr SSHes to
 > the current primary to stop it, then promotes the target standby. Without
 > passwordless SSH, automated failover via repmgrd will fail.
 
-## 8. Set up SSH for the postgres user
+## 8. Verify SSH for the postgres user
 
 repmgr runs commands as the `postgres` OS user. The postgres user also needs
-passwordless SSH between nodes:
+passwordless SSH between nodes. This has been pre-configured - let's verify.
 
-On ALL FOUR servers:
+From each node, switch to the postgres user and test:
+
 ```bash
-sudo -iu postgres bash -c 'ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519'
+sudo -iu postgres
 ```
 
-From NODE1 (as postgres):
+**You are now the postgres user.**
+
 ```bash
-sudo -iu postgres ssh-copy-id postgres@pg-repmgr-2
-sudo -iu postgres ssh-copy-id postgres@pg-repmgr-3
-sudo -iu postgres ssh-copy-id postgres@pg-repmgr-w
+ssh postgres@pg-repmgr-1 hostname
 ```
 
-Repeat from NODE2, NODE3, and NODE4 to all other nodes.
-
-Verify from each node:
 ```bash
-sudo -iu postgres ssh postgres@pg-repmgr-1 hostname
-sudo -iu postgres ssh postgres@pg-repmgr-2 hostname
-sudo -iu postgres ssh postgres@pg-repmgr-3 hostname
-sudo -iu postgres ssh postgres@pg-repmgr-w hostname
+ssh postgres@pg-repmgr-2 hostname
 ```
+
+```bash
+ssh postgres@pg-repmgr-3 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-w hostname
+```
+
+(Skip the hostname that matches the node you are on.)
 
 Expected: returns hostnames without password prompt.
+
+```bash
+exit
+```
+
+Repeat on all four nodes. If any test asks for a password, contact your instructor.
 
 ---
 

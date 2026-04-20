@@ -11,8 +11,18 @@
 
 SSH to [NODE1] (primary) and check for active replication:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+```
+
+```bash
+exit
 ```
 
 Expected: Empty result set (no connected standbys).
@@ -39,12 +49,32 @@ This tells you the primary is rejecting the standby's replication connection due
 
 SSH to [NODE1] and check the file:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SHOW hba_file;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SHOW hba_file;"
+```
+
+```bash
+exit
+```
+
+Check for replication entries. The pipe to `grep -i replication` filters to lines containing "replication":
+
+```bash
 sudo cat /etc/postgresql/16/main/pg_hba.conf | grep -i replication
 ```
 
-Expected: No lines with `replication` in the database column.
+Expected: No lines with `replication` in the database column (empty output or no matching lines).
+
+Expected output (yours will differ):
+```
+(no output - the replication entry is missing)
+```
 
 ### Step 4: Add the replication entry back
 
@@ -72,11 +102,21 @@ sudo cat /etc/postgresql/16/main/pg_hba.conf | grep replication
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT pg_reload_conf();"
+sudo -iu postgres
 ```
 
-Or:
+```bash
+psql -c "SELECT pg_reload_conf();"
+```
+
+```bash
+exit
+```
+
+Or alternatively, reload via systemctl:
 
 ```bash
 sudo systemctl reload postgresql
@@ -86,8 +126,14 @@ sudo systemctl reload postgresql
 
 The standby's WAL receiver will automatically retry the connection. Wait 10-15 seconds, then verify on [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
@@ -96,10 +142,22 @@ sudo -u postgres psql -c "
 
 Expected: `state` is `streaming`.
 
-If the standby does not reconnect within 30 seconds, restart it:
+Expected output (yours will differ):
+```
+ client_addr  |   state   | lag_bytes
+--------------+-----------+-----------
+ 10.0.1.52    | streaming |         0
+```
 
 ```bash
-# On [NODE2]
+exit
+```
+
+If the standby does not reconnect within 30 seconds, restart it.
+
+On [NODE2]:
+
+```bash
 sudo systemctl restart postgresql
 ```
 

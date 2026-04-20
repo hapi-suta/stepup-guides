@@ -9,22 +9,48 @@
 
 ### Step 1: Diagnose the situation
 
-Check if any PostgreSQL instances are running:
+Switch to the postgres user:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  echo -n "$host PG: "
-  pg_isready -h $host -p 5432 2>/dev/null && echo "UP" || echo "DOWN"
-done
+sudo -iu postgres
 ```
 
-Check repmgrd status on all nodes:
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
+Check if PostgreSQL is running on each node, one at a time:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  echo -n "$host repmgrd: "
-  ssh root@$host "systemctl is-active repmgrd" 2>/dev/null || echo "DOWN"
-done
+pg_isready -h pg-repmgr-1 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-2 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-3 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-w -p 5432
+```
+
+Check repmgrd status on each node:
+
+```bash
+ssh root@pg-repmgr-1 "systemctl is-active repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl is-active repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl is-active repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl is-active repmgrd"
 ```
 
 ### Step 2: Try to start repmgrd and diagnose why it fails
@@ -33,6 +59,9 @@ On any standby:
 
 ```bash
 sudo systemctl start repmgrd
+```
+
+```bash
 sudo systemctl status repmgrd
 ```
 
@@ -75,7 +104,7 @@ With repmgr.conf restored, promote the best standby. First, check WAL positions:
 On each standby:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT pg_last_wal_receive_lsn(),
        pg_last_wal_replay_lsn();"
 ```
@@ -83,13 +112,13 @@ SELECT pg_last_wal_receive_lsn(),
 Promote the standby with the highest LSN:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 Verify:
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `f`.
@@ -99,7 +128,7 @@ Expected: `f`.
 On the standby that was NOT promoted:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby follow \
+repmgr -f /etc/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_NODE_ID>
 ```
 
@@ -116,53 +145,97 @@ SELECT count(*) FROM employees;
 
 On the old primary, restore repmgr.conf if needed:
 
-```bash
-# Restore config if corrupted
-cp /etc/repmgr.conf.backup /etc/repmgr.conf 2>/dev/null || true
+Restore the config if it was corrupted:
 
-# Rejoin
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+```bash
+cp /etc/repmgr.conf.backup /etc/repmgr.conf
+```
+
+Rejoin:
+
+```bash
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
 
-If rejoin fails:
+If rejoin fails, do a full reclone:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 8: Re-register the witness
 
 On NODE4:
 
-```bash
-# Restore config if needed
-cp /etc/repmgr.conf.backup /etc/repmgr.conf 2>/dev/null || true
+Restore config if needed:
 
+```bash
+cp /etc/repmgr.conf.backup /etc/repmgr.conf
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf witness register --force \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf witness register --force \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr
 ```
 
 ### Step 9: Restart repmgrd on ALL nodes
 
+Run this on each node one at a time:
+
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  ssh root@$host "sudo systemctl start repmgrd"
-done
+ssh root@pg-repmgr-1 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl start repmgrd"
 ```
 
 ### Step 10: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes running, repmgrd active on all nodes.

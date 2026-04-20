@@ -18,8 +18,16 @@ how to deregister nodes cleanly and what happens to replication slots.
 
 We will temporarily remove NODE3 from the cluster.
 
+Switch to the postgres user. All repmgr/psql commands in this exercise run as the postgres user:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user unless instructed to exit.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Note NODE3's current upstream and status.
@@ -42,7 +50,7 @@ sudo systemctl stop postgresql
 
 From the primary (whichever node is primary):
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby unregister --node-id=3
+repmgr -f /etc/repmgr.conf standby unregister --node-id=3
 ```
 
 **Expected:**
@@ -71,7 +79,7 @@ SELECT pg_drop_replication_slot('repmgr_slot_3');
 ### Step 6 - Verify the cluster
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:** 3 nodes (NODE1, NODE2/primary, NODE4/witness). NODE3 is gone.
@@ -84,14 +92,14 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
 
 On NODE3:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   standby clone --dry-run
 ```
 
 If dry-run passes:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   standby clone --force
 ```
@@ -107,7 +115,7 @@ sudo systemctl start postgresql
 ### Step 9 - Register NODE3 as a standby
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 The `--force` flag overwrites any stale registration.
@@ -121,7 +129,7 @@ sudo systemctl start repmgrd
 ### Step 11 - Verify the cluster
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:** 4 nodes, all running. NODE3 is back as a standby.
@@ -142,13 +150,13 @@ Expected: NODE3 is streaming.
 
 On the primary:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf witness unregister --node-id=4
+repmgr -f /etc/repmgr.conf witness unregister --node-id=4
 ```
 
 ### Step 13 - Verify it is gone
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected: 3 nodes (witness is gone).
@@ -157,7 +165,7 @@ Expected: 3 nodes (witness is gone).
 
 On NODE4:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   witness register --force
 ```
@@ -165,7 +173,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf \
 ### Step 15 - Verify the full cluster
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected: 4 nodes, all running, all in correct roles.

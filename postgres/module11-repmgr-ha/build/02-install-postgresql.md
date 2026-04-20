@@ -11,9 +11,17 @@ Run every step on ALL FOUR servers.
 ```bash
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
   > /etc/apt/sources.list.d/pgdg.list'
+```
 
+This adds the official PostgreSQL APT repository for your OS version.
+
+```bash
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+```
 
+This downloads and converts the PGDG signing key so APT trusts the repository. The flags: `-f` fails silently on HTTP errors, `-s` is silent mode, `-S` shows errors, `-L` follows redirects.
+
+```bash
 apt update
 ```
 
@@ -31,38 +39,99 @@ Expected: PostgreSQL 16 installed and started automatically.
 
 ```bash
 sudo systemctl status postgresql
-sudo -iu postgres psql -c "SELECT version();"
 ```
 
-Expected: service active, version string shows `PostgreSQL 16.x`.
+Expected: service `active (running)`.
+
+Now switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT version();"
+```
+
+Expected: version string shows `PostgreSQL 16.x`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ## 4. Confirm the data directory
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SHOW data_directory;"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SHOW data_directory;"
 ```
 
 Expected: `/var/lib/postgresql/16/main`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ## 5. Enable wal_log_hints
 
 This is required for `pg_rewind` (used by repmgr node rejoin):
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "ALTER SYSTEM SET wal_log_hints = on;"
+sudo -iu postgres
 ```
 
+**You are now the postgres user.**
+
+```bash
+psql -c "ALTER SYSTEM SET wal_log_hints = on;"
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
+
 Restart to apply:
+
 ```bash
 sudo systemctl restart postgresql
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -c "SHOW wal_log_hints;"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SHOW wal_log_hints;"
 ```
 
 Expected: `on`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 > **Concept - wal_log_hints**: This parameter logs hint-bit changes in WAL,
 > which is required by `pg_rewind`. Without it, `pg_rewind` cannot safely
@@ -74,8 +143,16 @@ Expected: `on`.
 
 On ALL FOUR servers:
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql <<SQL
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql <<SQL
 ALTER SYSTEM SET listen_addresses = '*';
 ALTER SYSTEM SET wal_level = 'replica';
 ALTER SYSTEM SET max_wal_senders = 10;
@@ -86,20 +163,55 @@ ALTER SYSTEM SET shared_preload_libraries = 'repmgr';
 SQL
 ```
 
+```bash
+exit
+```
+
+**You are now back to root.**
+
 Restart PostgreSQL:
+
 ```bash
 sudo systemctl restart postgresql
 ```
 
-Verify:
+Verify the settings. Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SHOW wal_level;"
-sudo -iu postgres psql -c "SHOW max_wal_senders;"
-sudo -iu postgres psql -c "SHOW hot_standby;"
-sudo -iu postgres psql -c "SHOW shared_preload_libraries;"
+sudo -iu postgres
 ```
 
-Expected: `replica`, `10`, `on`, `repmgr`.
+**You are now the postgres user.**
+
+```bash
+psql -c "SHOW wal_level;"
+```
+
+Expected: `replica`.
+
+```bash
+psql -c "SHOW max_wal_senders;"
+```
+
+Expected: `10`.
+
+```bash
+psql -c "SHOW hot_standby;"
+```
+
+Expected: `on`.
+
+```bash
+psql -c "SHOW shared_preload_libraries;"
+```
+
+Expected: `repmgr`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 > **Concept - shared_preload_libraries = 'repmgr'**: The repmgr extension
 > includes a background worker (repmgrd) that monitors cluster health and

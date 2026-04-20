@@ -198,7 +198,11 @@ Create the script file.
 vi /opt/pgsql/monitor.sh
 ```
 
-Paste in the following content (press `i` to enter insert mode, paste, then `:wq` to save):
+Paste in the following content (press `i` to enter insert mode, paste, then `:wq` to save).
+
+Key flags used in the script:
+- `set -euo pipefail` = `-e` exit on any error, `-u` treat unset variables as errors, `-o pipefail` fail if any command in a pipe fails
+- `-t` = tuples only (no column headers or row counts), `-A` = unaligned output (no padding spaces) - both make psql output easy to parse in scripts
 
 ```bash
 #!/usr/bin/env bash

@@ -222,9 +222,19 @@ Expected output (yours will differ - look for "Index Scan"):
 
 Now do a side-by-side comparison.
 
+First, view the baseline results.
+
 ```sql
-\! echo "=== BEFORE ===" && cat /tmp/baseline.txt && echo "=== AFTER ===" && cat /tmp/after.txt
+\! cat /tmp/baseline.txt
 ```
+
+Then view the post-change results.
+
+```sql
+\! cat /tmp/after.txt
+```
+
+Compare the two outputs side by side. Look at the `mean_ms` and `shared_blks_read` columns for the biggest differences.
 
 ---
 

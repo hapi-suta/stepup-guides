@@ -13,12 +13,34 @@ Both PostgreSQL nodes are stopped. They are on different timelines because the s
 
 SSH to each node and check their timeline:
 
-```bash
-# On [NODE1]
-sudo -u postgres /usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+On [NODE1], switch to the postgres user:
 
-# On [NODE2]
-sudo -u postgres /usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+```bash
+sudo -iu postgres
+```
+
+The pipe to `grep` filters the output to show only the timeline ID line:
+
+```bash
+/usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+```
+
+```bash
+exit
+```
+
+On [NODE2], switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+```
+
+```bash
+exit
 ```
 
 ### Step 2: Decide which node becomes the primary
@@ -33,13 +55,29 @@ On [NODE2]:
 sudo systemctl start postgresql
 ```
 
-Verify it is running as a primary:
+Verify it is running as a primary. Switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
+```
+
+```bash
+exit
 ```
 
 Expected: `f` (false).
+
+Expected output (yours will differ):
+```
+ pg_is_in_recovery
+-------------------
+ f
+(1 row)
+```
 
 > **Concept - Timeline IDs**: Every promotion increments the timeline. Timeline history files (e.g., 00000002.history) record where the fork happened. A standby can only follow a primary on a compatible timeline.
 
@@ -49,11 +87,22 @@ You have two options:
 
 **Option A - pg_rewind (fast, if wal_log_hints or checksums enabled):**
 
-On [NODE1], with [NODE2] running:
+On [NODE1], with [NODE2] running. Ensure NODE1 is stopped:
 
 ```bash
-sudo systemctl stop postgresql  # ensure it is stopped
-sudo -u postgres /usr/lib/postgresql/16/bin/pg_rewind \
+sudo systemctl stop postgresql
+```
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Run pg_rewind. `--progress` shows a progress indicator:
+
+```bash
+/usr/lib/postgresql/16/bin/pg_rewind \
   --target-pgdata=/var/lib/postgresql/16/main \
   --source-server="host=[NODE2] port=5432 user=replicator dbname=postgres" \
   --progress
@@ -62,8 +111,15 @@ sudo -u postgres /usr/lib/postgresql/16/bin/pg_rewind \
 After pg_rewind completes, configure [NODE1] as a standby:
 
 ```bash
-sudo -u postgres touch /var/lib/postgresql/16/main/standby.signal
-sudo -u postgres psql -c "ALTER SYSTEM SET primary_conninfo = 'host=[NODE2] port=5432 user=replicator application_name=standby1';"
+touch /var/lib/postgresql/16/main/standby.signal
+```
+
+```bash
+psql -c "ALTER SYSTEM SET primary_conninfo = 'host=[NODE2] port=5432 user=replicator application_name=standby1';"
+```
+
+```bash
+exit
 ```
 
 > **Concept - pg_rewind**: pg_rewind synchronizes a diverged data directory by copying only the changed blocks from the source (the new primary). It requires wal_log_hints=on or data checksums. It is much faster than a full pg_basebackup.
@@ -74,11 +130,31 @@ On [NODE1]:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -u postgres rm -rf /var/lib/postgresql/16/main/*
-sudo -u postgres pg_basebackup \
+```
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Wipe the data directory:
+
+```bash
+rm -rf /var/lib/postgresql/16/main/*
+```
+
+Rebuild from primary. `-R` creates standby.signal and sets primary_conninfo. `-P` shows progress. `-X stream` streams WAL during backup. `-C` creates the replication slot if it does not exist:
+
+```bash
+pg_basebackup \
   -h [NODE2] -p 5432 -U replicator \
   -D /var/lib/postgresql/16/main \
   -R -P -X stream -C -S standby_slot
+```
+
+```bash
+exit
 ```
 
 The `-R` flag automatically creates standby.signal and sets primary_conninfo.
@@ -103,8 +179,14 @@ Look for: "started streaming WAL from primary".
 
 On [NODE2] (the primary):
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
@@ -112,6 +194,17 @@ sudo -u postgres psql -c "
 ```
 
 Expected: `state` is `streaming`.
+
+Expected output (yours will differ):
+```
+ client_addr  |   state   | lag_bytes
+--------------+-----------+-----------
+ 10.0.1.51    | streaming |         0
+```
+
+```bash
+exit
+```
 
 ### Step 7: Verify data consistency
 

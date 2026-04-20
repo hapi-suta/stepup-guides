@@ -9,6 +9,14 @@
 
 ### Step 1: Wait for repmgrd auto-failover
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
 Monitor the repmgr log on the standbys:
 
 ```bash
@@ -19,13 +27,13 @@ A standby should be promoted within 60-90 seconds. If repmgrd is not running
 or auto-failover does not trigger, promote manually:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 ### Step 2: Verify the new primary is accepting writes
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `f`.
@@ -41,7 +49,7 @@ Writes should succeed locally on the new primary.
 Check if standbys are streaming:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT client_addr, state FROM pg_stat_replication;"
 ```
 
@@ -95,17 +103,24 @@ HBAEOF
 
 The broken config was replicated to all nodes. Fix each one:
 
+Run this on each data node one at a time:
+
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  ssh root@$host "cp /etc/postgresql/16/main/pg_hba.conf.backup \
-    /etc/postgresql/16/main/pg_hba.conf" 2>/dev/null || true
-done
+ssh root@pg-repmgr-1 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
+```
+
+```bash
+ssh root@pg-repmgr-2 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
+```
+
+```bash
+ssh root@pg-repmgr-3 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
 ```
 
 ### Step 7: Reload PostgreSQL on the new primary and standbys
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_reload_conf();"
+psql -c "SELECT pg_reload_conf();"
 ```
 
 Do this on EVERY data node where pg_hba.conf was changed. No restart needed -
@@ -120,7 +135,7 @@ pg_hba.conf changes take effect on reload.
 Wait 10-20 seconds, then check replication on the new primary:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT client_addr, state, sent_lsn, replay_lsn
 FROM pg_stat_replication;"
 ```
@@ -143,7 +158,7 @@ cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.con
 Then rejoin:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -152,21 +167,56 @@ If rejoin fails:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 10: Restart repmgrd and verify
 
-```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  ssh root@$host "sudo systemctl start repmgrd"
-done
+Restart repmgrd on each node one at a time:
 
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+```bash
+ssh root@pg-repmgr-1 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl start repmgrd"
+```
+
+Verify:
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
 ```
 
 All 4 nodes running, replication streaming, pg_hba.conf correct on all nodes.

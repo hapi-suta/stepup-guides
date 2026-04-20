@@ -11,13 +11,23 @@
 
 SSH to [NODE1] (primary) and inspect the archiver stats:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT archived_count, failed_count,
          last_archived_wal, last_archived_time,
          last_failed_wal, last_failed_time
   FROM pg_stat_archiver;
 "
+```
+
+```bash
+exit
 ```
 
 Expected: `failed_count` is non-zero and `last_failed_time` is recent.
@@ -27,6 +37,8 @@ Expected: `failed_count` is non-zero and `last_failed_time` is recent.
 ### Step 2: Check the PostgreSQL log for archiver errors
 
 On [NODE1]:
+
+The pipe to `grep -i archiv` filters the log to only show lines containing "archiv" (case-insensitive):
 
 ```bash
 sudo tail -40 /var/log/postgresql/postgresql-16-main.log | grep -i archiv
@@ -41,9 +53,22 @@ Look for errors like:
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SHOW archive_command;"
-sudo -u postgres psql -c "SHOW archive_mode;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SHOW archive_command;"
+```
+
+```bash
+psql -c "SHOW archive_mode;"
+```
+
+```bash
+exit
 ```
 
 Identify the destination directory from the archive_command output. Then check its permissions:
@@ -60,6 +85,11 @@ On [NODE1], restore proper permissions:
 
 ```bash
 sudo chmod 750 /var/lib/postgresql/16/archive/
+```
+
+`750` means owner can read/write/execute, group can read/execute, others have no access.
+
+```bash
 sudo chown postgres:postgres /var/lib/postgresql/16/archive/
 ```
 
@@ -77,18 +107,35 @@ Expected: `drwxr-x---` owned by `postgres:postgres`.
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT pg_switch_wal();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_switch_wal();"
 ```
 
 Wait a few seconds, then check:
 
 ```bash
-sudo -u postgres psql -c "
+psql -c "
   SELECT archived_count, failed_count,
          last_archived_wal, last_archived_time
   FROM pg_stat_archiver;
 "
+```
+
+Expected output (yours will differ):
+```
+ archived_count | failed_count |      last_archived_wal       |      last_archived_time
+----------------+--------------+------------------------------+------------------------------
+             15 |            3 | 000000010000000000000008     | 2026-04-19 10:25:00.456+00
+```
+
+```bash
+exit
 ```
 
 Expected: `last_archived_time` is recent (after your fix), and `failed_count` is no longer increasing.
@@ -97,8 +144,20 @@ Expected: `last_archived_time` is recent (after your fix), and `failed_count` is
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres bash -c 'ls -lt /var/lib/postgresql/16/archive/ | head -5'
+sudo -iu postgres
+```
+
+List the most recent archived WAL files. `-l` shows details, `-t` sorts by time (newest first). The pipe to `head -5` limits to 5 lines:
+
+```bash
+ls -lt /var/lib/postgresql/16/archive/ | head -5
+```
+
+```bash
+exit
 ```
 
 Expected: Recent WAL segment files are present.
@@ -107,8 +166,18 @@ Expected: Recent WAL segment files are present.
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT pg_stat_reset_shared('archiver');"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_stat_reset_shared('archiver');"
+```
+
+```bash
+exit
 ```
 
 This resets failed_count to 0 so future monitoring starts clean.
@@ -117,11 +186,28 @@ This resets failed_count to 0 so future monitoring starts clean.
 
 On [NODE1]:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT client_addr, state FROM pg_stat_replication;"
 ```
 
 Expected: `state` is `streaming`.
+
+Expected output (yours will differ):
+```
+ client_addr  |   state
+--------------+-----------
+ 10.0.1.52    | streaming
+```
+
+```bash
+exit
+```
 
 ---
 

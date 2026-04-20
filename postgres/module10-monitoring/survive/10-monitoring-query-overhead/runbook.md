@@ -112,6 +112,14 @@ Expected output (yours will differ):
 
 Every logging option is turned up to maximum.
 
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
+
 ```bash
 exit
 ```
@@ -227,13 +235,13 @@ SELECT count(*) FROM pg_stat_user_tables;
 SELECT 1;
 ```
 
-```bash
-exit
+Exit psql.
+
+```sql
+\q
 ```
 
-```bash
-sudo -iu postgres
-```
+Now check the log file to confirm the noise has stopped.
 
 ```bash
 tail -5 /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log

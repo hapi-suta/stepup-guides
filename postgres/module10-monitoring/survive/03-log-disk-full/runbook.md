@@ -107,10 +107,10 @@ ls -lh /opt/pgsql/log/
 ### Step 2 - Compress old log files
 
 ```bash
-gzip /opt/pgsql/log/postgresql-$(date +%Y-%m-%d --date='yesterday').log 2>/dev/null || true
+gzip /opt/pgsql/log/postgresql-$(date +%Y-%m-%d --date='yesterday').log
 ```
 
-(`2>/dev/null || true` = suppress errors if yesterday's log does not exist. The `||  true` prevents the script from stopping on a non-critical error.)
+This compresses yesterday's log file to save space. If yesterday's log file does not exist, you will see a "No such file or directory" error - that is safe to ignore, it just means there is no log from yesterday to compress.
 
 ### Step 3 - Check free space
 

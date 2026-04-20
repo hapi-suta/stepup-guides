@@ -67,7 +67,8 @@ sudo systemctl stop postgresql
 sudo dnf update postgresql16-server postgresql16
 
 # On Debian/Ubuntu:
-sudo apt update && sudo apt install postgresql-16
+sudo apt update
+sudo apt install postgresql-16
 
 # 4. Start PostgreSQL
 sudo systemctl start postgresql
@@ -143,28 +144,40 @@ new cluster starts. You cannot roll back by starting the old cluster.
 # 1. Install the new PostgreSQL version alongside the old one
 sudo dnf install postgresql17-server
 
-# 2. Initialize a new data directory
-sudo -u postgres /usr/pgsql-17/bin/initdb -D /var/lib/pgsql/17/data
+# 2. Switch to the postgres user
+sudo -iu postgres
 
-# 3. Stop both clusters
+# 3. Initialize a new data directory
+/usr/pgsql-17/bin/initdb -D /var/lib/pgsql/17/data
+
+# 4. Exit back to ec2-user
+exit
+
+# 5. Stop both clusters
 sudo systemctl stop postgresql-16
 # (new cluster shouldn't be running yet)
 
-# 4. Run the upgrade check first
-sudo -u postgres /usr/pgsql-17/bin/pg_upgrade \
+# 6. Switch to the postgres user
+sudo -iu postgres
+
+# 7. Run the upgrade check first
+/usr/pgsql-17/bin/pg_upgrade \
     --old-datadir /var/lib/pgsql/16/data \
     --new-datadir /var/lib/pgsql/17/data \
     --old-bindir /usr/pgsql-16/bin \
     --new-bindir /usr/pgsql-17/bin \
     --check
 
-# 5. If check passes, run the actual upgrade
-sudo -u postgres /usr/pgsql-17/bin/pg_upgrade \
+# 8. If check passes, run the actual upgrade
+/usr/pgsql-17/bin/pg_upgrade \
     --old-datadir /var/lib/pgsql/16/data \
     --new-datadir /var/lib/pgsql/17/data \
     --old-bindir /usr/pgsql-16/bin \
     --new-bindir /usr/pgsql-17/bin \
     --link
+
+# 9. Exit back to ec2-user
+exit
 
 # 6. Start the new cluster
 sudo systemctl start postgresql-17

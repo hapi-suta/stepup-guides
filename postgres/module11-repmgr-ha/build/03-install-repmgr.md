@@ -27,16 +27,41 @@ Expected: `repmgr 5.4.x`.
 
 On NODE1 (primary):
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres createuser -s repmgr
-sudo -iu postgres createdb repmgr -O repmgr
+sudo -iu postgres
 ```
 
-Verify:
+**You are now the postgres user.**
+
 ```bash
-sudo -iu postgres psql -c "SELECT rolname, rolsuper FROM pg_roles WHERE rolname = 'repmgr';"
-sudo -iu postgres psql -c "SELECT datname FROM pg_database WHERE datname = 'repmgr';"
+createuser -s repmgr
 ```
+
+The `-s` flag makes the new user a superuser.
+
+```bash
+createdb repmgr -O repmgr
+```
+
+The `-O` flag sets the owner of the new database.
+
+Verify:
+
+```bash
+psql -c "SELECT rolname, rolsuper FROM pg_roles WHERE rolname = 'repmgr';"
+```
+
+```bash
+psql -c "SELECT datname FROM pg_database WHERE datname = 'repmgr';"
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: `repmgr | t` and `repmgr` database exists.
 
@@ -50,14 +75,29 @@ Expected: `repmgr | t` and `repmgr` database exists.
 
 On NODE1:
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -d repmgr -c "CREATE EXTENSION repmgr;"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -d repmgr -c "CREATE EXTENSION repmgr;"
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -d repmgr -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'repmgr';"
+psql -d repmgr -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'repmgr';"
 ```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: `repmgr | 5.4`.
 
@@ -92,9 +132,22 @@ EOF
 ```
 
 Reload:
+
 ```bash
-sudo -iu postgres psql -c "SELECT pg_reload_conf();"
+sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT pg_reload_conf();"
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 > **Concept - Trust auth for repmgr**: We use `trust` authentication for the
 > repmgr user because repmgrd and repmgr CLI tools need to connect without
@@ -105,10 +158,22 @@ sudo -iu postgres psql -c "SELECT pg_reload_conf();"
 ## 5. Test repmgr connectivity from NODE1
 
 ```bash
-sudo -iu postgres psql -d repmgr -U repmgr -c "SELECT 1;"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -d repmgr -U repmgr -c "SELECT 1;"
 ```
 
 Expected: returns `1` without a password prompt.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ---
 

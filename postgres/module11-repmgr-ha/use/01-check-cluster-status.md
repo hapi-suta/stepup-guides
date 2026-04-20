@@ -14,10 +14,18 @@ be able to assess cluster health from any node without referencing this guide.
 
 ## Step 1 - repmgr cluster show
 
-This is the single most important command. Run it from any node:
+This is the single most important command. Run it from any node.
+
+First, switch to the postgres user. All commands in this exercise run as the postgres user:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for all steps in this exercise.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:**
@@ -48,7 +56,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
 Run a detailed health check on the local node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node check
+repmgr -f /etc/repmgr.conf node check
 ```
 
 **Expected (on a standby):**
@@ -78,7 +86,7 @@ Run it on each node to verify all health checks pass.
 View the event log:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --limit 20
+repmgr -f /etc/repmgr.conf cluster event --limit 20
 ```
 
 **Expected:** Events like `primary_register`, `standby_register`,
@@ -87,13 +95,13 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --limit 20
 Filter for specific event types:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --event=standby_register
+repmgr -f /etc/repmgr.conf cluster event --event=standby_register
 ```
 
 Filter for a specific node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --node-id=2 --limit 5
+repmgr -f /etc/repmgr.conf cluster event --node-id=2 --limit 5
 ```
 
 > **Concept - repmgr.events as audit trail**: Every significant cluster
@@ -109,7 +117,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --node-id=2 --limit 5
 Test connectivity between all node pairs:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 **Expected:**
@@ -129,7 +137,7 @@ Any `x` in the matrix indicates a connectivity problem between those two nodes.
 ## Step 5 - Check replication lag with repmgr
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node status
+repmgr -f /etc/repmgr.conf node status
 ```
 
 This shows the node's current replication lag, received LSN, and replayed LSN.
@@ -186,29 +194,44 @@ Expected: recent rows for node_id 2 and 3 with low replication_lag values.
 
 ## Step 8 - Build a combined health check
 
-```bash
-echo "=== Cluster Topology ==="
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+Run each of these commands one at a time. You should still be the postgres user.
 
-echo ""
-echo "=== Replication Status ==="
-sudo -iu postgres psql -c "
+Check cluster topology:
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Check replication status:
+
+```bash
+psql -c "
 SELECT client_addr, state, sync_state,
        pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) AS lag_bytes
 FROM pg_stat_replication;"
-
-echo ""
-echo "=== Replication Slots ==="
-sudo -iu postgres psql -c "
-SELECT slot_name, active, pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS slot_lag
-FROM pg_replication_slots;"
-
-echo ""
-echo "=== Recent Events ==="
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --limit 5
 ```
 
-Save this as a script - you will use it throughout the remaining exercises.
+Check replication slots:
+
+```bash
+psql -c "
+SELECT slot_name, active, pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS slot_lag
+FROM pg_replication_slots;"
+```
+
+Check recent events:
+
+```bash
+repmgr -f /etc/repmgr.conf cluster event --limit 5
+```
+
+When done with this exercise, exit the postgres user:
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ---
 

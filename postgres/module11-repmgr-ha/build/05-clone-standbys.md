@@ -51,7 +51,13 @@ sudo systemctl stop postgresql
 Always dry-run first to catch config issues:
 
 ```bash
-sudo -iu postgres repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
   -f /etc/repmgr.conf standby clone --dry-run
 ```
 
@@ -73,8 +79,10 @@ INFO: all prerequisites for "standby clone" are met
 
 ### 4. Run the actual clone
 
+You should still be the postgres user from Step 3.
+
 ```bash
-sudo -iu postgres repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
+repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
   -f /etc/repmgr.conf standby clone
 ```
 
@@ -102,20 +110,35 @@ NOTICE: you can now start your PostgreSQL server
 ### 5. Start PostgreSQL on NODE2
 
 ```bash
+exit
+```
+
+**You are now back to root.**
+
+```bash
 sudo systemctl start postgresql
 ```
 
 Verify it is streaming:
+
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `t`.
 
 ### 6. Register NODE2 as a standby
 
+You should still be the postgres user.
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register
+repmgr -f /etc/repmgr.conf standby register
 ```
 
 Expected:
@@ -128,8 +151,10 @@ NOTICE: standby node "pg-repmgr-2" (ID: 2) successfully registered
 
 ### 7. Verify the cluster now shows 2 nodes
 
+You should still be the postgres user.
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected:
@@ -142,11 +167,19 @@ Expected:
 
 ### 8. Verify data replicated to NODE2
 
+You should still be the postgres user.
+
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: `10000`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ---
 
@@ -185,31 +218,64 @@ reconnect_interval=10
 EOF
 ```
 
-### 10. Stop PostgreSQL, clone, start
+### 10. Stop PostgreSQL on NODE3
 
 ```bash
 sudo systemctl stop postgresql
+```
 
-sudo -iu postgres repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
+### 11. Dry-run and clone
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
   -f /etc/repmgr.conf standby clone --dry-run
+```
 
-sudo -iu postgres repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
+If the dry-run passes, run the actual clone:
+
+```bash
+repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
   -f /etc/repmgr.conf standby clone
+```
 
+```bash
+exit
+```
+
+**You are now back to root.**
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql
 ```
 
-### 11. Register NODE3 as a standby
+### 12. Register NODE3 as a standby
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register
+sudo -iu postgres
 ```
 
-### 12. Verify the cluster shows 3 nodes
+**You are now the postgres user.**
+
+```bash
+repmgr -f /etc/repmgr.conf standby register
+```
+
+### 13. Verify the cluster shows 3 nodes
 
 From any node:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected:
@@ -221,13 +287,21 @@ Expected:
  3  | pg-repmgr-3  | standby |   running | pg-repmgr-1 | default  | 100      | 1        | host=pg-repmgr-3 user=repmgr dbname=repmgr
 ```
 
-### 13. Verify data on NODE3
+### 14. Verify data on NODE3
+
+You should still be the postgres user from Step 12. If not, run `sudo -iu postgres`.
 
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: `10000`.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 > **Concept - Replication slots per standby**: repmgr creates a dedicated
 > replication slot for each standby (repmgr_slot_2, repmgr_slot_3, etc.).
@@ -235,11 +309,24 @@ Expected: `10000`.
 > You can see the slots on the primary:
 
 Verify slots on NODE1:
+
 ```bash
-sudo -iu postgres psql -c "SELECT slot_name, active FROM pg_replication_slots;"
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT slot_name, active FROM pg_replication_slots;"
 ```
 
 Expected: two slots, both active.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ---
 

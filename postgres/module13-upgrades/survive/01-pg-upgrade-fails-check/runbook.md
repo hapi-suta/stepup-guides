@@ -95,24 +95,20 @@ Start PG15 to query the catalog.
 ```
 
 ```
-/usr/pgsql-15/bin/psql -p 5433 -c "SELECT datname FROM pg_database WHERE datistemplate = false;" -t -A | while read db; do echo "=== $db ==="; /usr/pgsql-15/bin/psql -p 5433 -d "$db" -c "SELECT extname, extversion FROM pg_extension WHERE extname NOT IN ('plpgsql');"; done
+/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c "SELECT extname, extversion FROM pg_extension WHERE extname NOT IN ('plpgsql');"
 ```
 
 Expected output (yours will differ):
 
 ```
-=== postgres ===
- extname | extversion
----------+------------
-(0 rows)
-
-=== upgradetest ===
      extname      | extversion
 ------------------+------------
  chaos_fake       | 1.0
  pg_stat_statements | 1.10
 (2 rows)
 ```
+
+If the extension may be in other databases, repeat the query for each database individually.
 
 ### Step 4 - Check if a PG16 package is available
 
@@ -160,7 +156,7 @@ Expected output (yours will differ):
 Check what objects the extension owns.
 
 ```
-/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c "SELECT objid::regclass FROM pg_depend d JOIN pg_extension e ON d.refobjid = e.oid WHERE e.extname = 'chaos_fake' AND d.deptype = 'e';" 2>/dev/null || true
+/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c "SELECT objid::regclass FROM pg_depend d JOIN pg_extension e ON d.refobjid = e.oid WHERE e.extname = 'chaos_fake' AND d.deptype = 'e';"
 ```
 
 ### Step 2 - Drop the extension

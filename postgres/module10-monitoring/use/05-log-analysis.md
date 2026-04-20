@@ -76,8 +76,10 @@ Now generate some slow queries.
 Generate a connection attempt to a non-existent database (this will create an error log entry).
 
 ```
-/usr/pgsql-16/bin/psql -p 5432 -d nonexistent_db -c "SELECT 1;" 2>&1 || true
+/usr/pgsql-16/bin/psql -p 5432 -d nonexistent_db -c "SELECT 1;"
 ```
+
+This command will fail on purpose. You will see an error message - that is expected. The goal is to create an error entry in the PostgreSQL log.
 
 Expected output:
 
@@ -110,6 +112,8 @@ LOGFILE=/opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log
 
 Extract all slow query durations from the log.
 
+(`grep -oP` = `-o` prints only matching text, `-P` enables Perl regex. `\K` resets the match start so only the number after "duration: " is printed. `sort -rn` = `-r` reverse order, `-n` numeric sort.)
+
 ```
 grep 'duration:' "$LOGFILE" | grep -oP 'duration: \K[\d.]+ ms' | sort -rn | head -20
 ```
@@ -139,6 +143,8 @@ Expected output (yours will differ):
 
 Write a one-liner that extracts the top 10 slowest queries with their durations and first 60 characters of the statement.
 
+(`grep -oP` = print only the matching portion using Perl regex. `.{1,60}` = capture up to 60 characters of the statement text. `sort -rn` = sort numerically in reverse order.)
+
 ```
 grep 'duration:' "$LOGFILE" | grep -oP 'duration: [\d.]+ ms  statement: .{1,60}' | sort -rn | head -10
 ```
@@ -148,6 +154,8 @@ grep 'duration:' "$LOGFILE" | grep -oP 'duration: [\d.]+ ms  statement: .{1,60}'
 ## Part C - Find Error Patterns
 
 Count errors by type.
+
+(`grep -oP` = print only the matching text using Perl regex. `uniq -c` = count consecutive duplicate lines. `sort -rn` = sort numerically in reverse, so the most frequent errors appear first.)
 
 ```
 grep 'FATAL\|ERROR\|PANIC' "$LOGFILE" | grep -oP '(FATAL|ERROR|PANIC):  [^:]+' | sort | uniq -c | sort -rn
@@ -189,6 +197,8 @@ Expected output (yours will differ):
 ```
 
 Find which users are connecting most frequently.
+
+(`grep -oP 'user=\K\w+'` = extract only the username after `user=`. `\K` resets the match start so `user=` is not included in the output. `uniq -c` = count consecutive duplicates. `sort -rn` = sort by count, highest first.)
 
 ```
 grep 'connection authorized' "$LOGFILE" | grep -oP 'user=\K\w+' | sort | uniq -c | sort -rn

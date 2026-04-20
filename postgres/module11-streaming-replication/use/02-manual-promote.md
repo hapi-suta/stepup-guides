@@ -66,8 +66,8 @@ On **NODE2**:
 ```
 
 > **Note:** On Debian, `pg_ctl` is not in the default PATH. Use the full path
-> `/usr/lib/postgresql/16/bin/pg_ctl` or run as the postgres user:
-> `sudo -iu postgres /usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main promote`
+> as shown above, or switch to the postgres user first with `sudo -iu postgres`
+> and then run `pg_ctl -D /var/lib/postgresql/16/main promote`.
 
 **Expected:**
 ```

@@ -46,10 +46,21 @@ ExecReload=/bin/kill -HUP $MAINPID
 [Install]
 WantedBy=multi-user.target
 EOF
+```
 
+Reload systemd and enable the service:
+
+```bash
 systemctl daemon-reload
+```
+
+This tells systemd to re-read its service files so it finds the new `repmgrd.service`.
+
+```bash
 systemctl enable repmgrd
 ```
+
+This configures repmgrd to start automatically on boot.
 
 > **Concept - repmgrd as a systemd service**: Running repmgrd under systemd
 > ensures it starts on boot and restarts on crash. The `After=postgresql.service`
@@ -62,6 +73,9 @@ On ALL FOUR servers:
 
 ```bash
 systemctl start repmgrd
+```
+
+```bash
 systemctl status repmgrd
 ```
 
@@ -95,8 +109,20 @@ On the witness (NODE4):
 From any node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster event --limit 10
+sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster event --limit 10
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: events showing `repmgrd_start` for all nodes.
 
@@ -105,12 +131,24 @@ Expected: events showing `repmgrd_start` for all nodes.
 Wait 30 seconds, then on NODE1:
 
 ```bash
-sudo -iu postgres psql -d repmgr -c "
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -d repmgr -c "
 SELECT node_id, last_monitor_time, replication_lag
 FROM repmgr.monitoring_history
 ORDER BY last_monitor_time DESC
 LIMIT 5;"
 ```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: rows for node_id 2 and 3 with recent timestamps and low lag values.
 
@@ -140,8 +178,20 @@ You will test this in Phase 3 (SURVIVE).
 This tests connectivity between all node pairs:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected:
 ```

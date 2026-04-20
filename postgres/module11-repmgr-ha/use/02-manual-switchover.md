@@ -28,8 +28,16 @@ switchover differs from promotion and verify the new topology after the operatio
 
 ## Step 2 - Confirm Starting State
 
+Switch to the postgres user. All commands in this exercise run as the postgres user:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for all steps in this exercise.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Note which node is primary (should be pg-repmgr-1, node_id=1).
@@ -43,7 +51,7 @@ For this exercise, switch to NODE2:
 
 On NODE2:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby switchover --dry-run
+repmgr -f /etc/repmgr.conf standby switchover --dry-run
 ```
 
 **Expected:**
@@ -66,7 +74,7 @@ INFO: would promote standby node "pg-repmgr-2" (ID: 2) to primary
 
 On NODE2:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby switchover \
+repmgr -f /etc/repmgr.conf standby switchover \
   --siblings-follow
 ```
 
@@ -106,7 +114,7 @@ NOTICE: switchover was successful
 ## Step 5 - Verify the New Topology
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:**
@@ -131,7 +139,7 @@ Key changes:
 
 On NODE2:
 ```bash
-sudo -iu postgres psql -d labdb -c "
+psql -d labdb -c "
 INSERT INTO employees (name, department) VALUES ('switchover_test', 'ops');
 SELECT count(*) FROM employees;"
 ```
@@ -144,7 +152,7 @@ Expected: INSERT succeeds, count = 10001 (or more).
 
 On NODE1 and NODE3:
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: same count as the new primary.
@@ -183,17 +191,25 @@ Expected: `2` (incremented from the switchover).
 To switch back to NODE1 as primary, run from NODE1:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby switchover \
+repmgr -f /etc/repmgr.conf standby switchover \
   --siblings-follow --dry-run
 ```
 
 If the dry-run passes:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby switchover \
+repmgr -f /etc/repmgr.conf standby switchover \
   --siblings-follow
 ```
 
 This restores the original topology. Notice the timeline increments again.
+
+When done, exit the postgres user:
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ---
 

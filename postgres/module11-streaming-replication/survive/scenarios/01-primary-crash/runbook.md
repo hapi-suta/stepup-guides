@@ -13,7 +13,20 @@ SSH to [NODE1] and confirm PostgreSQL is not running:
 
 ```bash
 sudo systemctl status postgresql
-sudo -u postgres pg_isready -p 5432
+```
+
+Now check if PostgreSQL is accepting connections:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
+```
+
+```bash
+exit
 ```
 
 You should see the service as inactive/dead and pg_isready failing.
@@ -22,33 +35,61 @@ You should see the service as inactive/dead and pg_isready failing.
 
 SSH to [NODE2] and confirm it is still in recovery:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected result: `t` (true) - it has not been promoted yet.
 
+```bash
+exit
+```
+
 ### Step 3: Promote the standby
 
-On [NODE2], promote it to primary:
+On [NODE2], switch to the postgres user:
 
 ```bash
-sudo -u postgres pg_ctl promote -D /var/lib/postgresql/16/main
+sudo -iu postgres
+```
+
+Promote it to primary:
+
+```bash
+pg_ctl promote -D /var/lib/postgresql/16/main
 ```
 
 Or using the SQL function (PG 12+):
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_promote();"
+psql -c "SELECT pg_promote();"
 ```
 
 Wait a few seconds, then verify:
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected result: `f` (false) - it is now the primary.
+
+Expected output (yours will differ):
+```
+ pg_is_in_recovery
+-------------------
+ f
+(1 row)
+```
+
+```bash
+exit
+```
 
 ### Step 4: Verify writes work on the new primary
 
@@ -70,6 +111,14 @@ SELECT count(*) FROM employees;
 ```
 
 Should return >= 10,000 rows (all pre-existing data preserved).
+
+Expected output (yours will differ):
+```
+ count
+-------
+ 10001
+(1 row)
+```
 
 ### Step 6: Confirm timeline advanced
 

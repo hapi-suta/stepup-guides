@@ -9,23 +9,40 @@
 
 ### Step 1: Assess actual state of every node
 
-Check which nodes have PostgreSQL running and their role:
+Switch to the postgres user:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  echo -n "$host PG: "
-  pg_isready -h $host -p 5432 2>/dev/null && echo "UP" || echo "DOWN"
-done
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
+Check which nodes have PostgreSQL running:
+
+```bash
+pg_isready -h pg-repmgr-1 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-2 -p 5432
+```
+
+```bash
+pg_isready -h pg-repmgr-3 -p 5432
 ```
 
 For each running node, check if it is primary or standby:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  echo -n "$host role: "
-  sudo -iu postgres psql -h $host -U repmgr -d repmgr -tAc \
-    "SELECT pg_is_in_recovery();" 2>/dev/null || echo "unreachable"
-done
+psql -h pg-repmgr-1 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-2 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-3 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
 ```
 
 Expected: the old primary is DOWN, all running nodes return `t` (standby).
@@ -40,7 +57,7 @@ There is no primary - that is the problem.
 On each running standby:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT pg_last_wal_receive_lsn(),
        pg_last_wal_replay_lsn();"
 ```
@@ -53,13 +70,13 @@ The standby with the highest receive_lsn has the most data. Promote that one
 On the intended target:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 Verify it is now primary:
 
 ```bash
-sudo -iu postgres psql -c "SELECT pg_is_in_recovery();"
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `f`.
@@ -76,14 +93,14 @@ SELECT count(*) FROM employees;
 On each standby that was NOT promoted:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby follow \
+repmgr -f /etc/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_NODE_ID>
 ```
 
 Verify replication is streaming:
 
 ```bash
-sudo -iu postgres psql -h <NEW_PRIMARY> -U repmgr -d repmgr -c \
+psql -h <NEW_PRIMARY> -U repmgr -d repmgr -c \
   "SELECT client_addr, state FROM pg_stat_replication;"
 ```
 
@@ -92,7 +109,7 @@ sudo -iu postgres psql -h <NEW_PRIMARY> -U repmgr -d repmgr -c \
 Start PostgreSQL on the old primary first, then rejoin:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -101,11 +118,20 @@ If rejoin fails, do a full reclone:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 6: Re-register the primary to fix metadata
@@ -113,24 +139,49 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
 On the new primary:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf primary register --force
+repmgr -f /etc/repmgr.conf primary register --force
 ```
 
 This ensures the metadata reflects the actual promotion.
 
 ### Step 7: Restart repmgrd on all nodes
 
+Run this on each node one at a time:
+
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  ssh root@$host "sudo systemctl start repmgrd"
-done
+ssh root@pg-repmgr-1 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl start repmgrd"
 ```
 
 ### Step 8: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes running: 1 primary, 2 standbys, 1 witness. repmgrd active on all.

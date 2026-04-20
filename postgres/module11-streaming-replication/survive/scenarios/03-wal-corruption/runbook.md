@@ -13,7 +13,20 @@ SSH to [NODE2] and check if PostgreSQL is running:
 
 ```bash
 sudo systemctl status postgresql
-sudo -u postgres pg_isready -p 5432
+```
+
+Check if PostgreSQL is accepting connections. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
+```
+
+```bash
+exit
 ```
 
 It may be crashed or running but stuck (not replaying WAL).
@@ -30,6 +43,13 @@ Look for messages like:
 
 This confirms a WAL segment is missing or corrupt.
 
+Expected output (yours will differ):
+```
+FATAL:  could not open file "pg_wal/000000010000000000000005": No such file or directory
+LOG:  startup process (PID 1234) exited with exit code 1
+...
+```
+
 ### Step 3: Check replication status from the primary
 
 On [NODE1]:
@@ -44,13 +64,26 @@ If the standby is disconnected, this will return zero rows or show the connectio
 
 If you know the file was renamed (not truly corrupted), restore it:
 
-```bash
-# On [NODE2], check for .corrupt files
-ls -la /var/lib/postgresql/16/main/pg_wal/*.corrupt
+On [NODE2], switch to the postgres user:
 
-# Rename it back
-sudo -u postgres mv /var/lib/postgresql/16/main/pg_wal/FILENAME.corrupt \
-  /var/lib/postgresql/16/main/pg_wal/FILENAME
+```bash
+sudo -iu postgres
+```
+
+Check for .corrupt files:
+
+```bash
+ls -la /var/lib/postgresql/16/main/pg_wal/*.corrupt
+```
+
+Rename it back (replace FILENAME with the actual filename from the listing above):
+
+```bash
+mv /var/lib/postgresql/16/main/pg_wal/FILENAME.corrupt /var/lib/postgresql/16/main/pg_wal/FILENAME
+```
+
+```bash
+exit
 ```
 
 Then restart PostgreSQL:
@@ -73,17 +106,38 @@ The standby's walreceiver will reconnect and request the missing WAL from the pr
 
 If the slot cannot recover the missing WAL (e.g., the gap is too large or the primary's WAL was recycled):
 
-```bash
-# On [NODE2] - stop postgres and wipe the data directory
-sudo systemctl stop postgresql
-sudo -u postgres rm -rf /var/lib/postgresql/16/main/*
+On [NODE2], stop PostgreSQL:
 
-# Rebuild from primary
-sudo -u postgres pg_basebackup \
+```bash
+sudo systemctl stop postgresql
+```
+
+Switch to the postgres user and wipe the data directory:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+rm -rf /var/lib/postgresql/16/main/*
+```
+
+Rebuild from primary. `-R` writes standby.signal and primary_conninfo. `-Xs` streams WAL during backup. `-P` shows progress:
+
+```bash
+pg_basebackup \
   -h [NODE1] -p 5432 -U replicator \
   -D /var/lib/postgresql/16/main \
   -S standby_slot -R -Xs -P
+```
 
+```bash
+exit
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql
 ```
 
@@ -100,12 +154,29 @@ FROM pg_stat_replication;
 
 Confirm `state = 'streaming'` and the lag is dropping.
 
+Expected output (yours will differ):
+```
+   state   |  sent_lsn   | replay_lsn
+-----------+-------------+-------------
+ streaming | 0/7000148   | 0/7000148
+```
+
 ### Step 6: Clean up corrupt file artifacts
 
 On [NODE2], remove any leftover `.corrupt` files:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres rm -f /var/lib/postgresql/16/main/pg_wal/*.corrupt
+sudo -iu postgres
+```
+
+```bash
+rm -f /var/lib/postgresql/16/main/pg_wal/*.corrupt
+```
+
+```bash
+exit
 ```
 
 ### Step 7: Verify data consistency

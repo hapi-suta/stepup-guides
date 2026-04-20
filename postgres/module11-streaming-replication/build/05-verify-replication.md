@@ -7,9 +7,14 @@ and standby. This is the final BUILD step.
 
 ## 1. Check pg_stat_replication on the primary
 
-On NODE1:
+On NODE1, switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
 SELECT client_addr, state, sync_state,
        pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn) AS replay_lag_bytes
 FROM pg_stat_replication;"
@@ -25,11 +30,20 @@ Expected:
 > row per connected standby. It exists ONLY on the primary. An empty result means
 > no standbys are connected - more severe than lag.
 
+```bash
+exit
+```
+
 ## 2. Check pg_stat_wal_receiver on the standby
 
-On NODE2:
+On NODE2, switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
 SELECT status, sender_host, slot_name,
        received_lsn, latest_end_lsn
 FROM pg_stat_wal_receiver;"
@@ -44,29 +58,58 @@ Expected:
 > of pg_stat_replication. It exists ONLY on the standby. Together, these two views
 > give you both sides of the replication connection.
 
-## 3. Test live replication
-
-On NODE1 (primary), insert a uniquely tagged row:
-
 ```bash
-sudo -iu postgres psql -d labdb -c "
-INSERT INTO employees (name, department) VALUES ('replication_test_$(date +%s)', 'verify');"
+exit
 ```
 
-On NODE2 (standby), immediately query for it:
+## 3. Test live replication
+
+On NODE1 (primary), switch to the postgres user:
 
 ```bash
-sudo -iu postgres psql -d labdb -c "
+sudo -iu postgres
+```
+
+Insert a uniquely tagged row:
+
+```bash
+psql -d labdb -c "
+INSERT INTO employees (name, department) VALUES ('replication_test', 'verify');"
+```
+
+```bash
+exit
+```
+
+On NODE2 (standby), switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Immediately query for it:
+
+```bash
+psql -d labdb -c "
 SELECT * FROM employees WHERE department = 'verify' ORDER BY id DESC LIMIT 1;"
 ```
 
 Expected: the row appears within 1-2 seconds.
 
+```bash
+exit
+```
+
 ## 4. Check the replication slot
 
-On NODE1:
+On NODE1, switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
 SELECT slot_name, active, restart_lsn, confirmed_flush_lsn
 FROM pg_replication_slots;"
 ```
@@ -82,20 +125,27 @@ Expected:
 
 ## 5. Check WAL archiving
 
-On NODE1:
+Still as the postgres user on NODE1:
+
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT archived_count, last_archived_wal, last_archived_time, failed_count
 FROM pg_stat_archiver;"
 ```
 
 Expected: `archived_count` > 0, `failed_count` = 0.
 
+List the first 5 archived WAL files. The pipe to `head -5` limits output to 5 lines:
+
 ```bash
-sudo -iu postgres ls /var/lib/postgresql/16/archive/ | head -5
+ls /var/lib/postgresql/16/archive/ | head -5
 ```
 
 Expected: WAL segment files (names like `000000010000000000000001`).
+
+```bash
+exit
+```
 
 ## 6. Run verify.sh
 

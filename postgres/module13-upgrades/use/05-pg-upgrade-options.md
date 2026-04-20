@@ -38,7 +38,11 @@ Stop PG15 first.
 ```
 
 ```
-rm -rf /opt/pgsql/data16 && mkdir -p /opt/pgsql/data16
+rm -rf /opt/pgsql/data16
+```
+
+```
+mkdir -p /opt/pgsql/data16
 ```
 
 ```
@@ -86,13 +90,7 @@ Check the inode of the file in the new cluster.
 stat /opt/pgsql/data16/base/$(psql -p 5432 -t -A -c "SELECT oid FROM pg_database WHERE datname='upgradetest';")/$(echo $OID)
 ```
 
-Note the inode number. Then check the same file in the old cluster.
-
-```
-OLD_OID=$(/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -t -A -c "SELECT relfilenode FROM pg_class WHERE relname = 'employees';" 2>/dev/null || echo "use $OID")
-```
-
-The inode numbers will be different - they are separate files on disk.
+Note the inode number. The old cluster uses the same relfilenode value since the data was copied during the upgrade. The inode numbers will be different - they are separate files on disk.
 
 ```
 /usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 stop -m fast
@@ -113,7 +111,11 @@ sudo -iu postgres
 ```
 
 ```
-rm -rf /opt/pgsql/data16 && mkdir -p /opt/pgsql/data16
+rm -rf /opt/pgsql/data16
+```
+
+```
+mkdir -p /opt/pgsql/data16
 ```
 
 ```

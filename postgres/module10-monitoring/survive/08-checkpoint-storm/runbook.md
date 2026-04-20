@@ -96,13 +96,13 @@ All three values are set to cause constant, aggressive checkpoints.
 
 ### Step 4 - Check the PostgreSQL log for checkpoint warnings
 
-```bash
-exit
+Exit psql first.
+
+```sql
+\q
 ```
 
-```bash
-sudo -iu postgres
-```
+Now check the log file for checkpoint warnings.
 
 ```bash
 grep -i "checkpoint" /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log | tail -10
@@ -226,6 +226,14 @@ Expected output (yours will differ):
 ```
 
 With proper settings, you should see very few or zero checkpoints in 30 seconds. Previously, you would have seen many.
+
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
 
 ```bash
 exit

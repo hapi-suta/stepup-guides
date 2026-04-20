@@ -25,6 +25,13 @@ FROM pg_stat_replication;
 
 Note the `replay_lag_bytes` value. Anything over 1 MB during normal operations is worth investigating.
 
+Expected output (yours will differ):
+```
+ client_addr  |   state   |  sent_lsn   | write_lsn   | flush_lsn   | replay_lsn  | replay_lag_bytes
+--------------+-----------+-------------+-------------+-------------+-------------+------------------
+ 10.0.1.52    | streaming | 0/A000F200  | 0/A000E800  | 0/A000E800  | 0/A000D000  |             8704
+```
+
 ### Step 2: Check time-based lag
 
 ```sql
@@ -52,12 +59,15 @@ ORDER BY xact_start;
 
 Look for long-running bulk inserts, COPY operations, or pgbench processes.
 
-**Slow replay on standby** - Check if the standby's disk I/O is saturated:
+**Slow replay on standby** - Check if the standby's disk I/O is saturated.
+
+On [NODE2]:
 
 ```bash
-# On [NODE2]
 iostat -x 1 3
 ```
+
+`-x` shows extended stats. `1 3` takes a sample every 1 second, 3 times.
 
 **Network bottleneck** - Compare sent_lsn vs write_lsn. If sent_lsn is far ahead of write_lsn, the network is the bottleneck.
 
@@ -65,9 +75,10 @@ iostat -x 1 3
 
 If pgbench or a bulk load is the cause:
 
+On the primary:
+
 ```bash
-# On the primary
-sudo -u postgres pkill pgbench
+sudo pkill pgbench
 ```
 
 Or identify and cancel the specific backend:
@@ -95,6 +106,13 @@ SELECT state, slot_name FROM pg_stat_replication;
 ```
 
 Confirm `state = 'streaming'` and the slot `standby_slot` is active.
+
+Expected output (yours will differ):
+```
+   state   |  slot_name
+-----------+--------------
+ streaming | standby_slot
+```
 
 ### Step 7: Verify data consistency
 

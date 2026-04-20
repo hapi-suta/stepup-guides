@@ -12,11 +12,19 @@
 repmgrd on the standbys should detect the primary failure and auto-promote within
 60-90 seconds (based on `reconnect_attempts * reconnect_interval`).
 
-Monitor the repmgr log on any standby:
+Monitor the repmgr log on any standby. Switch to the postgres user first:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
 
 ```bash
 tail -f /var/log/postgresql/repmgr.log
 ```
+
+Press `Ctrl+C` to stop tailing once you see the promotion messages.
 
 Look for messages like:
 ```
@@ -29,10 +37,20 @@ Look for messages like:
 ### Step 2: Verify the new topology
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
-Expected: one node shows `primary | * running`, the old primary shows `- failed`,
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | primary | - failed  |             | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
+```
+
+One node shows `primary | * running`, the old primary shows `- failed`,
 and at least one standby is following the new primary.
 
 ### Step 3: Verify writes on the new primary
@@ -49,14 +67,14 @@ Should succeed without error. Count should be >= 10,000.
 ### Step 4: Check that the other standby followed
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 The standby that was NOT promoted should show the new primary as its upstream.
 If it does not, manually redirect it:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby follow \
+repmgr -f /etc/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_ID>
 ```
 
@@ -66,20 +84,35 @@ On the failed node, start PostgreSQL first (it needs to be running for node rejo
 to detect the shutdown state):
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
 
-If rejoin fails, do a full reclone:
+If rejoin fails, do a full reclone. Stop PostgreSQL first:
 
 ```bash
 sudo systemctl stop postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```
+
+Clone from the new primary:
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+```
+
+Re-register as standby:
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 ### Step 6: Restart repmgrd on the rejoined node
@@ -91,7 +124,17 @@ sudo systemctl start repmgrd
 ### Step 7: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | standby |   running | pg-repmgr-2 | ...
+ 2  | pg-repmgr-2  | primary | * running |             | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-2 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-2 | ...
 ```
 
 All 4 nodes should be running: 1 primary, 2 standbys, 1 witness.

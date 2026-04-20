@@ -6,9 +6,23 @@ Install PostgreSQL 16 from the official PGDG repository on BOTH servers.
 
 ## 1. Add the PGDG repository
 
+Add the PGDG apt source list:
+
 ```bash
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+```
+
+Download and install the PGDG signing key. The pipe here streams the key directly into `gpg` for conversion:
+
+```bash
 curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+```
+
+`-f` fails silently on HTTP errors. `-s` is silent mode. `-S` shows errors even in silent mode. `-L` follows redirects.
+
+Update the package list so apt sees the new PGDG repo:
+
+```bash
 apt update
 ```
 
@@ -38,19 +52,41 @@ systemctl status postgresql
 
 Expected: `active (exited)` or `active (running)`.
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SELECT version();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT version();"
 ```
 
 Expected: `PostgreSQL 16.x on ...`.
 
-## 4. Verify the data directory
+When you are done, type `exit` to return to the root user:
 
 ```bash
-sudo -iu postgres psql -c "SHOW data_directory;"
+exit
+```
+
+## 4. Verify the data directory
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+psql -c "SHOW data_directory;"
 ```
 
 Expected: `/var/lib/postgresql/16/main`.
+
+```bash
+exit
+```
 
 ```bash
 ls -la /var/lib/postgresql/16/main/
@@ -74,7 +110,22 @@ Expected: `postgresql.conf`, `pg_hba.conf`, `pg_ident.conf`.
 
 ```bash
 id postgres
-sudo -iu postgres whoami
+```
+
+Switch to the postgres user and verify:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+whoami
+```
+
+Expected: `postgres`.
+
+```bash
+exit
 ```
 
 Expected: user `postgres` exists, UID typically 26 or similar.

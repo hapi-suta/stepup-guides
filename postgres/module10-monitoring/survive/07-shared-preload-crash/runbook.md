@@ -74,6 +74,8 @@ The `FATAL: could not access file "pg_fake_monitoring_lib"` tells you exactly wh
 exit
 ```
 
+(`-u postgresql-16` = show logs for the postgresql-16 service only. `--no-pager` = print output directly instead of opening a scrollable viewer. `-n 20` = show the last 20 log lines.)
+
 ```bash
 sudo journalctl -u postgresql-16 --no-pager -n 20
 ```
@@ -206,6 +208,14 @@ Expected output (yours will differ):
      8
 (1 row)
 ```
+
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
 
 ```bash
 exit

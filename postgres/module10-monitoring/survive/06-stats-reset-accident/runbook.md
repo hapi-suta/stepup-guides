@@ -120,6 +120,14 @@ Expected output (yours will differ):
 
 If these are all zero, `pg_stat_reset_shared('bgwriter')` was also called.
 
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
+
 ```bash
 exit
 ```
@@ -220,6 +228,14 @@ WHERE rolsuper = true;
 ```
 
 Document which roles are superusers. If application connections use a superuser role (which is itself a problem), consider creating a dedicated application role without superuser privileges.
+
+Exit psql.
+
+```sql
+\q
+```
+
+Exit the postgres user.
 
 ```bash
 exit

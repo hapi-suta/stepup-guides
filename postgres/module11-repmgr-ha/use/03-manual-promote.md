@@ -15,8 +15,16 @@ and how it differs from switchover.
 
 ## Step 1 - Confirm Starting State
 
+Switch to the postgres user on the node you are working from:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user unless instructed to exit.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Note the current primary. For this exercise, ensure NODE1 is primary. If
@@ -51,7 +59,7 @@ sudo systemctl stop postgresql
 
 Verify it is down:
 ```bash
-sudo -iu postgres pg_isready -p 5432
+pg_isready -p 5432
 ```
 
 Expected: `pg_isready: could not connect to server`.
@@ -62,7 +70,7 @@ Expected: `pg_isready: could not connect to server`.
 
 From NODE2:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:**
@@ -89,7 +97,7 @@ is the failed primary.
 
 On NODE2:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby promote
+repmgr -f /etc/repmgr.conf standby promote
 ```
 
 **Expected:**
@@ -103,7 +111,7 @@ DETAIL: server "pg-repmgr-2" (ID: 2) was successfully promoted to primary
 
 Verify:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:** NODE2 is now `primary | * running`.
@@ -116,7 +124,7 @@ NODE3 is still pointing at the old primary. Redirect it:
 
 On NODE3:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby follow \
+repmgr -f /etc/repmgr.conf standby follow \
   --upstream-node-id=2
 ```
 
@@ -146,7 +154,7 @@ Expected: NODE3 is streaming from NODE2.
 
 On NODE2:
 ```bash
-sudo -iu postgres psql -d labdb -c "
+psql -d labdb -c "
 INSERT INTO employees (name, department) VALUES ('promote_test', 'engineering');
 SELECT count(*) FROM employees;"
 ```
@@ -159,7 +167,7 @@ Expected: INSERT succeeds.
 
 On NODE3:
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: matches NODE2's count.
@@ -177,7 +185,7 @@ as a primary in repmgr metadata. Before bringing it back, you must:
 Update the witness:
 On NODE4:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf witness register --force \
+repmgr -f /etc/repmgr.conf witness register --force \
   -h pg-repmgr-2 -U repmgr -d repmgr
 ```
 

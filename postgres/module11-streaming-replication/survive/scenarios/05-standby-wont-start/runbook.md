@@ -13,6 +13,9 @@ SSH to [NODE2] and try starting PostgreSQL:
 
 ```bash
 sudo systemctl start postgresql
+```
+
+```bash
 sudo systemctl status postgresql
 ```
 
@@ -37,22 +40,38 @@ Look for errors related to:
 
 On [NODE2], create the missing file:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres touch /var/lib/postgresql/16/main/standby.signal
+sudo -iu postgres
+```
+
+```bash
+touch /var/lib/postgresql/16/main/standby.signal
+```
+
+```bash
+exit
 ```
 
 ### Step 4: Fix primary_conninfo in postgresql.auto.conf
 
 On [NODE2], inspect the current setting:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres cat /var/lib/postgresql/16/main/postgresql.auto.conf
+sudo -iu postgres
+```
+
+```bash
+cat /var/lib/postgresql/16/main/postgresql.auto.conf
 ```
 
 The `primary_conninfo` line will have incorrect connection details. Fix it:
 
 ```bash
-sudo -u postgres psql -c "
+psql -c "
   ALTER SYSTEM SET primary_conninfo = 'host=[NODE1] port=5432 user=replicator password=YOUR_REPL_PASSWORD application_name=standby1';
 "
 ```
@@ -60,7 +79,11 @@ sudo -u postgres psql -c "
 Or edit the file directly:
 
 ```bash
-sudo -u postgres vi /var/lib/postgresql/16/main/postgresql.auto.conf
+vi /var/lib/postgresql/16/main/postgresql.auto.conf
+```
+
+```bash
+exit
 ```
 
 > **Concept - postgresql.auto.conf**: This file stores settings made via `ALTER SYSTEM`. It is read after postgresql.conf and overrides any matching parameters. On a standby, primary_conninfo here controls where the WAL receiver connects.
@@ -83,18 +106,51 @@ Look for: "started streaming WAL from primary" or "redo starts at".
 
 ### Step 6: Verify standby is in recovery and streaming
 
-On [NODE2]:
+On [NODE2], switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_is_in_recovery();"
 ```
 
 Expected: `t` (true).
 
-On [NODE1], verify streaming:
+Expected output (yours will differ):
+```
+ pg_is_in_recovery
+-------------------
+ t
+(1 row)
+```
 
 ```bash
-sudo -u postgres psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+exit
+```
+
+On [NODE1], switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+Verify streaming:
+
+```bash
+psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+```
+
+Expected output (yours will differ):
+```
+ client_addr  |   state
+--------------+-----------
+ 10.0.1.52    | streaming
+```
+
+```bash
+exit
 ```
 
 Expected: `state` is `streaming`.

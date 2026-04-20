@@ -162,26 +162,51 @@ Extensions are the most common cause of upgrade failures. An extension that work
 sudo -iu postgres
 ```
 
-List all extensions installed across all databases.
+List all extensions installed across all databases. First, list the non-template databases.
 
 ```
-/usr/pgsql-16/bin/psql -p 5432 -c "SELECT datname FROM pg_database WHERE datistemplate = false;" -t -A | while read db; do echo "=== $db ==="; /usr/pgsql-16/bin/psql -p 5432 -d "$db" -c "SELECT extname, extversion FROM pg_extension ORDER BY extname;"; done
+/usr/pgsql-16/bin/psql -p 5432 -c "SELECT datname FROM pg_database WHERE datistemplate = false;" -t -A
 ```
 
 Expected output (yours will differ):
 
 ```
-=== postgres ===
+postgres
+labdb
+```
+
+Check extensions in each database. Start with the postgres database.
+
+```
+/usr/pgsql-16/bin/psql -p 5432 -d postgres -c "SELECT extname, extversion FROM pg_extension ORDER BY extname;"
+```
+
+Expected output (yours will differ):
+
+```
       extname      | extversion
 -------------------+------------
  pg_stat_statements| 1.10
+(1 row)
+```
 
-=== labdb ===
+Check extensions in the labdb database.
+
+```
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT extname, extversion FROM pg_extension ORDER BY extname;"
+```
+
+Expected output (yours will differ):
+
+```
       extname      | extversion
 -------------------+------------
  pg_stat_statements| 1.10
  plpgsql           | 1.0
+(2 rows)
 ```
+
+Repeat for any additional databases you have.
 
 For each extension, verify its binary exists in the PG16 lib directory.
 

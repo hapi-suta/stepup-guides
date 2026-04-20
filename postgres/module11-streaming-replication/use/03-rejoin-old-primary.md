@@ -81,10 +81,18 @@ grep replication /var/lib/postgresql/16/main/pg_hba.conf
 host    replication     replicator      [NODE1_IP]/32       scram-sha-256
 ```
 
-If this line does not exist, add it and reload:
+If this line does not exist, add it and reload. Switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "SELECT pg_reload_conf();"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_reload_conf();"
+```
+
+```bash
+exit
 ```
 
 ---

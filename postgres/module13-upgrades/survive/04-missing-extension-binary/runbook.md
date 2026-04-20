@@ -95,7 +95,7 @@ ls: cannot access '/usr/pgsql-16/lib/pg_buffercache.so': No such file or directo
 ### Step 4 - Identify which package provides this library
 
 ```
-dnf provides '/usr/pgsql-16/lib/pg_buffercache.so' 2>/dev/null || rpm -qf /usr/pgsql-15/lib/pg_buffercache.so
+dnf provides '/usr/pgsql-16/lib/pg_buffercache.so'
 ```
 
 Expected output (yours will differ):

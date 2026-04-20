@@ -72,8 +72,16 @@ cat /etc/repmgr.conf
 
 ## 2. Register NODE1 as primary
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf primary register
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -f /etc/repmgr.conf primary register
 ```
 
 Expected:
@@ -85,8 +93,9 @@ NOTICE: primary node record (ID: 1) registered
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected:
@@ -105,8 +114,10 @@ Expected:
 
 ## 3. Create a test database with sample data
 
+You should still be the postgres user from Step 2. If not, run `sudo -iu postgres`.
+
 ```bash
-sudo -iu postgres psql <<SQL
+psql <<SQL
 CREATE DATABASE labdb;
 \c labdb
 CREATE TABLE employees (
@@ -123,25 +134,34 @@ SQL
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: `10000`.
 
 ## 4. Check the repmgr metadata
 
+You should still be the postgres user. If not, run `sudo -iu postgres`.
+
 ```bash
-sudo -iu postgres psql -d repmgr -c "SELECT * FROM repmgr.nodes;"
+psql -d repmgr -c "SELECT * FROM repmgr.nodes;"
 ```
 
 Expected: one row for NODE1 with `type = 'primary'` and `active = t`.
 
 ```bash
-sudo -iu postgres psql -d repmgr -c "SELECT * FROM repmgr.events ORDER BY event_timestamp DESC LIMIT 5;"
+psql -d repmgr -c "SELECT * FROM repmgr.events ORDER BY event_timestamp DESC LIMIT 5;"
 ```
 
 Expected: a `primary_register` event.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 > **Concept - repmgr metadata tables**: The `repmgr.nodes` table tracks every
 > registered node, its role, connection info, and active status. The

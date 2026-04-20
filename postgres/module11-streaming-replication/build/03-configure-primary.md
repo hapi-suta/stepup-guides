@@ -8,8 +8,14 @@ All steps run on NODE1 only.
 
 ## 1. Edit postgresql.conf
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres vim /etc/postgresql/16/main/postgresql.conf
+sudo -iu postgres
+```
+
+```bash
+vim /etc/postgresql/16/main/postgresql.conf
 ```
 
 Set or uncomment these parameters:
@@ -45,23 +51,52 @@ archive_timeout = 60
 > standby has consumed it yet. A safety net for slow standbys. In production,
 > use replication slots instead (which we set up in step 3).
 
-## 2. Create the archive directory
+Save and exit vim, then exit back to root:
 
 ```bash
-sudo -iu postgres mkdir -p /var/lib/postgresql/16/archive
+exit
+```
+
+## 2. Create the archive directory
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+`-p` creates parent directories if needed and does not error if the directory already exists.
+
+```bash
+mkdir -p /var/lib/postgresql/16/archive
+```
+
+```bash
+exit
 ```
 
 ## 3. Create a replication role
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql <<SQL
+sudo -iu postgres
+```
+
+```bash
+psql <<SQL
 CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator_pass_2026';
 SQL
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -c "SELECT rolname, rolreplication FROM pg_roles WHERE rolname = 'replicator';"
+psql -c "SELECT rolname, rolreplication FROM pg_roles WHERE rolname = 'replicator';"
+```
+
+```bash
+exit
 ```
 
 Expected: `replicator | t`.
@@ -72,13 +107,24 @@ Expected: `replicator | t`.
 
 ## 4. Create a replication slot
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_slot');"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_create_physical_replication_slot('standby_slot');"
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -c "SELECT slot_name, active FROM pg_replication_slots;"
+psql -c "SELECT slot_name, active FROM pg_replication_slots;"
+```
+
+```bash
+exit
 ```
 
 Expected: `standby_slot | f` (not active yet - standby hasn't connected).
@@ -91,8 +137,14 @@ Expected: `standby_slot | f` (not active yet - standby hasn't connected).
 
 ## 5. Configure pg_hba.conf for replication
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres vim /etc/postgresql/16/main/pg_hba.conf
+sudo -iu postgres
+```
+
+```bash
+vim /etc/postgresql/16/main/pg_hba.conf
 ```
 
 Add at the end:
@@ -107,26 +159,62 @@ host    replication     replicator      [NODE2_IP]/32       scram-sha-256
 > protocol (used by pg_basebackup and WAL streaming). Without this line, the
 > standby cannot connect even if the role has REPLICATION privilege.
 
+Save and exit vim, then exit back to root:
+
+```bash
+exit
+```
+
 ## 6. Restart PostgreSQL to apply changes
 
 ```bash
 sudo systemctl restart postgresql
 ```
 
-Verify it came back:
+Verify it came back. Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql -c "SHOW wal_level;"
-sudo -iu postgres psql -c "SHOW max_wal_senders;"
-sudo -iu postgres psql -c "SHOW archive_mode;"
-sudo -iu postgres psql -c "SHOW wal_log_hints;"
+sudo -iu postgres
 ```
 
-Expected: `replica`, `10`, `on`, `on`.
+```bash
+psql -c "SHOW wal_level;"
+```
+
+Expected: `replica`.
+
+```bash
+psql -c "SHOW max_wal_senders;"
+```
+
+Expected: `10`.
+
+```bash
+psql -c "SHOW archive_mode;"
+```
+
+Expected: `on`.
+
+```bash
+psql -c "SHOW wal_log_hints;"
+```
+
+Expected: `on`.
+
+```bash
+exit
+```
 
 ## 7. Create a test database with sample data
 
+Switch to the postgres user:
+
 ```bash
-sudo -iu postgres psql <<SQL
+sudo -iu postgres
+```
+
+```bash
+psql <<SQL
 CREATE DATABASE labdb;
 \c labdb
 CREATE TABLE employees (
@@ -143,8 +231,13 @@ SQL
 ```
 
 Verify:
+
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
+```
+
+```bash
+exit
 ```
 
 Expected: `10000`.

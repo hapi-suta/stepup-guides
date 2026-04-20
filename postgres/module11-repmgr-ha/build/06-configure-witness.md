@@ -27,8 +27,20 @@ All steps run on NODE4 unless noted.
 ## 2. Verify PostgreSQL is running on NODE4
 
 ```bash
-sudo -iu postgres psql -c "SELECT version();"
+sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT version();"
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: PostgreSQL 16.x running.
 
@@ -83,7 +95,11 @@ host    replication   repmgr        [NODE2_IP]/32         trust
 host    replication   repmgr        [NODE3_IP]/32         trust
 host    replication   repmgr        [NODE4_IP]/32         trust
 EOF
+```
 
+Reload PostgreSQL to apply:
+
+```bash
 sudo systemctl reload postgresql
 ```
 
@@ -92,7 +108,13 @@ sudo systemctl reload postgresql
 On NODE4:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h pg-repmgr-1 -U repmgr -d repmgr \
   witness register
 ```
@@ -116,8 +138,10 @@ NOTICE: witness node "pg-repmgr-w" (ID: 4) successfully registered
 
 From any node:
 
+You should still be the postgres user from Step 5. If not, run `sudo -iu postgres`.
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected:
@@ -135,19 +159,39 @@ Its upstream is the primary because it syncs its metadata from the primary.
 
 ## 7. Run repmgr node check on the witness
 
+You should still be the postgres user.
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node check
+repmgr -f /etc/repmgr.conf node check
 ```
 
 Expected: all checks should pass.
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 ## 8. Verify the witness is NOT replicating
 
 On NODE1 (primary), check replication connections:
 
 ```bash
-sudo -iu postgres psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+sudo -iu postgres
 ```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SELECT client_addr, state FROM pg_stat_replication;"
+```
+
+```bash
+exit
+```
+
+**You are now back to root.**
 
 Expected: two rows (NODE2 and NODE3). NODE4 should NOT appear - it does not
 stream WAL.

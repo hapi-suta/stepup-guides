@@ -14,9 +14,16 @@ how repmgr uses pg_rewind under the hood and when a full reclone is needed inste
 
 ## Step 1 - Confirm Current State
 
-From NODE2 (primary):
+From NODE2 (primary), switch to the postgres user:
+
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user unless instructed to exit.**
+
+```bash
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:**
@@ -43,7 +50,7 @@ sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
 
 On NODE1:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=pg-repmgr-2 user=repmgr dbname=repmgr' \
   --force-rewind --dry-run
 ```
@@ -64,7 +71,7 @@ If the dry-run fails with a message about `wal_log_hints`, verify that
 
 On NODE1:
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf node rejoin \
+repmgr -f /etc/repmgr.conf node rejoin \
   -d 'host=pg-repmgr-2 user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -96,7 +103,7 @@ DETAIL: node 1 is now attached to node 2
 ## Step 5 - Verify NODE1 is Now a Standby
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 **Expected:**
@@ -135,7 +142,7 @@ Expected: `t`.
 
 On NODE1:
 ```bash
-sudo -iu postgres psql -d labdb -c "SELECT count(*) FROM employees;"
+psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
 Expected: matches the count on NODE2 and NODE3.
@@ -149,8 +156,12 @@ sudo systemctl start repmgrd
 ```
 
 Verify:
+
 ```bash
 sudo systemctl status repmgrd
+```
+
+```bash
 tail -5 /var/log/postgresql/repmgr.log
 ```
 
@@ -167,20 +178,32 @@ Sometimes `node rejoin --force-rewind` fails because:
 
 In these cases, do a full reclone:
 
-```bash
-# Stop PostgreSQL on the failed node
-sudo systemctl stop postgresql
+Stop PostgreSQL on the failed node:
 
-# Reclone from the current primary
-sudo -iu postgres repmgr -f /etc/repmgr.conf \
+```bash
+sudo systemctl stop postgresql
+```
+
+Reclone from the current primary (run as postgres user):
+
+```bash
+repmgr -f /etc/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   standby clone --force
+```
 
-# Start PostgreSQL
+The `--force` flag allows overwriting the existing data directory.
+
+Start PostgreSQL:
+
+```bash
 sudo systemctl start postgresql
+```
 
-# Re-register as standby (with --force to overwrite old registration)
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+Re-register as standby. The `--force` flag overwrites the old registration:
+
+```bash
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 > **Concept - Reclone vs rejoin tradeoffs**:

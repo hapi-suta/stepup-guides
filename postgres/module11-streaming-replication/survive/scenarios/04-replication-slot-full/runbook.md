@@ -13,7 +13,20 @@ SSH to [NODE2] and verify PostgreSQL is not running:
 
 ```bash
 sudo systemctl status postgresql
-sudo -u postgres pg_isready -p 5432
+```
+
+Check if PostgreSQL is accepting connections. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+pg_isready -p 5432
+```
+
+```bash
+exit
 ```
 
 You should see the service as inactive/dead and pg_isready failing.
@@ -22,12 +35,22 @@ You should see the service as inactive/dead and pg_isready failing.
 
 SSH to [NODE1] and inspect the replication slot:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT slot_name, active, restart_lsn,
          pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS retained_bytes
   FROM pg_replication_slots;
 "
+```
+
+```bash
+exit
 ```
 
 Expected: `active` is `f` (false), and `retained_bytes` is large and growing.
@@ -40,8 +63,15 @@ On [NODE1], check how much disk space WAL is consuming:
 
 ```bash
 sudo du -sh /var/lib/postgresql/16/main/pg_wal/
+```
+
+`-s` shows a single summary total. `-h` shows sizes in human-readable format (MB, GB).
+
+```bash
 df -h /var/lib/postgresql/16/main/
 ```
+
+`df -h` shows disk free space in human-readable format for the filesystem containing the data directory.
 
 If usage is critical (above 80%), you may need to drop the slot temporarily. Otherwise, proceed to restart the standby first.
 
@@ -54,26 +84,49 @@ If usage is critical (above 80%), you may need to drop the slot temporarily. Oth
 sudo systemctl start postgresql
 ```
 
-Wait 10-20 seconds, then check from [NODE1]:
+Wait 10-20 seconds, then check from [NODE1]. Switch to the postgres user:
 
 ```bash
-sudo -u postgres psql -c "SELECT active, restart_lsn FROM pg_replication_slots;"
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT active, restart_lsn FROM pg_replication_slots;"
 ```
 
 Expected: `active` is `t` (true).
 
-**Option B (emergency)** - If disk is nearly full, drop the slot:
+Expected output (yours will differ):
+```
+ active |  restart_lsn
+--------+--------------
+ t      | 0/A0010000
+```
 
 ```bash
-# On [NODE1]
-sudo -u postgres psql -c "SELECT pg_drop_replication_slot('standby_slot');"
+exit
+```
+
+**Option B (emergency)** - If disk is nearly full, drop the slot.
+
+On [NODE1], switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+psql -c "SELECT pg_drop_replication_slot('standby_slot');"
 ```
 
 Then restart the standby and recreate the slot:
 
 ```bash
-# On [NODE1]
-sudo -u postgres psql -c "SELECT pg_create_physical_replication_slot('standby_slot');"
+psql -c "SELECT pg_create_physical_replication_slot('standby_slot');"
+```
+
+```bash
+exit
 ```
 
 > **Concept - Slot vs No-Slot Tradeoff**: Without a slot, WAL segments can be recycled before the standby reads them, breaking replication. With a slot, you get guaranteed delivery but risk disk exhaustion. Monitoring slot lag is essential.
@@ -82,12 +135,29 @@ sudo -u postgres psql -c "SELECT pg_create_physical_replication_slot('standby_sl
 
 On [NODE1], confirm the standby reconnected:
 
+Switch to the postgres user:
+
 ```bash
-sudo -u postgres psql -c "
+sudo -iu postgres
+```
+
+```bash
+psql -c "
   SELECT client_addr, state,
          pg_wal_lsn_diff(sent_lsn, replay_lsn) AS lag_bytes
   FROM pg_stat_replication;
 "
+```
+
+Expected output (yours will differ):
+```
+ client_addr  |   state   | lag_bytes
+--------------+-----------+-----------
+ 10.0.1.52    | streaming |         0
+```
+
+```bash
+exit
 ```
 
 Expected: `state` is `streaming` and `lag_bytes` is decreasing toward 0.

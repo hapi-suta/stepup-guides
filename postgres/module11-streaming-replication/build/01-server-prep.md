@@ -9,7 +9,11 @@ Run every step on BOTH servers unless noted otherwise.
 ## 1. Update the OS
 
 ```bash
-apt update && apt upgrade -y
+apt update
+```
+
+```bash
+apt upgrade -y
 ```
 
 Expected: packages updated, no errors.
@@ -40,6 +44,11 @@ EOF
 Verify:
 ```bash
 ping -c 2 pg-primary
+```
+
+`-c 2` sends only 2 ping packets instead of pinging forever.
+
+```bash
 ping -c 2 pg-standby
 ```
 
@@ -51,9 +60,29 @@ Allow PostgreSQL and SSH between the two nodes:
 
 ```bash
 apt install -y ufw
+```
+
+Allow SSH traffic through the firewall:
+
+```bash
 ufw allow 22/tcp
+```
+
+Allow PostgreSQL traffic through the firewall:
+
+```bash
 ufw allow 5432/tcp
+```
+
+Enable the firewall. The `--force` flag skips the confirmation prompt:
+
+```bash
 ufw --force enable
+```
+
+Verify the firewall is active with the correct rules:
+
+```bash
 ufw status
 ```
 
@@ -77,10 +106,17 @@ Expected: `Status: active` with rules for 22 and 5432.
 apt install -y vim curl wget gnupg2 lsb-release sudo net-tools
 ```
 
+`-y` automatically answers "yes" to the install prompt.
+
 ## 6. Set timezone to UTC
 
 ```bash
 timedatectl set-timezone UTC
+```
+
+Verify the timezone is now UTC:
+
+```bash
 timedatectl
 ```
 
@@ -104,12 +140,7 @@ ssh root@pg-primary hostname
 
 Expected: returns the other node's hostname without password prompt.
 
-If prompted for a password, set up key-based auth:
-```bash
-ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-ssh-copy-id root@pg-standby   # from NODE1
-ssh-copy-id root@pg-primary   # from NODE2
-```
+If either test asks for a password instead of connecting, contact your instructor. SSH keys have been pre-configured during server setup.
 
 ---
 

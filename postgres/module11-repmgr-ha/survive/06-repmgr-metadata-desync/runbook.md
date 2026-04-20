@@ -9,24 +9,36 @@
 
 ### Step 1: Observe the inconsistency with repmgr cluster show
 
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user. Stay as this user for the remaining steps.**
+
 From any node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Note which node repmgr claims is the primary. This may be WRONG.
 
 ### Step 2: Verify actual roles with pg_is_in_recovery()
 
-Check each data node directly:
+Check each data node directly, one at a time:
 
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3; do
-  echo -n "$host: "
-  sudo -iu postgres psql -h $host -U repmgr -d repmgr -tAc \
-    "SELECT pg_is_in_recovery();" 2>/dev/null || echo "unreachable"
-done
+psql -h pg-repmgr-1 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-2 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
+```
+
+```bash
+psql -h pg-repmgr-3 -U repmgr -d repmgr -tAc "SELECT pg_is_in_recovery();"
 ```
 
 Expected: exactly ONE node returns `f` (the real primary). Compare this
@@ -41,7 +53,7 @@ with what repmgr cluster show reported. The mismatch is the bug.
 On the real primary:
 
 ```bash
-sudo -iu postgres psql -c "
+psql -c "
 SELECT client_addr, state, sent_lsn, replay_lsn
 FROM pg_stat_replication;"
 ```
@@ -54,7 +66,7 @@ plane is independent of repmgr metadata.
 On the actual primary node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf primary register --force
+repmgr -f /etc/repmgr.conf primary register --force
 ```
 
 This overwrites the incorrect type in repmgr.nodes for this node.
@@ -64,7 +76,7 @@ This overwrites the incorrect type in repmgr.nodes for this node.
 On each actual standby node:
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf standby register --force
+repmgr -f /etc/repmgr.conf standby register --force
 ```
 
 This corrects the standby entries in repmgr.nodes.
@@ -72,7 +84,7 @@ This corrects the standby entries in repmgr.nodes.
 ### Step 6: Verify repmgr cluster show matches reality
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr.conf cluster show
 ```
 
 Expected: the real primary shows `primary | * running`, standbys show
@@ -82,17 +94,42 @@ Cross-check with pg_is_in_recovery() again to confirm they agree.
 
 ### Step 7: Restart repmgrd on all nodes
 
+Run this on each node one at a time:
+
 ```bash
-for host in pg-repmgr-1 pg-repmgr-2 pg-repmgr-3 pg-repmgr-w; do
-  ssh root@$host "sudo systemctl start repmgrd"
-done
+ssh root@pg-repmgr-1 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-2 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-3 "systemctl start repmgrd"
+```
+
+```bash
+ssh root@pg-repmgr-w "systemctl start repmgrd"
 ```
 
 ### Step 8: Verify full cluster health
 
 ```bash
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster show
-sudo -iu postgres repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr.conf cluster show
+```
+
+Expected output (yours will differ):
+```
+ ID | Name         | Role    | Status    | Upstream    | ...
+----+--------------+---------+-----------+-------------+----
+ 1  | pg-repmgr-1  | primary | * running |             | ...
+ 2  | pg-repmgr-2  | standby |   running | pg-repmgr-1 | ...
+ 3  | pg-repmgr-3  | standby |   running | pg-repmgr-1 | ...
+ 4  | pg-repmgr-w  | witness | * running | pg-repmgr-1 | ...
+```
+
+```bash
+repmgr -f /etc/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes running, all roles correct, replication streaming.
