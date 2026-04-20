@@ -195,14 +195,18 @@ sed -i '/BatchW0rk3r_Secret/d' /opt/pgsql/log/postgresql-*.log
 ### Step 6 - Verify passwords are gone from logs
 
 ```bash
-grep -c "SuperSecret_Prod_2026\|BatchW0rk3r_Secret" /opt/pgsql/log/postgresql-*.log || echo "Clean - no passwords found"
+grep -c "SuperSecret_Prod_2026\|BatchW0rk3r_Secret" /opt/pgsql/log/postgresql-*.log
 ```
+
+The `-c` flag prints a count of matching lines instead of the lines themselves. If the passwords have been cleaned, the count will be 0 for each file.
 
 Expected output:
 
 ```
-Clean - no passwords found
+/opt/pgsql/log/postgresql-Sat.log:0
 ```
+
+If you see any count greater than 0, repeat the sed cleanup for that file.
 
 ### Step 7 - Exit
 

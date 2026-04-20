@@ -23,9 +23,21 @@ sudo -iu postgres
 
 Create a working copy of the data so you do not damage the live tables:
 
+Create a working copy of the customers table:
+
 ```sql
 CREATE TABLE IF NOT EXISTS cleanup_customers AS SELECT * FROM customers;
+```
+
+Create a working copy of the orders table:
+
+```sql
 CREATE TABLE IF NOT EXISTS cleanup_orders AS SELECT * FROM orders;
+```
+
+Create a working copy of the order_items table:
+
+```sql
 CREATE TABLE IF NOT EXISTS cleanup_order_items AS SELECT * FROM order_items;
 ```
 
@@ -228,7 +240,13 @@ Drop the working tables:
 
 ```sql
 DROP TABLE IF EXISTS cleanup_customers;
+```
+
+```sql
 DROP TABLE IF EXISTS cleanup_orders;
+```
+
+```sql
 DROP TABLE IF EXISTS cleanup_order_items;
 ```
 

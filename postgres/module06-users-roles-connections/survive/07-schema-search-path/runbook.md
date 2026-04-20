@@ -51,6 +51,8 @@ Connect as `app_user` with a fresh TCP session (per-role-in-database settings on
 PGPASSWORD=apppass123 /usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store
 ```
 
+`PGPASSWORD=apppass123` sets the password as an environment variable for this single command so psql does not prompt interactively. The `-h` flag forces a TCP connection, `-U` specifies the role, `-p` the port, and `-d` the database.
+
 ```sql
 SHOW search_path;
 ```
@@ -85,15 +87,13 @@ Expected output (yours will differ):
 
 This is the decoy table, not the real orders table.
 
-Switch back to postgres for the remaining steps:
+Switch back to postgres for the remaining steps. First, exit the app_user psql session:
 
 ```bash
 \q
 ```
 
-```bash
-sudo -iu postgres
-```
+You are still in the postgres OS user shell from Step 1. Reconnect to psql:
 
 ```bash
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store

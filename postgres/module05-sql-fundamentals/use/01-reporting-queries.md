@@ -159,6 +159,18 @@ ORDER BY order_count DESC;
 
 ---
 
+## Exit
+
+```sql
+\q
+```
+
+```bash
+exit
+```
+
+---
+
 ## Stretch: Combine Queries 1 and 3
 
 Write a single query that shows the top 5 customers AND for each customer, their most purchased product category (by quantity).

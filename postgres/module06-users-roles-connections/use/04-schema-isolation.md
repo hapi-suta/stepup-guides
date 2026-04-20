@@ -226,16 +226,53 @@ Expected output:
 
 ## Task 9 - Clean up
 
+Drop the tables first (objects must be removed before the schema can be dropped):
+
 ```sql
 DROP TABLE payments.transactions;
+```
+
+```sql
 DROP TABLE inventory.stock;
+```
+
+Drop the schemas:
+
+```sql
 DROP SCHEMA payments;
+```
+
+```sql
 DROP SCHEMA inventory;
+```
+
+Remove team membership from the login roles:
+
+```sql
 REVOKE payments_team FROM payments_user;
+```
+
+```sql
 REVOKE inventory_team FROM inventory_user;
+```
+
+Drop the login roles:
+
+```sql
 DROP ROLE payments_user;
+```
+
+```sql
 DROP ROLE inventory_user;
+```
+
+Drop the group roles:
+
+```sql
 DROP ROLE payments_team;
+```
+
+```sql
 DROP ROLE inventory_team;
 ```
 

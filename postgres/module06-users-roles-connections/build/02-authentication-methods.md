@@ -212,7 +212,7 @@ sudo -iu postgres
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT current_user;"
 ```
 
-This works because the `local` line still uses `trust`, and the Unix socket (`/run/postgresql`) matches `local` rules.
+The `-c` flag runs a single SQL command and exits. This works because the `local` line still uses `trust`, and the Unix socket (`/run/postgresql`) matches `local` rules.
 
 Expected output:
 
@@ -234,6 +234,8 @@ exit
 ```bash
 /usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U postgres -d stepup_store -c "SELECT 1;"
 ```
+
+The `-h 127.0.0.1` flag forces a TCP connection instead of a Unix socket. The `-U postgres` flag specifies which database role to connect as. The `-c` flag runs a single SQL command and exits.
 
 You should be prompted for a password now. Enter `pgadminpass123`.
 

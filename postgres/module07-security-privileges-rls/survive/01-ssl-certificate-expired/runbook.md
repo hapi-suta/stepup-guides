@@ -56,6 +56,8 @@ sudo -iu postgres
 openssl x509 -in /opt/pgsql/data/server.crt -noout -dates
 ```
 
+The `-in` flag specifies the certificate file to read. The `-noout` flag suppresses printing the base64-encoded certificate data. The `-dates` flag shows only the validity period (notBefore and notAfter).
+
 Expected output (yours will differ):
 
 ```
@@ -149,6 +151,8 @@ chmod 644 server.crt
 openssl x509 -in server.crt -noout -dates
 ```
 
+The `-in` flag specifies the certificate file. The `-noout` flag suppresses the raw certificate output. The `-dates` flag displays only the validity dates.
+
 Expected output (yours will differ):
 
 ```
@@ -195,6 +199,8 @@ SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: 
 ```bash
 openssl x509 -in /opt/pgsql/data/server.crt -noout -checkend 86400
 ```
+
+The `-in` flag specifies the certificate file. The `-noout` flag suppresses the raw certificate output. The `-checkend 86400` flag checks whether the certificate will expire within 86400 seconds (24 hours).
 
 Expected output:
 

@@ -112,6 +112,8 @@ The Pulse app reads its connection string from an environment file or configurat
 sudo find /etc /opt /home -name "*.env" -o -name "*.conf" 2>/dev/null | xargs grep -l "app_user" 2>/dev/null
 ```
 
+This searches three directories (`/etc`, `/opt`, `/home`) for files ending in `.env` or `.conf`. The `-name` flag matches by filename. The `-o` flag means "or" (match either pattern). The `2>/dev/null` part hides permission errors. The pipe sends the found files to `xargs grep -l "app_user"`, which prints only filenames (`-l`) containing the text "app_user".
+
 Update the password in the app configuration file. The exact file path depends on how Pulse is deployed. For example:
 
 ```bash

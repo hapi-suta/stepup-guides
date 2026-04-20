@@ -42,17 +42,31 @@ CREATE ROLE customer_role WITH LOGIN PASSWORD 'cust123';
 CREATE ROLE support_role WITH LOGIN PASSWORD 'support123';
 ```
 
-Grant basic access:
+Grant basic access to customer_role:
 
 ```sql
 GRANT CONNECT ON DATABASE stepup_store TO customer_role;
-GRANT USAGE ON SCHEMA public TO customer_role;
-GRANT SELECT ON TABLE orders TO customer_role;
 ```
 
 ```sql
+GRANT USAGE ON SCHEMA public TO customer_role;
+```
+
+```sql
+GRANT SELECT ON TABLE orders TO customer_role;
+```
+
+Grant basic access to support_role:
+
+```sql
 GRANT CONNECT ON DATABASE stepup_store TO support_role;
+```
+
+```sql
 GRANT USAGE ON SCHEMA public TO support_role;
+```
+
+```sql
 GRANT SELECT ON TABLE orders TO support_role;
 ```
 
@@ -251,13 +265,37 @@ Expected output (yours will differ):
 
 ## Task 9 - Clean up
 
+Disable RLS on the orders table:
+
 ```sql
 ALTER TABLE orders DISABLE ROW LEVEL SECURITY;
+```
+
+Drop the policies:
+
+```sql
 DROP POLICY customer_own_orders ON orders;
+```
+
+```sql
 DROP POLICY support_read_all ON orders;
+```
+
+```sql
 DROP POLICY app_insert_own_tenant ON orders;
+```
+
+```sql
 DROP POLICY no_delete ON orders;
+```
+
+Drop the exercise roles:
+
+```sql
 DROP ROLE customer_role;
+```
+
+```sql
 DROP ROLE support_role;
 ```
 

@@ -226,24 +226,87 @@ Expected output (yours will differ):
 
 ## Task 6 - Clean up
 
+First, remove the login roles from their groups:
+
 ```sql
 REVOKE app_read FROM reporter_alice;
+```
+
+```sql
 REVOKE app_write FROM backend_bob;
+```
+
+```sql
 REVOKE app_admin FROM dev_carol;
+```
+
+Drop the login roles:
+
+```sql
 DROP ROLE reporter_alice;
+```
+
+```sql
 DROP ROLE backend_bob;
+```
+
+```sql
 DROP ROLE dev_carol;
+```
+
+Revoke table-level privileges from the group roles:
+
+```sql
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_read;
+```
+
+```sql
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_write;
+```
+
+```sql
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_admin;
+```
+
+Revoke schema-level privileges:
+
+```sql
 REVOKE ALL ON SCHEMA public FROM app_read;
+```
+
+```sql
 REVOKE ALL ON SCHEMA public FROM app_write;
+```
+
+```sql
 REVOKE ALL ON SCHEMA public FROM app_admin;
+```
+
+Revoke database-level privileges:
+
+```sql
 REVOKE ALL ON DATABASE stepup_store FROM app_read;
+```
+
+```sql
 REVOKE ALL ON DATABASE stepup_store FROM app_write;
+```
+
+```sql
 REVOKE ALL ON DATABASE stepup_store FROM app_admin;
+```
+
+Drop the group roles:
+
+```sql
 DROP ROLE app_read;
+```
+
+```sql
 DROP ROLE app_write;
+```
+
+```sql
 DROP ROLE app_admin;
 ```
 

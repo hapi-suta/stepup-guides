@@ -37,6 +37,8 @@ Only app_user is affected - other roles connect fine.
 PGPASSWORD=apppass123 /usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store -c "SELECT 1;"
 ```
 
+`PGPASSWORD=apppass123` sets the password as an environment variable for this single command so psql does not prompt interactively. The `-h` flag forces a TCP connection, `-U` specifies the role, `-p` the port, `-d` the database, and `-c` runs a single SQL command.
+
 Expected output:
 
 ```
