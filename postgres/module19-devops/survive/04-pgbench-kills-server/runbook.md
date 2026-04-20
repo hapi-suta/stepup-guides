@@ -129,6 +129,14 @@ Confirm max_connections is now 200.
 psql -c "SHOW max_connections;"
 ```
 
+Expected output:
+```
+ max_connections
+-----------------
+ 200
+(1 row)
+```
+
 Confirm the server is accepting connections normally.
 
 ```bash

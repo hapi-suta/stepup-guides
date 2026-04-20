@@ -159,8 +159,10 @@ Reload:
 Verify no trust rules for remote connections:
 
 ```bash
-grep "trust" /opt/pgsql/data/pg_hba.conf | grep -v "^#" | grep "host"
+grep "host" /opt/pgsql/data/pg_hba.conf | grep "trust" | grep -v "^#"
 ```
+
+This searches for active (non-commented) host lines using trust authentication. The first `grep` finds lines with "host". The second filters for "trust". The third removes commented lines.
 
 Expected: No output.
 

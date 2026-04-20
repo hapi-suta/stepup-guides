@@ -42,13 +42,19 @@ Check your current gcloud authentication.
 gcloud auth list --filter=status:ACTIVE --format="value(account)"
 ```
 
-If using Application Default Credentials:
+If using Application Default Credentials, test if your ADC token is valid.
 
 ```bash
-gcloud auth application-default print-access-token > /dev/null 2>&1 && echo "ADC valid" || echo "ADC invalid"
+gcloud auth application-default print-access-token > /dev/null 2>&1
 ```
 
-If ADC is invalid, re-authenticate.
+Check the exit code to see if it worked. `0` means valid, anything else means invalid.
+
+```bash
+echo $?
+```
+
+If the exit code is not `0`, re-authenticate.
 
 ```bash
 gcloud auth application-default login

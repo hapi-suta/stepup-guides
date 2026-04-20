@@ -14,7 +14,12 @@ Verify the instance is running.
 gcloud sql instances describe suta-pg-lab --format="value(state)"
 ```
 
-Expected: `RUNNABLE`. If `MAINTENANCE` or `FAILED`, wait for it to complete.
+Expected output:
+```
+RUNNABLE
+```
+
+If the output shows `MAINTENANCE` or `FAILED`, wait for it to complete.
 
 ---
 
@@ -100,6 +105,14 @@ Confirm the standby is healthy.
 
 ```bash
 gcloud sql instances describe suta-pg-lab --format="yaml(settings.availabilityType,gceZone,secondaryGceZone)"
+```
+
+Expected output (yours will differ):
+```
+gceZone: us-central1-b
+secondaryGceZone: us-central1-a
+settings:
+  availabilityType: REGIONAL
 ```
 
 Both `gceZone` and `secondaryGceZone` should be populated. If `secondaryGceZone` is missing, HA may need to be re-enabled.

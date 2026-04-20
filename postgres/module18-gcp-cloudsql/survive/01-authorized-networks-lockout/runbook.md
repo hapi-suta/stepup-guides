@@ -28,6 +28,13 @@ gcloud sql instances describe suta-pg-lab --format="yaml(settings.ipConfiguratio
 
 If the output is empty or missing `authorizedNetworks`, that is the problem. No IPs are whitelisted.
 
+Expected output (yours will differ):
+```
+settings:
+  ipConfiguration:
+    authorizedNetworks: []
+```
+
 ---
 
 ## Step 3 - Get Your Public IP

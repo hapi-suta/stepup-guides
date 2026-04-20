@@ -14,6 +14,14 @@ Get the disk size and usage.
 gcloud sql instances describe suta-pg-lab --format="yaml(settings.dataDiskSizeGb,settings.storageAutoResize,settings.storageAutoResizeLimit)"
 ```
 
+Expected output (yours will differ):
+```
+settings:
+  dataDiskSizeGb: '10'
+  storageAutoResize: false
+  storageAutoResizeLimit: '0'
+```
+
 ---
 
 ## Step 2 - Check If Auto-Resize Is Disabled
@@ -99,13 +107,36 @@ Type `\q` to exit psql.
 Check that writes work.
 
 ```bash
-psql -h 127.0.0.1 -U postgres -d suta_lab -c "CREATE TABLE storage_test (id int); DROP TABLE storage_test;"
+psql -h 127.0.0.1 -U postgres -d suta_lab
+```
+
+Create and drop a test table to confirm writes are working.
+
+```sql
+CREATE TABLE storage_test (id int);
+```
+
+```sql
+DROP TABLE storage_test;
+```
+
+Type `\q` to exit psql.
+
+```
+\q
 ```
 
 Check disk usage metrics.
 
 ```bash
 gcloud sql instances describe suta-pg-lab --format="yaml(settings.dataDiskSizeGb,settings.storageAutoResize)"
+```
+
+Expected output (yours will differ):
+```
+settings:
+  dataDiskSizeGb: '50'
+  storageAutoResize: true
 ```
 
 ---

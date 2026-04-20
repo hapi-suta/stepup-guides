@@ -175,14 +175,24 @@ DO
 
 ### Step 4 - Create the monthly partition and load data
 
+Create the monthly partition:
+
 ```sql
 CREATE TABLE chaos7_metrics_2023_01
     PARTITION OF chaos7_metrics
     FOR VALUES FROM ('2023-01-01') TO ('2023-02-01');
+```
 
+Load the data from the temporary table into the new monthly partition:
+
+```sql
 INSERT INTO chaos7_metrics_2023_01
 SELECT * FROM chaos7_metrics_2023_jan_tmp;
+```
 
+Drop the temporary table now that the data has been moved:
+
+```sql
 DROP TABLE chaos7_metrics_2023_jan_tmp;
 ```
 
@@ -259,7 +269,11 @@ The count should be significantly reduced (monthly partitions for 2023 + remaini
 
 ```sql
 ANALYZE chaos7_metrics;
+```
 
+Now measure the planning time again:
+
+```sql
 EXPLAIN (ANALYZE) SELECT * FROM chaos7_metrics WHERE metric_date = '2023-06-15';
 ```
 

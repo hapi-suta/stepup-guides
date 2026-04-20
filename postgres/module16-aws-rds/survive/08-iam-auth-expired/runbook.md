@@ -198,7 +198,13 @@ TOKEN=$(aws rds generate-db-auth-token --hostname "${RDS_ENDPOINT}" --port 5432 
 ```
 
 ```bash
-psql "host=${RDS_ENDPOINT} port=5432 dbname=postgres user=app_service password=${TOKEN} sslmode=require" -c "SELECT 'iam_auth_working' AS status;"
+psql "host=${RDS_ENDPOINT} port=5432 dbname=postgres user=app_service password=${TOKEN} sslmode=require"
+```
+
+Once connected, run a test query:
+
+```sql
+SELECT 'iam_auth_working' AS status;
 ```
 
 Expected output:
@@ -208,6 +214,12 @@ Expected output:
 ------------------
  iam_auth_working
 (1 row)
+```
+
+Exit psql:
+
+```sql
+\q
 ```
 
 ---

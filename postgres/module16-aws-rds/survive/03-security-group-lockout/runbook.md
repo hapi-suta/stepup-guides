@@ -118,7 +118,15 @@ Expected output (yours will differ):
 Security group changes take effect immediately (within seconds):
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 --connect-timeout=5 -c "SELECT 'connection restored' AS status;"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 --connect-timeout=5
+```
+
+The `--connect-timeout=5` limits the attempt to 5 seconds.
+
+Once connected, run a quick test:
+
+```sql
+SELECT 'connection restored' AS status;
 ```
 
 Expected output:
@@ -128,6 +136,12 @@ Expected output:
 --------------------
  connection restored
 (1 row)
+```
+
+Exit psql:
+
+```sql
+\q
 ```
 
 ### Step 8 - Verify the rule is correct
@@ -170,10 +184,31 @@ This monitors security groups and flags non-compliant changes.
 ## Verification
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 --connect-timeout=5 -c "SELECT version();"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 --connect-timeout=5
+```
+
+Once connected, verify the database is responding:
+
+```sql
+SELECT version();
+```
+
+Expected output (yours will differ):
+
+```
+                                                   version
+--------------------------------------------------------------------------------------------------------------
+ PostgreSQL 15.4 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 7.3.1 20180712 (Red Hat 7.3.1-6), 64-bit
+(1 row)
 ```
 
 If this returns the PostgreSQL version, the lockout is resolved.
+
+Exit psql:
+
+```sql
+\q
+```
 
 ---
 

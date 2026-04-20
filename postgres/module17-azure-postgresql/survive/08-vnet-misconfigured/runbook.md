@@ -18,6 +18,14 @@ az postgres flexible-server show \
   --output table
 ```
 
+Expected output (yours will differ):
+
+```
+Name                State
+------------------  -------
+suta-pg-lab-server  Ready
+```
+
 If `State` is `Ready`, the problem is networking.
 
 ### Step 2 - Check Firewall Rules
@@ -112,6 +120,15 @@ Once connected, run a quick test.
 
 ```sql
 SELECT current_user, inet_server_addr(), inet_server_port();
+```
+
+Expected output (yours will differ):
+
+```
+ current_user | inet_server_addr | inet_server_port
+--------------+------------------+------------------
+ pgadmin      | 10.0.1.4         |             5432
+(1 row)
 ```
 
 Exit psql.

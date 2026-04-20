@@ -304,6 +304,10 @@ su - postgres
 
 Record: Rejoin completed at = ____
 
+```bash
+exit
+```
+
 ### 6.3 Verify replication is healthy
 
 On the **new primary**:

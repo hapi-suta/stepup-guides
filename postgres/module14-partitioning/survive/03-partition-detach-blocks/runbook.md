@@ -180,6 +180,14 @@ ALTER TABLE
 SELECT COUNT(*) FROM orders_chaos3;
 ```
 
+Exit psql:
+
+```sql
+\q
+```
+
+Exit the postgres session:
+
 ```bash
 exit
 ```

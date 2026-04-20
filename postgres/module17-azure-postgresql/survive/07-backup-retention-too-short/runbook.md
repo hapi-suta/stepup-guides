@@ -18,6 +18,14 @@ az postgres flexible-server show \
   --output table
 ```
 
+Expected output (yours will differ):
+
+```
+Name                BackupRetention    GeoRedundant    EarliestRestore
+------------------  -----------------  --------------  -------------------------
+suta-pg-lab-server  7                  Disabled        2026-04-12T10:00:00+00:00
+```
+
 If `BackupRetention` is 7, it needs to be increased.
 
 ### Step 2 - Check Earliest Restore Point

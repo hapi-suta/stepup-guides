@@ -14,6 +14,18 @@ List all database flags set on the instance.
 gcloud sql instances describe suta-pg-lab --format="yaml(settings.databaseFlags)"
 ```
 
+Expected output (yours will differ):
+```
+settings:
+  databaseFlags:
+  - name: shared_buffers
+    value: '128'
+  - name: max_connections
+    value: '10'
+  - name: work_mem
+    value: '64'
+```
+
 Look for values that seem unreasonable. Compare with the machine tier.
 
 ---
@@ -71,6 +83,14 @@ SHOW max_connections;
 
 ```sql
 SHOW work_mem;
+```
+
+Expected output (yours will differ):
+```
+ work_mem
+----------
+ 8MB
+(1 row)
 ```
 
 Type `\q` to exit psql.

@@ -116,8 +116,10 @@ su - postgres
 ```
 
 ```bash
-cat /opt/pgsql/data/pg_hba.conf | grep -v '^#' | grep -v '^$'
+grep -v '^#' /opt/pgsql/data/pg_hba.conf | grep -v '^$'
 ```
+
+This shows only the active (non-comment, non-empty) lines. The first `grep -v` removes comment lines. The second removes blank lines.
 
 Check for these red flags:
 - [ ] No `trust` for remote connections
@@ -222,8 +224,10 @@ Finding: ____
 ### 3.5 Check backup encryption
 
 ```bash
-pgbackrest --stanza=prod info | grep cipher
+pgbackrest --stanza=prod info
 ```
+
+Look for a line containing `cipher: aes-256-cbc` in the output.
 
 PASS: Shows `cipher: aes-256-cbc`
 FAIL: No cipher line (backups unencrypted)
@@ -327,8 +331,12 @@ Finding: ____
 ### 5.3 Check for exposed management ports
 
 ```bash
-ss -tlnp | grep -E '(5432|6432|9090|9100|9187|3000)'
+ss -tlnp
 ```
+
+The `-t` flag shows TCP sockets. The `-l` flag shows only listening sockets. The `-n` flag shows port numbers instead of service names. The `-p` flag shows the process using each socket.
+
+Look for these ports in the output: 5432 (PostgreSQL), 6432 (pgBouncer), 9090 (Prometheus), 9100 (node_exporter), 9187 (postgres_exporter), 3000 (Grafana).
 
 Record what is listening:
 

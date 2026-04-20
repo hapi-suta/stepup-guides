@@ -316,7 +316,11 @@ exit
 Before upgrading, always read the release notes:
 
 ```bash
-curl -s https://www.postgresql.org/docs/16/release-16-3.html | head -50
+curl -s https://www.postgresql.org/docs/16/release-16-3.html > /tmp/pg16-release-notes.html
+```
+
+```bash
+head -50 /tmp/pg16-release-notes.html
 ```
 
 Check for:
@@ -606,8 +610,10 @@ Only `postgres` and `repmgr` should be superusers. If you see other roles, inves
 ### 6.2 Check pg_hba.conf for trust or md5
 
 ```bash
-cat /opt/pgsql/data/pg_hba.conf | grep -v '^#' | grep -v '^$'
+grep -v '^#' /opt/pgsql/data/pg_hba.conf | grep -v '^$'
 ```
+
+This shows only the active (non-comment, non-empty) lines from pg_hba.conf. The first `grep -v` removes comment lines. The second `grep -v` removes empty lines.
 
 Look for:
 - `trust` - No password required. Never use for remote connections.

@@ -14,6 +14,16 @@ View the current backup settings.
 gcloud sql instances describe suta-pg-lab --format="yaml(settings.backupConfiguration)"
 ```
 
+Expected output (yours will differ):
+```
+settings:
+  backupConfiguration:
+    enabled: false
+    pointInTimeRecoveryEnabled: false
+    startTime: '00:00'
+    transactionLogRetentionDays: 7
+```
+
 If `enabled: false` and `pointInTimeRecoveryEnabled: false`, backups are completely off.
 
 ---
@@ -86,6 +96,13 @@ List recent backups.
 
 ```bash
 gcloud sql backups list --instance=suta-pg-lab --sort-by=~startTime --limit=5
+```
+
+Expected output (yours will differ):
+```
+ID         WINDOW_START_TIME          STATUS
+1234567890 2026-04-19T04:00:00+00:00  SUCCESSFUL
+...
 ```
 
 Verify your on-demand backup appears with status SUCCESSFUL.

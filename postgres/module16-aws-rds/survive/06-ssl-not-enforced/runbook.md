@@ -15,10 +15,22 @@ RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier suta-pg-la
 ```
 
 ```bash
-psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable" -c "SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid();"
+psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable"
 ```
 
-If this connects and shows `ssl = f`, the instance accepts unencrypted connections. This is the vulnerability.
+If this connects, the instance accepts unencrypted connections. Once connected, check the SSL status:
+
+```sql
+SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid();
+```
+
+If the output shows `ssl = f`, the connection is unencrypted. This is the vulnerability.
+
+Exit psql:
+
+```sql
+\q
+```
 
 ### Step 2 - Check the rds.force_ssl parameter
 
@@ -72,7 +84,7 @@ sleep 15
 ### Step 5 - Verify non-SSL connections are rejected
 
 ```bash
-psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable" -c "SELECT 1;" 2>&1
+psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable"
 ```
 
 Expected output:
@@ -86,7 +98,13 @@ The connection is rejected because SSL is required.
 ### Step 6 - Verify SSL connections still work
 
 ```bash
-psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=require" -c "SELECT ssl, version FROM pg_stat_ssl WHERE pid = pg_backend_pid();"
+psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=require"
+```
+
+Once connected, verify SSL details:
+
+```sql
+SELECT ssl, version FROM pg_stat_ssl WHERE pid = pg_backend_pid();
 ```
 
 Expected output:
@@ -96,6 +114,12 @@ Expected output:
 -----+---------
  t   | TLSv1.3
 (1 row)
+```
+
+Exit psql:
+
+```sql
+\q
 ```
 
 ### Step 7 - Verify the parameter is set correctly
@@ -128,18 +152,43 @@ Run both tests to confirm:
 Test 1 - Non-SSL should fail:
 
 ```bash
-psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable" -c "SELECT 1;" 2>&1 | head -1
+psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=disable"
 ```
 
-Should show an error.
+Expected output (yours will differ):
+
+```
+psql: error: connection to server ... failed: FATAL:  no pg_hba.conf entry ... no encryption
+```
+
+This confirms unencrypted connections are blocked.
 
 Test 2 - SSL should succeed:
 
 ```bash
-psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=require" -c "SELECT 'ssl_enforced' AS status;"
+psql "host=${RDS_ENDPOINT} user=sutaadmin dbname=postgres sslmode=require"
 ```
 
-Should return `ssl_enforced`.
+Once connected, verify:
+
+```sql
+SELECT 'ssl_enforced' AS status;
+```
+
+Expected output:
+
+```
+    status
+--------------
+ ssl_enforced
+(1 row)
+```
+
+Exit psql:
+
+```sql
+\q
+```
 
 ---
 

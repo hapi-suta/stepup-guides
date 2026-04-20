@@ -44,6 +44,13 @@ Verify the certificate contents.
 openssl x509 -in /tmp/server-ca.pem -noout -subject -dates
 ```
 
+Expected output (yours will differ):
+```
+subject=CN = Google Cloud SQL Server CA
+notBefore=Apr 19 10:00:00 2026 GMT
+notAfter=Apr 19 10:00:00 2036 GMT
+```
+
 ---
 
 ## Step 4 - Test Connection with New Certificate
@@ -64,6 +71,14 @@ Verify SSL is active.
 
 ```sql
 SELECT ssl, version, cipher FROM pg_stat_ssl WHERE pid = pg_backend_pid();
+```
+
+Expected output (yours will differ):
+```
+ ssl | version |         cipher
+-----+---------+------------------------
+ t   | TLSv1.3 | TLS_AES_256_GCM_SHA384
+(1 row)
 ```
 
 Type `\q` to exit psql.

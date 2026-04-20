@@ -247,7 +247,11 @@ systemctl start postgres_exporter
 ### 1.7 Verify metrics are being exported
 
 ```bash
-curl -s http://localhost:9187/metrics | head -20
+curl -s http://localhost:9187/metrics > /tmp/pg-exporter-metrics.txt
+```
+
+```bash
+head -20 /tmp/pg-exporter-metrics.txt
 ```
 
 Expected output (yours will differ):
@@ -523,8 +527,16 @@ systemctl start prometheus
 ### 2.7 Verify Prometheus is running
 
 ```bash
-curl -s http://localhost:9090/api/v1/targets | python3 -m json.tool | head -20
+curl -s http://localhost:9090/api/v1/targets > /tmp/prom-targets.json
 ```
+
+This saves the Prometheus targets API response to a temp file.
+
+```bash
+python3 -m json.tool /tmp/prom-targets.json | head -20
+```
+
+This formats the JSON for readability and shows the first 20 lines.
 
 Expected output (yours will differ):
 ```json
@@ -909,7 +921,28 @@ su - postgres
 ```
 
 ```bash
-for i in $(seq 1 160); do /usr/pgsql-16/bin/psql -d appdb -c "SELECT pg_sleep(120);" & done
+vi /opt/pgsql/scripts/generate-connections.sh
+```
+
+Add:
+
+```bash
+#!/bin/bash
+# Generate 160 background connections to test alerting
+for i in $(seq 1 160)
+do
+    /usr/pgsql-16/bin/psql -d appdb -c "SELECT pg_sleep(120);" &
+done
+```
+
+Save and exit (`:wq`).
+
+```bash
+chmod 750 /opt/pgsql/scripts/generate-connections.sh
+```
+
+```bash
+/opt/pgsql/scripts/generate-connections.sh
 ```
 
 This launches 160 background psql sessions, each sleeping for 120 seconds. With max_connections=200, this is 80%.
@@ -917,7 +950,11 @@ This launches 160 background psql sessions, each sleeping for 120 seconds. With 
 Wait 5 minutes, then check Prometheus:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/alerts' | python3 -m json.tool | head -30
+curl -s 'http://localhost:9090/api/v1/alerts' > /tmp/prom-alerts.json
+```
+
+```bash
+python3 -m json.tool /tmp/prom-alerts.json | head -30
 ```
 
 You should see the ConnectionUsageHigh alert firing.
@@ -935,9 +972,13 @@ exit
 ### 5.2 Verify Prometheus targets
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/targets' | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
+curl -s 'http://localhost:9090/api/v1/targets' > /tmp/prom-targets-check.json
+```
+
+```bash
+python3 -c "
+import json
+data = json.load(open('/tmp/prom-targets-check.json'))
 for t in data['data']['activeTargets']:
     print(f\"{t['labels'].get('instance', t['labels']['job'])}: {t['health']}\")
 "
@@ -1022,7 +1063,11 @@ firewall-cmd --reload
 ### 6.4 Verify
 
 ```bash
-curl -s http://localhost:9100/metrics | head -5
+curl -s http://localhost:9100/metrics > /tmp/node-exporter-metrics.txt
+```
+
+```bash
+head -5 /tmp/node-exporter-metrics.txt
 ```
 
 Expected output (yours will differ):

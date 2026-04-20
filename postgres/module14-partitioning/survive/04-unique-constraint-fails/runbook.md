@@ -171,6 +171,14 @@ Clean up test rows:
 DELETE FROM orders_chaos4 WHERE order_id = 99999900;
 ```
 
+Exit psql:
+
+```sql
+\q
+```
+
+Exit the postgres session:
+
 ```bash
 exit
 ```

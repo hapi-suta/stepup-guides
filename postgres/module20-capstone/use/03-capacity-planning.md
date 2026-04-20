@@ -222,8 +222,16 @@ exit
 Check average CPU utilization from your monitoring (Grafana/Prometheus) or:
 
 ```bash
-top -bn1 | head -5
+top -bn1 > /tmp/top-output.txt
 ```
+
+The `-b` flag runs top in batch mode (non-interactive). The `-n1` flag takes a single snapshot.
+
+```bash
+head -5 /tmp/top-output.txt
+```
+
+This shows the CPU summary lines.
 
 - Current CPU utilization (avg): ____%
 - Current CPU utilization (peak): ____%

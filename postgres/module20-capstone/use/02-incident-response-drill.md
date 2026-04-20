@@ -256,8 +256,10 @@ su - postgres
 Check for old log files:
 
 ```bash
-ls -lhS /opt/pgsql/log/ | head -10
+ls -lhS /opt/pgsql/log/
 ```
+
+The `-l` flag shows details, `-h` shows human-readable sizes, and `-S` sorts by size (largest first). Look at the top 10 entries for the biggest files.
 
 ```bash
 exit

@@ -213,6 +213,14 @@ SELECT COUNT(*) FROM orders_chaos;
 
 Confirm the count matches the 5000 rows that were originally inserted.
 
+Exit psql:
+
+```sql
+\q
+```
+
+Exit the postgres session:
+
 ```bash
 exit
 ```

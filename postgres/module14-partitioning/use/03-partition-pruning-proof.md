@@ -46,6 +46,8 @@ Expected output:
 
 Run a query with NO partition key filter to see what a full-table scan looks like across all partitions:
 
+The `ANALYZE` option actually runs the query (not just plans it). `BUFFERS` shows how many disk pages were read. `FORMAT TEXT` outputs the plan in readable text format:
+
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 SELECT COUNT(*) FROM orders_partitioned

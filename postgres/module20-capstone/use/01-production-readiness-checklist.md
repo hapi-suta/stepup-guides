@@ -62,7 +62,7 @@ Score: ___
 ```
 
 ```bash
-free -h | head -2
+free -h
 ```
 
 PASS if: shared_buffers is approximately 25% of total RAM
@@ -154,8 +154,10 @@ Score: ___
 ### B3. No trust authentication for remote connections
 
 ```bash
-grep "trust" /opt/pgsql/data/pg_hba.conf | grep -v "^#"
+grep "trust" /opt/pgsql/data/pg_hba.conf
 ```
+
+Look at the output. Ignore any lines starting with `#` (those are comments). Only active lines matter.
 
 PASS if: No output OR only `local ... trust` for postgres peer auth
 FAIL if: Any `host ... trust` line
@@ -452,7 +454,15 @@ Score: ___
 ### E5. Alert rules are configured
 
 ```bash
-curl -s http://localhost:9090/api/v1/rules | python3 -c "import sys, json; data=json.load(sys.stdin); print(f\"Rules: {len(data['data']['groups'][0]['rules'])}\")"
+curl -s http://localhost:9090/api/v1/rules > /tmp/prom-rules.json
+```
+
+```bash
+python3 -c "
+import json
+data = json.load(open('/tmp/prom-rules.json'))
+print(f\"Rules: {len(data['data']['groups'][0]['rules'])}\")
+"
 ```
 
 PASS if: At least 5 rules

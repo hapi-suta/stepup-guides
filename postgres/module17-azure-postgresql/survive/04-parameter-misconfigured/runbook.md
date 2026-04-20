@@ -134,6 +134,15 @@ SHOW log_min_duration_statement;
 SHOW work_mem;
 ```
 
+Expected output (yours will differ):
+
+```
+ work_mem
+----------
+ 16MB
+(1 row)
+```
+
 Exit psql.
 
 ```sql

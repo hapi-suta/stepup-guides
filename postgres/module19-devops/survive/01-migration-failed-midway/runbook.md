@@ -26,6 +26,17 @@ Check the migration tracking table to see what happened.
 SELECT version, description, success, applied_at FROM schema_migrations ORDER BY version;
 ```
 
+Expected output (yours will differ):
+```
+ version |      description      | success |         applied_at
+---------+-----------------------+---------+----------------------------
+       1 | create_employees      | t       | 2026-04-19 10:00:00.000000
+       2 | add_departments       | f       | 2026-04-19 10:05:00.000000
+(2 rows)
+```
+
+Version 2 shows `success = f` - it failed partway through.
+
 List all tables to see what exists.
 
 ```sql
@@ -125,6 +136,17 @@ Verify.
 ```sql
 SELECT version, description, success FROM schema_migrations ORDER BY version;
 ```
+
+Expected output:
+```
+ version |      description      | success
+---------+-----------------------+---------
+       1 | create_employees      | t
+       2 | add_departments       | t
+(2 rows)
+```
+
+Both migrations now show `success = t`.
 
 Exit psql.
 

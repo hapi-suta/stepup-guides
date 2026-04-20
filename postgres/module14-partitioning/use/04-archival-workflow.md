@@ -311,9 +311,11 @@ Enter the following content:
 ```bash
 #!/usr/bin/env bash
 # archive_partition.sh - Archive and drop one monthly partition from orders_partitioned
+# Run this script as the postgres user.
 # Usage: archive_partition.sh YYYY MM
 # Example: archive_partition.sh 2023 02
 
+# -e: exit on any error. -u: error on undefined variables. -o pipefail: catch errors in pipes.
 set -euo pipefail
 
 YEAR="${1:?Usage: $0 YYYY MM}"
@@ -323,39 +325,49 @@ PARTITION_NAME="orders_$(printf "%04d" "$YEAR")_${MONTH_PAD}"
 BACKUP_DIR="/opt/pgsql/backup"
 BACKUP_FILE="${BACKUP_DIR}/${PARTITION_NAME}.csv"
 PSQL="/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
-DB_USER="postgres"
 
-log() { printf "[%s] %s\n" "$(date +%F\ %T)" "$*"; }
-die() { log "ERROR: $*"; exit 1; }
+log() {
+    printf "[%s] %s\n" "$(date +%F\ %T)" "$*"
+}
+
+die() {
+    log "ERROR: $*"
+    exit 1
+}
 
 log "Starting archival of ${PARTITION_NAME}"
 
 # Step 1: verify partition exists
-EXISTS=$(sudo -u postgres $PSQL -t -A -c "
+# -t: tuples only (no headers). -A: no alignment. -c: run command.
+EXISTS=$($PSQL -t -A -c "
   SELECT COUNT(*) FROM pg_class WHERE relname = '${PARTITION_NAME}'
 ")
-[[ "$EXISTS" -eq "1" ]] || die "Partition ${PARTITION_NAME} does not exist"
+if [[ "$EXISTS" -ne "1" ]]; then
+    die "Partition ${PARTITION_NAME} does not exist"
+fi
 
 # Step 2: get row count
-ROW_COUNT=$(sudo -u postgres $PSQL -t -A -c "SELECT COUNT(*) FROM ${PARTITION_NAME}")
+ROW_COUNT=$($PSQL -t -A -c "SELECT COUNT(*) FROM ${PARTITION_NAME}")
 log "Partition has ${ROW_COUNT} rows"
 
 # Step 3: export to CSV
 log "Exporting to ${BACKUP_FILE}"
-sudo -u postgres $PSQL -c "\COPY ${PARTITION_NAME} TO '${BACKUP_FILE}' WITH (FORMAT csv, HEADER true)"
+$PSQL -c "\COPY ${PARTITION_NAME} TO '${BACKUP_FILE}' WITH (FORMAT csv, HEADER true)"
 
 # Step 4: verify CSV row count
 CSV_ROWS=$(( $(wc -l < "$BACKUP_FILE") - 1 ))
-[[ "$CSV_ROWS" -eq "$ROW_COUNT" ]] || die "CSV has ${CSV_ROWS} rows but partition has ${ROW_COUNT}"
+if [[ "$CSV_ROWS" -ne "$ROW_COUNT" ]]; then
+    die "CSV has ${CSV_ROWS} rows but partition has ${ROW_COUNT}"
+fi
 log "CSV verified: ${CSV_ROWS} rows match"
 
 # Step 5: detach partition
 log "Detaching ${PARTITION_NAME}"
-sudo -u postgres $PSQL -c "ALTER TABLE orders_partitioned DETACH PARTITION ${PARTITION_NAME} CONCURRENTLY"
+$PSQL -c "ALTER TABLE orders_partitioned DETACH PARTITION ${PARTITION_NAME} CONCURRENTLY"
 
 # Step 6: drop partition
 log "Dropping ${PARTITION_NAME}"
-sudo -u postgres $PSQL -c "DROP TABLE ${PARTITION_NAME}"
+$PSQL -c "DROP TABLE ${PARTITION_NAME}"
 
 log "Archival complete. Backup: ${BACKUP_FILE}"
 ```
@@ -366,6 +378,12 @@ Make the script executable:
 
 ```bash
 chmod +x /opt/pgsql/scripts/archive_partition.sh
+```
+
+Switch to the `postgres` user to test the script:
+
+```bash
+sudo -iu postgres
 ```
 
 Test the script by archiving February 2023:
@@ -384,6 +402,12 @@ Expected output (yours will differ):
 [2025-04-19 14:45:03] Detaching orders_2023_02
 [2025-04-19 14:45:04] Dropping orders_2023_02
 [2025-04-19 14:45:04] Archival complete. Backup: /opt/pgsql/backup/orders_2023_02.csv
+```
+
+Exit the postgres session:
+
+```bash
+exit
 ```
 
 ---

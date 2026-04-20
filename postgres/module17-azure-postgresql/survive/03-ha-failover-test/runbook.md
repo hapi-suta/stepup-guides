@@ -37,7 +37,13 @@ az monitor activity-log list \
 ### Step 3 - Test Connectivity
 
 ```bash
-psql "host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=postgres user=pgadmin sslmode=require" -c "SELECT 1 AS connectivity_test;"
+psql "host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=postgres user=pgadmin sslmode=require"
+```
+
+Once connected, run a quick test:
+
+```sql
+SELECT 1 AS connectivity_test;
 ```
 
 Expected output:
@@ -46,6 +52,13 @@ Expected output:
  connectivity_test
 -------------------
                  1
+(1 row)
+```
+
+Exit psql:
+
+```sql
+\q
 ```
 
 ---
@@ -91,6 +104,15 @@ INSERT INTO failover_verify DEFAULT VALUES;
 
 ```sql
 SELECT * FROM failover_verify;
+```
+
+Expected output (yours will differ):
+
+```
+ id |              ts
+----+-------------------------------
+  1 | 2026-04-19 14:30:00.123456+00
+(1 row)
 ```
 
 ```sql

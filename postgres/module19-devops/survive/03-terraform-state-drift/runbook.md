@@ -42,6 +42,12 @@ Also check if there are overrides in postgresql.auto.conf. This file is where `A
 cat /opt/pgsql/data/postgresql.auto.conf
 ```
 
+Expected output (yours will differ):
+```
+log_min_duration_statement = '5000'
+idle_in_transaction_session_timeout = '0'
+```
+
 You should see the drifted values here - someone used ALTER SYSTEM to change them manually.
 
 ---

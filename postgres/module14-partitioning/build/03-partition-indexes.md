@@ -250,14 +250,10 @@ ERROR:  there is no unique constraint matching given keys for referenced table "
 > **Concept - Foreign keys and partitioned tables**
 > Before PostgreSQL 12, foreign keys TO a partitioned table were not supported at all. PG12 added support, but with the restriction that the referenced column(s) must form a unique key that includes the partition key - which means your application must carry the partition key through to the referencing table. This is a real design constraint. If your application only knows `order_id` and not `order_date`, you cannot use a foreign key to a partitioned table. In that case, you either keep the foreign key relationship on the non-partitioned version, or enforce integrity at the application level.
 
-Clean up the test objects:
+Clean up the test table (only `order_notes` was created successfully - `order_notes_bad` failed to create):
 
 ```sql
 DROP TABLE order_notes;
-```
-
-```sql
-DROP TABLE order_notes_bad;
 ```
 
 ---

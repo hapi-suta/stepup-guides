@@ -96,11 +96,13 @@ Exit psql:
 
 Autovacuum runs on individual partitions automatically, but you sometimes need to trigger VACUUM or ANALYZE manually - for example, after a large bulk load into one partition.
 
-Run ANALYZE on a specific partition to update the planner's row statistics:
+Run ANALYZE on a specific partition to update the planner's row statistics. The `-c` flag lets you run a single SQL command from the shell without entering psql interactively:
 
 ```bash
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ANALYZE orders_2024_06;"
 ```
+
+The flags: `-p 5432` connects to port 5432. `-d stepup_store` connects to the stepup_store database. `-c "..."` runs the quoted SQL command and exits.
 
 Expected output:
 
@@ -190,9 +192,11 @@ Enter the following content:
 ```bash
 #!/usr/bin/env bash
 # create_partitions.sh - Create monthly partitions for orders_partitioned
+# Run this script as the postgres user.
 # Run this script monthly (first of the month) to stay ahead of the data.
 # Creates the next 3 months of partitions if they do not already exist.
 
+# -e: exit on any error. -u: error on undefined variables. -o pipefail: catch errors in pipes.
 set -euo pipefail
 
 PSQL="/usr/pgsql-16/bin/psql"
@@ -200,7 +204,9 @@ DB="stepup_store"
 TABLE="orders_partitioned"
 MONTHS_AHEAD=3
 
-log() { printf "[%s] %s\n" "$(date +%F\ %T)" "$*"; }
+log() {
+    printf "[%s] %s\n" "$(date +%F\ %T)" "$*"
+}
 
 for i in $(seq 1 $MONTHS_AHEAD); do
     # Calculate the target month
@@ -209,14 +215,15 @@ for i in $(seq 1 $MONTHS_AHEAD); do
     PARTITION_NAME="${TABLE%_partitioned}_$(date -d "$PARTITION_START" +%Y_%m)"
 
     # Check if partition already exists
-    EXISTS=$(sudo -u postgres $PSQL -d $DB -t -A -c "
+    # -t: tuples only (no headers). -A: no alignment. -c: run command.
+    EXISTS=$($PSQL -d $DB -t -A -c "
         SELECT COUNT(*) FROM pg_class
         WHERE relname = '${PARTITION_NAME}'
     ")
 
     if [[ "$EXISTS" -eq "0" ]]; then
         log "Creating partition: $PARTITION_NAME ($PARTITION_START to $PARTITION_END)"
-        sudo -u postgres $PSQL -d $DB -c "
+        $PSQL -d $DB -c "
             CREATE TABLE ${PARTITION_NAME}
                 PARTITION OF ${TABLE}
                 FOR VALUES FROM ('${PARTITION_START}') TO ('${PARTITION_END}');
@@ -238,7 +245,13 @@ Make the script executable:
 chmod +x /opt/pgsql/scripts/create_partitions.sh
 ```
 
-Test the script by running it:
+Switch to the `postgres` user to test the script:
+
+```bash
+sudo -iu postgres
+```
+
+Run the script:
 
 ```bash
 bash /opt/pgsql/scripts/create_partitions.sh
@@ -256,6 +269,12 @@ Expected output (yours will differ):
 
 > **Concept - pg_partman: the production alternative**
 > The shell script above works and is educational, but the PostgreSQL community uses `pg_partman` for production partition management. pg_partman is an extension that handles partition creation, maintenance, and retention automatically. It supports time-based and serial-based partitioning, background partition creation, and automated retention policies (drop old partitions after N months). On managed cloud services (RDS, Aurora), pg_partman is often pre-installed. For SUTA Labs, the shell script teaches the mechanics. In a real job, ask whether pg_partman is available before writing your own scripts.
+
+Exit the postgres session:
+
+```bash
+exit
+```
 
 Set up a cron job to run the script on the 1st of every month:
 

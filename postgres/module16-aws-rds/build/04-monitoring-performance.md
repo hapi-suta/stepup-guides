@@ -25,10 +25,22 @@ aws cloudwatch list-metrics \
     --namespace AWS/RDS \
     --dimensions Name=DBInstanceIdentifier,Value=suta-pg-lab \
     --query "Metrics[*].MetricName" \
-    --output text | tr '\t' '\n' | sort
+    --output text > /tmp/rds-metrics.txt
 ```
 
-This lists all metric names CloudWatch collects for your instance. `tr '\t' '\n'` puts each metric on its own line. `sort` orders them alphabetically.
+This saves all metric names to a file.
+
+```bash
+tr '\t' '\n' < /tmp/rds-metrics.txt > /tmp/rds-metrics-lines.txt
+```
+
+This converts tabs to newlines so each metric appears on its own line.
+
+```bash
+sort /tmp/rds-metrics-lines.txt
+```
+
+This orders the metrics alphabetically for easy reading.
 
 Expected output (yours will differ):
 

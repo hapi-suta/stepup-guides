@@ -60,10 +60,34 @@ aws rds describe-orderable-db-instance-options \
     --engine postgres \
     --engine-version 15.4 \
     --query "OrderableDBInstanceOptions[].DBInstanceClass" \
-    --output text | tr '\t' '\n' | sort -u | head -20
+    --output text
 ```
 
-The `--query` flag uses JMESPath to extract just the class names. `tr` converts tabs to newlines so each class appears on its own line. `sort -u` removes duplicates. `head -20` limits to 20 results.
+The `--query` flag uses JMESPath to extract just the class names.
+
+Now sort the output and remove duplicates. Pipe the previous output through these commands.
+
+```bash
+aws rds describe-orderable-db-instance-options \
+    --engine postgres \
+    --engine-version 15.4 \
+    --query "OrderableDBInstanceOptions[].DBInstanceClass" \
+    --output text > /tmp/rds-classes.txt
+```
+
+This saves the raw output to a file.
+
+```bash
+tr '\t' '\n' < /tmp/rds-classes.txt > /tmp/rds-classes-lines.txt
+```
+
+This converts tabs to newlines so each class appears on its own line.
+
+```bash
+sort -u /tmp/rds-classes-lines.txt
+```
+
+The `-u` flag removes duplicates. `sort` orders alphabetically.
 
 Expected output (yours will differ):
 

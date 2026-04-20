@@ -109,10 +109,27 @@ Exit the postgres user.
 exit
 ```
 
-Run the migration.
+Run the migration. Switch to the postgres user first.
 
 ```bash
-sudo -iu postgres psql -d testdb -f /tmp/ci-broken-lab/db/migrations/V1__create_users.sql
+sudo -iu postgres
+```
+
+Apply the migration file.
+
+```bash
+psql -d testdb -f /tmp/ci-broken-lab/db/migrations/V1__create_users.sql
+```
+
+Expected output:
+```
+CREATE TABLE
+```
+
+Exit the postgres user.
+
+```bash
+exit
 ```
 
 Run the test script.

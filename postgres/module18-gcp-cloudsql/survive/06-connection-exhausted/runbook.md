@@ -58,6 +58,16 @@ GROUP BY state
 ORDER BY count DESC;
 ```
 
+Expected output (yours will differ):
+```
+        state        | count
+---------------------+-------
+ idle                |    47
+ active              |     3
+ idle in transaction |     1
+(3 rows)
+```
+
 ---
 
 ## Step 4 - Terminate Idle Connections
@@ -120,6 +130,14 @@ psql -h 127.0.0.1 -U postgres -d suta_lab
 
 ```sql
 SHOW max_connections;
+```
+
+Expected output:
+```
+ max_connections
+-----------------
+ 100
+(1 row)
 ```
 
 Check current connection count.

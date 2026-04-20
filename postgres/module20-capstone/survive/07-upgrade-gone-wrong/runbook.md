@@ -142,7 +142,12 @@ systemctl start postgresql-16
 systemctl status postgresql-16
 ```
 
-Should show `active (running)`.
+Expected output (yours will differ):
+```
+ postgresql-16.service - PostgreSQL 16 Production
+     Active: active (running) since ...
+...
+```
 
 ### Step 5: Verify data integrity
 
@@ -164,7 +169,14 @@ Compare with the values in the state file (`/tmp/stepup-capstone-07-state.env`).
 /usr/pgsql-16/bin/psql -c "SELECT version();"
 ```
 
-Should show PostgreSQL 16 (the original version, since the upgrade failed).
+Expected output (yours will differ):
+```
+                          version
+-------------------------------------------------------
+ PostgreSQL 16.x on x86_64-pc-linux-gnu, compiled by ...
+```
+
+This confirms you are back on PostgreSQL 16 (the original version, since the upgrade failed).
 
 ### Step 6: Clean up failed upgrade artifacts
 

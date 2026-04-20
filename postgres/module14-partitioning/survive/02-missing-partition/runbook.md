@@ -159,6 +159,14 @@ FROM orders_chaos2_2024_03;
 
 Confirm dates are all within March 2024.
 
+Exit psql:
+
+```sql
+\q
+```
+
+Exit the postgres session:
+
 ```bash
 exit
 ```

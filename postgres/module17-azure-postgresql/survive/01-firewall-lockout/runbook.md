@@ -35,6 +35,13 @@ az postgres flexible-server firewall-rule list \
 
 If this returns an empty table, that is the problem. No firewall rules means no IPs are allowed.
 
+Expected output (if no rules exist):
+
+```
+Name    StartIpAddress    EndIpAddress    ResourceGroup
+------  ----------------  --------------  ---------------
+```
+
 ### Step 3 - Find Your Public IP
 
 Get your current public IP address.
@@ -67,6 +74,21 @@ psql "host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=postg
 ```
 
 Enter the password when prompted. If the connection succeeds, the fix is complete.
+
+Once connected, verify the database is responding:
+
+```sql
+SELECT 'firewall_fixed' AS status;
+```
+
+Expected output:
+
+```
+     status
+----------------
+ firewall_fixed
+(1 row)
+```
 
 Exit psql.
 

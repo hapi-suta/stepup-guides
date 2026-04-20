@@ -34,6 +34,18 @@ aws rds describe-db-instances \
     --output table
 ```
 
+Expected output (yours will differ):
+
+```
+----------------------------------------------
+|          DescribeDBInstances               |
++--------------+-----------+-----------------+
+| AllocatedGB  | StorageType |    Status     |
++--------------+-------------+---------------+
+|  20          | gp3         |  available    |
++--------------+-------------+---------------+
+```
+
 Note the current AllocatedStorage value. You will increase it.
 
 ### Step 3 - Check instance events
@@ -192,7 +204,26 @@ aws rds describe-db-instances \
 Test that writes work:
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 -c "CREATE TABLE storage_test (id int); DROP TABLE storage_test;"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432
+```
+
+```sql
+CREATE TABLE storage_test (id int);
+```
+
+```sql
+DROP TABLE storage_test;
+```
+
+```sql
+\q
+```
+
+Expected output (yours will differ):
+
+```
+CREATE TABLE
+DROP TABLE
 ```
 
 ---

@@ -25,6 +25,20 @@ aws cloudwatch get-metric-statistics \
 
 ReplicaLag is in seconds. Under 5 seconds is healthy. Over 60 seconds needs attention. Over 300 seconds is critical.
 
+Expected output (yours will differ):
+
+```
+--------------------------------------------------------------
+|               GetMetricStatistics                          |
++--------+----------------------------+----------+-----------+
+| AvgLag |           Time             |  MaxLag  |           |
++--------+----------------------------+----------+-----------+
+|  125.3 | 2024-01-15T14:20:00+00:00  |  180.5   |           |
+|  145.7 | 2024-01-15T14:21:00+00:00  |  210.2   |           |
+|  160.1 | 2024-01-15T14:22:00+00:00  |  245.8   |           |
++--------+----------------------------+----------+-----------+
+```
+
 ### Step 2 - Check primary write activity
 
 ```bash
@@ -191,7 +205,13 @@ aws cloudwatch get-metric-statistics \
     --query "sort_by(Datapoints, &Timestamp) | [-1].Average"
 ```
 
-The value should be under 5 seconds.
+Expected output (yours will differ):
+
+```
+2.3
+```
+
+The value should be under 5 seconds. If it is still above 5, wait a few more minutes and check again.
 
 ---
 

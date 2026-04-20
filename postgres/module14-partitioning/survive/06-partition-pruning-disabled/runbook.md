@@ -86,6 +86,11 @@ Partition pruning is disabled. This is the root cause.
 
 ```sql
 SET enable_partition_pruning = on;
+```
+
+Now run EXPLAIN again with pruning enabled:
+
+```sql
 EXPLAIN SELECT * FROM chaos6_sales WHERE sale_date = '2024-03-15';
 ```
 

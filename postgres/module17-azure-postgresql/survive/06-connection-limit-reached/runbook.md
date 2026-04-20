@@ -83,6 +83,15 @@ Verify connections dropped.
 SELECT count(*) AS remaining FROM pg_stat_activity;
 ```
 
+Expected output (yours will differ):
+
+```
+ remaining
+-----------
+         3
+(1 row)
+```
+
 Exit psql.
 
 ```sql

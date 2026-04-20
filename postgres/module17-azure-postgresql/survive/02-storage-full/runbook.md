@@ -35,6 +35,14 @@ az postgres flexible-server show \
   --output table
 ```
 
+Expected output (yours will differ):
+
+```
+Storage_GB    AutoGrow
+------------  ----------
+32            Disabled
+```
+
 ### Step 3 - Find the Largest Tables
 
 Connect to the server (if still possible in read-only mode) and check table sizes.

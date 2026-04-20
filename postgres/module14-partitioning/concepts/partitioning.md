@@ -61,8 +61,13 @@ CREATE TABLE tickets (
     region  text NOT NULL,
     subject text
 ) PARTITION BY LIST (region);
+```
 
+```sql
 CREATE TABLE tickets_us PARTITION OF tickets FOR VALUES IN ('us-east', 'us-west');
+```
+
+```sql
 CREATE TABLE tickets_eu PARTITION OF tickets FOR VALUES IN ('eu-west', 'eu-central');
 ```
 
@@ -75,10 +80,21 @@ CREATE TABLE sessions (
     id      uuid PRIMARY KEY,
     data    jsonb
 ) PARTITION BY HASH (id);
+```
 
+```sql
 CREATE TABLE sessions_0 PARTITION OF sessions FOR VALUES WITH (MODULUS 4, REMAINDER 0);
+```
+
+```sql
 CREATE TABLE sessions_1 PARTITION OF sessions FOR VALUES WITH (MODULUS 4, REMAINDER 1);
+```
+
+```sql
 CREATE TABLE sessions_2 PARTITION OF sessions FOR VALUES WITH (MODULUS 4, REMAINDER 2);
+```
+
+```sql
 CREATE TABLE sessions_3 PARTITION OF sessions FOR VALUES WITH (MODULUS 4, REMAINDER 3);
 ```
 
@@ -135,7 +151,9 @@ A unique constraint on a partitioned table **must include the partition key**:
 ```sql
 -- This FAILS
 ALTER TABLE orders ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+```
 
+```sql
 -- This WORKS
 ALTER TABLE orders ADD CONSTRAINT orders_pkey PRIMARY KEY (id, created_at);
 ```
@@ -198,7 +216,9 @@ Without a default partition, inserting a row that doesn't match any range/list c
 ```sql
 -- Blocks writes briefly
 ALTER TABLE orders DETACH PARTITION orders_2024_q1;
+```
 
+```sql
 -- Non-blocking (PG 14+) - two-phase
 ALTER TABLE orders DETACH PARTITION orders_2024_q1 CONCURRENTLY;
 ```
@@ -220,7 +240,11 @@ PostgreSQL validates that all existing rows in the table match the partition con
 ```sql
 ALTER TABLE orders_new ADD CONSTRAINT chk
     CHECK (created_at >= '2026-01-01' AND created_at < '2026-04-01');
--- Now ATTACH skips the full scan
+```
+
+Now ATTACH skips the full scan:
+
+```sql
 ALTER TABLE orders ATTACH PARTITION orders_new
     FOR VALUES FROM ('2026-01-01') TO ('2026-04-01');
 ```
@@ -245,7 +269,9 @@ Partitions can themselves be partitioned:
 CREATE TABLE orders_2025 PARTITION OF orders
     FOR VALUES FROM ('2025-01-01') TO ('2026-01-01')
     PARTITION BY LIST (region);
+```
 
+```sql
 CREATE TABLE orders_2025_us PARTITION OF orders_2025
     FOR VALUES IN ('us');
 ```
@@ -282,6 +308,9 @@ DELETE FROM orders WHERE created_at < '2024-01-01';  -- slow, generates WAL, lea
 Do:
 ```sql
 ALTER TABLE orders DETACH PARTITION orders_2023;
+```
+
+```sql
 DROP TABLE orders_2023;  -- instant, no dead tuples
 ```
 

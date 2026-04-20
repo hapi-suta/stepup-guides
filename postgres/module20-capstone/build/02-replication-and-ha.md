@@ -59,7 +59,7 @@ A replication slot guarantees that the primary retains WAL segments the standby 
 ### 1.3 Verify pg_hba.conf allows replication
 
 ```bash
-cat /opt/pgsql/data/pg_hba.conf | grep replication
+grep replication /opt/pgsql/data/pg_hba.conf
 ```
 
 Expected output:
@@ -764,6 +764,10 @@ tail -5 /var/log/repmgr/repmgr.log
 Expected output (yours will differ):
 ```
 [INFO] monitoring primary node "pg-prod-primary" (ID: 1) in normal state
+```
+
+```bash
+exit
 ```
 
 ### 7.2 Simulate primary failure

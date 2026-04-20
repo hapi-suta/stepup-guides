@@ -175,7 +175,19 @@ All three should look correct: `available`, a different AZ than before, and `Tru
 Test a write to confirm full functionality:
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 -c "CREATE TABLE failover_test (id int); DROP TABLE failover_test; SELECT 'writes_work' AS status;"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432
+```
+
+```sql
+CREATE TABLE failover_test (id int);
+```
+
+```sql
+DROP TABLE failover_test;
+```
+
+```sql
+SELECT 'writes_work' AS status;
 ```
 
 Expected output:
@@ -185,6 +197,12 @@ Expected output:
 -----------
  writes_work
 (1 row)
+```
+
+Exit psql:
+
+```sql
+\q
 ```
 
 ---

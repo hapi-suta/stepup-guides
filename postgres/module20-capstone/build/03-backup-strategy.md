@@ -678,11 +678,12 @@ Add:
 #!/bin/bash
 # Check if WAL archiving is working
 # Queries pg_stat_archiver for failed archive attempts
+# Run this script as the postgres user
 
-FAILED=$(su - postgres -c "/usr/pgsql-16/bin/psql -t -A -c \"SELECT failed_count FROM pg_stat_archiver;\"")
+FAILED=$(/usr/pgsql-16/bin/psql -t -A -c "SELECT failed_count FROM pg_stat_archiver;")
 
 if [ "$FAILED" -gt 0 ]; then
-    LAST_FAIL=$(su - postgres -c "/usr/pgsql-16/bin/psql -t -A -c \"SELECT last_failed_time FROM pg_stat_archiver;\"")
+    LAST_FAIL=$(/usr/pgsql-16/bin/psql -t -A -c "SELECT last_failed_time FROM pg_stat_archiver;")
     echo "WARNING: $FAILED WAL archive failures. Last failure: $LAST_FAIL"
     exit 1
 fi

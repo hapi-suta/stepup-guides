@@ -1061,8 +1061,10 @@ Any number greater than 0 means the extension is collecting query statistics.
 ### 12.5 Check data checksums
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep checksum
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data
 ```
+
+Look for the line `Data page checksum version:` in the output.
 
 Expected output:
 ```

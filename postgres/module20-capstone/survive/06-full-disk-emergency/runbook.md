@@ -14,6 +14,13 @@
 df -h
 ```
 
+Expected output (yours will differ):
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       50G   47G  3.0G  94% /
+...
+```
+
 Identify which filesystems are near full.
 
 ```bash
@@ -82,6 +89,14 @@ Drop the inactive slot:
 /usr/pgsql-16/bin/psql -c "SELECT pg_drop_replication_slot('leak_slot_capstone');"
 ```
 
+Expected output (yours will differ):
+```
+ pg_drop_replication_slot
+--------------------------
+
+(1 row)
+```
+
 Verify the WAL can now be cleaned:
 
 ```bash
@@ -144,6 +159,13 @@ exit
 
 ```bash
 df -h
+```
+
+Expected output (yours will differ):
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/xvda1       50G   30G   20G  60% /
+...
 ```
 
 All partitions should have at least 15% free space.

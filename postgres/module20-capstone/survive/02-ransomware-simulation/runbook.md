@@ -20,6 +20,18 @@ su - postgres
 /usr/pgsql-16/bin/psql -d appdb -c "\dt app.*"
 ```
 
+Expected output (yours will differ):
+```
+              List of relations
+ Schema |              Name               | Type  |  Owner
+--------+---------------------------------+-------+---------
+ app    | customers_encrypted_pay_5btc     | table | app_owner
+ app    | orders_encrypted_pay_5btc        | table | app_owner
+ app    | items_encrypted_pay_5btc         | table | app_owner
+ app    | ransom_note                      | table | app_owner
+...
+```
+
 You should see the renamed tables (ending in `_encrypted_pay_5btc`) and the `ransom_note` table.
 
 Check if the audit trail is gone:
@@ -56,6 +68,17 @@ Verify:
 
 ```bash
 pgbackrest --stanza=prod info
+```
+
+Expected output (yours will differ):
+```
+stanza: prod
+    status: ok
+    cipher: aes-256-cbc
+
+    db (current)
+        full backup: 20260419-...
+...
 ```
 
 You should see your backups listed again.

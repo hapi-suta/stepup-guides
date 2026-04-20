@@ -59,10 +59,20 @@ RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier suta-pg-la
 Create a pgbench database:
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 -c "CREATE DATABASE pgbench_test;"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432
 ```
 
-The `-c` flag runs a single command and exits.
+Once connected, create the pgbench database:
+
+```sql
+CREATE DATABASE pgbench_test;
+```
+
+Exit psql:
+
+```sql
+\q
+```
 
 Initialize pgbench tables with a scale factor of 10:
 
@@ -315,7 +325,15 @@ Expected output:
 ## Clean Up
 
 ```bash
-psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432 -c "DROP DATABASE pgbench_test;"
+psql -h "${RDS_ENDPOINT}" -U sutaadmin -d postgres -p 5432
+```
+
+```sql
+DROP DATABASE pgbench_test;
+```
+
+```sql
+\q
 ```
 
 ```bash
