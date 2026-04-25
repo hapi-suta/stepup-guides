@@ -65,19 +65,19 @@ In this lab, all three components live on the same server as PostgreSQL:
 ┌────────────────────────────────────────────────────────────────┐
 │                       CentOS Stream 9                          │
 │                                                                │
-│  ┌──────────────────────┐       ┌───────────────────────────┐  │
-│  │   PostgreSQL 16      │       │   pgBackRest Repository   │  │
-│  │                      │       │                           │  │
-│  │  PGDATA:             │       │  /opt/pgsql/backup/       │  │
-│  │  /opt/pgsql/data     │       │    pgbackrest/            │  │
-│  │                      │       │    ├── archive/           │  │
-│  │  archive_command ──────────> │    │   └── main/          │  │
-│  │   (archive-push)     │       │    │       └── 16-1/      │  │
-│  │                      │       │    └── backup/            │  │
-│  │  restore_command <────────── │        └── main/          │  │
-│  │   (archive-get)      │       │            ├── (backups   │  │
-│  │                      │       │            └── (manifests │  │
-│  └──────────────────────┘       └───────────────────────────┘  │
+│  ┌─────────────────────┐       ┌────────────────────────────┐  │
+│  │   PostgreSQL 16      │       │   pgBackRest Repository    │  │
+│  │                      │       │                            │  │
+│  │  PGDATA:             │       │  /opt/pgsql/backup/        │  │
+│  │  /opt/pgsql/data     │       │    pgbackrest/             │  │
+│  │                      │       │    ├── archive/            │  │
+│  │  archive_command ──────────> │    │   └── main/           │  │
+│  │   (archive-push)     │       │    │       └── 16-1/       │  │
+│  │                      │       │    └── backup/             │  │
+│  │  restore_command <────────── │        └── main/           │  │
+│  │   (archive-get)      │       │            ├── (backups)   │  │
+│  │                      │       │            └── (manifests) │  │
+│  └─────────────────────┘       └────────────────────────────┘  │
 │                                                                │
 │  Config: /etc/pgbackrest.conf                                  │
 │  Binary: /usr/bin/pgbackrest                                   │
@@ -210,8 +210,8 @@ Monday       Tuesday     Wednesday   Thursday    Friday
    │             │            │            │            │
    │             └─depends──> │            │            │
    │             └─depends────────────────>│            │
-   │             └─depends───────────────────────────>  │
-   └─────────────────────all diffs depend on this full ─┘
+   │             └─depends───────────────────────────> │
+   └─────────────────────all diffs depend on this full─┘
 ```
 
 If you delete Monday's full backup, all four differential backups become useless - they only contain the changed files, not the complete database.
@@ -220,11 +220,11 @@ Incremental chains are even more fragile:
 
 ```
 Monday       Tuesday     Wednesday   Thursday    Friday
-  FULL ─────── INCR ─────── INCR ─────── INCR ───────   INCR
-   │             │            │            │               │
-   │             └──────────> │            │               │
-   │                          └──────────> │               │
-   │                                       └──────────>    │
+  FULL ─────── INCR ─────── INCR ─────── INCR ─────── INCR
+   │             │            │            │            │
+   │             └──────────> │            │            │
+   │                          └──────────> │            │
+   │                                       └──────────>│
    └──────────────chain: each link depends on the previous─┘
 ```
 
@@ -290,9 +290,9 @@ PostgreSQL                     pgBackRest                 Repository
     │                              │── read file ──>          │
     │                              │── compress ──>           │
     │                              │── checksum ──>           │
-    │                              │── write ────────────────>│
+    │                              │── write ─────────────────>│
     │                              │                          │
-    │<──── exit code 0 ─────────── │                          │
+    │<──── exit code 0 ───────────│                          │
     │                              │                          │
     │  (safe to recycle WAL file)  │                          │
 ```
