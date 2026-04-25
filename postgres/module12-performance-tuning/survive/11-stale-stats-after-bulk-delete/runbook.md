@@ -1,8 +1,11 @@
 # Scenario 11 - Stale Statistics After Bulk Delete
 
 **Severity:** CRITICAL
+
 **Expected Recovery Time:** 5-10 minutes
+
 **Single Node:** NODE1 only
+
 **Based on:** Real production incident - bulk data deletion without ANALYZE caused widespread performance degradation across all application modules.
 
 ---
