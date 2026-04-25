@@ -18,7 +18,7 @@ Step-by-step lab guides for learning PostgreSQL administration. Built from real 
 | [10 - Monitoring](postgres/module10-monitoring/) | pg_stat Views, Log Analysis, Alerting | 5 | 6 | 10 |
 | [11 - Streaming Replication](postgres/module11-streaming-replication/) | Primary/Standby, WAL Shipping | 5 | 5 | 1 |
 | [11 - Repmgr HA](postgres/module11-repmgr-ha/) | Repmgr, Automated Failover, Switchover | 7 | 6 | 10 |
-| [12 - Performance Tuning](postgres/module12-performance-tuning/) | EXPLAIN, Indexing, Memory, Query Optimization | 5 | 6 | 11 |
+| [12 - Performance Tuning](postgres/module12-performance-tuning/) | EXPLAIN, Indexing, Memory, Query Optimization | 12 | 10 | 11 |
 | [13 - Upgrades](postgres/module13-upgrades/) | pg_upgrade, pg_dump, Version Migration | 4 | 5 | 8 |
 | [14 - Partitioning](postgres/module14-partitioning/) | Range, List, Hash Partitioning | 4 | 5 | 8 |
 | [15 - Advanced Monitoring](postgres/module15-advanced-monitoring/) | Advanced Observability | - | - | - |
