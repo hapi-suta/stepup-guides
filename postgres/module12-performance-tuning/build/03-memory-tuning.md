@@ -75,29 +75,29 @@ Expected output (yours will differ):
 
 `shared_buffers` requires a **restart** to change (context: `postmaster`). You cannot change it with a reload.
 
-Change shared_buffers to 256MB (requires restart).
+Change shared_buffers to 256MB using ALTER SYSTEM. This writes the setting to `postgresql.auto.conf`, which overrides `postgresql.conf` on the next restart.
+
+```
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER SYSTEM SET shared_buffers = '256MB';"
+```
+
+Expected output:
+
+```
+ALTER SYSTEM
+```
+
+Restart PostgreSQL to apply the change.
 
 ```
 exit
 ```
 
 ```
-sudo vi /opt/pgsql/data/postgresql.conf
-```
-
-Find the `shared_buffers` line and change it.
-
-```
-shared_buffers = 256MB
-```
-
-Save and exit vi (`:wq`).
-
-Restart PostgreSQL to apply the change.
-
-```
 sudo systemctl restart postgresql-16
 ```
+
+Expected output (no output means success). If you see an error, wait a few seconds and try again.
 
 Verify the new value.
 

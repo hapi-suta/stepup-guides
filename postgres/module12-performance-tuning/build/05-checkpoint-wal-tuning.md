@@ -71,38 +71,54 @@ A longer timeout means:
 - More WAL to replay on crash (proportionally longer crash recovery)
 - Requires a larger `max_wal_size` to give WAL room to accumulate
 
-Change checkpoint_timeout to 15 minutes.
+Change checkpoint_timeout to 15 minutes using ALTER SYSTEM.
 
 ```
-exit
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER SYSTEM SET checkpoint_timeout = '15min';"
+```
+
+Expected output:
+
+```
+ALTER SYSTEM
 ```
 
 ```
-sudo vi /opt/pgsql/data/postgresql.conf
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER SYSTEM SET max_wal_size = '2GB';"
 ```
 
-Find and update these lines.
+Expected output:
 
 ```
-checkpoint_timeout = 15min
-max_wal_size = 2GB
-min_wal_size = 256MB
-checkpoint_completion_target = 0.9
+ALTER SYSTEM
 ```
 
-Save and exit vi (`:wq`).
+```
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "ALTER SYSTEM SET min_wal_size = '256MB';"
+```
 
-Reload (no restart needed for these parameters).
+Expected output:
 
 ```
-sudo systemctl reload postgresql-16
+ALTER SYSTEM
+```
+
+Reload to apply the changes (no restart needed for these parameters).
+
+```
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT pg_reload_conf();"
+```
+
+Expected output:
+
+```
+ pg_reload_conf
+----------------
+ t
+(1 row)
 ```
 
 Verify the change.
-
-```
-sudo -iu postgres
-```
 
 ```
 /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SHOW checkpoint_timeout;"
