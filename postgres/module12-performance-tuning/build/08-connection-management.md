@@ -213,7 +213,7 @@ The connection was terminated because it sat idle in a transaction for more than
 ### Step 6: Verify in the PostgreSQL log
 
 ```bash
-tail -5 /opt/pgsql/log/postgresql-*.log
+tail -n 5 /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log
 ```
 
 Expected output (yours will differ):
@@ -327,6 +327,7 @@ duration: 10 s
 number of transactions actually processed: 4523
 number of failed transactions: 0 (0.000%)
 latency average = 11.052 ms
+initial connection time = 9.241 ms
 tps = 452.30 (without initial connection time)
 ```
 
@@ -355,6 +356,7 @@ duration: 10 s
 number of transactions actually processed: 2187
 number of failed transactions: 0 (0.000%)
 latency average = 228.654 ms
+initial connection time = 91.336 ms
 tps = 218.67 (without initial connection time)
 ```
 

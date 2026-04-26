@@ -520,10 +520,10 @@ By default, every time Linux reads a file, it updates that file's "last accessed
 ### Step 7.1: Check current mount options
 
 ```bash
-mount | grep xfs
+mount | grep ' xfs '
 ```
 
-The `mount` command lists all mounted file systems. The `| grep xfs` filters to show only XFS file systems (which is what CentOS uses by default).
+The `mount` command lists all mounted file systems. The `| grep ' xfs '` filters to show only XFS file systems (which is what CentOS uses by default). The spaces around `xfs` prevent matching other filesystem types like `selinuxfs`.
 
 Expected output (yours will differ):
 

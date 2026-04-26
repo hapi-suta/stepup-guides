@@ -56,12 +56,13 @@ Expected output (yours will differ):
 
 ```
                  name                  |  setting
----------------------------------------+----------
+---------------------------------------+-----------
  autovacuum                            | on
  autovacuum_analyze_scale_factor       | 0.1
  autovacuum_analyze_threshold          | 50
  autovacuum_freeze_max_age             | 200000000
  autovacuum_max_workers                | 3
+ autovacuum_multixact_freeze_max_age   | 400000000
  autovacuum_naptime                    | 60
  autovacuum_vacuum_cost_delay          | 2
  autovacuum_vacuum_cost_limit          | -1
@@ -69,7 +70,8 @@ Expected output (yours will differ):
  autovacuum_vacuum_insert_threshold    | 1000
  autovacuum_vacuum_scale_factor        | 0.2
  autovacuum_vacuum_threshold           | 50
-(12 rows)
+ autovacuum_work_mem                   | -1
+(14 rows)
 ```
 
 The important ones for this lab are:

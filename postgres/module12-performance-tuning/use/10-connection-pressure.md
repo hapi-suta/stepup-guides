@@ -323,7 +323,16 @@ Expected output (yours will differ):
 
 You will temporarily lower the connection limit on `labdb` to 5, then try to exceed it to see exactly what error PostgreSQL returns.
 
-**Step 1.** Set the connection limit to 5 on `labdb`.
+**Step 1.** Create a test user. The `postgres` user is a superuser, and superusers bypass database connection limits. You need a regular user to see the limit enforced.
+
+```sql
+CREATE USER labuser WITH PASSWORD 'labpass';
+GRANT CONNECT ON DATABASE labdb TO labuser;
+```
+
+The first command creates a non-superuser login role. The second grants it permission to connect to `labdb`.
+
+**Step 2.** Set the connection limit to 5 on `labdb`.
 
 ```sql
 ALTER DATABASE labdb CONNECTION LIMIT 5;
@@ -331,7 +340,7 @@ ALTER DATABASE labdb CONNECTION LIMIT 5;
 
 This sets a hard cap specific to the `labdb` database. It does not affect other databases. The change takes effect immediately - no restart needed.
 
-**Step 2.** Confirm the limit was applied.
+**Step 3.** Confirm the limit was applied.
 
 ```sql
 SELECT datname, datconnlimit
@@ -350,28 +359,28 @@ Expected output:
 (1 row)
 ```
 
-**Step 3.** Open a new terminal window and SSH into NODE1.
+**Step 4.** Open a new terminal window and SSH into NODE1.
 
 ```bash
 ssh -i your-key.pem ec2-user@<NODE1_IP>
 ```
 
-**Step 4.** Switch to the `postgres` user.
+**Step 5.** Switch to the `postgres` user.
 
 ```bash
 sudo su - postgres
 ```
 
-**Step 5.** Try opening more connections than the limit allows. Run this command 5 or more times rapidly to saturate the limit.
+**Step 6.** Try opening more connections than the limit allows. These commands use the `labuser` account so the connection limit is enforced.
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb -c "SELECT pg_sleep(15);" &
-/usr/pgsql-16/bin/psql -p 5432 -d labdb
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser -c "SELECT pg_sleep(15);" &
+/usr/pgsql-16/bin/psql -p 5432 -d labdb -U labuser
 ```
 
 Each `&` sends the command to the background so they all open simultaneously. The last line (no `&`) will attempt to connect after the limit is hit.
@@ -379,11 +388,11 @@ Each `&` sends the command to the background so they all open simultaneously. Th
 Expected output on the final connection attempt:
 
 ```
-psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed:
+psql: error: connection to server on socket "/run/postgresql/.s.PGSQL.5432" failed:
 FATAL:  too many connections for database "labdb"
 ```
 
-**Step 6.** Kill the background sleep connections.
+**Step 7.** Kill the background sleep connections.
 
 ```bash
 kill %1 %2 %3 %4 %5 %6 2>/dev/null
@@ -391,7 +400,7 @@ kill %1 %2 %3 %4 %5 %6 2>/dev/null
 
 This terminates the background jobs you launched with `&`.
 
-**Step 7.** Go back to your original psql session (Terminal 1 / Terminal 2 where you are still connected) and reset the connection limit.
+**Step 8.** Go back to your original psql session (Terminal 1 / Terminal 2 where you are still connected) and reset the connection limit.
 
 ```sql
 ALTER DATABASE labdb CONNECTION LIMIT -1;
@@ -399,7 +408,7 @@ ALTER DATABASE labdb CONNECTION LIMIT -1;
 
 A limit of `-1` means unlimited. This restores the default behavior.
 
-**Step 8.** Confirm the reset.
+**Step 9.** Confirm the reset.
 
 ```sql
 SELECT datname, datconnlimit
@@ -415,6 +424,15 @@ Expected output:
  labdb   |           -1
 (1 row)
 ```
+
+**Step 10.** Drop the test user.
+
+```sql
+REVOKE CONNECT ON DATABASE labdb FROM labuser;
+DROP USER labuser;
+```
+
+This cleans up the temporary user created for this test.
 
 **Answer this question before moving on:**
 
@@ -508,3 +526,4 @@ exit
   FATAL:  sorry, too many clients already
   ```
   The database-level message specifically names the database, which helps you pinpoint the cause immediately. In a production incident, this error in your application logs means either traffic spiked beyond expectations, a connection leak is occurring, or the database-level limit is set too low. Check `pg_stat_activity` and `pg_database.datconnlimit` first.
+- Note: superusers (like `postgres`) bypass the database connection limit. That is why this task uses a regular user (`labuser`) to demonstrate the limit. In production, your application should always connect with a non-superuser role.

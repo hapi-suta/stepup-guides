@@ -373,10 +373,10 @@ sudo su - postgres
 
 This switches you to the `postgres` operating system user, which has permission to run PostgreSQL commands.
 
-Run psql:
+Connect to labdb:
 
 ```bash
-/usr/pgsql-16/bin/psql
+/usr/pgsql-16/bin/psql -d labdb
 ```
 
 Check for tables with high sequential scan counts:

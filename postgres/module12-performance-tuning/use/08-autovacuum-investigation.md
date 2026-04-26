@@ -170,14 +170,14 @@ FROM pg_class
 WHERE relname = 'pgbench_accounts';
 ```
 
-This shows any per-table storage options. `NULL` means the table is using the global autovacuum defaults.
+This shows any per-table storage options. If there are no autovacuum-related entries, the table is using the global autovacuum defaults. You may see `fillfactor=100` if pgbench set it during initialization - that is a storage option unrelated to autovacuum.
 
 Expected output (yours will differ):
 
 ```
-     relname      | reloptions
-------------------+------------
- pgbench_accounts |
+     relname      |    reloptions
+------------------+------------------
+ pgbench_accounts | {fillfactor=100}
 (1 row)
 ```
 
@@ -206,9 +206,9 @@ You should now see the `reloptions` column populated with the two settings you j
 Expected output (yours will differ):
 
 ```
-     relname      |                                   reloptions
-------------------+---------------------------------------------------------------------------------
- pgbench_accounts | {autovacuum_vacuum_scale_factor=0.01,autovacuum_vacuum_threshold=100}
+     relname      |                                      reloptions
+------------------+--------------------------------------------------------------------------------------
+ pgbench_accounts | {fillfactor=100,autovacuum_vacuum_scale_factor=0.01,autovacuum_vacuum_threshold=100}
 (1 row)
 ```
 

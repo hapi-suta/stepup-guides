@@ -84,9 +84,9 @@ This queries the `pg_stat_activity` view, which shows one row per active databas
 Expected output (yours will differ):
 
 ```
-  pid  | usename  | state  | wait_event_type | wait_event |             query
--------+----------+--------+-----------------+------------+--------------------------------
- 12847 | postgres | active | Lock            | relation   | UPDATE orders SET status = ...
+  pid  | usename  | state  | wait_event_type |  wait_event   |             query
+-------+----------+--------+-----------------+---------------+--------------------------------
+ 12847 | postgres | active | Lock            | transactionid | UPDATE orders SET status = ...
 ```
 
 **Answer these questions before moving on:**
@@ -317,10 +317,10 @@ This joins `pg_locks` (which shows every lock currently held or requested in the
 Expected output (yours will differ):
 
 ```
-  pid  | usename  | state  | locktype |      mode       | granted |             query
--------+----------+--------+----------+-----------------+---------+--------------------------------
- 12801 | postgres | idle   | relation | RowExclusiveLock| t       | UPDATE orders SET status = ...
- 12801 | postgres | idle   | tuple    | ExclusiveLock   | t       | UPDATE orders SET status = ...
+  pid  | usename  |        state        |   locktype    |       mode       | granted |             query
+-------+----------+---------------------+---------------+------------------+---------+--------------------------------
+ 12801 | postgres | idle in transaction | relation      | RowExclusiveLock | t       | UPDATE orders SET status = ...
+ 12801 | postgres | idle in transaction | transactionid | ExclusiveLock    | t       | UPDATE orders SET status = ...
 ```
 
 **Now open a second session that blocks (in Terminal B):**
