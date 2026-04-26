@@ -1,6 +1,6 @@
 # PostgreSQL Performance Tuning - Concepts Guide
 
-This guide is for you - someone who has completed the BUILD guides and wants to understand WHY everything works the way it does. Think of this as the conversation we'd have after you finish the labs, where I explain the thinking behind every tool, every setting, and every decision a production DBA makes when something is slow.
+This guide is for you - read it before starting the BUILD guides. It explains the WHY behind every tool, every setting, and every decision a production DBA makes when something is slow. Think of this as the conversation where I give you the mental model first, so that when you get hands-on in the labs, you already understand what you're doing and why.
 
 ---
 
@@ -36,7 +36,7 @@ Server vitals (OS)  →  Database config  →  Specific query
     swap, disk           connections          statistics
 ```
 
-This is exactly the order we followed in the BUILD guides, and it's the order this concepts guide follows. Everything in Section 2 maps to what you did in Build Guide 06 (OS Diagnostics). Everything in Section 3 maps to Build Guide 07 (OS Kernel Tuning). And so on.
+This is the order this concepts guide follows, and it maps directly to the BUILD guides you're about to do. Section 2 maps to Build Guide 06 (OS Diagnostics). Section 3 maps to Build Guide 07 (OS Kernel Tuning). And so on. By the time you start the labs, you'll already know what each tool does and why you're using it.
 
 > **Concept:** Performance tuning is not about memorizing settings. It is about learning a diagnostic method - a repeatable process you follow every time. The settings change between servers, but the process stays the same. Master the process and you can tune any PostgreSQL server you encounter.
 
@@ -44,13 +44,13 @@ This is exactly the order we followed in the BUILD guides, and it's the order th
 
 ## 2. OS-Level Diagnostics - Your First Line of Defense
 
-Before you open `psql`, you need to check the machine. In Build Guide 06, you ran these tools on your lab server. Here's the deeper explanation of what each one is actually doing and what the numbers mean.
+Before you open `psql`, you need to check the machine. You'll get hands-on with all these tools in Build Guide 06 (OS Diagnostics). Here's what each one does and what the numbers mean.
 
 ### top - Your Server's Dashboard
 
 **What is it?** `top` is a built-in Linux utility that gives you a live, real-time dashboard of your server. Think of it like the instrument panel in a car - at a glance, you can see CPU usage, memory usage, swap usage, and which processes are consuming the most resources.
 
-When you run `top -bn1 | head -15` (as you did in Build Guide 06), here's what you're looking at:
+When you run `top -bn1 | head -15` (which you'll do in Build Guide 06), here's what you're looking at:
 
 ```
 top - 14:32:01 up 45 days,  3:12,  2 users,  load average: 12.50, 8.30, 4.10
@@ -98,7 +98,7 @@ When you see high `wa`, that's your signal to look at disk I/O next with `iostat
 
 ### vmstat - Watching the Pattern Over Time
 
-**What is it?** `vmstat` (Virtual Memory Statistics) is another built-in Linux tool, but instead of showing you a snapshot like `top`, it shows you a **stream of updates** at intervals you choose. When you ran `vmstat 2 5` in Build Guide 06, you were saying "show me the stats every 2 seconds, 5 times."
+**What is it?** `vmstat` (Virtual Memory Statistics) is another built-in Linux tool, but instead of showing you a snapshot like `top`, it shows you a **stream of updates** at intervals you choose. When you run `vmstat 2 5`, you're saying "show me the stats every 2 seconds, 5 times."
 
 This is powerful because it lets you watch the pattern. A single snapshot might catch the server during a quiet moment. Five snapshots over 10 seconds show you the trend.
 
@@ -122,7 +122,7 @@ Look at the third row in that example. The `r` jumped to 12, `b` jumped to 8, sw
 
 ### iostat - Is Your Disk the Problem?
 
-**What is it?** `iostat` is part of the `sysstat` package (the same package you installed in Build Guide 06 with `dnf install sysstat`). While `top` tells you the CPU is waiting on I/O, `iostat` tells you exactly what the disk is doing - how many reads, how many writes, how long each operation takes, and whether the disk is overwhelmed.
+**What is it?** `iostat` is part of the `sysstat` package (which you'll install in Build Guide 06 with `dnf install sysstat`). While `top` tells you the CPU is waiting on I/O, `iostat` tells you exactly what the disk is doing - how many reads, how many writes, how long each operation takes, and whether the disk is overwhelmed.
 
 When you run `iostat -xz 2 5`, the `-x` flag gives you extended statistics (the important ones), `-z` hides idle devices, and `2 5` means "every 2 seconds, 5 times."
 
@@ -170,7 +170,7 @@ The flags are intuitive once you know them: `-u` for CPU (utilization), `-r` for
 
 **What is it?** `iotop` shows you disk I/O broken down by process - like `top` but for disk activity instead of CPU. When `iostat` tells you the disk is busy, `iotop` tells you WHO is making it busy.
 
-When you ran `sudo iotop -oP` in Build Guide 06, the `-o` flag meant "only show processes doing I/O right now" and `-P` meant "show processes, not threads."
+When you run `sudo iotop -oP`, the `-o` flag means "only show processes doing I/O right now" and `-P` means "show processes, not threads."
 
 If you see a PostgreSQL backend doing tons of I/O, that usually means one of two things:
 - A query is doing full table scans because it's missing an index
@@ -204,7 +204,7 @@ You always start with `top` or `vmstat`. The CPU breakdown tells you where to lo
 
 Linux ships with defaults designed for general-purpose workloads - web servers, desktops, containers, everything. PostgreSQL is not a general-purpose workload. It's a database that manages its own memory cache, writes massive amounts of data to disk, and absolutely cannot tolerate being swapped out.
 
-In Build Guide 07, you changed several kernel parameters. Here's WHY each one matters.
+In Build Guide 07, you'll change several kernel parameters on your lab server. Here's WHY each one matters.
 
 ### vm.swappiness - Keeping PostgreSQL in RAM
 
@@ -245,7 +245,7 @@ This means PostgreSQL might fail to fork a new backend (you'll see a "could not 
 
 Huge pages are 2 MB each instead of 4 KB. That same 16 GB of shared_buffers becomes only 8,192 pages - the TLB can handle that easily. The result is measurably faster shared_buffers access.
 
-In Build Guide 07, you calculated the number of huge pages from VmPeak and configured the kernel. If you're curious about the math:
+In Build Guide 07, you'll calculate the number of huge pages from VmPeak and configure the kernel. Here's the math:
 - Find VmPeak from `/proc/<PID>/status` (the peak virtual memory of the PostgreSQL postmaster)
 - Divide by 2048 KB (the size of one huge page) and add 1
 - Set `vm.nr_hugepages` to that value
@@ -262,7 +262,7 @@ Then in `postgresql.conf`, set `huge_pages = try` (use huge pages if available, 
 
 Every PostgreSQL tuning guide, the official PostgreSQL documentation, and every experienced DBA will tell you: **disable THP**. Use explicit huge pages (the previous section) instead, where YOU control the allocation.
 
-You did this in Build Guide 07:
+You'll do this in Build Guide 07:
 ```bash
 echo 'never' > /sys/kernel/mm/transparent_hugepage/enabled
 echo 'never' > /sys/kernel/mm/transparent_hugepage/defrag
@@ -284,7 +284,7 @@ always madvise [never]
 
 On a database with thousands of tables and hundreds of connections, you'll hit the 1024 limit fast. When PostgreSQL can't open a file, queries fail with "too many open files" errors.
 
-You set `nofile` (max open files) and `nproc` (max processes) to 65536 for the postgres user. That's enough headroom for even large production databases.
+In Build Guide 07, you'll set `nofile` (max open files) and `nproc` (max processes) to 65536 for the postgres user. That's enough headroom for even large production databases.
 
 ### File System and Mount Options
 
@@ -293,9 +293,9 @@ You set `nofile` (max open files) and `nproc` (max processes) to 65536 for the p
 - Better parallel I/O (important when multiple backends read different tables)
 - Better WAL write performance
 
-The mount options you set in Build Guide 07 (`noatime`, `nodiratime`) disable access timestamp updates. By default, every time Linux READS a file, it WRITES the access time to the filesystem metadata. PostgreSQL reads data pages constantly. Writing a timestamp for every read is pure overhead with zero benefit. Disabling it removes thousands of unnecessary writes.
+The mount options `noatime` and `nodiratime` (which you'll configure in Build Guide 07) disable access timestamp updates. By default, every time Linux READS a file, it WRITES the access time to the filesystem metadata. PostgreSQL reads data pages constantly. Writing a timestamp for every read is pure overhead with zero benefit. Disabling it removes thousands of unnecessary writes.
 
-> **Concept:** Linux's default configuration assumes you're running a general-purpose workload. Almost every default is wrong for a database server. The kernel tuning in Build Guide 07 isn't optional "nice to have" optimization - it's essential configuration. A production DBA who skips kernel tuning and jumps straight to query optimization is like a mechanic who tunes the engine but never checks the oil.
+> **Concept:** Linux's default configuration assumes you're running a general-purpose workload. Almost every default is wrong for a database server. Kernel tuning isn't optional "nice to have" optimization - it's essential configuration. A production DBA who skips kernel tuning and jumps straight to query optimization is like a mechanic who tunes the engine but never checks the oil. You'll do all of this hands-on in Build Guide 07.
 
 ### NUMA - For Multi-Socket Servers
 
@@ -309,7 +309,7 @@ You probably won't encounter NUMA on your 2-vCPU lab server or small cloud insta
 
 ### Network Tuning for Replication
 
-The TCP keepalive settings you saw in Build Guide 07 solve a specific problem: detecting dead connections.
+The TCP keepalive settings (covered in Build Guide 07) solve a specific problem: detecting dead connections.
 
 By default, Linux waits over 2 hours before deciding a TCP connection is dead. On a replication link, that means if the network between primary and standby fails, it takes 2+ hours for the primary to notice the standby is gone. That's 2 hours of WAL piling up.
 
@@ -347,7 +347,7 @@ Here's the big picture of how PostgreSQL divides your server's RAM:
 
 **What is it?** shared_buffers is PostgreSQL's private cache for data pages. When a query needs to read a row, PostgreSQL first checks shared_buffers. If the page containing that row is already there (called a "cache hit"), the data comes straight from RAM - extremely fast. If the page isn't there (a "cache miss"), PostgreSQL reads it from disk and puts a copy in shared_buffers for next time.
 
-You set this in Build Guide 03 (Memory Tuning).
+You'll configure this in Build Guide 03 (Memory Tuning).
 
 **The 25% rule:** Set shared_buffers to 25% of total RAM.
 
@@ -388,7 +388,7 @@ SET work_mem = '256MB';
 -- This resets when the session ends
 ```
 
-**How to know if work_mem is too low:** In EXPLAIN output (which you practiced in Build Guide 01), look for this:
+**How to know if work_mem is too low:** In EXPLAIN output (which you'll learn in Build Guide 01), look for this:
 
 ```
 Sort Method: external merge  Disk: 45600kB    <-- BAD: spilled to disk
@@ -439,7 +439,7 @@ These rarely need tuning:
 
 ## 5. Storage and I/O - The Slowest Link in the Chain
 
-No matter how much RAM you have, data eventually lives on disk. How PostgreSQL writes to disk, when it flushes, and how WAL (Write-Ahead Logging) works all affect performance. You covered checkpoints and WAL in Build Guide 05.
+No matter how much RAM you have, data eventually lives on disk. How PostgreSQL writes to disk, when it flushes, and how WAL (Write-Ahead Logging) works all affect performance. You'll work with checkpoints and WAL hands-on in Build Guide 05.
 
 ### WAL on a Separate Disk
 
@@ -525,7 +525,7 @@ If temp_bytes is consistently high, your work_mem is too low for the workload. E
 
 ## 6. Connection Management - Less is More
 
-This might be the most counterintuitive section: PostgreSQL performs WORSE with more connections. You explored this in Build Guide 08.
+This might be the most counterintuitive section: PostgreSQL performs WORSE with more connections. You'll see this firsthand in Build Guide 08.
 
 ### Why More Connections = Worse Performance
 
@@ -590,7 +590,7 @@ This kills any session that sits idle inside an open transaction for more than 3
 
 ## 7. The Query Planner and EXPLAIN - Reading PostgreSQL's Mind
 
-This is the heart of performance tuning. You spent Build Guide 01 learning EXPLAIN/ANALYZE and Build Guide 04 on query optimization. Here's the deeper understanding of what's happening inside PostgreSQL's head when it plans your query.
+This is the heart of performance tuning. Build Guide 01 covers EXPLAIN/ANALYZE hands-on and Build Guide 04 covers query optimization patterns. Here's the deeper understanding of what's happening inside PostgreSQL's head when it plans your query.
 
 ### How the Planner Thinks
 
@@ -660,7 +660,7 @@ With defaults (threshold=50, scale_factor=0.1), a 100,000-row table gets re-anal
 
 ### Reading EXPLAIN Output
 
-When you run `EXPLAIN (ANALYZE, BUFFERS)` on a query (as you practiced extensively in Build Guide 01), the output tells you exactly what happened:
+When you run `EXPLAIN (ANALYZE, BUFFERS)` on a query (you'll practice this extensively in Build Guide 01), the output tells you exactly what happened:
 
 ```
 Index Scan using orders_pkey on orders  (cost=0.42..8.44 rows=1 width=64) (actual time=0.015..0.016 rows=1 loops=1)
@@ -683,7 +683,7 @@ Estimated 1 row, got 450,000. The planner thought it was looking for a needle in
 
 ### Scan Types - What They Mean
 
-You saw these in Build Guide 01. Here's the mental model for when the planner chooses each one:
+You'll see all of these in Build Guide 01. Here's the mental model for when the planner chooses each one:
 
 **Sequential Scan** - reads every page in the table, in order. Not always bad! For queries returning more than 5-10% of rows, sequential I/O (reading pages in order) is faster than random I/O (jumping around to specific pages via an index). Also optimal for tiny tables where the whole table fits in a few pages.
 
@@ -728,7 +728,7 @@ The cache hit ratio for a query is `hit / (hit + read)`. For OLTP queries, you w
 
 ## 8. Indexing Strategy - The Right Tool for the Right Job
 
-Indexes are how you make queries fast. But they're not free - every index costs disk space and slows down writes. Build Guide 02 covered creating and using indexes. Here's the strategic thinking behind choosing the right index for the right situation.
+Indexes are how you make queries fast. But they're not free - every index costs disk space and slows down writes. You'll create and test indexes hands-on in Build Guide 02. Here's the strategic thinking behind choosing the right index for the right situation.
 
 ### B-tree - The Default Workhorse
 
@@ -762,7 +762,7 @@ PostgreSQL has several specialized index types for specific use cases:
 
 ### Covering Indexes (INCLUDE)
 
-As you saw in Build Guide 02, a covering index includes extra columns that aren't used for filtering but ARE needed by the query. This enables Index Only Scans - the query never touches the table at all.
+A covering index includes extra columns that aren't used for filtering but ARE needed by the query. This enables Index Only Scans - the query never touches the table at all. You'll create one of these in Build Guide 02.
 
 ```sql
 -- Query: SELECT customer_id, status, total FROM orders WHERE customer_id = 42;
@@ -849,7 +849,7 @@ Don't add an index for:
 
 ## 9. Autovacuum - The Cleanup Crew You Can't Ignore
 
-You explored autovacuum in Build Guide 09. Here's why it matters so much and how to tune it for different workloads.
+Build Guide 09 walks you through autovacuum tuning step by step. Here's why it matters so much and how to think about tuning it for different workloads.
 
 ### What Autovacuum Actually Does
 
@@ -945,7 +945,7 @@ ORDER BY n_dead_tup DESC;
 
 ## 10. Monitoring Views, Wait Events, and Parallel Query
 
-These three topics are how you monitor a running production database. You covered pg_stat views in Build Guide 10, wait events in Build Guide 11, and parallel query in Build Guide 12.
+These three topics are how you monitor a running production database. You'll get hands-on with pg_stat views in Build Guide 10, wait events in Build Guide 11, and parallel query in Build Guide 12.
 
 ### pg_stat_activity - What's Running Right Now?
 
@@ -1044,7 +1044,7 @@ FROM pg_stat_bgwriter;
 
 ### Wait Events - What's Your Query Waiting For?
 
-When a query is slow but CPU and disk look fine, the query might be waiting on something. Build Guide 11 covered this in depth.
+When a query is slow but CPU and disk look fine, the query might be waiting on something. You'll dig into this in Build Guide 11.
 
 ```sql
 SELECT pid, wait_event_type, wait_event, state,
@@ -1087,7 +1087,7 @@ FROM pg_stat_activity
 WHERE cardinality(pg_blocking_pids(pid)) > 0;
 ```
 
-Or for more detail, join `pg_locks` with `pg_stat_activity` to see the full blocking chain (Build Guide 11 walked through this query).
+Or for more detail, join `pg_locks` with `pg_stat_activity` to see the full blocking chain (you'll walk through this query in Build Guide 11).
 
 ### Lock Types - From Gentle to Nuclear
 
@@ -1105,7 +1105,7 @@ This is why `CREATE INDEX CONCURRENTLY` exists - regular CREATE INDEX takes a Sh
 
 ### Parallel Query - Dividing the Work
 
-PostgreSQL can split large operations across multiple worker processes. When you ran parallel queries in Build Guide 12, you saw EXPLAIN output like:
+PostgreSQL can split large operations across multiple worker processes. In Build Guide 12, you'll run parallel queries and see EXPLAIN output like:
 
 ```
 Finalize Aggregate  (actual time=150.00..150.01 rows=1)
@@ -1138,7 +1138,7 @@ If you see `Workers Launched < Workers Planned`, you've hit the global `max_para
 When someone says "the database is slow," here is the exact decision tree to follow. This ties together everything from the previous sections:
 
 ```
-Step 1: CHECK THE OS (Build Guide 06)
+Step 1: CHECK THE OS (Section 2 / Build Guide 06)
   |
   +-- top: Load average > 2x CPU count?
   |     +-- High %us? --> CPU-bound queries, jump to Step 5
@@ -1150,7 +1150,7 @@ Step 1: CHECK THE OS (Build Guide 06)
   +-- iostat: %util > 80%?
         +-- iotop: who's doing the I/O? vacuum? checkpoint? query?
 
-Step 2: CHECK CONNECTIONS (Build Guide 08)
+Step 2: CHECK CONNECTIONS (Section 6 / Build Guide 08)
   |
   +-- How many connections? (SELECT count(*) FROM pg_stat_activity)
   |     +-- > 200 active? --> Deploy PgBouncer
@@ -1158,7 +1158,7 @@ Step 2: CHECK CONNECTIONS (Build Guide 08)
   |
   +-- Connection storms? --> PgBouncer + exponential backoff in app
 
-Step 3: WHAT'S RUNNING? (Build Guide 10)
+Step 3: WHAT'S RUNNING? (Section 10 / Build Guide 10)
   |
   +-- pg_stat_activity WHERE state = 'active'
   |     +-- Long-running queries? --> EXPLAIN them (Step 5)
@@ -1169,18 +1169,18 @@ Step 3: WHAT'S RUNNING? (Build Guide 10)
         +-- IO? --> Disk bottleneck or cache miss
         +-- LWLock? --> Internal contention (hot row, WAL insert)
 
-Step 4: CHECK STATISTICS (Build Guide 09)
+Step 4: CHECK STATISTICS (Section 9 / Build Guide 09)
   |
   +-- pg_stat_user_tables: last_autoanalyze NULL? --> ANALYZE
   +-- pg_class: reltuples wildly wrong? --> ANALYZE
   +-- High n_dead_tup? --> Autovacuum is falling behind
 
-Step 5: EXPLAIN THE SLOW QUERY (Build Guide 01)
+Step 5: EXPLAIN THE SLOW QUERY (Section 7 / Build Guide 01)
   |
   +-- EXPLAIN (ANALYZE, BUFFERS) the query
   +-- Estimated vs actual rows off by 10x+? --> Stale stats, run ANALYZE
-  +-- Seq Scan on large table? --> Missing index (Build Guide 02)
-  +-- Sort: external merge Disk? --> Raise work_mem (Build Guide 03)
+  +-- Seq Scan on large table? --> Missing index
+  +-- Sort: external merge Disk? --> Raise work_mem
   +-- Hash Batches > 1? --> Raise work_mem
   +-- Nested Loop with large outer side? --> Wrong join, check statistics
   +-- Low buffer hit ratio? --> shared_buffers too small or query touching too many pages
@@ -1193,7 +1193,7 @@ Step 6: FIX AND VERIFY
   +-- Monitor pg_stat_statements for sustained improvement
 ```
 
-Every step in this workflow maps back to a BUILD guide. You've already done all of this - now you know the order and the logic connecting them.
+Every step in this workflow maps to a BUILD guide and a section in this concepts doc. When you work through the BUILD guides, you'll practice each of these steps hands-on.
 
 ### Quick Commands Reference
 
