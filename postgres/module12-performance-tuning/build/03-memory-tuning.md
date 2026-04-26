@@ -148,18 +148,20 @@ Run a query that requires a sort and check for temp file spills.
 Expected output (yours will differ):
 
 ```
-                                                    QUERY PLAN
-------------------------------------------------------------------------------------------------------------------
- Sort  (cost=7.18..7.31 rows=50 width=72) (actual time=0.148..0.155 rows=50 loops=1)
+                                                   QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------
+ Sort  (cost=4870.41..4995.41 rows=50000 width=43) (actual time=29.281..35.712 rows=50000 loops=1)
    Sort Key: total_amount DESC
-   Sort Method: quicksort  Memory: 30kB
-   Buffers: shared hit=3
- Planning Time: 0.088 ms
- Execution Time: 0.177 ms
-(6 rows)
+   Sort Method: external merge  Disk: 2752kB
+   Buffers: shared hit=471, temp read=344 written=345
+   ->  Seq Scan on orders  (cost=0.00..968.00 rows=50000 width=43) (actual time=0.003..3.440 rows=50000 loops=1)
+         Buffers: shared hit=468
+ Planning Time: 0.092 ms
+ Execution Time: 37.950 ms
+(10 rows)
 ```
 
-`Sort Method: quicksort Memory: 30kB` - the sort fit in memory. If you see `Sort Method: external merge Disk: 2048kB`, the sort spilled to disk.
+`Sort Method: external merge Disk: 2752kB` - the sort **spilled to disk** because 50,000 rows exceeded the 4MB work_mem budget. The `temp read=344 written=345` confirms disk I/O happened. If this were `Sort Method: quicksort Memory: 30kB`, it would mean the sort fit entirely in memory.
 
 > **Concept - work_mem Multiplication Risk**: If you set `work_mem = 256MB` and have 100 concurrent connections, each running a query with 3 sort operations, the theoretical memory use is 100 x 3 x 256MB = 76GB. This can OOM-kill the server. Set work_mem conservatively at the server level (4MB-16MB) and raise it per-session for specific heavy queries with `SET work_mem = '256MB';`.
 
@@ -367,7 +369,7 @@ Expected output (yours will differ):
 ```
  count
 -------
-   200
+  9920
 (1 row)
 ```
 
@@ -402,14 +404,17 @@ See which relations are consuming the most buffer space.
 Expected output (yours will differ):
 
 ```
-      relname       | buffers | size_in_cache
---------------------+---------+---------------
- orders             |      12 | 96 kB
- customers          |       5 | 40 kB
- order_items        |       8 | 64 kB
- products           |       3 | 24 kB
- idx_orders_status  |       2 | 16 kB
-(5 rows)
+        relname         | buffers | size_in_cache
+------------------------+---------+---------------
+ order_items            |     960 | 7680 kB
+ orders                 |     472 | 3776 kB
+ order_items_pkey       |     414 | 3312 kB
+ orders_pkey            |     139 | 1112 kB
+ customers              |     118 | 944 kB
+ customers_email_key    |      85 | 680 kB
+ customers_pkey         |      30 | 240 kB
+ products               |       1 | 8 kB
+(8 rows)
 ```
 
 > **Concept - Buffer Usagecount**: Each buffer in shared_buffers has a `usagecount` (1-5) that tracks how recently it was accessed. The clock sweep eviction algorithm evicts buffers with the lowest usagecount first. Frequently accessed data accumulates high usagecounts and stays in cache. You can see usagecount in the `pg_buffercache` view.
@@ -429,33 +434,6 @@ Expected output (yours will differ):
 (1 row)
 ```
 
-Also check the Pulse dashboard at `http://<NODE1-IP>:8080`. Open the Performance panel and look at the cache hit ratio. After running queries against the database, the ratio should climb as pages warm up in cache.
-
----
-
-## 8. Review the Pulse Performance Panel
-
-Open a browser and navigate to the Pulse dashboard.
-
-```
-http://<NODE1-IP>:8080
-```
-
-Click on the **Performance** panel. You should see:
-
-- **Cache Hit Ratio** - percentage of page reads served from shared_buffers vs disk. Target is 99% or higher.
-- **Index Hit Ratio** - percentage of index scans served from cache. Lower means index pages are being evicted.
-- **Sequential Scan Tables** - tables being scanned sequentially most often (missing index candidates).
-- **Unused Indexes** - indexes with zero or very low scan counts.
-
-Generate some load so the metrics change.
-
-```
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT count(*) FROM orders o JOIN customers c ON o.customer_id = c.customer_id JOIN order_items oi ON oi.order_id = o.order_id;"
-```
-
-Refresh the Pulse Performance panel. The cache hit ratio should be close to 100% after this warm-up query.
-
 ```
 exit
 ```
@@ -470,7 +448,7 @@ By the end of this guide you should be able to:
 - [ ] Identify which parameters require a restart vs a reload
 - [ ] Change work_mem and maintenance_work_mem using ALTER SYSTEM + pg_reload_conf
 - [ ] Use pg_buffercache to see what data is in shared_buffers
-- [ ] Read the Pulse Performance panel cache hit ratio
+- [ ] Understand the difference between in-memory sorts and disk spills
 
 ---
 

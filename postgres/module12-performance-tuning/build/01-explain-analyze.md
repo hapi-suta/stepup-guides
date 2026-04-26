@@ -58,15 +58,15 @@ Expected output (yours will differ):
 
 ```
                         QUERY PLAN
------------------------------------------------------------
- Seq Scan on orders  (cost=0.00..12.50 rows=1 width=72)
+----------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1093.00 rows=5 width=43)
    Filter: (customer_id = 5)
 (2 rows)
 ```
 
 EXPLAIN shows PostgreSQL's **plan** without executing the query. It uses table statistics to estimate costs and row counts.
 
-> **Concept - Cost Units**: Costs are not milliseconds. They are arbitrary units calibrated so that a sequential page read costs 1.0. `cost=0.00..12.50` means startup cost (time before first row returned) is 0.00 and total cost is 12.50. Lower total cost = PostgreSQL thinks this plan is faster.
+> **Concept - Cost Units**: Costs are not milliseconds. They are arbitrary units calibrated so that a sequential page read costs 1.0. `cost=0.00..1093.00` means startup cost (time before first row returned) is 0.00 and total cost is 1093.00. Lower total cost = PostgreSQL thinks this plan is faster.
 
 ### EXPLAIN ANALYZE (runs the query, shows actual times)
 
@@ -78,12 +78,12 @@ Expected output (yours will differ):
 
 ```
                                                 QUERY PLAN
---------------------------------------------------------------------------------------------
- Seq Scan on orders  (cost=0.00..12.50 rows=1 width=72) (actual time=0.018..0.142 rows=3 loops=1)
+----------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1093.00 rows=5 width=43) (actual time=0.381..3.329 rows=7 loops=1)
    Filter: (customer_id = 5)
-   Rows Removed by Filter: 47
- Planning Time: 0.085 ms
- Execution Time: 0.163 ms
+   Rows Removed by Filter: 49993
+ Planning Time: 0.028 ms
+ Execution Time: 3.340 ms
 (5 rows)
 ```
 
@@ -112,14 +112,14 @@ WHERE o.total_amount > 100;
 Expected output (yours will differ):
 
 ```
-                              QUERY PLAN
------------------------------------------------------------------------
- Hash Join  (cost=7.50..28.32 rows=25 width=52)
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Hash Join  (cost=339.00..1539.06 rows=40766 width=24)
    Hash Cond: (o.customer_id = c.customer_id)
-   ->  Seq Scan on orders o  (cost=0.00..15.00 rows=25 width=20)
-         Filter: (total_amount > 100)
-   ->  Hash  (cost=5.00..5.00 rows=200 width=36)
-         ->  Seq Scan on customers c  (cost=0.00..5.00 rows=200 width=36)
+   ->  Seq Scan on orders o  (cost=0.00..1093.00 rows=40766 width=8)
+         Filter: (total_amount > '100'::numeric)
+   ->  Hash  (cost=214.00..214.00 rows=10000 width=24)
+         ->  Seq Scan on customers c  (cost=0.00..214.00 rows=10000 width=24)
 (6 rows)
 ```
 
@@ -139,8 +139,8 @@ Expected output:
 
 ```
                        QUERY PLAN
----------------------------------------------------------
- Seq Scan on products  (cost=0.00..1.50 rows=50 width=120)
+----------------------------------------------------------
+ Seq Scan on products  (cost=0.00..1.50 rows=50 width=28)
 (1 row)
 ```
 
@@ -155,9 +155,9 @@ EXPLAIN SELECT * FROM customers WHERE customer_id = 42;
 Expected output (yours will differ):
 
 ```
-                                  QUERY PLAN
-------------------------------------------------------------------------------
- Index Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=80)
+                                   QUERY PLAN
+---------------------------------------------------------------------------------
+ Index Scan using customers_pkey on customers  (cost=0.29..8.30 rows=1 width=57)
    Index Cond: (customer_id = 42)
 (2 rows)
 ```
@@ -166,6 +166,20 @@ Index Scan reads the index first to find the row location, then fetches the actu
 
 ### Bitmap Heap Scan - batches index lookups, then fetches heap pages
 
+First, create an index on total_amount so the planner has an index to work with.
+
+```sql
+CREATE INDEX orders_total_amount_idx ON orders(total_amount);
+```
+
+Expected output:
+
+```
+CREATE INDEX
+```
+
+Now run a range query.
+
 ```sql
 EXPLAIN SELECT * FROM orders WHERE total_amount BETWEEN 50 AND 200;
 ```
@@ -173,12 +187,12 @@ EXPLAIN SELECT * FROM orders WHERE total_amount BETWEEN 50 AND 200;
 Expected output (yours will differ):
 
 ```
-                                        QUERY PLAN
--------------------------------------------------------------------------------------------
- Bitmap Heap Scan on orders  (cost=4.56..18.23 rows=15 width=72)
-   Recheck Cond: ((total_amount >= 50) AND (total_amount <= 200))
-   ->  Bitmap Index Scan on orders_total_amount_idx  (cost=0.00..4.55 rows=15 width=0)
-         Index Cond: ((total_amount >= 50) AND (total_amount <= 200))
+                                         QUERY PLAN
+--------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on orders  (cost=321.43..1013.53 rows=14940 width=43)
+   Recheck Cond: ((total_amount >= '50'::numeric) AND (total_amount <= '200'::numeric))
+   ->  Bitmap Index Scan on orders_total_amount_idx  (cost=0.00..317.69 rows=14940 width=0)
+         Index Cond: ((total_amount >= '50'::numeric) AND (total_amount <= '200'::numeric))
 (4 rows)
 ```
 
@@ -196,21 +210,33 @@ GROUP BY p.name;
 Expected output (yours will differ):
 
 ```
-                              QUERY PLAN
------------------------------------------------------------------------
- HashAggregate  (cost=35.00..37.00 rows=50 width=44)
+                                    QUERY PLAN
+----------------------------------------------------------------------------------
+ HashAggregate  (cost=3635.25..3635.59 rows=34 width=22)
    Group Key: p.name
-   ->  Hash Join  (cost=3.75..27.50 rows=300 width=28)
+   ->  Hash Join  (cost=2.12..2885.25 rows=150000 width=18)
          Hash Cond: (oi.product_id = p.product_id)
-         ->  Seq Scan on order_items oi  (cost=0.00..18.00 rows=300 width=12)
-         ->  Hash  (cost=2.50..2.50 rows=50 width=20)
-               ->  Seq Scan on products p  (cost=0.00..2.50 rows=50 width=20)
+         ->  Seq Scan on order_items oi  (cost=0.00..2456.00 rows=150000 width=8)
+         ->  Hash  (cost=1.50..1.50 rows=50 width=18)
+               ->  Seq Scan on products p  (cost=0.00..1.50 rows=50 width=18)
 (7 rows)
 ```
 
 Hash Join hashes the smaller table (products, 50 rows) into memory, then probes the hash for each row from the larger table. Efficient when the smaller table fits in `work_mem`.
 
 ### Nested Loop - for each outer row, scan the inner relation
+
+First, create an index on orders.customer_id so the planner can use it for the inner loop.
+
+```sql
+CREATE INDEX orders_customer_id_idx ON orders(customer_id);
+```
+
+Expected output:
+
+```
+CREATE INDEX
+```
 
 ```sql
 EXPLAIN SELECT c.email, o.total_amount
@@ -222,19 +248,37 @@ WHERE c.customer_id = 10;
 Expected output (yours will differ):
 
 ```
-                                      QUERY PLAN
-----------------------------------------------------------------------------------
- Nested Loop  (cost=0.28..16.90 rows=2 width=44)
-   ->  Index Scan using customers_pkey on customers c  (cost=0.14..8.16 rows=1 width=36)
+                                        QUERY PLAN
+-------------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.61..31.19 rows=5 width=26)
+   ->  Index Scan using customers_pkey on customers c  (cost=0.29..8.30 rows=1 width=24)
          Index Cond: (customer_id = 10)
-   ->  Index Scan using orders_customer_id_idx on orders o  (cost=0.14..8.22 rows=2 width=12)
-         Index Cond: (customer_id = 10)
-(5 rows)
+   ->  Bitmap Heap Scan on orders o  (cost=4.33..22.84 rows=5 width=10)
+         Recheck Cond: (customer_id = 10)
+         ->  Bitmap Index Scan on orders_customer_id_idx  (cost=0.00..4.33 rows=5 width=0)
+               Index Cond: (customer_id = 10)
+(7 rows)
 ```
 
 Nested Loop is efficient when the outer relation is tiny (like one customer). It executes the inner scan once per outer row.
 
 ### Merge Join - sorts both sides and merges them
+
+With indexes on both sides of the join key, PostgreSQL can use a Merge Join - reading both indexes in order and merging the results.
+
+```sql
+EXPLAIN SELECT c.email, o.order_id
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+ORDER BY c.customer_id;
+```
+
+The planner may choose Hash Join instead of Merge Join at this data size. To see a Merge Join for learning purposes, temporarily disable Hash Join.
+
+```sql
+SET enable_hashjoin = off;
+SET enable_nestloop = off;
+```
 
 ```sql
 EXPLAIN SELECT c.email, o.order_id
@@ -246,18 +290,23 @@ ORDER BY c.customer_id;
 Expected output (yours will differ):
 
 ```
-                                QUERY PLAN
----------------------------------------------------------------------------
- Merge Join  (cost=30.15..42.65 rows=100 width=44)
+                                             QUERY PLAN
+----------------------------------------------------------------------------------------------------
+ Merge Join  (cost=0.57..3955.97 rows=50000 width=28)
    Merge Cond: (c.customer_id = o.customer_id)
-   ->  Index Scan using customers_pkey on customers c  ...
-   ->  Sort  (cost=14.20..14.45 rows=100 width=12)
-         Sort Key: o.customer_id
-         ->  Seq Scan on orders o  ...
-(6 rows)
+   ->  Index Scan using customers_pkey on customers c  (cost=0.29..387.69 rows=10000 width=24)
+   ->  Index Scan using orders_customer_id_idx on orders o  (cost=0.29..2918.28 rows=50000 width=8)
+(4 rows)
 ```
 
-Merge Join requires both inputs sorted on the join key. It can avoid a sort if an index already provides the order.
+Merge Join requires both inputs sorted on the join key. It can avoid a sort if an index already provides the order. Notice both sides use Index Scan, which gives pre-sorted data.
+
+Reset the planner settings.
+
+```sql
+RESET enable_hashjoin;
+RESET enable_nestloop;
+```
 
 ---
 
@@ -272,15 +321,15 @@ EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders WHERE customer_id = 5;
 Expected output (yours will differ):
 
 ```
-                                                    QUERY PLAN
-------------------------------------------------------------------------------------------------------------------
- Seq Scan on orders  (cost=0.00..12.50 rows=1 width=72) (actual time=0.015..0.088 rows=3 loops=1)
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1093.00 rows=5 width=43) (actual time=0.333..3.018 rows=7 loops=1)
    Filter: (customer_id = 5)
-   Rows Removed by Filter: 47
-   Buffers: shared hit=5
- Planning Time: 0.102 ms
- Execution Time: 0.101 ms
-(7 rows)
+   Rows Removed by Filter: 49993
+   Buffers: shared hit=468
+ Planning Time: 0.025 ms
+ Execution Time: 3.028 ms
+(6 rows)
 ```
 
 - `shared hit` - pages read from shared_buffers (fast, no disk I/O)
@@ -312,9 +361,9 @@ Expected output (yours will differ):
        "Relation Name": "orders",         +
        "Alias": "orders",                 +
        "Startup Cost": 0.00,              +
-       "Total Cost": 12.50,              +
-       "Plan Rows": 1,                    +
-       "Plan Width": 72,                  +
+       "Total Cost": 1093.00,            +
+       "Plan Rows": 5,                    +
+       "Plan Width": 43,                  +
        "Actual Startup Time": 0.015,      +
        ...
 ```
@@ -325,37 +374,7 @@ The JSON format is machine-readable. Tools like `explain.depesz.com` and `pganal
 
 ## 7. Practical: Compare Two Plans
 
-Run an unoptimized query and compare it to an optimized version.
-
-First, look at the plan for a query with no index on customer_id.
-
-```sql
-EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 99;
-```
-
-Note the `Seq Scan` and execution time.
-
-Now create an index.
-
-```
-\q
-```
-
-```
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "CREATE INDEX IF NOT EXISTS orders_customer_id_idx ON orders(customer_id);"
-```
-
-Expected output:
-
-```
-CREATE INDEX
-```
-
-Reconnect and check the plan again.
-
-```
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store
-```
+You already created `orders_customer_id_idx` in Section 4. Let's see how it changes a query plan.
 
 ```sql
 EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 99;
@@ -364,16 +383,29 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 99;
 Expected output (yours will differ):
 
 ```
-                                                         QUERY PLAN
-----------------------------------------------------------------------------------------------------------------------------
- Index Scan using orders_customer_id_idx on orders  (cost=0.14..8.22 rows=2 width=72) (actual time=0.024..0.031 rows=2 loops=1)
-   Index Cond: (customer_id = 99)
- Planning Time: 0.112 ms
- Execution Time: 0.048 ms
-(4 rows)
+                                                          QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on orders  (cost=4.33..22.84 rows=5 width=43) (actual time=0.012..0.017 rows=5 loops=1)
+   Recheck Cond: (customer_id = 99)
+   Heap Blocks: exact=5
+   ->  Bitmap Index Scan on orders_customer_id_idx  (cost=0.00..4.33 rows=5 width=0) (actual time=0.008..0.008 rows=5 loops=1)
+         Index Cond: (customer_id = 99)
+ Planning Time: 0.040 ms
+ Execution Time: 0.030 ms
+(7 rows)
 ```
 
-The plan changed from Seq Scan to Index Scan. Execution time dropped significantly.
+Compare this to the Seq Scan you saw in Section 2 (cost=1093.00, ~3ms). With the index, the cost dropped to 22.84 and execution time is under 0.1ms.
+
+Now clean up the indexes created during this lab. Guide 02 will create its own indexes.
+
+```sql
+DROP INDEX orders_total_amount_idx;
+```
+
+```sql
+DROP INDEX orders_customer_id_idx;
+```
 
 ```
 \q

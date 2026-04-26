@@ -53,7 +53,7 @@ Expected output (yours will differ):
  checkpoint_timeout          | 300     | s
  max_wal_size                | 1024    | MB
  min_wal_size                | 80      | MB
- wal_buffers                 | 2048    | 8kB
+ wal_buffers                 | 512     | 8kB
 (5 rows)
 ```
 
@@ -185,17 +185,17 @@ exit
 ```
 
 ```
-sudo du -sh /opt/pgsql/wal/
+sudo du -sh /opt/pgsql/data/pg_wal/
 ```
 
 Expected output (yours will differ):
 
 ```
-48M     /opt/pgsql/wal/
+48M     /opt/pgsql/data/pg_wal/
 ```
 
 ```
-sudo ls /opt/pgsql/wal/ | head -5
+sudo ls /opt/pgsql/data/pg_wal/ | head -5
 ```
 
 Expected output (yours will differ):
@@ -229,7 +229,7 @@ Expected output:
 ```
  wal_buffers
 -------------
- 16MB
+ 4MB
 (1 row)
 ```
 
@@ -279,9 +279,7 @@ Generate some write load to create dirty pages.
 
 ```sql
 BEGIN;
-INSERT INTO audit_log (table_name, operation, changed_at)
-SELECT 'orders', 'INSERT', NOW()
-FROM generate_series(1, 1000);
+UPDATE orders SET total_amount = total_amount + 0.01 WHERE order_id <= 10000;
 COMMIT;
 ```
 
@@ -289,7 +287,7 @@ Expected output:
 
 ```
 BEGIN
-INSERT 0 1000
+UPDATE 10000
 COMMIT
 ```
 
@@ -373,6 +371,4 @@ By the end of this guide you should be able to:
 
 ---
 
-**Module Complete.** Proceed to the USE exercises to practice these skills.
-
-**Proceed to:** [Use Exercise 01 - Index Challenge](../use/01-index-challenge.md)
+**Proceed to:** [Guide 06 - OS-Level Diagnostics](./06-os-diagnostics.md)

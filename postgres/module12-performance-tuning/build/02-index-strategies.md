@@ -58,9 +58,9 @@ SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'orders';
 Expected output (yours will differ):
 
 ```
-    indexname     |                      indexdef
-------------------+------------------------------------------------------
- orders_pkey      | CREATE UNIQUE INDEX orders_pkey ON orders USING btree (order_id)
+  indexname  |                                indexdef
+-------------+-------------------------------------------------------------------------
+ orders_pkey | CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (order_id)
 (1 row)
 ```
 
@@ -73,13 +73,13 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'pending';
 Expected output (yours will differ):
 
 ```
-                                  QUERY PLAN
--------------------------------------------------------------------------------
- Seq Scan on orders  (cost=0.00..12.50 rows=15 width=72) (actual time=0.021..0.144 rows=15 loops=1)
-   Filter: ((status)::text = 'pending')
-   Rows Removed by Filter: 35
- Planning Time: 0.088 ms
- Execution Time: 0.162 ms
+                                                 QUERY PLAN
+------------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1093.00 rows=12480 width=43) (actual time=0.007..5.881 rows=12573 loops=1)
+   Filter: ((status)::text = 'pending'::text)
+   Rows Removed by Filter: 37427
+ Planning Time: 0.248 ms
+ Execution Time: 6.277 ms
 (5 rows)
 ```
 
@@ -104,15 +104,16 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'pending';
 Expected output (yours will differ):
 
 ```
-                                                       QUERY PLAN
--------------------------------------------------------------------------------------------------------------------------
- Bitmap Heap Scan on orders  (cost=4.30..14.55 rows=15 width=72) (actual time=0.038..0.062 rows=15 loops=1)
-   Recheck Cond: ((status)::text = 'pending')
-   ->  Bitmap Index Scan on idx_orders_status  (cost=0.00..4.26 rows=15 width=0)
-         Index Cond: ((status)::text = 'pending')
- Planning Time: 0.244 ms
- Execution Time: 0.082 ms
-(6 rows)
+                                                             QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on orders  (cost=145.01..769.01 rows=12480 width=43) (actual time=0.508..2.702 rows=12573 loops=1)
+   Recheck Cond: ((status)::text = 'pending'::text)
+   Heap Blocks: exact=468
+   ->  Bitmap Index Scan on idx_orders_status  (cost=0.00..141.89 rows=12480 width=0) (actual time=0.452..0.452 rows=12573 loops=1)
+         Index Cond: ((status)::text = 'pending'::text)
+ Planning Time: 0.212 ms
+ Execution Time: 3.097 ms
+(7 rows)
 ```
 
 > **Concept - When B-tree Helps**: B-tree indexes support `=`, `<`, `<=`, `>`, `>=`, `BETWEEN`, `IN`, `LIKE 'prefix%'`, and `IS NULL`. They do NOT help with `LIKE '%suffix'` or case-insensitive searches. For those patterns you need GIN or an expression index.
@@ -144,15 +145,16 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 42;
 Expected output (yours will differ):
 
 ```
-                                                         QUERY PLAN
-----------------------------------------------------------------------------------------------------------------------------
- Bitmap Heap Scan on orders  (cost=4.05..12.30 rows=2 width=72) (actual time=0.028..0.041 rows=2 loops=1)
+                                                           QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on orders  (cost=4.04..22.55 rows=5 width=43) (actual time=0.018..0.020 rows=2 loops=1)
    Recheck Cond: (customer_id = 42)
-   ->  Bitmap Index Scan on idx_orders_customer_hash  (cost=0.00..4.05 rows=2 width=0)
+   Heap Blocks: exact=2
+   ->  Bitmap Index Scan on idx_orders_customer_hash  (cost=0.00..4.04 rows=5 width=0) (actual time=0.013..0.013 rows=2 loops=1)
          Index Cond: (customer_id = 42)
- Planning Time: 0.188 ms
- Execution Time: 0.058 ms
-(5 rows)
+ Planning Time: 0.160 ms
+ Execution Time: 0.038 ms
+(7 rows)
 ```
 
 In practice, B-tree handles equality just as well as hash. Use hash only when you have verified profiling that shows a benefit for your specific workload.
@@ -184,13 +186,13 @@ Check if there is a JSONB or text column to work with.
 Expected output (yours will differ):
 
 ```
-                      Table "public.products"
-    Column     |       Type        | Nullable |      Default
----------------+-------------------+----------+-------------------
- product_id    | integer           | not null | nextval(...)
- name          | character varying | not null |
- price         | numeric(10,2)     | not null |
- stock         | integer           |          |
+                                          Table "public.products"
+   Column   |          Type          | Collation | Nullable |                   Default
+------------+------------------------+-----------+----------+----------------------------------------------
+ product_id | integer                |           | not null | nextval('products_product_id_seq'::regclass)
+ name       | character varying(150) |           | not null |
+ price      | numeric(10,2)          |           | not null |
+ stock      | integer                |           |          | 0
 ```
 
 Create a GIN index for full-text search on product names.
@@ -283,16 +285,17 @@ WHERE table_name = 'orders' AND table_schema = 'public';
 Expected output (yours will differ):
 
 ```
-    column_name    |     data_type
--------------------+-------------------
- order_id          | integer
- customer_id       | integer
- product_id        | integer
- quantity          | integer
- total_amount      | numeric
- order_date        | timestamp without time zone
- status            | character varying
- tenant_id         | integer
+ column_name  |          data_type
+--------------+-----------------------------
+ order_id     | integer
+ customer_id  | integer
+ product_id   | integer
+ quantity     | integer
+ total_amount | numeric
+ order_date   | timestamp without time zone
+ status       | character varying
+ tenant_id    | integer
+(8 rows)
 ```
 
 Create a BRIN index on order_date.
@@ -318,13 +321,17 @@ WHERE order_date >= NOW() - INTERVAL '7 days';
 Expected output (yours will differ):
 
 ```
-                                                  QUERY PLAN
----------------------------------------------------------------------------------------------------------------
- Bitmap Heap Scan on orders  (cost=4.02..14.55 rows=10 width=72) (actual time=0.033..0.058 rows=8 loops=1)
-   Recheck Cond: (order_date >= (now() - '7 days'::interval))
-   ->  Bitmap Index Scan on idx_orders_created_brin  (cost=0.00..4.02 rows=10 width=0)
-(4 rows)
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1343.00 rows=1115 width=43) (actual time=0.019..11.258 rows=903 loops=1)
+   Filter: (order_date >= (now() - '7 days'::interval))
+   Rows Removed by Filter: 49097
+ Planning Time: 0.146 ms
+ Execution Time: 11.306 ms
+(5 rows)
 ```
+
+Notice the planner chose Seq Scan even with the BRIN index. This is because the order_date values in our lab data are randomly distributed, not physically ordered on disk. BRIN only helps when data is inserted in chronological order (append-only patterns like logs or events). This is exactly why BRIN is NOT a general-purpose replacement for B-tree.
 
 > **Concept - BRIN Size Advantage**: A BRIN index on a 100 million row time-series table can be just a few MB, while a B-tree would be gigabytes. The trade-off is accuracy - BRIN must recheck results and works poorly on unsorted data. For write-heavy append-only tables (logs, events, audit trails), BRIN is the right default.
 
@@ -360,12 +367,18 @@ ORDER BY order_date;
 Expected output (yours will differ):
 
 ```
-                                                              QUERY PLAN
---------------------------------------------------------------------------------------------------------------------------------------
- Index Scan using idx_orders_pending on orders  (cost=0.14..10.55 rows=15 width=72) (actual time=0.028..0.047 rows=15 loops=1)
- Planning Time: 0.188 ms
- Execution Time: 0.062 ms
-(3 rows)
+                                                                QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=1594.90..1626.10 rows=12480 width=43) (actual time=5.008..6.615 rows=12573 loops=1)
+   Sort Key: order_date
+   Sort Method: quicksort  Memory: 1269kB
+   ->  Bitmap Heap Scan on orders  (cost=121.81..745.81 rows=12480 width=43) (actual time=0.462..2.630 rows=12573 loops=1)
+         Recheck Cond: ((status)::text = 'pending'::text)
+         Heap Blocks: exact=468
+         ->  Bitmap Index Scan on idx_orders_pending  (cost=0.00..118.69 rows=12480 width=0) (actual time=0.407..0.408 rows=12573 loops=1)
+ Planning Time: 0.205 ms
+ Execution Time: 7.034 ms
+(9 rows)
 ```
 
 Compare the index sizes.
@@ -380,12 +393,12 @@ WHERE tablename = 'orders';
 Expected output (yours will differ):
 
 ```
-        indexname         | index_size
---------------------------+------------
- orders_pkey              | 16 kB
- idx_orders_status        | 16 kB
- idx_orders_created_brin  | 8 kB
- idx_orders_pending       | 8 kB
+        indexname        | index_size
+-------------------------+------------
+ orders_pkey             | 1112 kB
+ idx_orders_status       | 360 kB
+ idx_orders_created_brin | 24 kB
+ idx_orders_pending      | 112 kB
 (4 rows)
 ```
 
@@ -407,13 +420,13 @@ SELECT * FROM customers WHERE lower(email) = 'alice@example.com';
 Expected output (yours will differ):
 
 ```
-                              QUERY PLAN
-------------------------------------------------------------------------
- Seq Scan on customers  (cost=0.00..6.00 rows=1 width=80) (actual time=0.018..0.095 rows=1 loops=1)
-   Filter: (lower((email)::text) = 'alice@example.com')
-   Rows Removed by Filter: 199
- Planning Time: 0.077 ms
- Execution Time: 0.104 ms
+                                              QUERY PLAN
+-------------------------------------------------------------------------------------------------------
+ Seq Scan on customers  (cost=0.00..264.00 rows=50 width=57) (actual time=4.412..4.413 rows=1 loops=1)
+   Filter: (lower((email)::text) = 'alice@example.com'::text)
+   Rows Removed by Filter: 9999
+ Planning Time: 0.098 ms
+ Execution Time: 4.424 ms
 (5 rows)
 ```
 
@@ -440,12 +453,15 @@ Expected output (yours will differ):
 
 ```
                                                             QUERY PLAN
-------------------------------------------------------------------------------------------------------------------------------------
- Index Scan using idx_customers_email_lower on customers  (cost=0.14..8.16 rows=1 width=80) (actual time=0.033..0.036 rows=1 loops=1)
-   Index Cond: (lower((email)::text) = 'alice@example.com')
- Planning Time: 0.186 ms
- Execution Time: 0.049 ms
-(4 rows)
+-----------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on customers  (cost=4.67..96.94 rows=50 width=57) (actual time=0.019..0.020 rows=1 loops=1)
+   Recheck Cond: (lower((email)::text) = 'alice@example.com'::text)
+   Heap Blocks: exact=1
+   ->  Bitmap Index Scan on idx_customers_email_lower  (cost=0.00..4.66 rows=50 width=0) (actual time=0.016..0.016 rows=1 loops=1)
+         Index Cond: (lower((email)::text) = 'alice@example.com'::text)
+ Planning Time: 0.168 ms
+ Execution Time: 0.039 ms
+(7 rows)
 ```
 
 The index is used because the query expression `lower(email)` exactly matches the index expression.
@@ -482,13 +498,13 @@ WHERE customer_id = 10;
 Expected output (yours will differ):
 
 ```
-                                                                   QUERY PLAN
--------------------------------------------------------------------------------------------------------------------------------------------------
- Index Only Scan using idx_orders_customer_covering on orders  (cost=0.14..8.18 rows=2 width=24) (actual time=0.024..0.029 rows=2 loops=1)
+                                                                QUERY PLAN
+-------------------------------------------------------------------------------------------------------------------------------------------
+ Index Only Scan using idx_orders_customer_covering on orders  (cost=0.41..4.50 rows=5 width=19) (actual time=0.023..0.023 rows=4 loops=1)
    Index Cond: (customer_id = 10)
    Heap Fetches: 0
  Planning Time: 0.142 ms
- Execution Time: 0.042 ms
+ Execution Time: 0.037 ms
 (5 rows)
 ```
 
@@ -503,22 +519,23 @@ Expected output (yours will differ):
 Indexes cost write performance (every INSERT/UPDATE/DELETE must update all indexes). Review unused indexes regularly.
 
 ```sql
-SELECT indexname, idx_scan, idx_tup_read
+SELECT indexrelname, idx_scan, idx_tup_read
 FROM pg_stat_user_indexes
-WHERE tablename = 'orders'
+WHERE relname = 'orders'
 ORDER BY idx_scan;
 ```
 
 Expected output (yours will differ):
 
 ```
-          indexname           | idx_scan | idx_tup_read
-------------------------------+----------+--------------
- idx_orders_created_brin      |        0 |            0
- idx_orders_status            |        2 |           30
- idx_orders_customer_covering |        3 |            6
- orders_pkey                  |       12 |           12
-(4 rows)
+       indexrelname        | idx_scan | idx_tup_read
+---------------------------+----------+--------------
+ idx_orders_created_brin   |        0 |            0
+ idx_orders_status         |        2 |        25146
+ idx_orders_pending        |        1 |        12573
+ idx_orders_customer_covering |     1 |            4
+ orders_pkey               |        0 |            0
+(5 rows)
 ```
 
 Indexes with `idx_scan = 0` after weeks of production traffic are candidates for removal.

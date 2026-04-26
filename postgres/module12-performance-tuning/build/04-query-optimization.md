@@ -50,15 +50,15 @@ Expected output (yours will differ):
 
 ```
                                                         QUERY PLAN
---------------------------------------------------------------------------------------------------------------------------
- Index Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=120) (actual time=0.025..0.028 rows=1 loops=1)
+---------------------------------------------------------------------------------------------------------------------------
+ Index Scan using customers_pkey on customers  (cost=0.29..8.30 rows=1 width=57) (actual time=0.010..0.010 rows=1 loops=1)
    Index Cond: (customer_id = 42)
- Planning Time: 0.102 ms
- Execution Time: 0.044 ms
+ Planning Time: 0.337 ms
+ Execution Time: 0.047 ms
 (4 rows)
 ```
 
-Note the `width=120` - PostgreSQL is fetching 120 bytes per row even if you only need email and name.
+Note the `width=57` - PostgreSQL is fetching 57 bytes per row even if you only need email and name.
 
 Good query - fetch only what the application needs.
 
@@ -69,17 +69,16 @@ EXPLAIN ANALYZE SELECT customer_id, email, name FROM customers WHERE customer_id
 Expected output (yours will differ):
 
 ```
-                                                               QUERY PLAN
-----------------------------------------------------------------------------------------------------------------------------------------
- Index Only Scan using customers_pkey on customers  (cost=0.14..8.16 rows=1 width=52) (actual time=0.024..0.026 rows=1 loops=1)
+                                                        QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------
+ Index Scan using customers_pkey on customers  (cost=0.29..8.30 rows=1 width=37) (actual time=0.007..0.008 rows=1 loops=1)
    Index Cond: (customer_id = 42)
-   Heap Fetches: 0
- Planning Time: 0.108 ms
- Execution Time: 0.038 ms
+ Planning Time: 0.031 ms
+ Execution Time: 0.016 ms
 (4 rows)
 ```
 
-`width` dropped from 120 to 52. PostgreSQL switched from Index Scan (heap access) to Index Only Scan (no heap access). Same result, less I/O.
+`width` dropped from 57 to 37. Same result, less data transferred per row.
 
 > **Concept - SELECT * in Production**: SELECT * also creates fragile code. When a column is added or renamed, application code that destructures positional columns breaks silently. Always name your columns explicitly in queries that run in production.
 
@@ -96,15 +95,15 @@ EXPLAIN ANALYZE SELECT order_id, total_amount FROM orders;
 Expected output (yours will differ):
 
 ```
-                                           QUERY PLAN
--------------------------------------------------------------------------------------------------
- Seq Scan on orders  (cost=0.00..12.50 rows=50 width=12) (actual time=0.012..0.065 rows=50 loops=1)
+                                                QUERY PLAN
+-----------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..968.00 rows=50000 width=10) (actual time=0.005..5.302 rows=50000 loops=1)
  Planning Time: 0.065 ms
- Execution Time: 0.079 ms
+ Execution Time: 6.883 ms
 (3 rows)
 ```
 
-This looks fast now because the table is small. At 10 million rows this query takes seconds.
+With 50,000 rows this already takes ~7ms. At 10 million rows this query takes seconds.
 
 Good practice: always filter to the data you need.
 
@@ -119,14 +118,17 @@ WHERE order_date >= NOW() - INTERVAL '30 days'
 Expected output (yours will differ):
 
 ```
-                                                              QUERY PLAN
---------------------------------------------------------------------------------------------------------------------------------------
- Index Scan using idx_orders_pending on orders  (cost=0.14..10.20 rows=8 width=12) (actual time=0.028..0.038 rows=8 loops=1)
-   Index Cond: (order_date >= (now() - '30 days'::interval))
- Planning Time: 0.185 ms
- Execution Time: 0.052 ms
-(4 rows)
+                                               QUERY PLAN
+---------------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1468.00 rows=1101 width=10) (actual time=0.007..7.092 rows=957 loops=1)
+   Filter: (((status)::text = 'pending'::text) AND (order_date >= (now() - '30 days'::interval)))
+   Rows Removed by Filter: 49043
+ Planning Time: 0.103 ms
+ Execution Time: 7.138 ms
+(5 rows)
 ```
+
+Even though this is still a Seq Scan (no index on these columns yet), the filtered query returns far fewer rows than the full table scan. In Guide 02 you will learn how to create indexes that speed this up further.
 
 ---
 
