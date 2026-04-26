@@ -1,7 +1,6 @@
-# pgBackRest - Comprehensive Concepts Guide
+# pgBackRest - Concepts Guide
 
-A teaching reference for DBA students moving from pg_dump and pg_basebackup to
-enterprise-grade backup management with pgBackRest.
+Read this before starting Build Guides 07 and 08. By the time you get to those labs, you'll already understand what pgBackRest is, why it exists, and how it solves the problems you'll encounter with manual backups in Build Guides 05 and 06.
 
 ---
 
@@ -24,29 +23,20 @@ enterprise-grade backup management with pgBackRest.
 
 ### The problem with manual backups
 
-If you have completed Build Guides 05 and 06 in this lab, you have already felt
-the pain of manual backup management:
+In Build Guides 05 and 06, you'll set up manual backups using `pg_basebackup` and hand-rolled WAL archiving with `cp` or `rsync`. This works, but you'll quickly feel the pain:
 
-- **pg_basebackup is single-threaded.** A 500 GB database takes hours to back up
-  with one process copying files sequentially. You cannot parallelize it.
-- **Manual WAL archiving is fragile.** A hand-rolled `archive_command` using
-  `cp` or `rsync` gives you no compression, no verification, no retry logic.
-  If the archive destination fills up or goes offline, WAL segments pile up on
-  the primary and you risk running out of disk.
-- **No incremental backups.** pg_basebackup always copies the entire data
-  directory. Changed one row? Too bad - you are copying the full 500 GB again.
-- **No built-in retention.** You write your own cron jobs to delete old backups.
-  Miss a run and your disk fills. Delete too aggressively and you lose your
-  recovery window.
-- **No verification.** pg_basebackup does not validate page checksums during
-  the copy. You may back up corrupted data and not know until restore time.
-- **No encryption.** Backups sit on disk in plain text. Regulatory compliance
-  (HIPAA, SOC2, PCI-DSS) requires encryption at rest.
+- **pg_basebackup is single-threaded.** A 500 GB database takes hours to back up with one process copying files sequentially. You can't parallelize it.
+- **Manual WAL archiving is fragile.** A hand-rolled `archive_command` using `cp` or `rsync` gives you no compression, no verification, no retry logic. If the archive destination fills up or goes offline, WAL segments pile up on the primary and you risk running out of disk.
+- **No incremental backups.** pg_basebackup always copies the entire data directory. Changed one row? Too bad - you're copying the full 500 GB again.
+- **No built-in retention.** You write your own cron jobs to delete old backups. Miss a run and your disk fills. Delete too aggressively and you lose your recovery window.
+- **No verification.** pg_basebackup doesn't validate page checksums during the copy. You may back up corrupted data and not know until restore time.
+- **No encryption.** Backups sit on disk in plain text. Regulatory compliance (HIPAA, SOC2, PCI-DSS) requires encryption at rest.
 
-### What pgBackRest fills
+### What pgBackRest is
 
-pgBackRest replaces your entire backup pipeline - archiving, base backups,
-retention, and restore - with a single, purpose-built tool:
+**pgBackRest** is a purpose-built backup and restore tool designed specifically for PostgreSQL. It's not a general-purpose backup tool adapted for databases - it was written from scratch to understand PostgreSQL's internals (WAL, checkpoints, tablespaces, page checksums).
+
+It replaces your entire backup pipeline - archiving, base backups, retention, and restore - with a single tool:
 
 | Gap | pgBackRest Solution |
 | --- | ------------------- |
@@ -60,11 +50,11 @@ retention, and restore - with a single, purpose-built tool:
 | Fragile archive_command | Reliable archive-push with async mode and queue management |
 | No resume on failure | Interrupted backups resume from where they stopped |
 
+Think of it this way: `pg_basebackup` is like copying files with a flash drive. pgBackRest is like Time Machine or Veeam - it manages your entire backup lifecycle automatically.
+
 ### Brief history
 
-pgBackRest was created by David Steele, with the first public release around
-2014. It was designed from the ground up specifically for PostgreSQL - not
-adapted from a general-purpose backup tool. Key milestones:
+pgBackRest was created by David Steele, with the first public release around 2014. It was designed from the ground up specifically for PostgreSQL. Key milestones:
 
 - **2014** - Initial release, replacing custom Perl-based backup scripts
 - **2019** - Rewritten from Perl to C for performance and reduced dependencies
@@ -73,10 +63,7 @@ adapted from a general-purpose backup tool. Key milestones:
 - **2023** - Block-level incremental backup (v2.46)
 - **2025** - Current stable release: v2.58.0
 
-Today pgBackRest is the most widely used PostgreSQL backup tool. It is included
-in the default package repositories for every major Linux distribution and is
-the backup engine behind managed PostgreSQL services at Crunchy Data, AWS RDS
-(internally), and many others.
+Today pgBackRest is the most widely used PostgreSQL backup tool. It's included in the default package repositories for every major Linux distribution and is the backup engine behind managed PostgreSQL services at Crunchy Data, AWS RDS (internally), and many others.
 
 ---
 
@@ -84,8 +71,7 @@ the backup engine behind managed PostgreSQL services at Crunchy Data, AWS RDS
 
 ### Local backup setup
 
-The simplest deployment. PostgreSQL and the backup repository live on the same
-server. This is what you build in Build Guide 07.
+The simplest deployment. PostgreSQL and the backup repository live on the same server. You'll build this setup in Build Guide 07.
 
 ```
 +----------------------------------------------------------+
@@ -110,15 +96,13 @@ server. This is what you build in Build Guide 07.
 +----------------------------------------------------------+
 ```
 
-> **Concept:** A local repository is simple to set up but violates a
-> fundamental backup rule - your backups live on the same machine as your data.
-> If the server's storage fails, you lose both. Use local repos for dev/test
-> or as one leg of a multi-repo strategy.
+> **Concept:** A local repository is simple to set up but violates a fundamental backup rule - your backups live on the same machine as your data. If the server's storage fails, you lose both. Use local repos for dev/test or as one leg of a multi-repo strategy.
 
 ### Remote backup setup (dedicated backup server)
 
-The production pattern. A dedicated backup server (repo host) stores all backups
-and WAL archives. This is the architecture in our lab with NODE1 and NODE2.
+The production pattern. A dedicated backup server (called the "repo host") stores all backups and WAL archives on a completely separate machine. If the primary burns down, your backups survive.
+
+This is the architecture in our lab with NODE1 (pg-primary) and NODE2 (pg-backup).
 
 ```
 +---------------------------+          +---------------------------+
@@ -138,15 +122,11 @@ and WAL archives. This is the architecture in our lab with NODE1 and NODE2.
 +---------------------------+          +---------------------------+
 ```
 
-> **Concept:** With a dedicated repo host, backup I/O does not compete with
-> production queries. The repo host can have cheaper, larger storage optimized
-> for sequential writes. If the primary dies, your backups are safe on a
-> separate machine.
+> **Concept:** With a dedicated repo host, backup I/O doesn't compete with production queries. The repo host can have cheaper, larger storage optimized for sequential writes. If the primary dies, your backups are safe on a separate machine.
 
 ### Multi-repository setup (local + cloud)
 
-pgBackRest can write to multiple repositories simultaneously. This gives you
-fast local restores plus offsite disaster recovery.
+pgBackRest can write to multiple repositories simultaneously. This gives you fast local restores plus offsite disaster recovery.
 
 ```
 +---------------------------+
@@ -171,12 +151,11 @@ Backups          --> scheduled per repo (can differ)
 Restore          --> choose repo with --repo flag
 ```
 
-> **Concept:** Each repository can have its own retention policy, compression
-> settings, and encryption configuration. WAL archiving pushes to all repos
-> automatically. If one repo is temporarily unavailable, async archiving queues
-> the segments and retries.
+> **Concept:** Each repository can have its own retention policy, compression settings, and encryption configuration. WAL archiving pushes to all repos automatically. If one repo is temporarily unavailable, async archiving queues the segments and retries.
 
 ### Data flow overview
+
+Here's the big picture of how data flows through pgBackRest - from PostgreSQL to the repository and back:
 
 ```
                           archive-push
@@ -206,16 +185,13 @@ Repository ----------------------------------------> PostgreSQL
 
 ### Stanza
 
-A stanza is pgBackRest's name for a backup configuration that maps to one
-PostgreSQL cluster. Think of it as a named profile that ties together:
+**What is a stanza?** A stanza is pgBackRest's name for a backup configuration that maps to one PostgreSQL cluster. Think of it as a named profile that ties together:
 
 - The path to a PostgreSQL data directory
 - The repository location for that cluster's backups
 - Retention rules, compression settings, and other options
 
-**Naming conventions:** Name stanzas after the cluster's purpose, not its
-hostname. Good names: `main`, `app`, `analytics`, `dw`. Bad names:
-`pg-primary-01`, `ip-10-0-1-42` - these break when you failover or rebuild.
+**Naming conventions:** Name stanzas after the cluster's purpose, not its hostname. Good names: `main`, `app`, `analytics`, `dw`. Bad names: `pg-primary-01`, `ip-10-0-1-42` - these break when you failover or rebuild.
 
 In our lab, the stanza is named `main`:
 
@@ -232,19 +208,13 @@ pgbackrest --stanza=main info
 pgbackrest --stanza=main restore
 ```
 
-> **Note:** These are examples showing how the stanza name appears in every
-> pgBackRest command. Do not run these now - you will run them step-by-step
-> in Build Guide 07.
+You'll create your stanza and run all of these in Build Guide 07.
 
-> **Concept:** The `stanza-create` command initializes the repository structure
-> and writes metadata about the PostgreSQL cluster (version, system identifier).
-> Always run `pgbackrest --stanza=main check` after creation to verify that
-> archiving works end-to-end. You will do both in Build Guide 07.
+> **Concept:** The `stanza-create` command initializes the repository structure and writes metadata about the PostgreSQL cluster (version, system identifier). Always run `pgbackrest --stanza=main check` after creation to verify that archiving works end-to-end. Build Guide 07 walks you through both steps.
 
 ### Repository
 
-The repository is where pgBackRest stores backup data and WAL archives. It is
-organized internally by stanza name, then by type (archive vs backup).
+**What is the repository?** The repository is where pgBackRest stores everything - backup data and WAL archives. It's organized internally by stanza name, then by type (archive vs backup).
 
 **Supported repository types:**
 
@@ -258,6 +228,8 @@ organized internally by stanza name, then by type (archive vs backup).
 | SFTP | `sftp` | Remote server without pgBackRest installed |
 
 **Repository structure on disk:**
+
+When you look inside the repository directory, here's what you'll see:
 
 ```
 /opt/pgsql/backup/pgbackrest/          # repo1-path
@@ -276,27 +248,21 @@ organized internally by stanza name, then by type (archive vs backup).
       20260416-060000F_20260417-060000I/   # incr (I suffix)
 ```
 
+Notice the naming convention: `F` means full, `D` means differential, `I` means incremental. The timestamp tells you when the backup was taken. You'll see this output when you run `pgbackrest info` in Build Guide 07.
+
 ### Backup types
 
-pgBackRest supports four backup types. Understanding the chain of dependencies
-between them is critical for planning your retention policy.
+pgBackRest supports four backup types. Understanding the chain of dependencies between them is critical for planning your retention policy.
 
-**Full backup** - A complete, standalone copy of the entire PGDATA directory.
-No dependencies on other backups. Largest size, longest duration, but simplest
-to restore.
+**Full backup** - A complete, standalone copy of the entire PGDATA directory. No dependencies on other backups. Largest size, longest duration, but simplest to restore. Think of it as a complete photo of your entire database.
 
-**Differential backup** - Contains all files that changed since the last full
-backup. To restore: you need the full + the differential. Faster and smaller
-than a full, but grows over time as more data changes.
+**Differential backup** - Contains all files that changed since the last full backup. To restore: you need the full + the differential. Faster and smaller than a full, but grows over time as more data changes. Think of it as "everything that changed since Sunday."
 
-**Incremental backup** - Contains only files that changed since the last backup
-of any type (full, diff, or incr). Smallest and fastest, but creates a chain of
-dependencies. To restore: you need the full + all intermediates up to the incr.
+**Incremental backup** - Contains only files that changed since the last backup of any type (full, diff, or incr). Smallest and fastest, but creates a chain of dependencies. To restore: you need the full + all intermediates up to the incr. Think of it as "just what changed in the last hour."
 
-**Block-level incremental** (pgBackRest 2.46+) - Instead of copying entire
-changed files, only the changed blocks within each file are stored. Enabled
-with `repo-bundle=y` and `repo-block=y`. Dramatically reduces backup size for
-large tables with small changes.
+**Block-level incremental** (pgBackRest 2.46+) - Instead of copying entire changed files, only the changed blocks within each file are stored. Enabled with `repo-bundle=y` and `repo-block=y`. Dramatically reduces backup size for large tables with small changes.
+
+Here's how the dependency chains work:
 
 ```
 Backup Chain Dependencies
@@ -325,25 +291,18 @@ Restore Wednesday's differential:   F + D3       (2 backups)
 Restore Wednesday's incremental:    F + I1 + I2 + I3  (4 backups)
 ```
 
-> **Concept:** Differentials are a balance between size and restore complexity.
-> In production, a common pattern is: full weekly, differential daily,
-> incremental hourly. You get fast hourly backups during the day, reasonable
-> daily restore complexity, and a clean full baseline each week.
+> **Concept:** Differentials are a balance between size and restore complexity. In production, a common pattern is: full weekly, differential daily, incremental hourly. You get fast hourly backups during the day, reasonable daily restore complexity, and a clean full baseline each week. You'll take full and differential backups in Build Guide 08.
 
-### WAL archiving
+### WAL archiving with pgBackRest
 
-pgBackRest replaces your manual `archive_command` with its own `archive-push`
-command. This gives you:
+pgBackRest replaces your manual `archive_command` with its own `archive-push` command. This gives you:
 
-- **Compression** - WAL segments are compressed before storage (configurable
-  algorithm and level)
+- **Compression** - WAL segments are compressed before storage (configurable algorithm and level)
 - **Checksums** - Each segment is verified during the push
-- **Parallel async mode** - Multiple WAL segments can be pushed simultaneously
-  using a spool directory and background processes
-- **Deduplication** - If the same WAL segment is pushed twice (e.g., after a
-  PostgreSQL restart), pgBackRest detects the duplicate and skips it
+- **Parallel async mode** - Multiple WAL segments can be pushed simultaneously using a spool directory and background processes
+- **Deduplication** - If the same WAL segment is pushed twice (e.g., after a PostgreSQL restart), pgBackRest detects the duplicate and skips it
 
-PostgreSQL configuration (set in `postgresql.conf`):
+In `postgresql.conf`, you'll configure archiving like this:
 
 ```ini
 wal_level = replica            # minimum for archiving
@@ -351,7 +310,7 @@ archive_mode = on              # enable WAL archiving
 archive_command = 'pgbackrest --stanza=main archive-push %p'
 ```
 
-**Async archiving** adds a queue between PostgreSQL and the repository:
+**Async archiving** adds a queue between PostgreSQL and the repository. This is important for high-write databases:
 
 ```
 PostgreSQL                    pgBackRest                    Repository
@@ -365,15 +324,11 @@ archive_command returns SUCCESS as soon as WAL hits the spool.
 Background processes handle the actual transfer to the repo.
 ```
 
-> **Concept:** Async archiving is essential for high-throughput databases. If
-> your database generates WAL faster than a single process can push it, the
-> WAL directory fills up. Async mode decouples PostgreSQL from the transfer
-> speed. Configure it with `archive-async=y` in the `[global:archive-push]`
-> section.
+> **Concept:** Async archiving is essential for high-throughput databases. If your database generates WAL faster than a single process can push it, the WAL directory fills up. Async mode decouples PostgreSQL from the transfer speed. Configure it with `archive-async=y` in the `[global:archive-push]` section.
 
 ### Backup manifest
 
-Every backup contains a `backup.manifest` file - a JSON document that records:
+**What is it?** Every backup contains a `backup.manifest` file - a JSON document that records:
 
 - Every file in PGDATA with its path, size, timestamp, and SHA-1 checksum
 - Tablespace locations and OIDs
@@ -382,30 +337,22 @@ Every backup contains a `backup.manifest` file - a JSON document that records:
 - Compression type and level used
 - Whether page checksums were validated
 
-The manifest is how pgBackRest knows which files changed between backups
-(for diff/incr), which files to verify during restore, and which files can
-be preserved during a delta restore.
+The manifest is how pgBackRest knows which files changed between backups (for diff/incr), which files to verify during restore, and which files can be preserved during a delta restore.
 
 ### Retention
 
-Retention controls how many backups pgBackRest keeps before expiring old ones.
-Three settings work together:
+**What is retention?** Retention controls how many backups pgBackRest keeps before expiring old ones. Three settings work together:
 
-**`repo1-retention-full`** - How many full backups to retain. When a new full
-backup completes and the count exceeds this number, the oldest full (and all
-its dependent diffs/incrs) are expired.
+**`repo1-retention-full`** - How many full backups to retain. When a new full backup completes and the count exceeds this number, the oldest full (and all its dependent diffs/incrs) are expired.
 
 - By count: `repo1-retention-full=2` keeps the 2 most recent full backups
-- By time: `repo1-retention-full-type=time` with `repo1-retention-full=14`
-  keeps full backups from the last 14 days
+- By time: `repo1-retention-full-type=time` with `repo1-retention-full=14` keeps full backups from the last 14 days
 
-**`repo1-retention-diff`** - How many differential backups to retain within the
-current full backup's set. `repo1-retention-diff=4` keeps the 4 most recent
-diffs.
+**`repo1-retention-diff`** - How many differential backups to retain within the current full backup's set. `repo1-retention-diff=4` keeps the 4 most recent diffs.
 
-**`repo1-retention-archive`** - Controls WAL archive retention. WAL required by
-any retained backup is never removed. Additional WAL beyond that is controlled
-by this setting and `repo1-retention-archive-type`.
+**`repo1-retention-archive`** - Controls WAL archive retention. WAL required by any retained backup is never removed. Additional WAL beyond that is controlled by this setting and `repo1-retention-archive-type`.
+
+Here's a concrete example of how retention works:
 
 ```
 Retention Example: retention-full=2, retention-diff=3
@@ -427,30 +374,21 @@ Week 0 Full  --> EXPIRED (3rd full, exceeds retention-full=2)
   WAL before Week 1 Full --> EXPIRED (no backup needs it)
 ```
 
-> **Concept:** The `expire` command runs automatically after each successful
-> backup. It never removes a backup that another backup depends on. You can
-> also run it manually with `pgbackrest --stanza=main expire`.
+> **Concept:** The `expire` command runs automatically after each successful backup. It never removes a backup that another backup depends on. You can also run it manually with `pgbackrest --stanza=main expire`.
 
 ### Delta restore
 
-A standard restore wipes the target PGDATA directory and copies everything from
-the backup. A delta restore is smarter - it computes the SHA-1 checksum of each
-file in the target directory and compares it to the backup manifest. Files that
-match are left in place. Only changed or missing files are copied.
+**What is it?** A standard restore wipes the target PGDATA directory and copies everything from the backup. A delta restore is smarter - it computes the SHA-1 checksum of each file in the target directory and compares it to the backup manifest. Files that match are left in place. Only changed or missing files are copied.
 
 Why this matters:
 
-- **Speed** - If 90% of your files have not changed, a delta restore copies
-  only 10% of the data
-- **Restore into existing directory** - You do not need to rm -rf PGDATA first
-- **Switchover scenarios** - After promoting a standby, you can delta-restore
-  the old primary to rejoin as a standby without a full copy
+- **Speed** - If 90% of your files haven't changed, a delta restore copies only 10% of the data
+- **Restore into existing directory** - You don't need to rm -rf PGDATA first
+- **Switchover scenarios** - After promoting a standby, you can delta-restore the old primary to rejoin as a standby without a full copy
 
-Delta restore also removes files that exist in PGDATA but are not in the
-backup manifest (e.g., temp files, leftover WAL).
+Delta restore also removes files that exist in PGDATA but are not in the backup manifest (e.g., temp files, leftover WAL).
 
-You configure delta as the default in pgbackrest.conf with `delta=y` (as we
-do in Build Guide 07) or pass `--delta` on the command line.
+You'll configure delta as the default in pgbackrest.conf with `delta=y` in Build Guide 07, or pass `--delta` on the command line.
 
 ---
 
@@ -458,9 +396,7 @@ do in Build Guide 07) or pass `--delta` on the command line.
 
 ### Parallel backup and restore
 
-pgBackRest uses multiple processes for file compression and transfer. Each
-process handles a different file, so large databases with many files benefit
-significantly.
+pgBackRest uses multiple processes for file compression and transfer. Each process handles a different file, so large databases with many files benefit significantly.
 
 ```ini
 [global]
@@ -477,15 +413,11 @@ Guidelines for setting `process-max`:
 | Dedicated backup server | 4-16 | Backup is the primary workload |
 | SFTP repository | 4 | SFTP protocol overhead limits scaling |
 
-> **Concept:** More processes is not always better. Each process needs CPU for
-> compression and memory for buffering. On a busy production server, setting
-> process-max too high steals resources from queries. Start with 2-4 and
-> benchmark.
+> **Concept:** More processes isn't always better. Each process needs CPU for compression and memory for buffering. On a busy production server, setting process-max too high steals resources from queries. Start with 2-4 and benchmark.
 
 ### Compression
 
-pgBackRest compresses backup files and WAL archives. You choose the algorithm
-based on your priorities:
+pgBackRest compresses backup files and WAL archives. You choose the algorithm based on your priorities:
 
 | Algorithm | Config Value | Speed | Ratio | CPU Usage | Best For |
 | --------- | ------------ | ----- | ----- | --------- | -------- |
@@ -504,31 +436,19 @@ compress-level=3          # balance speed vs ratio (zstd range: -7 to 22)
 compress-level=1          # faster compression for WAL (time-sensitive)
 ```
 
-> **Concept:** You can set different compression levels for different commands.
-> WAL archiving is time-sensitive (PostgreSQL waits for archive_command to
-> return), so use a lower compress-level for archive-push. Backups are less
-> time-critical, so you can afford higher compression. This is configured
-> using command-level sections like `[global:archive-push]`.
+> **Concept:** You can set different compression levels for different commands. WAL archiving is time-sensitive (PostgreSQL waits for archive_command to return), so use a lower compress-level for archive-push. Backups are less time-critical, so you can afford higher compression. This is configured using command-level sections like `[global:archive-push]`.
 
 ### Page checksums
 
-During backup, pgBackRest can validate PostgreSQL page-level checksums (if
-enabled on the cluster with `initdb --data-checksums` or `pg_checksums`).
-This catches corruption during the backup process - not after.
+During backup, pgBackRest can validate PostgreSQL page-level checksums (if enabled on the cluster with `initdb --data-checksums` or `pg_checksums`). This catches corruption during the backup process - not after.
 
-If pgBackRest detects a bad page checksum, it logs a warning but continues
-the backup. The `info` command and backup manifest record which pages failed.
+If pgBackRest detects a bad page checksum, it logs a warning but continues the backup. The `info` command and backup manifest record which pages failed.
 
-This is separate from PostgreSQL's `data_checksums` setting - pgBackRest reads
-and verifies the checksums itself during the file copy.
+This is separate from PostgreSQL's `data_checksums` setting - pgBackRest reads and verifies the checksums itself during the file copy.
 
 ### Resume
 
-If a backup is interrupted (network failure, server reboot, out of memory),
-pgBackRest can resume from where it stopped instead of starting over. The
-manifest is saved periodically during backup (controlled by
-`manifest-save-threshold`, default 1 GiB). On resume, files already copied
-are verified by checksum and skipped if valid.
+**What is it?** If a backup is interrupted (network failure, server reboot, out of memory), pgBackRest can resume from where it stopped instead of starting over. The manifest is saved periodically during backup (controlled by `manifest-save-threshold`, default 1 GiB). On resume, files already copied are verified by checksum and skipped if valid.
 
 ```ini
 [global]
@@ -536,17 +456,11 @@ resume=y                        # enabled by default
 manifest-save-threshold=512MiB  # save progress more frequently for large DBs
 ```
 
-> **Concept:** Resume works by keeping the incomplete backup directory in the
-> repository. The next backup attempt detects it and continues. If you need
-> to abandon a failed backup and start fresh, the new backup will automatically
-> clean up the incomplete one. Note: file bundles (when `repo-bundle=y`)
-> cannot be resumed, so keep `repo-bundle-limit` reasonable.
+> **Concept:** Resume works by keeping the incomplete backup directory in the repository. The next backup attempt detects it and continues. If you need to abandon a failed backup and start fresh, the new backup will automatically clean up the incomplete one. Note: file bundles (when `repo-bundle=y`) cannot be resumed, so keep `repo-bundle-limit` reasonable.
 
 ### Encryption
 
-pgBackRest encrypts the entire repository at rest using AES-256-CBC. Encryption
-happens client-side before data leaves the pg host - even if your cloud
-provider offers server-side encryption, pgBackRest encrypts independently.
+pgBackRest encrypts the entire repository at rest using AES-256-CBC. Encryption happens client-side before data leaves the pg host - even if your cloud provider offers server-side encryption, pgBackRest encrypts independently.
 
 ```ini
 [global]
@@ -558,15 +472,12 @@ Important rules:
 
 - Encryption is set once during `stanza-create`. You cannot change it later.
 - The passphrase must be the same on all hosts that access the repository.
-- If you lose the passphrase, your backups are unrecoverable. Store it in a
-  secrets manager (Vault, AWS Secrets Manager, etc.).
-- Encryption adds CPU overhead. Benchmark with and without to understand the
-  impact on your backup window.
+- If you lose the passphrase, your backups are unrecoverable. Store it in a secrets manager (Vault, AWS Secrets Manager, etc.).
+- Encryption adds CPU overhead. Benchmark with and without to understand the impact on your backup window.
 
 ### Multi-repository
 
-pgBackRest can write to up to four repositories simultaneously (repo1 through
-repo4). Each repo is independently configured with its own:
+pgBackRest can write to up to four repositories simultaneously (repo1 through repo4). Each repo is independently configured with its own:
 
 - Storage type (local, S3, GCS, Azure, SFTP)
 - Retention policy
@@ -591,15 +502,11 @@ repo2-cipher-type=aes-256-cbc
 repo2-cipher-pass=offsite-encryption-passphrase
 ```
 
-WAL archive-push writes to all configured repos. Backups are per-repo - you
-schedule them separately. Restore defaults to repo1 but you can choose with
-`--repo=2`.
+WAL archive-push writes to all configured repos. Backups are per-repo - you schedule them separately. Restore defaults to repo1 but you can choose with `--repo=2`.
 
 ### Backup from standby
 
-In production, you want to minimize I/O on the primary. pgBackRest can run the
-backup against a standby server, reading data files from the replica while
-coordinating start/stop backup with the primary.
+In production, you want to minimize I/O on the primary. pgBackRest can run the backup against a standby server, reading data files from the replica while coordinating start/stop backup with the primary.
 
 ```ini
 [global]
@@ -612,15 +519,11 @@ pg2-path=/opt/pgsql/data                    # standby
 pg2-host=pg-standby
 ```
 
-> **Concept:** The backup still needs brief communication with the primary
-> (to call `pg_backup_start()` and `pg_backup_stop()`), but the heavy file
-> copying happens from the standby. This is the recommended pattern for large
-> production databases.
+> **Concept:** The backup still needs brief communication with the primary (to call `pg_backup_start()` and `pg_backup_stop()`), but the heavy file copying happens from the standby. This is the recommended pattern for large production databases.
 
 ### Tablespace support
 
-pgBackRest handles tablespace backup and restore transparently. During restore,
-you can remap tablespaces to different directories:
+pgBackRest handles tablespace backup and restore transparently. During restore, you can remap tablespaces to different directories:
 
 ```bash
 pgbackrest --stanza=main \
@@ -639,9 +542,7 @@ pgbackrest --stanza=main \
 
 ### Link support
 
-pgBackRest preserves and restores symbolic links. This matters for our lab
-setup where `/opt/pgsql/wal` is a separate mount point symlinked from
-`pg_wal` inside PGDATA.
+pgBackRest preserves and restores symbolic links. This matters for our lab setup where `/opt/pgsql/wal` is a separate mount point symlinked from `pg_wal` inside PGDATA.
 
 Options for link handling during restore:
 
@@ -656,12 +557,9 @@ pgbackrest --stanza=main \
 
 ### Block-level incremental backup
 
-Traditional incremental backups copy entire files that have any change.
-A 1 GB table file with one changed page still copies the full 1 GB.
+Traditional incremental backups copy entire files that have any change. A 1 GB table file with one changed page still copies the full 1 GB.
 
-Block-level incremental (pgBackRest 2.46+, recommended 2.52.1+) divides files
-into blocks and stores only the changed blocks. This provides dramatic space
-savings for large tables with small update patterns.
+Block-level incremental (pgBackRest 2.46+, recommended 2.52.1+) divides files into blocks and stores only the changed blocks. This provides dramatic space savings for large tables with small update patterns.
 
 ```ini
 [global]
@@ -677,17 +575,15 @@ Traditional incremental:              Block-level incremental:
 +-----------+                         +-----------+
 ```
 
-> **Concept:** Block-level incremental is one of pgBackRest's most impactful
-> recent features. It makes hourly incremental backups practical even for
-> multi-terabyte databases. The tradeoff is slightly more complex restore
-> (pgBackRest must reconstruct files from blocks) and incompatibility with
-> resume for bundled files.
+> **Concept:** Block-level incremental is one of pgBackRest's most impactful recent features. It makes hourly incremental backups practical even for multi-terabyte databases. The tradeoff is slightly more complex restore (pgBackRest must reconstruct files from blocks) and incompatibility with resume for bundled files.
 
 ---
 
 ## 5. How It Works - Under the Hood
 
 ### Backup process step by step
+
+Here's what happens internally when you run `pgbackrest --stanza=main --type=full backup`:
 
 ```
 1. ACQUIRE ADVISORY LOCK
@@ -811,8 +707,9 @@ If not found: return exit code 1 (PostgreSQL knows recovery is complete)
 
 ### PITR with pgBackRest
 
-Point-in-time recovery lets you restore to any moment within your WAL archive
-window. pgBackRest automates the process that you did manually in Build Guide 06.
+Point-in-time recovery lets you restore to any moment within your WAL archive window. pgBackRest automates the entire process - you don't need to manually write recovery settings or create signal files. You'll practice this in Build Guide 08.
+
+Here's what the command looks like:
 
 ```bash
 # Restore to a specific time
@@ -825,7 +722,7 @@ pgbackrest --stanza=main --delta \
 
 Flag breakdown:
 - `--stanza=main` - identifies which PostgreSQL cluster to restore
-- `--delta` - only restores files that differ from what is already on disk (faster than a full copy)
+- `--delta` - only restores files that differ from what's already on disk (faster than a full copy)
 - `--type=time` - tells pgBackRest to stop WAL replay at a specific timestamp
 - `--target=...` - the timestamp to recover to (must be quoted because of the space)
 - `--target-action=promote` - automatically promote to read-write primary when recovery reaches the target
@@ -842,10 +739,7 @@ Recovery target types:
 | Immediate | `--type=immediate` | (no target needed) | Restore to backup consistency point |
 | Default | `--type=default` | (no target needed) | Replay all available WAL |
 
-> **Concept:** PITR requires continuous WAL archiving. If there are gaps in
-> your WAL archive (segments that were never pushed), recovery stops at the
-> gap. This is why WAL archive monitoring is critical - see the Best Practices
-> section below.
+> **Concept:** PITR requires continuous WAL archiving. If there are gaps in your WAL archive (segments that were never pushed), recovery stops at the gap. This is why WAL archive monitoring is critical - see the Best Practices section below.
 
 ---
 
@@ -853,7 +747,7 @@ Recovery target types:
 
 ### pgbackrest.conf structure
 
-The configuration file uses INI format with three levels of settings:
+The configuration file uses INI format with three levels of settings. This hierarchy lets you set sensible defaults globally and override them per-stanza or per-command:
 
 ```ini
 # STANZA SECTION - settings specific to one PostgreSQL cluster
@@ -901,7 +795,7 @@ archive_timeout = 300                # force a WAL switch every 5 min (for low-t
 
 **Pattern 1: Single server, local repository**
 
-Simple setup for dev/test. Everything on one machine.
+Simple setup for dev/test. Everything on one machine. This is what you'll build in Build Guide 07.
 
 ```ini
 [main]
@@ -975,8 +869,7 @@ delta=y
 
 **Pattern 3: S3 remote repository**
 
-Cloud-only backups. Good for ephemeral environments or when a dedicated backup
-server is not available.
+Cloud-only backups. Good for ephemeral environments or when a dedicated backup server isn't available.
 
 ```ini
 [main]
@@ -1003,11 +896,7 @@ start-fast=y
 delta=y
 ```
 
-> **Concept:** When using S3, enable `repo-bundle=y` to group small files into
-> larger bundles. Object stores charge per API call, and a PostgreSQL data
-> directory can have hundreds of thousands of small files. Bundling reduces
-> both cost and backup time. Block-level incremental (`repo-block=y`) requires
-> bundling to be enabled.
+> **Concept:** When using S3, enable `repo-bundle=y` to group small files into larger bundles. Object stores charge per API call, and a PostgreSQL data directory can have hundreds of thousands of small files. Bundling reduces both cost and backup time. Block-level incremental (`repo-block=y`) requires bundling to be enabled.
 
 **Pattern 4: Multi-repository (local + remote)**
 
@@ -1047,6 +936,8 @@ archive-async=y
 
 ## 7. Comparison Table
 
+Here's how pgBackRest compares to the alternatives. This will help you understand why we use pgBackRest in the later BUILD guides:
+
 | Feature | pg_basebackup | pgBackRest | Barman |
 | ------- | ------------- | ---------- | ------ |
 | **Backup types** | Full only | Full, diff, incr, block-level incr | Full, incr (rsync) |
@@ -1069,11 +960,7 @@ archive-async=y
 | **Language** | C (part of PG core) | C | Python |
 | **License** | PostgreSQL License | MIT | GPL-3.0 |
 
-> **Concept:** pg_basebackup is great for initial standby setup and one-off
-> backups. Barman is a solid tool with a long history. pgBackRest is purpose-
-> built for production PostgreSQL backup management and has the most complete
-> feature set. For managed backup infrastructure, pgBackRest is the standard
-> choice.
+> **Concept:** pg_basebackup is great for initial standby setup and one-off backups. Barman is a solid tool with a long history. pgBackRest is purpose-built for production PostgreSQL backup management and has the most complete feature set. For managed backup infrastructure, pgBackRest is the standard choice.
 
 ---
 
@@ -1121,15 +1008,11 @@ FROM pg_stat_archiver;
 
 ### Test restores regularly
 
-The most important backup practice: regularly restore backups to verify they
-work. A backup you have never tested is a backup you cannot trust.
+The most important backup practice: regularly restore backups to verify they work. A backup you've never tested is a backup you can't trust.
 
-- **Weekly:** Automated restore to a test server, run `pg_isready` and basic
-  query validation
-- **Monthly:** Full PITR drill - restore to a random point in time, verify
-  data integrity
-- **Quarterly:** Full disaster recovery drill - simulate primary loss, restore
-  on a fresh server, measure RTO
+- **Weekly:** Automated restore to a test server, run `pg_isready` and basic query validation
+- **Monthly:** Full PITR drill - restore to a random point in time, verify data integrity
+- **Quarterly:** Full disaster recovery drill - simulate primary loss, restore on a fresh server, measure RTO
 
 ### The 3-2-1 rule for PostgreSQL
 
@@ -1171,9 +1054,7 @@ Estimated total:                 890 GB
 Add 30% buffer:                 ~1.2 TB repo size needed
 ```
 
-> **Concept:** Block-level incremental (`repo-block=y`) can reduce incremental
-> and differential sizes by 50-90% compared to file-level. If you are on
-> pgBackRest 2.52+, enable it.
+> **Concept:** Block-level incremental (`repo-block=y`) can reduce incremental and differential sizes by 50-90% compared to file-level. If you're on pgBackRest 2.52+, enable it.
 
 ---
 
@@ -1225,8 +1106,7 @@ ERROR: [075]: unable to find a valid repository
 ```
 
 Cause: No stanza has been created, or the repository path is wrong.
-Fix: Run `pgbackrest --stanza=main stanza-create` and verify `repo1-path`
-in pgbackrest.conf points to a directory the postgres user can write to.
+Fix: Run `pgbackrest --stanza=main stanza-create` and verify `repo1-path` in pgbackrest.conf points to a directory the postgres user can write to.
 
 ---
 
@@ -1237,8 +1117,7 @@ ERROR: [ProtocolError] expected value '2.58' but got '2.53'
 ```
 
 Cause: pgBackRest version mismatch between the pg host and the repo host.
-Fix: Upgrade both hosts to the same version. Always upgrade repo host first,
-then pg host.
+Fix: Upgrade both hosts to the same version. Always upgrade repo host first, then pg host.
 
 ---
 
@@ -1248,7 +1127,7 @@ then pg host.
 ERROR: [044]: WAL segment 000000010000000000000005 was not archived
 ```
 
-Cause: archive_command is not working, or PostgreSQL has not flushed WAL yet.
+Cause: archive_command isn't working, or PostgreSQL hasn't flushed WAL yet.
 Fix:
 1. Check `SELECT * FROM pg_stat_archiver;` for failures
 2. Verify `archive_mode = on` and `archive_command` is set correctly
@@ -1264,7 +1143,7 @@ ERROR: [055]: unable to acquire lock on file '/tmp/pgbackrest/main-backup.lock'
 ```
 
 Cause: Another pgBackRest backup process is already running.
-Fix: Wait for the running backup to complete, or if it crashed, investigate manually:
+Fix: Wait for the running backup to complete, or if it crashed, investigate:
 
 Check whether a lock file exists:
 ```bash
@@ -1288,7 +1167,7 @@ rm /tmp/pgbackrest/main-backup.lock
 Cause: Trying to restore while PostgreSQL is still running.
 Fix: You must stop PostgreSQL before restoring.
 
-Stop PostgreSQL first - you cannot restore into a running cluster:
+Stop PostgreSQL first - you can't restore into a running cluster:
 ```bash
 sudo systemctl stop postgresql-16
 ```
@@ -1311,21 +1190,16 @@ sudo systemctl start postgresql-16
 WARN: WAL segment was dropped because archive-push-queue-max was exceeded
 ```
 
-Cause: WAL is being generated faster than pgBackRest can archive it. The
-queue limit was reached and WAL was DROPPED (not archived).
+Cause: WAL is being generated faster than pgBackRest can archive it. The queue limit was reached and WAL was DROPPED (not archived).
 Fix:
 1. Increase `archive-push-queue-max` or remove the limit
 2. Increase `process-max` for archive-push
-3. Investigate what is generating excessive WAL (large bulk loads?)
+3. Investigate what's generating excessive WAL (large bulk loads?)
 4. **WARNING**: Dropped WAL creates gaps that break PITR continuity
 
 ---
 
 ### How to verify backup integrity
-
-> **Note:** These are individual reference commands for verifying backup
-> integrity. Run them one at a time as needed - this is not a sequence to
-> execute all at once.
 
 List all backups with details (date, size, type, WAL range):
 ```bash
@@ -1391,14 +1265,11 @@ rm -rf /tmp/pgbackrest-test/
 
 ### What to do when a backup fails
 
-1. **Read the error message.** pgBackRest error messages are specific and
-   usually tell you exactly what is wrong.
+1. **Read the error message.** pgBackRest error messages are specific and usually tell you exactly what's wrong.
 
-2. **Check the log file.** Console output is abbreviated. The full log is at
-   `/var/log/pgbackrest/<stanza>-backup.log` with timestamps and detail.
+2. **Check the log file.** Console output is abbreviated. The full log is at `/var/log/pgbackrest/<stanza>-backup.log` with timestamps and detail.
 
-3. **Run `check` first.** Before debugging the backup itself, verify the
-   configuration is valid:
+3. **Run `check` first.** Before debugging the backup itself, verify the configuration is valid:
    ```bash
    pgbackrest --stanza=main check
    ```
@@ -1417,12 +1288,9 @@ rm -rf /tmp/pgbackrest-test/
    pgbackrest --stanza=main --repo=2 info
    ```
 
-6. **Check disk space.** Both the source (PGDATA) and destination (repo) need
-   sufficient free space. Compression happens in memory, so the repo needs less
-   space than the raw data, but temp files during backup need room.
+6. **Check disk space.** Both the source (PGDATA) and destination (repo) need sufficient free space. Compression happens in memory, so the repo needs less space than the raw data, but temp files during backup need room.
 
-7. **Retry.** If the failure was transient (network timeout, brief disk full),
-   the backup will resume automatically thanks to the resume feature:
+7. **Retry.** If the failure was transient (network timeout, brief disk full), the backup will resume automatically thanks to the resume feature:
    ```bash
    pgbackrest --stanza=main --type=full backup
    ```
@@ -1435,5 +1303,5 @@ rm -rf /tmp/pgbackrest-test/
 - [pgBackRest User Guide](https://pgbackrest.org/user-guide.html)
 - [pgBackRest Configuration Reference](https://pgbackrest.org/configuration.html)
 - [pgBackRest GitHub Repository](https://github.com/pgbackrest/pgbackrest)
-- Build Guide 07: `build/07-install-pgbackrest.md` - Install and configure pgBackRest in the lab
-- Build Guide 08: `build/08-pgbackrest-operations.md` - Full/diff/incr backups, restore, and PITR operations
+- Build Guide 07: Install and configure pgBackRest in the lab
+- Build Guide 08: Full/diff/incr backups, restore, and PITR operations

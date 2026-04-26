@@ -1,22 +1,10 @@
 # Concepts - Backup and Recovery
 
-Reference documents that explain the theory and architecture behind PostgreSQL
-backup and recovery tools. Read these before or alongside the build guides to
-understand the WHY behind each configuration choice.
+Read these before starting the BUILD guides. They explain the WHY behind each tool, architecture decision, and configuration choice you'll encounter in the labs.
 
 ## Documents
 
 | Document | Topic | Description |
 | -------- | ----- | ----------- |
-| [pgbackrest.md](pgbackrest.md) | pgBackRest | Architecture, core concepts, features, configuration patterns, best practices, and troubleshooting for pgBackRest - the primary backup tool used in this lab |
-
-## Planned
-
-The following concept documents will be added as the lab expands:
-
-| Document | Topic |
-| -------- | ----- |
-| `wal-archiving.md` | WAL internals, archive modes, continuous archiving vs streaming |
-| `pitr.md` | Point-in-time recovery theory, timelines, recovery targets |
-| `logical-vs-physical.md` | When to use pg_dump vs pg_basebackup vs pgBackRest |
-| `backup-strategies.md` | Designing backup schedules, RTO/RPO planning, the 3-2-1 rule |
+| [backup-and-recovery.md](backup-and-recovery.md) | Backup & Recovery | Logical backups (pg_dump/pg_restore), physical backups (WAL archiving, pg_basebackup), PITR (recovery targets, timelines, side-restore), RPO/RTO, backup strategy design, format comparison, troubleshooting |
+| [pgbackrest.md](pgbackrest.md) | pgBackRest | Architecture, core concepts, features, configuration patterns, best practices, and troubleshooting for pgBackRest - the enterprise backup tool used in Build Guides 07-08 |
