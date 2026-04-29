@@ -50,7 +50,7 @@ Expected output (yours will differ):
 ```
    indexname    |                         indexdef
 ----------------+-----------------------------------------------------------
- orders_pkey    | CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (id)
+ orders_pkey    | CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (order_id)
  orders_status  | CREATE INDEX orders_status ON public.orders USING btree (status)
 (2 rows)
 ```
