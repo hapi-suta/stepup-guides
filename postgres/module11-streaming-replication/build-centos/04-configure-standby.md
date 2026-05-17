@@ -51,11 +51,14 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
-Remove all files inside the data directory. The `/*` removes contents but keeps the directory itself:
+Remove all files inside the data directory, including any hidden files. The directory itself must remain but must be completely empty for pg_basebackup to work:
 
 ```bash
 rm -rf /var/lib/pgsql/16/data/*
+rm -rf /var/lib/pgsql/16/data/.*
 ```
+
+You will see an error like `cannot remove '.' or '..'` - that is normal and can be ignored. It just means the shell tried to delete the current directory references, which is not possible.
 
 Verify the directory is now empty:
 
