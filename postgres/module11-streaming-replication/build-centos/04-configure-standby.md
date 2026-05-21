@@ -6,44 +6,15 @@ All steps run on NODE2 unless noted.
 
 ---
 
-## Connect to NODE2
-
-```bash
-ssh -i ~/Downloads/your-key.pem ec2-user@[NODE2_IP]
-```
-
----
-
 ## 1. Stop PostgreSQL on the standby
-
-NODE2 had the postgresql-16 package installed in guide 02 but the service was never started. If you did accidentally start it at some point, stop it now:
 
 ```bash
 sudo systemctl stop postgresql-16
 ```
 
-If the service was never started, this command does nothing - that is fine.
-
-Confirm it is not running:
-
-```bash
-sudo systemctl status postgresql-16
-```
-
-Expected output (yours will differ):
-
-```
-* postgresql-16.service - PostgreSQL 16 Database Server
-     Active: inactive (dead)
-```
-
-`inactive (dead)` means the service is not running. That is what you want.
-
----
-
 ## 2. Remove the existing data directory
 
-The standby needs to start from a clean copy of the primary. If initdb was run on NODE2 during package install, that data is unrelated to the primary and must be wiped before pg_basebackup can run.
+The standby needs to start from a copy of the primary, not its own initdb.
 
 Switch to the postgres user:
 
@@ -51,40 +22,34 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
-Remove all files inside the data directory, including any hidden files. The directory itself must remain but must be completely empty for pg_basebackup to work:
-
 ```bash
 rm -rf /var/lib/pgsql/16/data/*
-rm -rf /var/lib/pgsql/16/data/.*
 ```
 
-You will see an error like `cannot remove '.' or '..'` - that is normal and can be ignored. It just means the shell tried to delete the current directory references, which is not possible.
-
-Verify the directory is now empty:
+Verify it is empty:
 
 ```bash
 ls -la /var/lib/pgsql/16/data/
 ```
 
-Expected output:
+Expected: empty directory (only `.` and `..`).
 
-```
-total 0
-drwx------. 2 postgres postgres  6 May 15 14:10 .
-drwx------. 3 postgres postgres 33 May 15 13:58 ..
+```bash
+exit
 ```
 
-The directory is empty. Do not delete the directory itself, only its contents.
-
-> **Concept - Why we wipe the standby's data**: `pg_basebackup` needs an empty target directory. The standby's original data (from its own `initdb` during install) is not related to the primary's data. Wiping it is safe because the standby has no data of its own yet. Everything will come from the primary.
-
----
+> **Concept - Why we wipe the standby's data**: `pg_basebackup` needs an empty
+> target directory. The standby's original data (from its own `initdb` during
+> install) is not related to the primary's data. Wiping it is safe because the
+> standby has no data of its own yet.
 
 ## 3. Run pg_basebackup from the primary
 
-`pg_basebackup` connects to the primary as the `replicator` user and copies the entire data directory to this server. It also streams any WAL generated during the copy so there are no gaps.
+Switch to the postgres user:
 
-Still as the postgres user:
+```bash
+sudo -iu postgres
+```
 
 ```bash
 pg_basebackup \
@@ -95,142 +60,27 @@ pg_basebackup \
   -S standby_slot
 ```
 
-When prompted for a password, enter:
-
-```
-replicator_pass_2026
-```
-
-Each flag explained:
-- `-h pg-primary` - hostname of the primary server
-- `-U replicator` - connect as this user
-- `-D /var/lib/pgsql/16/data` - destination directory (must be empty)
-- `-Fp` - plain format: files written directly, not as a tar archive
-- `-Xs` - stream WAL during the backup so no WAL gap occurs
-- `-P` - show a progress bar
-- `-R` - write `standby.signal` and `primary_conninfo` into the data directory automatically
-- `-S standby_slot` - attach to the replication slot we created on the primary
+Enter password when prompted: `replicator_pass_2026`
 
 Expected output (yours will differ):
-
 ```
-27359/27359 kB (100%), 1/1 tablespace
+30406/30406 kB (100%), 1/1 tablespace
 ```
-
-The backup is complete when it reaches 100%.
 
 > **Concept - pg_basebackup flags**:
 > - `-Fp`: plain format (not tar). Files are written directly to the data directory.
-> - `-Xs`: stream WAL during backup. Without this, WAL generated during the backup might not be included, causing a gap.
+> - `-Xs`: stream WAL during backup. Without this, WAL generated during the backup
+>   might not be included, causing a gap.
 > - `-P`: show progress.
-> - `-R`: write `standby.signal` and `primary_conninfo` to `postgresql.auto.conf`. This is what tells PostgreSQL to start in standby mode.
+> - `-R`: write `standby.signal` and `primary_conninfo` to `postgresql.auto.conf`.
+>   This is what tells PostgreSQL to start in standby mode.
 > - `-S standby_slot`: use the replication slot we created on the primary.
-
----
-
-## 4. Verify the standby.signal file exists
-
-The presence of this file tells PostgreSQL to start in standby (recovery) mode on the next startup. Without it, PostgreSQL would think it is a standalone primary.
-
-Still as the postgres user:
-
-```bash
-ls -la /var/lib/pgsql/16/data/standby.signal
-```
-
-Expected output:
-
-```
--rw-------. 1 postgres postgres 0 May 15 14:12 /var/lib/pgsql/16/data/standby.signal
-```
-
-The file can be empty - its presence is all that matters.
-
----
-
-## 5. Check postgresql.auto.conf for primary_conninfo
-
-`pg_basebackup -R` automatically wrote the connection information to this file. Check it now:
-
-Still as the postgres user:
-
-```bash
-cat /var/lib/pgsql/16/data/postgresql.auto.conf
-```
-
-Expected output (yours will differ):
-
-```
-# Do not edit this file manually!
-# It will be overwritten by the ALTER SYSTEM command.
-primary_conninfo = 'user=replicator password=replicator_pass_2026 channel_binding=prefer host=pg-primary port=5432 sslmode=prefer sslcompression=0 sslsni=1 ssl_min_protocol_version=TLSv1.2 gssencmode=prefer krbsrvname=postgres target_session_attrs=any'
-primary_slot_name = 'standby_slot'
-```
-
-The `primary_conninfo` line tells PostgreSQL where to stream WAL from. The `primary_slot_name` line tells it which replication slot to use.
-
-> **Concept - standby.signal + primary_conninfo = standby mode**: In PG 12+, the presence of `standby.signal` tells PostgreSQL to enter recovery mode on startup. `primary_conninfo` tells it where to stream WAL from. Together they replace the old `recovery.conf` file from PG 11 and earlier. You no longer edit `recovery.conf` - that file no longer exists.
-
----
-
-## 6. Configure postgresql.conf on the standby
-
-The standby needs `hot_standby = on` so clients can run read queries while it is replaying WAL. You also need `listen_addresses = '*'` so connections from outside localhost are accepted.
-
-Still as the postgres user:
-
-```bash
-vi /var/lib/pgsql/16/data/postgresql.conf
-```
-
-Search for `listen_addresses` by typing `/listen_addresses` then pressing Enter. Find the line and set it:
-
-```
-listen_addresses = '*'
-```
-
-Search for `hot_standby` by typing `/hot_standby` then pressing Enter. Find the line and set it:
-
-```
-hot_standby = on
-```
-
-Save and quit vi: press `Esc`, then type `:wq`, then press Enter.
-
-> **Concept - hot_standby = on**: This allows read queries on the standby while it is replaying WAL. Without it, the standby accepts no connections during recovery. In production, hot standby is almost always enabled so the standby can serve read traffic.
-
-Exit back to ec2-user:
 
 ```bash
 exit
 ```
 
----
-
-## 7. Start PostgreSQL on the standby
-
-```bash
-sudo systemctl start postgresql-16
-```
-
-Wait a few seconds, then check the service status:
-
-```bash
-sudo systemctl status postgresql-16
-```
-
-Expected output (yours will differ):
-
-```
-* postgresql-16.service - PostgreSQL 16 Database Server
-     Active: active (running) since ...
-```
-
----
-
-## 8. Check the log for successful startup
-
-The PostgreSQL log will show what happened during startup. Look for messages confirming it entered standby mode and connected to the primary.
+## 4. Verify the standby.signal file exists
 
 Switch to the postgres user:
 
@@ -238,29 +88,80 @@ Switch to the postgres user:
 sudo -iu postgres
 ```
 
-The log files live inside the data directory on CentOS Stream 9:
+```bash
+ls -la /var/lib/pgsql/16/data/standby.signal
+```
+
+Expected: file exists (can be empty, its presence is what matters).
+
+## 5. Check postgresql.auto.conf for primary_conninfo
+
+Still as the postgres user (if you exited, run `sudo -iu postgres` again):
+
+```bash
+cat /var/lib/pgsql/16/data/postgresql.auto.conf
+```
+
+Expected: a `primary_conninfo` line pointing to the primary, with the replication
+slot reference.
+
+> **Concept - standby.signal + primary_conninfo = standby mode**: In PG 12+, the
+> presence of `standby.signal` tells PostgreSQL to enter recovery mode on startup.
+> `primary_conninfo` tells it where to stream WAL from. Together they replace the
+> old `recovery.conf` file from PG 11 and earlier.
+
+## 6. Configure postgresql.conf on the standby
+
+Still as the postgres user:
+
+```bash
+vi /var/lib/pgsql/16/data/postgresql.conf
+```
+
+Set:
+
+```
+listen_addresses = '*'
+hot_standby = on
+```
+
+> **Concept - hot_standby = on**: This allows read queries on the standby while
+> it is replaying WAL. Without it, the standby accepts no connections during
+> recovery. In production, hot standby is almost always enabled so the standby
+> can serve read traffic.
+
+Save and exit vi (`:wq`), then exit back to your previous user:
+
+```bash
+exit
+```
+
+## 7. Start PostgreSQL on the standby
+
+```bash
+sudo systemctl start postgresql-16
+```
+
+Check the log for successful startup. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
 
 ```bash
 tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
-`tail -20` shows the last 20 lines. The log filename includes a date, which is why we use `*.log`.
-
 Expected output (yours will differ):
-
 ```
-... LOG:  entering standby mode
-... LOG:  redo starts at 0/3000028
-... LOG:  consistent recovery state reached at 0/3000100
-... LOG:  database system is ready to accept read-only connections
-... LOG:  started streaming WAL from primary at 0/4000000 on timeline 1
+LOG:  entering standby mode
+LOG:  redo starts at 0/3000028
+LOG:  consistent recovery state reached at 0/3000100
+LOG:  started streaming WAL from primary at 0/4000000 on timeline 1
+...
 ```
 
-The line "started streaming WAL from primary" confirms replication is active.
-
----
-
-## 9. Verify the standby is in recovery mode
+## 8. Verify the standby is in recovery mode
 
 Still as the postgres user:
 
@@ -268,57 +169,23 @@ Still as the postgres user:
 psql -c "SELECT pg_is_in_recovery();"
 ```
 
-Expected output:
+Expected: `t`.
 
-```
- pg_is_in_recovery
--------------------
- t
-(1 row)
-```
-
-`t` means true - this node is a standby in recovery mode.
-
----
-
-## 10. Verify data replicated
-
-Check that the `labdb` database and its 10,000 rows are present on the standby:
+## 9. Verify data replicated
 
 ```bash
 psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
-Expected output:
+Expected: `10000` (same as primary).
 
-```
- count
--------
- 10000
-(1 row)
-```
-
-The data cloned from the primary is here.
-
----
-
-## 11. Verify the standby rejects writes
-
-A standby in recovery mode must reject all write operations. Test this:
+## 10. Verify the standby rejects writes
 
 ```bash
 psql -d labdb -c "INSERT INTO employees (name, department) VALUES ('test', 'test');"
 ```
 
-Expected output:
-
-```
-ERROR:  cannot execute INSERT in a read-only transaction
-```
-
-This error is correct behavior. The standby is read-only.
-
-Exit back to ec2-user:
+Expected: `ERROR: cannot execute INSERT in a read-only transaction`.
 
 ```bash
 exit
@@ -329,16 +196,12 @@ exit
 ## Checkpoint
 
 NODE2 (standby) has:
-- [x] PostgreSQL service stopped before pg_basebackup
-- [x] Data directory emptied
-- [x] Data directory cloned from primary via `pg_basebackup`
-- [x] `standby.signal` file present in PGDATA
-- [x] `primary_conninfo` and `primary_slot_name` configured in `postgresql.auto.conf`
-- [x] `listen_addresses = '*'` and `hot_standby = on` set in `postgresql.conf`
-- [x] `postgresql-16` service started successfully
-- [x] Log shows "started streaming WAL from primary"
-- [x] `pg_is_in_recovery()` returns `t`
-- [x] `labdb.employees` has 10,000 rows
-- [x] Write operations correctly rejected with an error
+- [x] Data directory cloned from primary via pg_basebackup
+- [x] `standby.signal` file present
+- [x] `primary_conninfo` configured in `postgresql.auto.conf`
+- [x] `hot_standby = on`
+- [x] PostgreSQL started and in recovery mode (`pg_is_in_recovery() = t`)
+- [x] Data matches primary (10,000 rows in labdb.employees)
+- [x] Writes correctly rejected
 
 Proceed to `05-verify-replication.md`.
