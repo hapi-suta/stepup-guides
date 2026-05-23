@@ -22,7 +22,7 @@ sudo -iu postgres
 The pipe to `grep` filters the output to show only the timeline ID line:
 
 ```bash
-/usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+/usr/pgsql-16/bin/pg_controldata /var/lib/pgsql/16/data | grep 'Latest checkpoint.*TimeLineID'
 ```
 
 ```bash
@@ -36,7 +36,7 @@ sudo -iu postgres
 ```
 
 ```bash
-/usr/lib/postgresql/16/bin/pg_controldata /var/lib/postgresql/16/main | grep 'Latest checkpoint.*TimeLineID'
+/usr/pgsql-16/bin/pg_controldata /var/lib/pgsql/16/data | grep 'Latest checkpoint.*TimeLineID'
 ```
 
 ```bash
@@ -52,7 +52,7 @@ Choose the node with the most up-to-date data. Typically this is the node that w
 On [NODE2]:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Verify it is running as a primary. Switch to the postgres user:
@@ -90,7 +90,7 @@ You have two options:
 On [NODE1], with [NODE2] running. Ensure NODE1 is stopped:
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 Switch to the postgres user:
@@ -102,8 +102,8 @@ sudo -iu postgres
 Run pg_rewind. `--progress` shows a progress indicator:
 
 ```bash
-/usr/lib/postgresql/16/bin/pg_rewind \
-  --target-pgdata=/var/lib/postgresql/16/main \
+/usr/pgsql-16/bin/pg_rewind \
+  --target-pgdata=/var/lib/pgsql/16/data \
   --source-server="host=[NODE2] port=5432 user=replicator dbname=postgres" \
   --progress
 ```
@@ -111,7 +111,7 @@ Run pg_rewind. `--progress` shows a progress indicator:
 After pg_rewind completes, configure [NODE1] as a standby:
 
 ```bash
-touch /var/lib/postgresql/16/main/standby.signal
+touch /var/lib/pgsql/16/data/standby.signal
 ```
 
 ```bash
@@ -129,7 +129,7 @@ exit
 On [NODE1]:
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 Switch to the postgres user:
@@ -141,7 +141,7 @@ sudo -iu postgres
 Wipe the data directory:
 
 ```bash
-rm -rf /var/lib/postgresql/16/main/*
+rm -rf /var/lib/pgsql/16/data/*
 ```
 
 Rebuild from primary. `-R` creates standby.signal and sets primary_conninfo. `-P` shows progress. `-X stream` streams WAL during backup. `-C` creates the replication slot if it does not exist:
@@ -149,7 +149,7 @@ Rebuild from primary. `-R` creates standby.signal and sets primary_conninfo. `-P
 ```bash
 pg_basebackup \
   -h [NODE2] -p 5432 -U replicator \
-  -D /var/lib/postgresql/16/main \
+  -D /var/lib/pgsql/16/data \
   -R -P -X stream -C -S standby_slot
 ```
 
@@ -164,13 +164,13 @@ The `-R` flag automatically creates standby.signal and sets primary_conninfo.
 On [NODE1]:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Check the log for successful startup:
 
 ```bash
-sudo tail -20 /var/log/postgresql/postgresql-16-main.log
+sudo tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for: "started streaming WAL from primary".

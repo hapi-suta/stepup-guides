@@ -18,7 +18,7 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for the remaining steps.**
 
 ```bash
-df -h /var/lib/postgresql/16/main/pg_wal
+df -h /var/lib/pgsql/16/data/pg_wal
 ```
 
 Expected: usage near 100% or partition full.
@@ -26,13 +26,13 @@ Expected: usage near 100% or partition full.
 Also check the overall data directory:
 
 ```bash
-df -h /var/lib/postgresql/16/main
+df -h /var/lib/pgsql/16/data
 ```
 
 ### Step 2: Identify the space hog
 
 ```bash
-ls -lhS /var/lib/postgresql/16/main/pg_wal/ | head -20
+ls -lhS /var/lib/pgsql/16/data/pg_wal/ | head -20
 ```
 
 Look for files that do not follow the standard WAL segment naming pattern
@@ -47,13 +47,13 @@ Look for files that do not follow the standard WAL segment naming pattern
 ### Step 3: Remove the offending file
 
 ```bash
-rm -f /var/lib/postgresql/16/main/pg_wal/FILL_DISK_CHAOS
+rm -f /var/lib/pgsql/16/data/pg_wal/FILL_DISK_CHAOS
 ```
 
 Verify space is freed:
 
 ```bash
-df -h /var/lib/postgresql/16/main/pg_wal
+df -h /var/lib/pgsql/16/data/pg_wal
 ```
 
 Usage should drop significantly.
@@ -65,25 +65,29 @@ pg_isready -p 5432
 ```
 
 ```bash
-sudo systemctl status postgresql
+exit
+```
+
+```bash
+sudo systemctl status postgresql-16
 ```
 
 If PostgreSQL crashed due to disk full, restart it:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 If PostgreSQL is running but in a PANIC state, you may need a full restart:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 ### Step 5: Check PostgreSQL logs for errors
 
 ```bash
-tail -50 /var/log/postgresql/postgresql-16-main.log
+sudo tail -50 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -99,6 +103,12 @@ LOG: database system is ready to accept connections
 ```
 
 ### Step 6: Verify WAL writes resume
+
+Switch back to the postgres user:
+
+```bash
+sudo -iu postgres
+```
 
 Test a write on the primary:
 
@@ -137,23 +147,31 @@ All standbys should show `state = streaming` and `lag_bytes` decreasing to
 near zero. If a standby is disconnected, check its logs:
 
 ```bash
-tail -20 /var/log/postgresql/postgresql-16-main.log
+tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 If a standby cannot reconnect, restart it:
 
 ```bash
-sudo systemctl restart postgresql
+exit
+```
+
+```bash
+sudo systemctl restart postgresql-16
 ```
 
 ### Step 8: Check for any other large files
 
 Ensure no other space issues remain:
 
+```bash
+sudo -iu postgres
+```
+
 Check for other large non-WAL files:
 
 ```bash
-find /var/lib/postgresql/16/main/pg_wal -type f ! -name '????????????????????????' \
+find /var/lib/pgsql/16/data/pg_wal -type f ! -name '????????????????????????' \
   ! -path '*/archive_status/*' -ls
 ```
 
@@ -162,11 +180,11 @@ This finds files in pg_wal whose names do not match the 24-character WAL naming 
 Check overall disk usage:
 
 ```bash
-du -sh /var/lib/postgresql/16/main/pg_wal/
+du -sh /var/lib/pgsql/16/data/pg_wal/
 ```
 
 ```bash
-df -h /var/lib/postgresql/16/main
+df -h /var/lib/pgsql/16/data
 ```
 
 > **Concept - WAL retention and disk space**: PostgreSQL keeps WAL segments
@@ -177,7 +195,7 @@ df -h /var/lib/postgresql/16/main
 ### Step 9: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -191,6 +209,10 @@ Expected output (yours will differ):
 ```
 
 All 4 nodes running, replication streaming, no errors.
+
+```bash
+exit
+```
 
 ---
 

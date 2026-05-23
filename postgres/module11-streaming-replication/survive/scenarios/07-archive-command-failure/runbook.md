@@ -41,7 +41,7 @@ On [NODE1]:
 The pipe to `grep -i archiv` filters the log to only show lines containing "archiv" (case-insensitive):
 
 ```bash
-sudo tail -40 /var/log/postgresql/postgresql-16-main.log | grep -i archiv
+sudo tail -40 /var/lib/pgsql/16/data/log/postgresql-*.log | grep -i archiv
 ```
 
 Look for errors like:
@@ -74,7 +74,7 @@ exit
 Identify the destination directory from the archive_command output. Then check its permissions:
 
 ```bash
-sudo ls -la /var/lib/postgresql/16/archive/
+sudo ls -la /var/lib/pgsql/16/archive/
 ```
 
 Expected: The directory permissions are `000` (no read, write, or execute for anyone).
@@ -84,19 +84,19 @@ Expected: The directory permissions are `000` (no read, write, or execute for an
 On [NODE1], restore proper permissions:
 
 ```bash
-sudo chmod 750 /var/lib/postgresql/16/archive/
+sudo chmod 750 /var/lib/pgsql/16/archive/
 ```
 
 `750` means owner can read/write/execute, group can read/execute, others have no access.
 
 ```bash
-sudo chown postgres:postgres /var/lib/postgresql/16/archive/
+sudo chown postgres:postgres /var/lib/pgsql/16/archive/
 ```
 
 Verify:
 
 ```bash
-sudo ls -la /var/lib/postgresql/16/ | grep archive
+sudo ls -la /var/lib/pgsql/16/ | grep archive
 ```
 
 Expected: `drwxr-x---` owned by `postgres:postgres`.
@@ -153,7 +153,7 @@ sudo -iu postgres
 List the most recent archived WAL files. `-l` shows details, `-t` sorts by time (newest first). The pipe to `head -5` limits to 5 lines:
 
 ```bash
-ls -lt /var/lib/postgresql/16/archive/ | head -5
+ls -lt /var/lib/pgsql/16/archive/ | head -5
 ```
 
 ```bash

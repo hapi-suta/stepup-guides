@@ -32,7 +32,7 @@ Expected: Empty result set (no connected standbys).
 SSH to [NODE2] (standby) and check the log:
 
 ```bash
-sudo tail -30 /var/log/postgresql/postgresql-16-main.log
+sudo tail -30 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for:
@@ -66,7 +66,7 @@ exit
 Check for replication entries. The pipe to `grep -i replication` filters to lines containing "replication":
 
 ```bash
-sudo cat /etc/postgresql/16/main/pg_hba.conf | grep -i replication
+sudo cat /var/lib/pgsql/16/data/pg_hba.conf | grep -i replication
 ```
 
 Expected: No lines with `replication` in the database column (empty output or no matching lines).
@@ -81,19 +81,19 @@ Expected output (yours will differ):
 On [NODE1], add the replication line. Use the standby's IP or a CIDR range:
 
 ```bash
-echo "host    replication     replicator      0.0.0.0/0               md5" | sudo tee -a /etc/postgresql/16/main/pg_hba.conf
+echo "host    replication     replicator      0.0.0.0/0               md5" | sudo tee -a /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 Or for more restrictive access (preferred in production):
 
 ```bash
-echo "host    replication     replicator      [NODE2_IP]/32            md5" | sudo tee -a /etc/postgresql/16/main/pg_hba.conf
+echo "host    replication     replicator      [NODE2_IP]/32            md5" | sudo tee -a /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 Verify the line was added:
 
 ```bash
-sudo cat /etc/postgresql/16/main/pg_hba.conf | grep replication
+sudo cat /var/lib/pgsql/16/data/pg_hba.conf | grep replication
 ```
 
 > **Concept - pg_hba.conf reload**: Changes to pg_hba.conf take effect after a reload (SIGHUP), not a restart. The file is processed top-to-bottom and the first matching rule wins. Order matters - a reject rule above a replication allow rule will block connections.
@@ -119,7 +119,7 @@ exit
 Or alternatively, reload via systemctl:
 
 ```bash
-sudo systemctl reload postgresql
+sudo systemctl reload postgresql-16
 ```
 
 ### Step 6: Wait for standby to reconnect
@@ -158,7 +158,7 @@ If the standby does not reconnect within 30 seconds, restart it.
 On [NODE2]:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 ### Step 7: Verify data consistency
@@ -176,7 +176,7 @@ Counts should match.
 On [NODE1]:
 
 ```bash
-sudo rm -f /etc/postgresql/16/main/pg_hba.conf.bak
+sudo rm -f /var/lib/pgsql/16/data/pg_hba.conf.bak
 ```
 
 ---

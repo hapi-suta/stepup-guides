@@ -1,4 +1,4 @@
-# Exercise 01 - Check Cluster Status
+# Exercise 01 - Check Cluster Status (CentOS Stream 9)
 
 **Time estimate:** 15-20 minutes
 **Prerequisites:** BUILD phase complete - 4-node repmgr cluster running (1 primary + 2 standbys + 1 witness)
@@ -7,8 +7,7 @@
 
 ## Objective
 
-Learn every repmgr monitoring command. By the end of this exercise, you should
-be able to assess cluster health from any node without referencing this guide.
+Learn every repmgr monitoring command. By the end of this exercise, you should be able to assess cluster health from any node without referencing this guide.
 
 ---
 
@@ -16,7 +15,7 @@ be able to assess cluster health from any node without referencing this guide.
 
 This is the single most important command. Run it from any node.
 
-First, switch to the postgres user. All commands in this exercise run as the postgres user:
+Switch to the postgres user. All commands in this exercise run as the postgres user:
 
 ```bash
 sudo -iu postgres
@@ -25,10 +24,10 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for all steps in this exercise.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
 ----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------
@@ -56,10 +55,10 @@ repmgr -f /etc/repmgr.conf cluster show
 Run a detailed health check on the local node:
 
 ```bash
-repmgr -f /etc/repmgr.conf node check
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node check
 ```
 
-**Expected (on a standby):**
+**Expected output (on a standby, yours will differ):**
 ```
 Node "pg-repmgr-2":
     Server role: OK (node is standby)
@@ -86,22 +85,21 @@ Run it on each node to verify all health checks pass.
 View the event log:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster event --limit 20
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster event --limit 20
 ```
 
-**Expected:** Events like `primary_register`, `standby_register`,
-`witness_register`, `repmgrd_start`.
+**Expected:** Events like `primary_register`, `standby_register`, `witness_register`, `repmgrd_start`.
 
 Filter for specific event types:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster event --event=standby_register
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster event --event=standby_register
 ```
 
 Filter for a specific node:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster event --node-id=2 --limit 5
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster event --node-id=2 --limit 5
 ```
 
 > **Concept - repmgr.events as audit trail**: Every significant cluster
@@ -117,10 +115,10 @@ repmgr -f /etc/repmgr.conf cluster event --node-id=2 --limit 5
 Test connectivity between all node pairs:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
  Name         | ID | 1 | 2 | 3 | 4
 --------------+----+---+---+---+---
@@ -137,14 +135,15 @@ Any `x` in the matrix indicates a connectivity problem between those two nodes.
 ## Step 5 - Check replication lag with repmgr
 
 ```bash
-repmgr -f /etc/repmgr.conf node status
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node status
 ```
 
 This shows the node's current replication lag, received LSN, and replayed LSN.
 
-Also check native PostgreSQL replication views:
+Also check native PostgreSQL replication views.
 
 On the primary:
+
 ```sql
 SELECT
     client_addr, state, sync_state,
@@ -152,7 +151,7 @@ SELECT
 FROM pg_stat_replication;
 ```
 
-Expected: two rows (NODE2 and NODE3), both `streaming`, lag near zero.
+**Expected:** Two rows (NODE2 and NODE3), both `streaming`, lag near zero.
 
 ---
 
@@ -165,7 +164,7 @@ SELECT slot_name, slot_type, active, restart_lsn
 FROM pg_replication_slots;
 ```
 
-Expected: two active physical slots (repmgr_slot_2 and repmgr_slot_3).
+**Expected:** Two active physical slots (repmgr_slot_2 and repmgr_slot_3).
 
 > **Concept - repmgr-managed replication slots**: When `use_replication_slots=true`
 > in repmgr.conf, repmgr creates and manages a slot per standby. The naming
@@ -188,7 +187,7 @@ ORDER BY last_monitor_time DESC
 LIMIT 10;
 ```
 
-Expected: recent rows for node_id 2 and 3 with low replication_lag values.
+**Expected:** Recent rows for node_id 2 and 3 with low replication_lag values.
 
 ---
 
@@ -199,7 +198,7 @@ Run each of these commands one at a time. You should still be the postgres user.
 Check cluster topology:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Check replication status:
@@ -222,7 +221,7 @@ FROM pg_replication_slots;"
 Check recent events:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster event --limit 5
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster event --limit 5
 ```
 
 When done with this exercise, exit the postgres user:
@@ -231,7 +230,7 @@ When done with this exercise, exit the postgres user:
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ---
 

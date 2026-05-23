@@ -1,4 +1,4 @@
-# Build 01: Server Preparation
+# Build 01: Server Preparation (CentOS Stream 9)
 
 Prepare all four servers (NODE1, NODE2, NODE3, NODE4) for the repmgr HA lab.
 
@@ -9,49 +9,64 @@ Run every step on ALL FOUR servers unless noted otherwise.
 ## 1. Update the OS
 
 ```bash
-apt update
+sudo dnf update -y
 ```
 
-```bash
-apt upgrade -y
-```
+`-y` automatically answers "yes" to all prompts.
 
-Expected: packages updated, no errors.
+Expected output (yours will differ):
+```
+Complete!
+```
 
 ## 2. Set the hostnames
 
 On NODE1:
 ```bash
-hostnamectl set-hostname pg-repmgr-1
+sudo hostnamectl set-hostname pg-repmgr-1
 ```
 
 On NODE2:
 ```bash
-hostnamectl set-hostname pg-repmgr-2
+sudo hostnamectl set-hostname pg-repmgr-2
 ```
 
 On NODE3:
 ```bash
-hostnamectl set-hostname pg-repmgr-3
+sudo hostnamectl set-hostname pg-repmgr-3
 ```
 
 On NODE4:
 ```bash
-hostnamectl set-hostname pg-repmgr-w
+sudo hostnamectl set-hostname pg-repmgr-w
 ```
+
+Verify the hostname was set:
+
+```bash
+hostname
+```
+
+Expected: `pg-repmgr-1`, `pg-repmgr-2`, `pg-repmgr-3`, or `pg-repmgr-w` depending on which node you are on.
 
 ## 3. Add /etc/hosts entries
 
-On ALL FOUR servers, add these lines to `/etc/hosts` (substitute your actual IPs):
+On ALL FOUR servers, add entries for every node to `/etc/hosts` (substitute your actual IPs):
 
 ```bash
-cat >> /etc/hosts <<EOF
+sudo vi /etc/hosts
+```
+
+Add these four lines at the bottom:
+
+```
 [NODE1_IP]  pg-repmgr-1
 [NODE2_IP]  pg-repmgr-2
 [NODE3_IP]  pg-repmgr-3
 [NODE4_IP]  pg-repmgr-w
-EOF
 ```
+
+Save and exit vi (`:wq`).
 
 Verify each hostname resolves. Run these one at a time:
 
@@ -59,7 +74,7 @@ Verify each hostname resolves. Run these one at a time:
 ping -c 2 pg-repmgr-1
 ```
 
-The `-c 2` flag sends only 2 ping packets, then stops.
+`-c 2` sends only 2 ping packets instead of pinging forever.
 
 ```bash
 ping -c 2 pg-repmgr-2
@@ -75,39 +90,45 @@ ping -c 2 pg-repmgr-w
 
 Expected: all four resolve and respond.
 
-## 4. Configure firewall
+## 4. Firewall
 
-Allow PostgreSQL and SSH between all nodes:
+> **Note - AWS students**: Skip this step. Your security group handles firewall rules.
+> Ensure your security group allows TCP 22 (SSH) and TCP 5432 (PostgreSQL) between all four instances.
+
+If you are NOT on AWS and want to configure firewalld:
 
 ```bash
-apt install -y ufw
+sudo firewall-cmd --permanent --add-service=ssh
 ```
 
-The `-y` flag auto-confirms the install prompt.
+This allows SSH connections through the firewall. The `--permanent` flag makes the rule survive reboots.
 
 ```bash
-ufw allow 22/tcp
-```
-
-This allows SSH connections through the firewall.
-
-```bash
-ufw allow 5432/tcp
+sudo firewall-cmd --permanent --add-port=5432/tcp
 ```
 
 This allows PostgreSQL connections through the firewall.
 
 ```bash
-ufw --force enable
+sudo firewall-cmd --reload
 ```
 
-The `--force` flag skips the "are you sure?" prompt. This activates the firewall.
+This reloads the firewall so the new rules take effect.
+
+Verify:
 
 ```bash
-ufw status
+sudo firewall-cmd --list-all
 ```
 
-Expected: `Status: active` with rules for 22 and 5432.
+Expected output (yours will differ):
+```
+public (active)
+  ...
+  services: cockpit dhcpv6-client ssh
+  ports: 5432/tcp
+  ...
+```
 
 > **Concept - Minimal firewall**: In production you would restrict 5432 to specific
 > source IPs within your cluster network. For this lab, allowing from any source is
@@ -117,14 +138,16 @@ Expected: `Status: active` with rules for 22 and 5432.
 ## 5. Install essential tools
 
 ```bash
-apt install -y vim curl wget gnupg2 lsb-release sudo net-tools
+sudo dnf install -y vim curl wget net-tools
 ```
 
 ## 6. Set timezone to UTC
 
 ```bash
-timedatectl set-timezone UTC
+sudo timedatectl set-timezone UTC
 ```
+
+Verify the timezone is now UTC:
 
 ```bash
 timedatectl
@@ -245,6 +268,8 @@ Expected: returns hostnames without password prompt.
 exit
 ```
 
+**You are now back to ec2-user.**
+
 Repeat on all four nodes. If any test asks for a password, contact your instructor.
 
 ---
@@ -255,7 +280,7 @@ All four servers have:
 - [x] Updated OS
 - [x] Correct hostname (pg-repmgr-1, pg-repmgr-2, pg-repmgr-3, pg-repmgr-w)
 - [x] /etc/hosts with all four nodes
-- [x] Firewall active with 22 + 5432 open
+- [x] Firewall configured (or security group on AWS)
 - [x] Essential tools installed
 - [x] UTC timezone
 - [x] SSH key-based auth between all nodes (root and postgres users)

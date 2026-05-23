@@ -1,4 +1,4 @@
-# Build 01: Server Preparation
+# Build 01: Server Preparation (CentOS Stream 9)
 
 Prepare both servers (NODE1 and NODE2) for PostgreSQL installation.
 
@@ -9,37 +9,52 @@ Run every step on BOTH servers unless noted otherwise.
 ## 1. Update the OS
 
 ```bash
-apt update
+sudo dnf update -y
 ```
 
-```bash
-apt upgrade -y
-```
+`-y` automatically answers "yes" to all prompts.
 
-Expected: packages updated, no errors.
+Expected output (yours will differ):
+```
+Complete!
+```
 
 ## 2. Set the hostname
 
 On NODE1:
 ```bash
-hostnamectl set-hostname pg-primary
+sudo hostnamectl set-hostname pg-primary
 ```
 
 On NODE2:
 ```bash
-hostnamectl set-hostname pg-standby
+sudo hostnamectl set-hostname pg-standby
 ```
+
+Verify the hostname was set:
+
+```bash
+hostname
+```
+
+Expected: `pg-primary` or `pg-standby` depending on which node you are on.
 
 ## 3. Add /etc/hosts entries
 
 On BOTH servers, add these lines to `/etc/hosts` (substitute your actual IPs):
 
 ```bash
-cat >> /etc/hosts <<EOF
+sudo vi /etc/hosts
+```
+
+Add these two lines at the bottom:
+
+```
 [NODE1_IP]  pg-primary
 [NODE2_IP]  pg-standby
-EOF
 ```
+
+Save and exit vi (`:wq`).
 
 Verify:
 ```bash
@@ -54,64 +69,43 @@ ping -c 2 pg-standby
 
 Expected: both resolve and respond.
 
-## 4. Configure firewall
+## 4. Firewall
 
-Allow PostgreSQL and SSH between the two nodes:
+> **Note - AWS students**: Skip this step. Your security group handles firewall rules.
+> Ensure your security group allows TCP 22 (SSH) and TCP 5432 (PostgreSQL) between the two instances.
 
-```bash
-apt install -y ufw
-```
-
-Allow SSH traffic through the firewall:
+If you are NOT on AWS and want to configure firewalld:
 
 ```bash
-ufw allow 22/tcp
+sudo firewall-cmd --permanent --add-service=ssh
 ```
-
-Allow PostgreSQL traffic through the firewall:
 
 ```bash
-ufw allow 5432/tcp
+sudo firewall-cmd --permanent --add-port=5432/tcp
 ```
-
-Enable the firewall. The `--force` flag skips the confirmation prompt:
 
 ```bash
-ufw --force enable
+sudo firewall-cmd --reload
 ```
 
-Verify the firewall is active with the correct rules:
+Verify:
 
 ```bash
-ufw status
+sudo firewall-cmd --list-all
 ```
 
-Expected: `Status: active` with rules for 22 and 5432.
-
-> **Note - Cloud providers**: If you are running on AWS, GCP, or similar, skip ufw
-> and use security groups instead. Ensure your security group allows TCP 22 (SSH)
-> and TCP 5432 (PostgreSQL) between the two instances.
-
-> **Note - SSH user**: Cloud AMIs use non-root users (e.g., `admin` on Debian AMIs,
-> `ubuntu` on Ubuntu). Set `SSH_USER=admin` in your student.env. All `sudo` commands
-> in this guide work with any sudo-capable user.
-
-> **Concept - Minimal firewall**: In production you would restrict 5432 to specific
-> source IPs. For this lab, allowing from any source is fine because these are
-> ephemeral servers. The habit of enabling a firewall at all is what matters.
+Expected: ports 22 and 5432 listed.
 
 ## 5. Install essential tools
 
 ```bash
-apt install -y vim curl wget gnupg2 lsb-release sudo net-tools
+sudo dnf install -y vim curl wget net-tools
 ```
-
-`-y` automatically answers "yes" to the install prompt.
 
 ## 6. Set timezone to UTC
 
 ```bash
-timedatectl set-timezone UTC
+sudo timedatectl set-timezone UTC
 ```
 
 Verify the timezone is now UTC:
@@ -150,7 +144,7 @@ Both servers have:
 - [x] Updated OS
 - [x] Correct hostname
 - [x] /etc/hosts with both nodes
-- [x] Firewall active with 22 + 5432 open
+- [x] Firewall configured (or security group on AWS)
 - [x] Essential tools installed
 - [x] UTC timezone
 - [x] SSH key-based auth between nodes

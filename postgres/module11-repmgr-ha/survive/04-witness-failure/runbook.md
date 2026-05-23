@@ -18,11 +18,11 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for the remaining steps.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 ```bash
-tail -50 /var/log/postgresql/repmgr.log
+tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
 ```
 
 Look for promotion messages. Without the witness, repmgrd may not have reached
@@ -51,10 +51,11 @@ SELECT pg_last_wal_receive_lsn(),
 Promote the standby that received the most WAL (highest `pg_last_wal_receive_lsn`):
 
 ```bash
-repmgr -f /etc/repmgr.conf standby promote
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby promote
 ```
 
 Verify:
+
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
 ```
@@ -66,7 +67,7 @@ Expected: `f`.
 On the standby that was NOT promoted:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby follow \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_NODE_ID>
 ```
 
@@ -84,17 +85,25 @@ SELECT count(*) FROM employees;
 On NODE4:
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-sudo systemctl start repmgrd
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 Re-register the witness to point at the new primary:
 
 ```bash
-repmgr -f /etc/repmgr.conf witness register --force \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf witness register --force \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr
 ```
 
@@ -103,7 +112,7 @@ repmgr -f /etc/repmgr.conf witness register --force \
 On the old primary:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -111,33 +120,57 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 8: Restart repmgrd on the old primary
 
 ```bash
-sudo systemctl start repmgrd
+exit
+```
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 ### Step 9: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -151,10 +184,14 @@ Expected output (yours will differ):
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes should be running with correct roles.
+
+```bash
+exit
+```
 
 ---
 

@@ -1,4 +1,4 @@
-# Build 05: Verify Replication End-to-End
+# Build 05: Verify Replication End-to-End (CentOS Stream 9)
 
 Confirm that streaming replication is working correctly between your primary
 and standby. This is the final BUILD step.
@@ -138,7 +138,7 @@ Expected: `archived_count` > 0, `failed_count` = 0.
 List the first 5 archived WAL files. The pipe to `head -5` limits output to 5 lines:
 
 ```bash
-ls /var/lib/postgresql/16/archive/ | head -5
+ls /var/lib/pgsql/16/archive/ | head -5
 ```
 
 Expected: WAL segment files (names like `000000010000000000000001`).
@@ -147,36 +147,27 @@ Expected: WAL segment files (names like `000000010000000000000001`).
 exit
 ```
 
-## 6. Run verify.sh
-
-```bash
-./build/verify.sh
-```
-
-This script automates the checks above. All checks must PASS before proceeding
-to Phase 2.
-
 ---
 
 ## What you built
 
 ```
 NODE1 (primary)                    NODE2 (standby)
-┌─────────────────┐               ┌─────────────────┐
-│  PostgreSQL 16  │               │  PostgreSQL 16  │
-│  wal_level=     │   streaming   │  hot_standby=on │
-│    replica      │──────WAL────->│  standby.signal │
-│  replicator role│   (async)     │  recovery mode  │
-│  standby_slot   │               │  read queries OK│
-│  archive_mode=on│               │  writes rejected│
-└─────────────────┘               └─────────────────┘
++-----------------+               +-----------------+
+|  PostgreSQL 16  |               |  PostgreSQL 16  |
+|  wal_level=     |   streaming   |  hot_standby=on |
+|    replica      |------WAL----->|  standby.signal |
+|  replicator role|   (async)     |  recovery mode  |
+|  standby_slot   |               |  read queries OK|
+|  archive_mode=on|               |  writes rejected|
++-----------------+               +-----------------+
 ```
 
 You now understand:
-- How to install PG from PGDG on Debian
+- How to install PG from PGDG on CentOS Stream 9
 - How WAL flows from primary to standby
 - What standby.signal and primary_conninfo do
 - What replication slots are and why they matter
 - What archive_mode gives you beyond streaming
 
-Proceed to `use/01-check-replication-status.md` for Phase 2.
+Proceed to `use-centos/01-check-replication-status.md` for Phase 2.

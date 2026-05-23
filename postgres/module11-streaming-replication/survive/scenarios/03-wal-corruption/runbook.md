@@ -12,7 +12,7 @@
 SSH to [NODE2] and check if PostgreSQL is running:
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 Check if PostgreSQL is accepting connections. Switch to the postgres user:
@@ -34,7 +34,7 @@ It may be crashed or running but stuck (not replaying WAL).
 ### Step 2: Check the standby logs
 
 ```bash
-sudo tail -100 /var/log/postgresql/postgresql-16-main.log
+sudo tail -100 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -73,13 +73,13 @@ sudo -iu postgres
 Check for .corrupt files:
 
 ```bash
-ls -la /var/lib/postgresql/16/main/pg_wal/*.corrupt
+ls -la /var/lib/pgsql/16/data/pg_wal/*.corrupt
 ```
 
 Rename it back (replace FILENAME with the actual filename from the listing above):
 
 ```bash
-mv /var/lib/postgresql/16/main/pg_wal/FILENAME.corrupt /var/lib/postgresql/16/main/pg_wal/FILENAME
+mv /var/lib/pgsql/16/data/pg_wal/FILENAME.corrupt /var/lib/pgsql/16/data/pg_wal/FILENAME
 ```
 
 ```bash
@@ -89,7 +89,7 @@ exit
 Then restart PostgreSQL:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 ### Step 4 (Option B): Let the standby re-fetch from primary
@@ -97,7 +97,7 @@ sudo systemctl restart postgresql
 If the WAL segment still exists on the primary (thanks to the replication slot), simply restart the standby:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 The standby's walreceiver will reconnect and request the missing WAL from the primary. The replication slot `standby_slot` ensures the primary has not recycled it.
@@ -109,7 +109,7 @@ If the slot cannot recover the missing WAL (e.g., the gap is too large or the pr
 On [NODE2], stop PostgreSQL:
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 Switch to the postgres user and wipe the data directory:
@@ -119,7 +119,7 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -rf /var/lib/postgresql/16/main/*
+rm -rf /var/lib/pgsql/16/data/*
 ```
 
 Rebuild from primary. `-R` writes standby.signal and primary_conninfo. `-Xs` streams WAL during backup. `-P` shows progress:
@@ -127,7 +127,7 @@ Rebuild from primary. `-R` writes standby.signal and primary_conninfo. `-Xs` str
 ```bash
 pg_basebackup \
   -h [NODE1] -p 5432 -U replicator \
-  -D /var/lib/postgresql/16/main \
+  -D /var/lib/pgsql/16/data \
   -S standby_slot -R -Xs -P
 ```
 
@@ -138,7 +138,7 @@ exit
 Start PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 The `-R` flag writes standby.signal and primary_conninfo automatically.
@@ -172,7 +172,7 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -f /var/lib/postgresql/16/main/pg_wal/*.corrupt
+rm -f /var/lib/pgsql/16/data/pg_wal/*.corrupt
 ```
 
 ```bash

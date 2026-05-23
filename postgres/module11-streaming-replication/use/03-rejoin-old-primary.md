@@ -1,4 +1,4 @@
-# Exercise 03 - Rejoin Old Primary as Standby
+# Exercise 03 - Rejoin Old Primary as Standby (CentOS Stream 9)
 
 **Time estimate:** 20-30 minutes
 **Prerequisites:** Exercise 02 complete - NODE1 stopped (timeline 1), NODE2 promoted to primary (timeline 2)
@@ -26,7 +26,7 @@ Use `pg_rewind` to rejoin NODE1 as a standby streaming from NODE2. This restores
 On **NODE1** (it is stopped, so check the config file):
 
 ```bash
-grep wal_log_hints /var/lib/postgresql/16/main/postgresql.conf
+grep wal_log_hints /var/lib/pgsql/16/data/postgresql.conf
 ```
 
 **Expected:** `wal_log_hints = on`
@@ -34,7 +34,7 @@ grep wal_log_hints /var/lib/postgresql/16/main/postgresql.conf
 ### Option B - Data checksums enabled
 
 ```bash
-pg_controldata -D /var/lib/postgresql/16/main | grep "Data page checksum"
+/usr/pgsql-16/bin/pg_controldata -D /var/lib/pgsql/16/data | grep "Data page checksum"
 ```
 
 **Expected:** `Data page checksum version: 1` (if checksums were enabled at initdb)
@@ -50,7 +50,7 @@ Either one is sufficient. If neither is true, `pg_rewind` will refuse to run and
 On **NODE1**:
 
 ```bash
-pg_controldata -D /var/lib/postgresql/16/main | grep "Database cluster state"
+/usr/pgsql-16/bin/pg_controldata -D /var/lib/pgsql/16/data | grep "Database cluster state"
 ```
 
 **Expected:**
@@ -61,19 +61,25 @@ Database cluster state:               shut down
 If it says `in production` or `shut down in recovery`, the server is still running or crashed. Stop it cleanly:
 
 ```bash
-pg_ctl -D /var/lib/postgresql/16/main stop -m fast
+sudo systemctl stop postgresql-16
 ```
 
-> **Concept:** `pg_rewind` requires the target to be shut down cleanly. If the old primary crashed (simulating a real failure), you may need to start it in single-user mode first to complete crash recovery, then shut it down cleanly. In this lab, we stopped it with `-m fast`, which is a clean shutdown.
+> **Concept:** `pg_rewind` requires the target to be shut down cleanly. If the old primary crashed (simulating a real failure), you may need to start it in single-user mode first to complete crash recovery, then shut it down cleanly. In this lab, we stopped it with systemctl, which is a clean shutdown.
 
 ---
 
 ## Step 3 - Ensure NODE2 Allows Connections From NODE1
 
-On **NODE2** (new primary), verify `pg_hba.conf` allows replication connections from NODE1:
+On **NODE2** (new primary), switch to the postgres user:
 
 ```bash
-grep replication /var/lib/postgresql/16/main/pg_hba.conf
+sudo -iu postgres
+```
+
+Verify `pg_hba.conf` allows replication connections from NODE1:
+
+```bash
+grep replication /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 **Expected:** A line like:
@@ -81,11 +87,19 @@ grep replication /var/lib/postgresql/16/main/pg_hba.conf
 host    replication     replicator      [NODE1_IP]/32       scram-sha-256
 ```
 
-If this line does not exist, add it and reload. Switch to the postgres user:
+If this line does not exist, add it:
 
 ```bash
-sudo -iu postgres
+vi /var/lib/pgsql/16/data/pg_hba.conf
 ```
+
+Add at the end:
+
+```
+host    replication     replicator      [NODE1_IP]/32       scram-sha-256
+```
+
+Save and reload:
 
 ```bash
 psql -c "SELECT pg_reload_conf();"
@@ -99,7 +113,11 @@ exit
 
 ## Step 4 - Create a Replication Slot on NODE2
 
-On **NODE2** (new primary):
+On **NODE2** (new primary), switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
 
 ```sql
 SELECT pg_create_physical_replication_slot('standby_slot');
@@ -114,20 +132,30 @@ SELECT pg_create_physical_replication_slot('standby_slot');
 
 This slot will hold WAL for NODE1 once it connects as a standby.
 
+```bash
+exit
+```
+
 ---
 
 ## Step 5 - Run pg_rewind
 
-On **NODE1** (stopped):
+On **NODE1** (stopped), switch to the postgres user:
 
 ```bash
-pg_rewind \
-  --target-pgdata=/var/lib/postgresql/16/main \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/pg_rewind \
+  --target-pgdata=/var/lib/pgsql/16/data \
   --source-server="host=[NODE2_IP] port=5432 user=replicator dbname=postgres" \
   --progress
 ```
 
-**Expected output:**
+Enter the replicator password when prompted: `replicator_pass_2026`
+
+**Expected output (yours will differ):**
 ```
 pg_rewind: connected to server
 pg_rewind: servers diverged at WAL location 0/5000148 on timeline 1
@@ -144,6 +172,10 @@ pg_rewind: Done!
 
 > **Concept:** Look at what `pg_rewind` did. It connected to NODE2, found the divergence point (the LSN where timeline 2 branched), read WAL from NODE1 to figure out what pages changed after that point, then fetched fresh copies of only those pages from NODE2. This is far faster than a full `pg_basebackup` because it only copies the pages that diverged - often a tiny fraction of the total data.
 
+```bash
+exit
+```
+
 ---
 
 ## Step 6 - Configure NODE1 as a Standby
@@ -152,47 +184,55 @@ After `pg_rewind`, NODE1's data directory matches NODE2's state at the divergenc
 
 ### Create standby.signal
 
+Switch to the postgres user:
+
 ```bash
-touch /var/lib/postgresql/16/main/standby.signal
+sudo -iu postgres
+```
+
+```bash
+touch /var/lib/pgsql/16/data/standby.signal
 ```
 
 ### Update postgresql.conf for standby mode
 
-Edit `/var/lib/postgresql/16/main/postgresql.conf`:
-
 ```bash
-cat >> /var/lib/postgresql/16/main/postgresql.conf << 'EOF'
+cat >> /var/lib/pgsql/16/data/postgresql.conf << 'EOF'
 
 # Standby configuration (after pg_rewind)
-primary_conninfo = 'host=[NODE2_IP] port=5432 user=replicator password=YOUR_REPLICATION_PASSWORD application_name=walreceiver'
+primary_conninfo = 'host=[NODE2_IP] port=5432 user=replicator password=replicator_pass_2026 application_name=walreceiver'
 primary_slot_name = 'standby_slot'
 hot_standby = on
 EOF
 ```
 
+Replace `[NODE2_IP]` with the actual IP of NODE2.
+
 > **Concept:** `standby.signal` is an empty file that tells PostgreSQL to start in standby mode. It replaces the old `recovery.conf` approach from PG 11 and earlier. When PostgreSQL sees this file, it enters continuous recovery - connecting to the primary and streaming WAL indefinitely until you promote it or remove the file.
+
+```bash
+exit
+```
 
 ---
 
 ## Step 7 - Start NODE1 as a Standby
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
-Or:
+Check the log for successful startup. Switch to the postgres user:
 
 ```bash
-pg_ctl -D /var/lib/postgresql/16/main start
+sudo -iu postgres
 ```
-
-Check the log for successful startup:
 
 ```bash
-tail -20 /var/log/postgresql/postgresql-16-main.log
+tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
-**Expected log lines:**
+**Expected log lines (yours will differ):**
 ```
 LOG:  entering standby mode
 LOG:  redo starts at 0/5000148
@@ -209,7 +249,7 @@ Key things to verify in the logs:
 
 ## Step 8 - Verify Replication From Both Sides
 
-### On NODE1 (new standby):
+### On NODE1 (new standby), as the postgres user:
 
 ```sql
 SELECT pg_is_in_recovery();
@@ -228,7 +268,7 @@ SELECT status, sender_host FROM pg_stat_wal_receiver;
  streaming | [NODE2_IP]
 ```
 
-### On NODE2 (new primary):
+### On NODE2 (new primary), as the postgres user:
 
 ```sql
 SELECT client_addr, state, sync_state FROM pg_stat_replication;
@@ -245,7 +285,7 @@ SELECT client_addr, state, sync_state FROM pg_stat_replication;
 
 ## Step 9 - Verify Data Consistency
 
-On **NODE1** (new standby):
+On **NODE1** (new standby), as the postgres user:
 
 ```sql
 \c labdb
@@ -260,13 +300,13 @@ SELECT count(*) FROM employees;
  10001
 ```
 
-The 10,001 count includes the "Failover Test" row you inserted on NODE2 after promotion. If NODE1 shows 10,001, the rewind and replay worked perfectly.
+The 10,001 count includes the "failover_test" row you inserted on NODE2 after promotion. If NODE1 shows 10,001, the rewind and replay worked perfectly.
 
 ---
 
 ## Step 10 - Verify the Replication Slot Is Active
 
-On **NODE2** (new primary):
+On **NODE2** (new primary), as the postgres user:
 
 ```sql
 SELECT slot_name, active, wal_status FROM pg_replication_slots;
@@ -277,6 +317,12 @@ SELECT slot_name, active, wal_status FROM pg_replication_slots;
    slot_name   | active | wal_status
 ---------------+--------+------------
  standby_slot  | t      | reserved
+```
+
+Exit the postgres user on both nodes:
+
+```bash
+exit
 ```
 
 ---

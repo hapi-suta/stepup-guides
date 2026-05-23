@@ -20,14 +20,14 @@ sudo -iu postgres
 Monitor the repmgr log on the standbys:
 
 ```bash
-tail -f /var/log/postgresql/repmgr.log
+tail -f /var/lib/pgsql/16/data/log/repmgrd.log
 ```
 
 A standby should be promoted within 60-90 seconds. If repmgrd is not running
 or auto-failover does not trigger, promote manually:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby promote
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby promote
 ```
 
 ### Step 2: Verify the new primary is accepting writes
@@ -58,7 +58,7 @@ Expected: EMPTY or no streaming entries. Standbys cannot connect.
 Check the PostgreSQL log on a standby for connection errors:
 
 ```bash
-tail -20 /var/log/postgresql/postgresql-16-main.log
+tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -76,7 +76,7 @@ FATAL: no pg_hba.conf entry for replication connection from host "..."
 On the new primary:
 
 ```bash
-cat /etc/postgresql/16/main/pg_hba.conf
+cat /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 Notice the missing entries for `repmgr` user and `replication` database.
@@ -86,13 +86,13 @@ Notice the missing entries for `repmgr` user and `replication` database.
 On the new primary:
 
 ```bash
-cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf
+cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 If no backup exists, add the required entries manually:
 
 ```bash
-cat >> /etc/postgresql/16/main/pg_hba.conf <<'HBAEOF'
+cat >> /var/lib/pgsql/16/data/pg_hba.conf <<'HBAEOF'
 # repmgr connections
 host    repmgr       repmgr    0.0.0.0/0    md5
 host    replication   repmgr    0.0.0.0/0    md5
@@ -101,23 +101,31 @@ HBAEOF
 
 ### Step 6: Fix pg_hba.conf on ALL other data nodes
 
-The broken config was replicated to all nodes. Fix each one:
+The broken config was applied to all nodes. Fix each one:
 
 Run this on each data node one at a time:
 
 ```bash
-ssh root@pg-repmgr-1 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
+exit
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
+ssh root@pg-repmgr-1 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf"
+ssh root@pg-repmgr-2 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
+```
+
+```bash
+ssh root@pg-repmgr-3 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
 ```
 
 ### Step 7: Reload PostgreSQL on the new primary and standbys
+
+```bash
+sudo -iu postgres
+```
 
 ```bash
 psql -c "SELECT pg_reload_conf();"
@@ -144,7 +152,11 @@ Standbys should transition from disconnected to streaming. If they do not
 reconnect automatically, restart PostgreSQL on each standby:
 
 ```bash
-sudo systemctl restart postgresql
+exit
+```
+
+```bash
+sudo systemctl restart postgresql-16
 ```
 
 ### Step 9: Rejoin the old primary as a standby
@@ -152,13 +164,17 @@ sudo systemctl restart postgresql
 On the old primary, restore pg_hba.conf first:
 
 ```bash
-cp /etc/postgresql/16/main/pg_hba.conf.backup /etc/postgresql/16/main/pg_hba.conf
+sudo cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 Then rejoin:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -166,47 +182,71 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 10: Restart repmgrd and verify
 
+```bash
+exit
+```
+
 Restart repmgrd on each node one at a time:
 
 ```bash
-ssh root@pg-repmgr-1 "systemctl start repmgrd"
+ssh root@pg-repmgr-1 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "systemctl start repmgrd"
+ssh root@pg-repmgr-2 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "systemctl start repmgrd"
+ssh root@pg-repmgr-3 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-w "systemctl start repmgrd"
+ssh root@pg-repmgr-w "systemctl start repmgr-16"
 ```
 
 Verify:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -220,6 +260,10 @@ Expected output (yours will differ):
 ```
 
 All 4 nodes running, replication streaming, pg_hba.conf correct on all nodes.
+
+```bash
+exit
+```
 
 ---
 
@@ -274,8 +318,7 @@ All 4 nodes running, replication streaming, pg_hba.conf correct on all nodes.
 
 4. **Failover config inheritance**: What other configuration files might cause
    problems when a standby is promoted? Discuss postgresql.conf differences
-   (hot_standby settings), recovery.conf / standby.signal, and SSL certificate
-   paths.
+   (hot_standby settings), standby.signal, and SSL certificate paths.
 
 5. **Security vs availability tradeoff**: Tight pg_hba.conf rules improve
    security but increase the risk of self-inflicted outages. How do you

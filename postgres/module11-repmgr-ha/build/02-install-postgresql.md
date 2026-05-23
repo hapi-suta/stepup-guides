@@ -1,6 +1,6 @@
-# Build 02: Install PostgreSQL 16
+# Build 02: Install PostgreSQL 16 (CentOS Stream 9)
 
-Install PostgreSQL 16 from the PGDG repository on all four nodes.
+Install PostgreSQL 16 from the official PGDG repository on all four nodes.
 
 Run every step on ALL FOUR servers.
 
@@ -8,42 +8,94 @@ Run every step on ALL FOUR servers.
 
 ## 1. Add the PGDG repository
 
-```bash
-sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
-  > /etc/apt/sources.list.d/pgdg.list'
-```
-
-This adds the official PostgreSQL APT repository for your OS version.
+Install the PGDG RPM for CentOS/RHEL 9:
 
 ```bash
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 ```
 
-This downloads and converts the PGDG signing key so APT trusts the repository. The flags: `-f` fails silently on HTTP errors, `-s` is silent mode, `-S` shows errors, `-L` follows redirects.
+This adds the official PostgreSQL repository to your system.
+
+Disable the built-in PostgreSQL module so it does not conflict with PGDG:
 
 ```bash
-apt update
+sudo dnf -qy module disable postgresql
 ```
 
-Expected: repository added, key imported, package list updated.
+`-q` suppresses unnecessary output. `-y` auto-confirms.
+
+Expected output (yours will differ):
+```
+Complete!
+```
+
+> **Concept - Why PGDG, not the OS default**: CentOS ships an older PostgreSQL version
+> that lags behind features and security patches. The PGDG repo is maintained by the
+> PostgreSQL core team and tracks every minor release within days. Always use PGDG
+> in production.
 
 ## 2. Install PostgreSQL 16
 
 ```bash
-apt install -y postgresql-16
+sudo dnf install -y postgresql16-server postgresql16-contrib
 ```
 
-Expected: PostgreSQL 16 installed and started automatically.
+`postgresql16-server` installs the database server. `postgresql16-contrib` installs extra modules and extensions (including utilities needed by repmgr).
 
-## 3. Verify PostgreSQL is running
+Expected output (yours will differ):
+```
+Complete!
+```
+
+## 3. Initialize the database cluster
+
+On CentOS, PostgreSQL does not auto-initialize after install. You must run initdb:
 
 ```bash
-sudo systemctl status postgresql
+sudo /usr/pgsql-16/bin/postgresql-16-setup initdb
 ```
 
-Expected: service `active (running)`.
+Expected output (yours will differ):
+```
+Initializing database ... OK
+```
 
-Now switch to the postgres user:
+> **Concept - initdb creates the data directory**: This creates the cluster at
+> `/var/lib/pgsql/16/data/` with default settings, the `postgres` superuser,
+> and the template databases. On Debian/Ubuntu this happens automatically during
+> package install, but on Red Hat systems you must do it explicitly.
+
+## 4. Start and enable the service
+
+Start PostgreSQL:
+
+```bash
+sudo systemctl start postgresql-16
+```
+
+Enable it to start on boot:
+
+```bash
+sudo systemctl enable postgresql-16
+```
+
+Expected output (yours will differ):
+```
+Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16.service ...
+```
+
+> **Important**: On CentOS, the service name is `postgresql-16`, NOT `postgresql`.
+> This is different from Debian/Ubuntu where the service is just `postgresql`.
+
+## 5. Verify PostgreSQL is running
+
+```bash
+sudo systemctl status postgresql-16
+```
+
+Expected: `active (running)`.
+
+Switch to the postgres user:
 
 ```bash
 sudo -iu postgres
@@ -55,15 +107,21 @@ sudo -iu postgres
 psql -c "SELECT version();"
 ```
 
-Expected: version string shows `PostgreSQL 16.x`.
+Expected output (yours will differ):
+```
+                                                 version
+---------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.x on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.x.x, 64-bit
+(1 row)
+```
 
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
-## 4. Confirm the data directory
+## 6. Confirm the data directory
 
 Switch to the postgres user:
 
@@ -77,15 +135,20 @@ sudo -iu postgres
 psql -c "SHOW data_directory;"
 ```
 
-Expected: `/var/lib/postgresql/16/main`.
+Expected: `/var/lib/pgsql/16/data`.
 
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
-## 5. Enable wal_log_hints
+> **Concept - Red Hat keeps config inside PGDATA**: Unlike Debian where configs live
+> under `/etc/postgresql/`, Red Hat-based systems keep `postgresql.conf` and
+> `pg_hba.conf` inside the data directory (`/var/lib/pgsql/16/data/`). Know where
+> your configs live on your OS.
+
+## 7. Enable wal_log_hints
 
 This is required for `pg_rewind` (used by repmgr node rejoin):
 
@@ -105,12 +168,12 @@ psql -c "ALTER SYSTEM SET wal_log_hints = on;"
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 Restart to apply:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 Verify:
@@ -131,7 +194,7 @@ Expected: `on`.
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 > **Concept - wal_log_hints**: This parameter logs hint-bit changes in WAL,
 > which is required by `pg_rewind`. Without it, `pg_rewind` cannot safely
@@ -139,7 +202,7 @@ exit
 > repmgr uses `pg_rewind` during `repmgr node rejoin` to bring a former primary
 > back as a standby without a full base backup.
 
-## 6. Configure essential replication parameters
+## 8. Configure essential replication parameters
 
 On ALL FOUR servers:
 
@@ -163,16 +226,27 @@ ALTER SYSTEM SET shared_preload_libraries = 'repmgr';
 SQL
 ```
 
+Expected output (yours will differ):
+```
+ALTER SYSTEM
+ALTER SYSTEM
+ALTER SYSTEM
+ALTER SYSTEM
+ALTER SYSTEM
+ALTER SYSTEM
+ALTER SYSTEM
+```
+
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 Restart PostgreSQL:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 Verify the settings. Switch to the postgres user:
@@ -211,7 +285,7 @@ Expected: `repmgr`.
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 > **Concept - shared_preload_libraries = 'repmgr'**: The repmgr extension
 > includes a background worker (repmgrd) that monitors cluster health and
@@ -230,8 +304,11 @@ exit
 ## Checkpoint
 
 All four servers have:
-- [x] PostgreSQL 16 installed from PGDG
-- [x] PostgreSQL running and accessible
+- [x] PGDG repo added and OS module disabled
+- [x] PostgreSQL 16 installed (`postgresql16-server postgresql16-contrib`)
+- [x] Database cluster initialized (initdb)
+- [x] Service running and enabled (`postgresql-16`)
+- [x] Data directory at `/var/lib/pgsql/16/data`
 - [x] `wal_log_hints = on`
 - [x] `wal_level = replica`, `max_wal_senders = 10`
 - [x] `shared_preload_libraries = 'repmgr'`

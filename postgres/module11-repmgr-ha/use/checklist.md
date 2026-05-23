@@ -1,14 +1,12 @@
-# Phase 2 (USE) - Self-Assessment Checklist
+# Phase 2 (USE) - Self-Assessment Checklist (CentOS Stream 9)
 
-Answer each question honestly before moving to Phase 3. If you answer "No" to
-any question, go back and repeat the relevant exercise until you can answer "Yes."
+Answer each question honestly before moving to Phase 3. If you answer "No" to any question, go back and repeat the relevant exercise until you can answer "Yes."
 
 ---
 
 ## Instructions
 
-For each question, ask yourself: "Can I do this right now, from memory, without
-looking at the guide?"
+For each question, ask yourself: "Can I do this right now, from memory, without looking at the guide?"
 
 Mark each answer:
 - **Yes** - I can do this confidently without reference material
@@ -100,8 +98,7 @@ Mark each answer:
 
 ## What Phase 3 Expects From You
 
-Phase 3 (SURVIVE) will test your ability to handle failure scenarios without
-step-by-step instructions. You will face:
+Phase 3 (SURVIVE) will test your ability to handle failure scenarios without step-by-step instructions. You will face:
 
 - Automatic failover triggered by primary crash
 - Network partitions that risk split-brain
@@ -109,8 +106,7 @@ step-by-step instructions. You will face:
 - Witness failure during a failover event
 - repmgrd daemon failures requiring manual intervention
 
-If you cannot perform the USE phase tasks from memory, Phase 3 will be
-frustrating rather than educational. Take the time now.
+If you cannot perform the USE phase tasks from memory, Phase 3 will be frustrating rather than educational. Take the time now.
 
 ---
 

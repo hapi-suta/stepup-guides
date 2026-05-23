@@ -1,4 +1,4 @@
-# Exercise 03 - Manual Promote
+# Exercise 03 - Manual Promote (CentOS Stream 9)
 
 **Time estimate:** 15-20 minutes
 **Prerequisites:** Exercise 02 complete - cluster in any topology, all nodes healthy
@@ -7,9 +7,7 @@
 
 ## Objective
 
-Simulate an unplanned primary failure and manually promote a standby using
-`repmgr standby promote`. Understand when manual promotion is appropriate
-and how it differs from switchover.
+Simulate an unplanned primary failure and manually promote a standby using `repmgr standby promote`. Understand when manual promotion is appropriate and how it differs from switchover.
 
 ---
 
@@ -24,22 +22,40 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user unless instructed to exit.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-Note the current primary. For this exercise, ensure NODE1 is primary. If
-NODE2 is still primary from Exercise 02, switch back first.
+Note the current primary. For this exercise, ensure NODE1 is primary. If NODE2 is still primary from Exercise 02, switch back first.
 
 ---
 
 ## Step 2 - Stop repmgrd on ALL Nodes
 
-For this exercise, stop repmgrd so it does not auto-promote before you do it
-manually:
+For this exercise, stop repmgrd so it does not auto-promote before you do it manually.
+
+Exit the postgres user first:
+
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
 
 On ALL FOUR servers:
+
 ```bash
-sudo systemctl stop repmgrd
+sudo systemctl stop repmgr-16
+```
+
+Verify it stopped:
+
+```bash
+sudo systemctl status repmgr-16
+```
+
+**Expected output (yours will differ):**
+```
+... Active: inactive (dead) ...
 ```
 
 > **Concept - Disabling repmgrd for manual practice**: In production, repmgrd
@@ -54,26 +70,32 @@ sudo systemctl stop repmgrd
 On NODE1 (primary), kill PostgreSQL ungracefully:
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 Verify it is down:
+
 ```bash
 pg_isready -p 5432
 ```
 
-Expected: `pg_isready: could not connect to server`.
+**Expected:** `pg_isready: could not connect to server`
 
 ---
 
 ## Step 4 - Observe the Cluster State
 
-From NODE2:
+From NODE2, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
 ```
 
-**Expected:**
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
+```
+
+**Expected output (yours will differ):**
 ```
  ID | Name         | Role    | Status        | Upstream    | ...
 ----+--------------+---------+---------------+-------------+----
@@ -83,8 +105,7 @@ repmgr -f /etc/repmgr.conf cluster show
  4  | pg-repmgr-w  | witness | * running     | pg-repmgr-1 | ...
 ```
 
-NODE1 shows `- failed`. The standbys are still running but their upstream
-is the failed primary.
+NODE1 shows `- failed`. The standbys are still running but their upstream is the failed primary.
 
 > **Concept - Standby behavior when primary dies**: The standbys do not crash
 > when the primary goes down. They notice the WAL stream has stopped and enter
@@ -95,12 +116,13 @@ is the failed primary.
 
 ## Step 5 - Promote NODE2
 
-On NODE2:
+On NODE2 (still as postgres user):
+
 ```bash
-repmgr -f /etc/repmgr.conf standby promote
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby promote
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
 NOTICE: promoting standby to primary
 DETAIL: promoting server "pg-repmgr-2" (ID: 2) using pg_promote()
@@ -110,8 +132,9 @@ DETAIL: server "pg-repmgr-2" (ID: 2) was successfully promoted to primary
 ```
 
 Verify:
+
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 **Expected:** NODE2 is now `primary | * running`.
@@ -120,28 +143,44 @@ repmgr -f /etc/repmgr.conf cluster show
 
 ## Step 6 - Attach NODE3 to the New Primary
 
-NODE3 is still pointing at the old primary. Redirect it:
+NODE3 is still pointing at the old primary. Redirect it.
 
-On NODE3:
+On NODE3, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby follow \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby follow \
   --upstream-node-id=2
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
 NOTICE: setting node 3's upstream to node 2
-NOTICE: restarting server using "sudo systemctl restart postgresql"
+NOTICE: restarting server using "sudo systemctl restart postgresql-16"
 NOTICE: STANDBY FOLLOW successful
 DETAIL: node 3 is now attached to node 2
 ```
 
-Verify from NODE2:
+Exit the postgres user:
+
+```bash
+exit
+```
+
+Verify from NODE2. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
 ```sql
 SELECT client_addr, state FROM pg_stat_replication;
 ```
 
-Expected: NODE3 is streaming from NODE2.
+**Expected:** NODE3 is streaming from NODE2.
 
 > **Concept - standby follow**: After a manual promotion, other standbys must
 > be explicitly redirected to the new primary. In automatic failover, repmgrd
@@ -152,41 +191,58 @@ Expected: NODE3 is streaming from NODE2.
 
 ## Step 7 - Verify Writes on the New Primary
 
-On NODE2:
+On NODE2 (still as postgres user):
+
 ```bash
 psql -d labdb -c "
 INSERT INTO employees (name, department) VALUES ('promote_test', 'engineering');
 SELECT count(*) FROM employees;"
 ```
 
-Expected: INSERT succeeds.
+**Expected:** INSERT succeeds.
 
 ---
 
 ## Step 8 - Verify Data on NODE3
 
-On NODE3:
+On NODE3, switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
 ```bash
 psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
-Expected: matches NODE2's count.
+**Expected:** Matches NODE2's count.
+
+```bash
+exit
+```
 
 ---
 
 ## Step 9 - Understand the Cleanup Required
 
-After a manual promote, the old primary (NODE1) is still down and registered
-as a primary in repmgr metadata. Before bringing it back, you must:
+After a manual promote, the old primary (NODE1) is still down and registered as a primary in repmgr metadata. Before bringing it back, you must:
 
 1. Rejoin it as a standby (Exercise 04 covers this)
 2. Re-register the witness to follow the new primary
 
-Update the witness:
-On NODE4:
+Update the witness. On NODE4, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf witness register --force \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf witness register --force \
   -h pg-repmgr-2 -U repmgr -d repmgr
+```
+
+```bash
+exit
 ```
 
 > **Concept - Promote vs switchover tradeoffs**:
@@ -204,8 +260,20 @@ repmgr -f /etc/repmgr.conf witness register --force \
 ## Step 10 - Restart repmgrd
 
 On all running nodes (NODE2, NODE3, NODE4):
+
 ```bash
-sudo systemctl start repmgrd
+sudo systemctl start repmgr-16
+```
+
+Verify on each node:
+
+```bash
+sudo systemctl status repmgr-16
+```
+
+**Expected output (yours will differ):**
+```
+... Active: active (running) ...
 ```
 
 Leave NODE1 stopped for now - we will rejoin it in Exercise 04.

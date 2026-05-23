@@ -1,4 +1,4 @@
-# Exercise 02 - Manual Switchover
+# Exercise 02 - Manual Switchover (CentOS Stream 9)
 
 **Time estimate:** 20-30 minutes
 **Prerequisites:** Exercise 01 complete - all 4 nodes healthy, replication lag at zero
@@ -7,8 +7,7 @@
 
 ## Objective
 
-Perform a planned switchover using `repmgr standby switchover`. Understand how
-switchover differs from promotion and verify the new topology after the operation.
+Perform a planned switchover using `repmgr standby switchover`. Understand how switchover differs from promotion and verify the new topology after the operation.
 
 ---
 
@@ -37,7 +36,7 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for all steps in this exercise.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Note which node is primary (should be pg-repmgr-1, node_id=1).
@@ -46,15 +45,15 @@ Note which node is primary (should be pg-repmgr-1, node_id=1).
 
 ## Step 3 - Dry-run the Switchover
 
-Run from the TARGET standby (the node you want to become the new primary).
-For this exercise, switch to NODE2:
+Run from the TARGET standby (the node you want to become the new primary). For this exercise, switch to NODE2.
 
 On NODE2:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby switchover --dry-run
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby switchover --dry-run
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
 NOTICE: checking switchover on node "pg-repmgr-2" (ID: 2) in --dry-run mode
 INFO: SSH connection to host "pg-repmgr-1" succeeded
@@ -73,12 +72,13 @@ INFO: would promote standby node "pg-repmgr-2" (ID: 2) to primary
 ## Step 4 - Execute the Switchover
 
 On NODE2:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby switchover \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby switchover \
   --siblings-follow
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
 NOTICE: executing switchover on node "pg-repmgr-2" (ID: 2)
 NOTICE: attempting to pause repmgrd on 4 nodes
@@ -114,10 +114,10 @@ NOTICE: switchover was successful
 ## Step 5 - Verify the New Topology
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-**Expected:**
+**Expected output (yours will differ):**
 ```
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
 ----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------
@@ -138,46 +138,50 @@ Key changes:
 ## Step 6 - Verify Writes on the New Primary
 
 On NODE2:
+
 ```bash
 psql -d labdb -c "
 INSERT INTO employees (name, department) VALUES ('switchover_test', 'ops');
 SELECT count(*) FROM employees;"
 ```
 
-Expected: INSERT succeeds, count = 10001 (or more).
+**Expected:** INSERT succeeds, count = 10001 (or more).
 
 ---
 
 ## Step 7 - Verify Data Replicated to Standbys
 
 On NODE1 and NODE3:
+
 ```bash
 psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
-Expected: same count as the new primary.
+**Expected:** Same count as the new primary.
 
 ---
 
 ## Step 8 - Verify Replication Streaming
 
 On NODE2 (new primary):
+
 ```sql
 SELECT client_addr, state, sync_state FROM pg_stat_replication;
 ```
 
-Expected: two rows (NODE1 and NODE3), both `streaming`.
+**Expected:** Two rows (NODE1 and NODE3), both `streaming`.
 
 ---
 
 ## Step 9 - Check the Timeline
 
 On NODE2:
+
 ```sql
 SELECT timeline_id FROM pg_control_checkpoint();
 ```
 
-Expected: `2` (incremented from the switchover).
+**Expected:** `2` (incremented from the switchover).
 
 > **Concept - Switchover advances the timeline**: Just like a manual promote,
 > a switchover creates a new timeline. The old primary is rewound (or rebuilt)
@@ -191,13 +195,14 @@ Expected: `2` (incremented from the switchover).
 To switch back to NODE1 as primary, run from NODE1:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby switchover \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby switchover \
   --siblings-follow --dry-run
 ```
 
 If the dry-run passes:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby switchover \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby switchover \
   --siblings-follow
 ```
 
@@ -209,7 +214,7 @@ When done, exit the postgres user:
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ---
 

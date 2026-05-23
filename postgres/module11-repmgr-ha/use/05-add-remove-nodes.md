@@ -1,4 +1,4 @@
-# Exercise 05 - Add and Remove Nodes
+# Exercise 05 - Add and Remove Nodes (CentOS Stream 9)
 
 **Time estimate:** 20-30 minutes
 **Prerequisites:** Exercise 04 complete - all 4 nodes healthy, repmgrd running
@@ -7,8 +7,7 @@
 
 ## Objective
 
-Practice adding and removing nodes from a running repmgr cluster. Understand
-how to deregister nodes cleanly and what happens to replication slots.
+Practice adding and removing nodes from a running repmgr cluster. Understand how to deregister nodes cleanly and what happens to replication slots.
 
 ---
 
@@ -27,40 +26,67 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user unless instructed to exit.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Note NODE3's current upstream and status.
 
 ### Step 2 - Stop repmgrd on NODE3
 
-On NODE3:
+Exit the postgres user first:
+
 ```bash
-sudo systemctl stop repmgrd
+exit
+```
+
+**You are now back to ec2-user.**
+
+On NODE3:
+
+```bash
+sudo systemctl stop repmgr-16
+```
+
+Verify:
+
+```bash
+sudo systemctl status repmgr-16
+```
+
+**Expected output (yours will differ):**
+```
+... Active: inactive (dead) ...
 ```
 
 ### Step 3 - Stop PostgreSQL on NODE3
 
 On NODE3:
+
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 ### Step 4 - Unregister NODE3 from the cluster
 
-From the primary (whichever node is primary):
+From the primary (whichever node is primary), switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby unregister --node-id=3
+sudo -iu postgres
 ```
 
-**Expected:**
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby unregister --node-id=3
+```
+
+**Expected output (yours will differ):**
 ```
 NOTICE: standby node 3 successfully unregistered
 ```
 
 ### Step 5 - Drop the orphaned replication slot
 
-On the primary:
+On the primary (still as postgres user):
+
 ```sql
 SELECT slot_name, active FROM pg_replication_slots;
 ```
@@ -79,7 +105,7 @@ SELECT pg_drop_replication_slot('repmgr_slot_3');
 ### Step 6 - Verify the cluster
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 **Expected:** 3 nodes (NODE1, NODE2/primary, NODE4/witness). NODE3 is gone.
@@ -90,32 +116,63 @@ repmgr -f /etc/repmgr.conf cluster show
 
 ### Step 7 - Clone NODE3 from the current primary
 
-On NODE3:
+On NODE3, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   standby clone --dry-run
 ```
 
+**Expected output (yours will differ):**
+```
+NOTICE: destination directory "/var/lib/pgsql/16/data" provided
+INFO: connecting to source node
+...
+INFO: all prerequisites for "standby clone" are met
+```
+
 If dry-run passes:
+
 ```bash
-repmgr -f /etc/repmgr.conf \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   standby clone --force
 ```
 
 The `--force` flag is needed because the data directory is not empty.
 
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
+
 ### Step 8 - Start PostgreSQL on NODE3
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 ### Step 9 - Register NODE3 as a standby
 
+Switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
+```
+
+**Expected output (yours will differ):**
+```
+NOTICE: standby node "pg-repmgr-3" (ID: 3) successfully registered
 ```
 
 The `--force` flag overwrites any stale registration.
@@ -123,24 +180,41 @@ The `--force` flag overwrites any stale registration.
 ### Step 10 - Start repmgrd on NODE3
 
 ```bash
-sudo systemctl start repmgrd
+exit
+```
+
+**You are now back to ec2-user.**
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 ### Step 11 - Verify the cluster
 
+Switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 **Expected:** 4 nodes, all running. NODE3 is back as a standby.
 
 Verify replication:
+
 ```sql
 -- On the primary
 SELECT client_addr, state FROM pg_stat_replication;
 ```
 
-Expected: NODE3 is streaming.
+**Expected:** NODE3 is streaming.
+
+```bash
+exit
+```
 
 ---
 
@@ -148,35 +222,63 @@ Expected: NODE3 is streaming.
 
 ### Step 12 - Unregister the witness
 
-On the primary:
+On the primary, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf witness unregister --node-id=4
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf witness unregister --node-id=4
 ```
 
 ### Step 13 - Verify it is gone
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-Expected: 3 nodes (witness is gone).
+**Expected:** 3 nodes (witness is gone).
+
+```bash
+exit
+```
 
 ### Step 14 - Re-register the witness
 
-On NODE4:
+On NODE4, switch to the postgres user:
+
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h pg-repmgr-2 -U repmgr -d repmgr \
   witness register --force
 ```
 
-### Step 15 - Verify the full cluster
-
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+exit
 ```
 
-Expected: 4 nodes, all running, all in correct roles.
+### Step 15 - Verify the full cluster
+
+Switch to the postgres user on any node:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
+```
+
+**Expected:** 4 nodes, all running, all in correct roles.
+
+```bash
+exit
+```
 
 > **Concept - Node lifecycle in repmgr**:
 >

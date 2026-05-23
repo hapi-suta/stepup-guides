@@ -44,11 +44,11 @@ The `-h` flag specifies the hostname, `-p` specifies the port. Nodes that are do
 On the surviving standby:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 ```bash
-tail -50 /var/log/postgresql/repmgr.log
+tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
 ```
 
 Look for promotion messages. repmgrd may or may not have promoted depending on
@@ -66,7 +66,7 @@ psql -c "SELECT pg_is_in_recovery();"
 If it returns `t`, promote manually:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby promote
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby promote
 ```
 
 Verify:
@@ -97,13 +97,19 @@ stopped.
 
 On the victim standby:
 
-Start PostgreSQL first:
+```bash
+exit
+```
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 It may auto-reconnect if it was just stopped. Check:
+
+```bash
+sudo -iu postgres
+```
 
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
@@ -112,11 +118,19 @@ psql -c "SELECT pg_is_in_recovery();"
 If it does not reconnect, rejoin. Stop PostgreSQL first:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -124,17 +138,25 @@ repmgr -f /etc/repmgr.conf node rejoin \
 Or reclone:
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 6: Rejoin the old primary
@@ -142,7 +164,7 @@ repmgr -f /etc/repmgr.conf standby register --force
 On the old primary:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -150,27 +172,49 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 7: Restart repmgrd on rejoined nodes
 
 ```bash
-sudo systemctl start repmgrd
+exit
+```
+
+Run on each rejoined node:
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 ### Step 8: Update the witness
@@ -178,14 +222,18 @@ sudo systemctl start repmgrd
 Re-register the witness to point at the new primary:
 
 ```bash
-repmgr -f /etc/repmgr.conf witness register --force \
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf witness register --force \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr
 ```
 
 ### Step 9: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -199,10 +247,14 @@ Expected output (yours will differ):
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes should be running: 1 primary, 2 standbys, 1 witness.
+
+```bash
+exit
+```
 
 ---
 

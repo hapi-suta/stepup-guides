@@ -1,4 +1,4 @@
-# Build 05: Clone Standbys
+# Build 05: Clone Standbys (CentOS Stream 9)
 
 Clone NODE2 and NODE3 from the primary using `repmgr standby clone` and
 register them as standbys.
@@ -10,45 +10,54 @@ register them as standbys.
 ### 1. Create repmgr.conf on NODE2
 
 ```bash
-cat > /etc/repmgr.conf <<'EOF'
+sudo vi /etc/repmgr/16/repmgr.conf
+```
+
+> **Note**: If the directory `/etc/repmgr/16/` does not exist, create it first:
+> `sudo mkdir -p /etc/repmgr/16`
+
+Enter the following content:
+
+```
 node_id=2
 node_name='pg-repmgr-2'
 conninfo='host=pg-repmgr-2 user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/postgresql/16/main'
+data_directory='/var/lib/pgsql/16/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/log/postgresql/repmgr.log'
+log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql'
-service_stop_command='sudo systemctl stop postgresql'
-service_restart_command='sudo systemctl restart postgresql'
-service_reload_command='sudo systemctl reload postgresql'
+service_start_command='sudo systemctl start postgresql-16'
+service_stop_command='sudo systemctl stop postgresql-16'
+service_restart_command='sudo systemctl restart postgresql-16'
+service_reload_command='sudo systemctl reload postgresql-16'
 
 failover='automatic'
-promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
-follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
+promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
+follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
 use_replication_slots=true
 
 monitor_interval_secs=2
 reconnect_attempts=6
 reconnect_interval=10
-EOF
 ```
+
+Save and exit vi (`:wq`).
 
 ### 2. Stop PostgreSQL on NODE2
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 ### 3. Dry-run the clone
 
-Always dry-run first to catch config issues:
+Always dry-run first to catch config issues before touching any data:
 
 ```bash
 sudo -iu postgres
@@ -58,12 +67,12 @@ sudo -iu postgres
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr.conf standby clone --dry-run
+  -f /etc/repmgr/16/repmgr.conf standby clone --dry-run
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
-NOTICE: destination directory "/var/lib/postgresql/16/main" provided
+NOTICE: destination directory "/var/lib/pgsql/16/data" provided
 INFO: connecting to source node
 DETAIL: connection string is: host=pg-repmgr-1 user=repmgr dbname=repmgr
 NOTICE: checking for available walsenders on the source node (2 required)
@@ -83,19 +92,19 @@ You should still be the postgres user from Step 3.
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr.conf standby clone
+  -f /etc/repmgr/16/repmgr.conf standby clone
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
-NOTICE: destination directory "/var/lib/postgresql/16/main" provided
+NOTICE: destination directory "/var/lib/pgsql/16/data" provided
 INFO: connecting to source node
 NOTICE: checking for available walsenders on the source node
 INFO: sufficient walsenders available on the source node
 NOTICE: starting backup (using pg_basebackup)...
 HINT: this may take some time; consider using the -c/--fast-checkpoint option
 INFO: executing:
-  pg_basebackup -l "repmgr base backup" -D /var/lib/postgresql/16/main -h pg-repmgr-1 -U repmgr -X stream -S repmgr_slot_2
+  pg_basebackup -l "repmgr base backup" -D /var/lib/pgsql/16/data -h pg-repmgr-1 -U repmgr -X stream -S repmgr_slot_2
 NOTICE: standby clone (using pg_basebackup) complete
 NOTICE: you can now start your PostgreSQL server
 ```
@@ -113,10 +122,10 @@ NOTICE: you can now start your PostgreSQL server
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Verify it is streaming:
@@ -131,17 +140,17 @@ sudo -iu postgres
 psql -c "SELECT pg_is_in_recovery();"
 ```
 
-Expected: `t`.
+Expected: `t` - this confirms NODE2 is running as a standby.
 
 ### 6. Register NODE2 as a standby
 
-You should still be the postgres user.
+You should still be the postgres user from Step 5.
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register
+repmgr -f /etc/repmgr/16/repmgr.conf standby register
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
 INFO: connecting to local node "pg-repmgr-2" (ID: 2)
 INFO: connecting to primary database
@@ -154,10 +163,10 @@ NOTICE: standby node "pg-repmgr-2" (ID: 2) successfully registered
 You should still be the postgres user.
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
 ----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------
@@ -179,7 +188,7 @@ Expected: `10000`.
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ---
 
@@ -188,40 +197,49 @@ exit
 ### 9. Create repmgr.conf on NODE3
 
 ```bash
-cat > /etc/repmgr.conf <<'EOF'
+sudo vi /etc/repmgr/16/repmgr.conf
+```
+
+> **Note**: If the directory `/etc/repmgr/16/` does not exist, create it first:
+> `sudo mkdir -p /etc/repmgr/16`
+
+Enter the following content:
+
+```
 node_id=3
 node_name='pg-repmgr-3'
 conninfo='host=pg-repmgr-3 user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/postgresql/16/main'
+data_directory='/var/lib/pgsql/16/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/log/postgresql/repmgr.log'
+log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql'
-service_stop_command='sudo systemctl stop postgresql'
-service_restart_command='sudo systemctl restart postgresql'
-service_reload_command='sudo systemctl reload postgresql'
+service_start_command='sudo systemctl start postgresql-16'
+service_stop_command='sudo systemctl stop postgresql-16'
+service_restart_command='sudo systemctl restart postgresql-16'
+service_reload_command='sudo systemctl reload postgresql-16'
 
 failover='automatic'
-promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
-follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
+promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
+follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
 use_replication_slots=true
 
 monitor_interval_secs=2
 reconnect_attempts=6
 reconnect_interval=10
-EOF
 ```
+
+Save and exit vi (`:wq`).
 
 ### 10. Stop PostgreSQL on NODE3
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 ### 11. Dry-run and clone
@@ -234,28 +252,34 @@ sudo -iu postgres
 
 **You are now the postgres user.**
 
+Run the dry-run first:
+
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr.conf standby clone --dry-run
+  -f /etc/repmgr/16/repmgr.conf standby clone --dry-run
 ```
+
+Expected: `all prerequisites for "standby clone" are met`.
 
 If the dry-run passes, run the actual clone:
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr.conf standby clone
+  -f /etc/repmgr/16/repmgr.conf standby clone
 ```
+
+Expected: `standby clone (using pg_basebackup) complete`.
 
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 Start PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 ### 12. Register NODE3 as a standby
@@ -267,18 +291,26 @@ sudo -iu postgres
 **You are now the postgres user.**
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register
+repmgr -f /etc/repmgr/16/repmgr.conf standby register
+```
+
+Expected output (yours will differ):
+```
+INFO: connecting to local node "pg-repmgr-3" (ID: 3)
+INFO: connecting to primary database
+INFO: standby registration complete
+NOTICE: standby node "pg-repmgr-3" (ID: 3) successfully registered
 ```
 
 ### 13. Verify the cluster shows 3 nodes
 
-From any node:
+You should still be the postgres user from Step 12.
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
 ----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------
@@ -289,7 +321,7 @@ Expected:
 
 ### 14. Verify data on NODE3
 
-You should still be the postgres user from Step 12. If not, run `sudo -iu postgres`.
+You should still be the postgres user from Step 12.
 
 ```bash
 psql -d labdb -c "SELECT count(*) FROM employees;"
@@ -301,12 +333,12 @@ Expected: `10000`.
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 > **Concept - Replication slots per standby**: repmgr creates a dedicated
 > replication slot for each standby (repmgr_slot_2, repmgr_slot_3, etc.).
 > This prevents the primary from recycling WAL that any standby still needs.
-> You can see the slots on the primary:
+> You can see the slots on the primary.
 
 Verify slots on NODE1:
 
@@ -320,20 +352,29 @@ sudo -iu postgres
 psql -c "SELECT slot_name, active FROM pg_replication_slots;"
 ```
 
-Expected: two slots, both active.
+Expected output (yours will differ):
+```
+   slot_name    | active
+----------------+--------
+ repmgr_slot_2  | t
+ repmgr_slot_3  | t
+(2 rows)
+```
+
+Two slots, both active.
 
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ---
 
 ## Checkpoint
 
 NODE2 and NODE3 have:
-- [x] `/etc/repmgr.conf` with unique node_id (2 and 3)
+- [x] `/etc/repmgr/16/repmgr.conf` with unique node_id (2 and 3)
 - [x] Cloned from primary using `repmgr standby clone`
 - [x] PostgreSQL running in recovery mode
 - [x] Registered as standbys with `repmgr standby register`

@@ -1,4 +1,4 @@
-# Exercise 01 - Check Replication Status
+# Exercise 01 - Check Replication Status (CentOS Stream 9)
 
 **Time estimate:** 15-20 minutes
 **Prerequisites:** BUILD phase complete - NODE1 (primary) and NODE2 (standby) streaming, labdb with 10,000 employees
@@ -13,7 +13,11 @@ Learn every monitoring query you need to verify streaming replication health. By
 
 ## Step 1 - Confirm Which Node Is Primary and Which Is Standby
 
-Run this on **both** nodes:
+On each node, switch to the postgres user and run this query:
+
+```bash
+sudo -iu postgres
+```
 
 ```sql
 SELECT pg_is_in_recovery();
@@ -29,7 +33,7 @@ SELECT pg_is_in_recovery();
 
 ## Step 2 - Inspect Replication From the Primary (pg_stat_replication)
 
-On **NODE1** (primary):
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT
@@ -65,7 +69,7 @@ FROM pg_stat_replication;
 
 ## Step 3 - Inspect Replication From the Standby (pg_stat_wal_receiver)
 
-On **NODE2** (standby):
+On **NODE2** (standby), as the postgres user:
 
 ```sql
 SELECT
@@ -81,13 +85,6 @@ SELECT
 FROM pg_stat_wal_receiver;
 ```
 
-**Expected:**
-```
- pid  | status    | receive_start_lsn | received_lsn | last_msg_send_time         | last_msg_receipt_time      | sender_host  | sender_port
-------+-----------+-------------------+--------------+----------------------------+----------------------------+--------------+-------------
- 5678 | streaming | 0/5000000         | 0/5000148    | 2026-04-17 10:30:00.123+00 | 2026-04-17 10:30:00.125+00 | [NODE1_IP]   | 5432
-```
-
 **Verify these things:**
 - `status` = `streaming`
 - `sender_host` = `[NODE1_IP]`
@@ -99,7 +96,7 @@ FROM pg_stat_wal_receiver;
 
 ## Step 4 - Check the Replication Slot
 
-On **NODE1** (primary):
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT
@@ -110,13 +107,6 @@ SELECT
     confirmed_flush_lsn,
     wal_status
 FROM pg_replication_slots;
-```
-
-**Expected:**
-```
-   slot_name   | slot_type | active | restart_lsn | confirmed_flush_lsn | wal_status
----------------+-----------+--------+-------------+---------------------+------------
- standby_slot  | physical  | t      | 0/5000148   | NULL                | reserved
 ```
 
 **Verify these things:**
@@ -130,7 +120,7 @@ FROM pg_replication_slots;
 
 ## Step 5 - Check WAL Archiving (pg_stat_archiver)
 
-On **NODE1** (primary):
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT
@@ -143,13 +133,6 @@ SELECT
 FROM pg_stat_archiver;
 ```
 
-**Expected:**
-```
- archived_count | last_archived_wal          | last_archived_time          | failed_count | last_failed_wal | last_failed_time
-----------------+----------------------------+-----------------------------+--------------+-----------------+------------------
-             12 | 000000010000000000000005   | 2026-04-17 10:25:00.456+00 |            0 |                 |
-```
-
 **Verify these things:**
 - `failed_count` = 0 (no archiving failures)
 - `last_archived_time` is reasonably recent
@@ -160,7 +143,7 @@ FROM pg_stat_archiver;
 
 ## Step 6 - Calculate Replication Lag in Bytes
 
-On **NODE1** (primary):
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT
@@ -172,12 +155,7 @@ SELECT
 FROM pg_stat_replication;
 ```
 
-**Expected (idle system):**
-```
- client_addr  | send_lag_bytes | write_lag_bytes | flush_lag_bytes | replay_lag_bytes
---------------+----------------+-----------------+-----------------+------------------
- [NODE2_IP]   |              0 |               0 |               0 |                0
-```
+**Expected (idle system):** All values at or near 0.
 
 > **Concept:** `pg_wal_lsn_diff()` gives the byte distance between two WAL positions. On an idle system, all values should be 0 or very close to 0. Under load, `replay_lag_bytes` will often be the largest - the standby receives WAL quickly but applying it takes more work. A steadily growing replay lag means the standby cannot keep up with write volume.
 
@@ -185,18 +163,11 @@ FROM pg_stat_replication;
 
 ## Step 7 - Check Replication Lag in Time (Standby Side)
 
-On **NODE2** (standby):
+On **NODE2** (standby), as the postgres user:
 
 ```sql
 SELECT
     now() - pg_last_xact_replay_timestamp() AS replay_lag;
-```
-
-**Expected (idle system):**
-```
-    replay_lag
--------------------
- 00:00:02.123456
 ```
 
 **Important caveat:** This query only works when there is write activity on the primary. If the primary is idle, `pg_last_xact_replay_timestamp()` stays frozen at the last transaction's time, making the lag appear to grow even though the standby is fully caught up. Do not alarm on this value during quiet periods.
@@ -205,7 +176,7 @@ SELECT
 
 ## Step 8 - Build a Combined Health Check Query
 
-On **NODE1** (primary), run this all-in-one status query:
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT
@@ -224,14 +195,13 @@ LEFT JOIN pg_replication_slots s
 WHERE s.slot_name = 'standby_slot';
 ```
 
-**Expected:**
-```
- client_addr  |   state   | sync_state |  slot_name   | slot_active | wal_status | replay_lag_bytes | replay_lag_pretty
---------------+-----------+------------+--------------+-------------+------------+------------------+-------------------
- [NODE2_IP]   | streaming | async      | standby_slot | t           | reserved   |                0 | 0 bytes
-```
-
 Save this query - you will use it throughout the remaining exercises.
+
+When done, exit the postgres user:
+
+```bash
+exit
+```
 
 ---
 

@@ -1,4 +1,4 @@
-# Build 03: Configure the Primary
+# Build 03: Configure the Primary (CentOS Stream 9)
 
 Configure NODE1 as the streaming replication primary.
 
@@ -15,7 +15,7 @@ sudo -iu postgres
 ```
 
 ```bash
-vim /etc/postgresql/16/main/postgresql.conf
+vi /var/lib/pgsql/16/data/postgresql.conf
 ```
 
 Set or uncomment these parameters:
@@ -29,7 +29,7 @@ hot_standby = on
 wal_log_hints = on
 wal_keep_size = 1GB
 archive_mode = on
-archive_command = 'test ! -f /var/lib/postgresql/16/archive/%f && cp %p /var/lib/postgresql/16/archive/%f'
+archive_command = 'test ! -f /var/lib/pgsql/16/archive/%f && cp %p /var/lib/pgsql/16/archive/%f'
 archive_timeout = 60
 ```
 
@@ -51,7 +51,7 @@ archive_timeout = 60
 > standby has consumed it yet. A safety net for slow standbys. In production,
 > use replication slots instead (which we set up in step 3).
 
-Save and exit vim, then exit back to root:
+Save and exit vi (`:wq`), then exit back to your previous user:
 
 ```bash
 exit
@@ -68,7 +68,7 @@ sudo -iu postgres
 `-p` creates parent directories if needed and does not error if the directory already exists.
 
 ```bash
-mkdir -p /var/lib/postgresql/16/archive
+mkdir -p /var/lib/pgsql/16/archive
 ```
 
 ```bash
@@ -95,11 +95,16 @@ Verify:
 psql -c "SELECT rolname, rolreplication FROM pg_roles WHERE rolname = 'replicator';"
 ```
 
+Expected output (yours will differ):
+```
+  rolname   | rolreplication
+------------+----------------
+ replicator | t
+```
+
 ```bash
 exit
 ```
-
-Expected: `replicator | t`.
 
 > **Concept - Least privilege for replication**: The `replicator` role has only
 > REPLICATION and LOGIN. It cannot read tables, modify data, or create objects.
@@ -123,11 +128,18 @@ Verify:
 psql -c "SELECT slot_name, active FROM pg_replication_slots;"
 ```
 
+Expected output (yours will differ):
+```
+   slot_name   | active
+---------------+--------
+ standby_slot  | f
+```
+
+Not active yet - the standby has not connected.
+
 ```bash
 exit
 ```
-
-Expected: `standby_slot | f` (not active yet - standby hasn't connected).
 
 > **Concept - Replication slots prevent WAL recycling**: Without a slot, the
 > primary can delete WAL that a lagging standby still needs. With a slot, the
@@ -144,7 +156,7 @@ sudo -iu postgres
 ```
 
 ```bash
-vim /etc/postgresql/16/main/pg_hba.conf
+vi /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
 Add at the end:
@@ -154,12 +166,14 @@ Add at the end:
 host    replication     replicator      [NODE2_IP]/32       scram-sha-256
 ```
 
+Replace `[NODE2_IP]` with the actual IP address of your standby server (NODE2).
+
 > **Concept - pg_hba.conf for replication**: The `replication` keyword in the
 > database column is special. It allows the role to connect via the replication
 > protocol (used by pg_basebackup and WAL streaming). Without this line, the
 > standby cannot connect even if the role has REPLICATION privilege.
 
-Save and exit vim, then exit back to root:
+Save and exit vi (`:wq`), then exit back to your previous user:
 
 ```bash
 exit
@@ -168,7 +182,7 @@ exit
 ## 6. Restart PostgreSQL to apply changes
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 Verify it came back. Switch to the postgres user:
@@ -236,22 +250,31 @@ Verify:
 psql -d labdb -c "SELECT count(*) FROM employees;"
 ```
 
+Expected: `10000`.
+
 ```bash
 exit
 ```
 
-Expected: `10000`.
-
 ## 8. Test that the standby can reach the primary
 
 From NODE2:
+
+```bash
+sudo -iu postgres
+```
+
 ```bash
 psql -h pg-primary -U replicator -d postgres -c "SELECT 1;"
 ```
 
 If prompted for password, enter `replicator_pass_2026`.
 
-Expected: returns `1`. If it fails, check pg_hba.conf and firewall.
+Expected: returns `1`. If it fails, check pg_hba.conf and firewall/security group.
+
+```bash
+exit
+```
 
 ---
 
@@ -259,7 +282,7 @@ Expected: returns `1`. If it fails, check pg_hba.conf and firewall.
 
 NODE1 (primary) has:
 - [x] `wal_level = replica`, `max_wal_senders = 10`, `archive_mode = on`
-- [x] Archive directory created
+- [x] Archive directory created at `/var/lib/pgsql/16/archive`
 - [x] `replicator` role with REPLICATION privilege
 - [x] Physical replication slot `standby_slot` created
 - [x] pg_hba.conf allows replication from NODE2

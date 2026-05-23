@@ -20,7 +20,7 @@ sudo -iu postgres
 From any node:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Note which node repmgr claims is the primary. This may be WRONG.
@@ -66,7 +66,7 @@ plane is independent of repmgr metadata.
 On the actual primary node:
 
 ```bash
-repmgr -f /etc/repmgr.conf primary register --force
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf primary register --force
 ```
 
 This overwrites the incorrect type in repmgr.nodes for this node.
@@ -76,7 +76,7 @@ This overwrites the incorrect type in repmgr.nodes for this node.
 On each actual standby node:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 This corrects the standby entries in repmgr.nodes.
@@ -84,7 +84,7 @@ This corrects the standby entries in repmgr.nodes.
 ### Step 6: Verify repmgr cluster show matches reality
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected: the real primary shows `primary | * running`, standbys show
@@ -94,28 +94,36 @@ Cross-check with pg_is_in_recovery() again to confirm they agree.
 
 ### Step 7: Restart repmgrd on all nodes
 
+```bash
+exit
+```
+
 Run this on each node one at a time:
 
 ```bash
-ssh root@pg-repmgr-1 "systemctl start repmgrd"
+ssh root@pg-repmgr-1 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "systemctl start repmgrd"
+ssh root@pg-repmgr-2 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "systemctl start repmgrd"
+ssh root@pg-repmgr-3 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-w "systemctl start repmgrd"
+ssh root@pg-repmgr-w "systemctl start repmgr-16"
 ```
 
 ### Step 8: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -129,10 +137,14 @@ Expected output (yours will differ):
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes running, all roles correct, replication streaming.
+
+```bash
+exit
+```
 
 ---
 

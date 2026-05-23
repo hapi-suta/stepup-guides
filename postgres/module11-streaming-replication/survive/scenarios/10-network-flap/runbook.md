@@ -36,7 +36,7 @@ If `state` is `streaming` and lag is small, the WAL receiver may have already re
 SSH to [NODE2] (standby) and check the log:
 
 ```bash
-sudo tail -30 /var/log/postgresql/postgresql-16-main.log
+sudo tail -30 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -104,7 +104,7 @@ If replication has not auto-recovered after the iptables rules are cleared, rest
 On [NODE2]:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 Or, less disruptive, kill just the WAL receiver to force a reconnect. Switch to the postgres user:

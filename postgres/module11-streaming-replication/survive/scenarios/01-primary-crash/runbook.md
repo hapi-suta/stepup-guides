@@ -12,7 +12,7 @@
 SSH to [NODE1] and confirm PostgreSQL is not running:
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 Now check if PostgreSQL is accepting connections:
@@ -62,7 +62,7 @@ sudo -iu postgres
 Promote it to primary:
 
 ```bash
-pg_ctl promote -D /var/lib/postgresql/16/main
+pg_ctl promote -D /var/lib/pgsql/16/data
 ```
 
 Or using the SQL function (PG 12+):

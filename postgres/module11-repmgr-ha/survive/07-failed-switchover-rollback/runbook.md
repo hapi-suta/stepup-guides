@@ -70,7 +70,7 @@ The standby with the highest receive_lsn has the most data. Promote that one
 On the intended target:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby promote
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby promote
 ```
 
 Verify it is now primary:
@@ -93,7 +93,7 @@ SELECT count(*) FROM employees;
 On each standby that was NOT promoted:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby follow \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_NODE_ID>
 ```
 
@@ -109,7 +109,7 @@ psql -h <NEW_PRIMARY> -U repmgr -d repmgr -c \
 Start PostgreSQL on the old primary first, then rejoin:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -117,21 +117,37 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails, do a full reclone:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 6: Re-register the primary to fix metadata
@@ -139,35 +155,43 @@ repmgr -f /etc/repmgr.conf standby register --force
 On the new primary:
 
 ```bash
-repmgr -f /etc/repmgr.conf primary register --force
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf primary register --force
 ```
 
 This ensures the metadata reflects the actual promotion.
 
 ### Step 7: Restart repmgrd on all nodes
 
+```bash
+exit
+```
+
 Run this on each node one at a time:
 
 ```bash
-ssh root@pg-repmgr-1 "systemctl start repmgrd"
+ssh root@pg-repmgr-1 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "systemctl start repmgrd"
+ssh root@pg-repmgr-2 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "systemctl start repmgrd"
+ssh root@pg-repmgr-3 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-w "systemctl start repmgrd"
+ssh root@pg-repmgr-w "systemctl start repmgr-16"
 ```
 
 ### Step 8: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -181,10 +205,14 @@ Expected output (yours will differ):
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
 All 4 nodes running: 1 primary, 2 standbys, 1 witness. repmgrd active on all.
+
+```bash
+exit
+```
 
 ---
 

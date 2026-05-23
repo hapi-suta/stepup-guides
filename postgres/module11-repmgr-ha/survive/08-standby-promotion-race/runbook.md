@@ -79,16 +79,24 @@ The `-t` flag selects a single table, `--data-only` skips schema, `--column-inse
 ### Step 4: Shut down PostgreSQL on the loser
 
 ```bash
-sudo systemctl stop postgresql
+exit
+```
+
+```bash
+sudo systemctl stop postgresql-16
 ```
 
 ### Step 5: Rewind the loser back to the winner's timeline
 
+```bash
+sudo -iu postgres
+```
+
 On the loser node:
 
 ```bash
-/usr/lib/postgresql/16/bin/pg_rewind \
-  --target-pgdata=/var/lib/postgresql/16/main \
+/usr/pgsql-16/bin/pg_rewind \
+  --target-pgdata=/var/lib/pgsql/16/data \
   --source-server="host=<WINNER_HOSTNAME> port=5432 user=repmgr dbname=repmgr"
 ```
 
@@ -97,7 +105,7 @@ If pg_rewind fails (common when timelines diverged significantly):
 Full reclone:
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <WINNER_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
@@ -105,10 +113,18 @@ repmgr -f /etc/repmgr.conf \
 ### Step 6: Start PostgreSQL on the demoted node
 
 ```bash
-sudo systemctl start postgresql
+exit
+```
+
+```bash
+sudo systemctl start postgresql-16
 ```
 
 Verify it is now a standby:
+
+```bash
+sudo -iu postgres
+```
 
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
@@ -121,19 +137,19 @@ Expected: `t`.
 On the winner (the surviving primary):
 
 ```bash
-repmgr -f /etc/repmgr.conf primary register --force
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf primary register --force
 ```
 
 On the demoted node (now standby):
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 On the old crashed primary (if rejoined):
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<WINNER_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -141,27 +157,43 @@ repmgr -f /etc/repmgr.conf node rejoin \
 Or reclone and register:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <WINNER_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 8: Verify single primary and streaming replication
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -185,25 +217,33 @@ FROM pg_stat_replication;
 
 ### Step 9: Restart repmgrd on all nodes
 
+```bash
+exit
+```
+
 Run this on each node one at a time:
 
 ```bash
-ssh root@pg-repmgr-1 "systemctl start repmgrd"
+ssh root@pg-repmgr-1 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "systemctl start repmgrd"
+ssh root@pg-repmgr-2 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "systemctl start repmgrd"
+ssh root@pg-repmgr-3 "systemctl start repmgr-16"
 ```
 
 ```bash
-ssh root@pg-repmgr-w "systemctl start repmgrd"
+ssh root@pg-repmgr-w "systemctl start repmgr-16"
 ```
 
 ### Step 10: Verify data consistency
+
+```bash
+sudo -iu postgres
+```
 
 ```sql
 -- On the primary
@@ -215,6 +255,10 @@ SELECT count(*) FROM employees;
 
 Counts should match. Note that the loser's divergent writes are gone (unless
 you exported them in Step 3).
+
+```bash
+exit
+```
 
 ---
 

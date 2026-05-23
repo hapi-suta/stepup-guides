@@ -1,4 +1,4 @@
-# Build 07: Enable Automatic Failover
+# Build 07: Enable Automatic Failover (CentOS Stream 9)
 
 Configure and start the repmgrd daemon on all four nodes to enable automatic
 failover detection and promotion.
@@ -24,69 +24,156 @@ Run each step on the specified node.
 > it does not compete for promotion but helps determine whether the primary
 > is truly down or if the standby has a network issue.
 
-## 2. Create the repmgrd systemd service on ALL FOUR nodes
+## 2. Configure the repmgrd systemd service on ALL FOUR nodes
 
-On ALL FOUR servers:
+On CentOS with the `repmgr_16` package, a systemd service file for repmgrd
+is included at `/usr/lib/systemd/system/repmgr-16.service`. However, we need
+to verify it points to the correct config file.
+
+Check if the service file exists:
 
 ```bash
-cat > /etc/systemd/system/repmgrd.service <<'EOF'
+sudo systemctl cat repmgr-16
+```
+
+If the service exists, check that `ExecStart` references `/etc/repmgr/16/repmgr.conf`.
+
+If the service file does NOT exist, or if you need to customize it, create one:
+
+```bash
+sudo vi /etc/systemd/system/repmgr-16.service
+```
+
+Enter the following content:
+
+```
 [Unit]
-Description=repmgr daemon
-After=postgresql.service
-Requires=postgresql.service
+Description=repmgr 16 daemon
+After=postgresql-16.service
+Requires=postgresql-16.service
 
 [Service]
 Type=forking
 User=postgres
 Group=postgres
-PIDFile=/run/repmgrd.pid
-ExecStart=/usr/bin/repmgrd -f /etc/repmgr.conf -p /run/repmgrd.pid -d
+PIDFile=/run/repmgr/repmgrd-16.pid
+ExecStart=/usr/pgsql-16/bin/repmgrd -f /etc/repmgr/16/repmgr.conf -p /run/repmgr/repmgrd-16.pid -d
 ExecReload=/bin/kill -HUP $MAINPID
+RuntimeDirectory=repmgr
 
 [Install]
 WantedBy=multi-user.target
-EOF
 ```
+
+Save and exit vi (`:wq`).
+
+> **Important - CentOS differences**:
+> - The service name is `repmgr-16`, not `repmgrd`
+> - It depends on `postgresql-16.service`, not `postgresql.service`
+> - The binary is at `/usr/pgsql-16/bin/repmgrd`
+> - `RuntimeDirectory=repmgr` tells systemd to create `/run/repmgr/` automatically
 
 Reload systemd and enable the service:
 
 ```bash
-systemctl daemon-reload
+sudo systemctl daemon-reload
 ```
 
-This tells systemd to re-read its service files so it finds the new `repmgrd.service`.
+This tells systemd to re-read its service files so it finds the new or updated `repmgr-16.service`.
 
 ```bash
-systemctl enable repmgrd
+sudo systemctl enable repmgr-16
 ```
 
 This configures repmgrd to start automatically on boot.
 
+Expected output (yours will differ):
+```
+Created symlink /etc/systemd/system/multi-user.target.wants/repmgr-16.service ...
+```
+
 > **Concept - repmgrd as a systemd service**: Running repmgrd under systemd
-> ensures it starts on boot and restarts on crash. The `After=postgresql.service`
+> ensures it starts on boot and restarts on crash. The `After=postgresql-16.service`
 > directive guarantees PostgreSQL is running before repmgrd starts. Without
 > this dependency, repmgrd would fail to connect and exit.
 
-## 3. Start repmgrd on ALL FOUR nodes
+## 3. Configure sudoers for the postgres user on ALL FOUR nodes
+
+repmgr's `service_*_command` entries use `sudo systemctl`. The postgres user
+needs passwordless sudo for these specific commands. On ALL FOUR nodes:
+
+```bash
+sudo vi /etc/sudoers.d/postgres-repmgr
+```
+
+Enter the following content:
+
+```
+postgres ALL=(ALL) NOPASSWD: /bin/systemctl start postgresql-16, /bin/systemctl stop postgresql-16, /bin/systemctl restart postgresql-16, /bin/systemctl reload postgresql-16
+```
+
+Save and exit vi (`:wq`).
+
+Set the correct permissions on the sudoers file:
+
+```bash
+sudo chmod 440 /etc/sudoers.d/postgres-repmgr
+```
+
+`440` means owner and group can read, no one can write. sudoers files must have restrictive permissions.
+
+Verify it works:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+sudo systemctl status postgresql-16
+```
+
+Expected: runs without asking for a password and shows `active (running)`.
+
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
+
+## 4. Start repmgrd on ALL FOUR nodes
 
 On ALL FOUR servers:
 
 ```bash
-systemctl start repmgrd
+sudo systemctl start repmgr-16
 ```
 
 ```bash
-systemctl status repmgrd
+sudo systemctl status repmgr-16
 ```
 
 Expected: `active (running)`.
 
-## 4. Verify repmgrd is monitoring
+Expected output (yours will differ):
+```
+   Active: active (running) since ...
+   ...
+```
+
+## 5. Verify repmgrd is monitoring
 
 Wait 10-15 seconds for the first monitoring cycle, then check the log:
 
 ```bash
-tail -20 /var/log/postgresql/repmgr.log
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+tail -20 /var/lib/pgsql/16/data/log/repmgr.log
 ```
 
 On standbys (NODE2, NODE3), you should see:
@@ -104,7 +191,13 @@ On the witness (NODE4):
 [INFO] monitoring primary node "pg-repmgr-1" (ID: 1) in normal state
 ```
 
-## 5. Check cluster events
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
+
+## 6. Check cluster events
 
 From any node:
 
@@ -115,18 +208,18 @@ sudo -iu postgres
 **You are now the postgres user.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster event --limit 10
+repmgr -f /etc/repmgr/16/repmgr.conf cluster event --limit 10
 ```
+
+Expected: events showing `repmgrd_start` for all nodes.
 
 ```bash
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
-Expected: events showing `repmgrd_start` for all nodes.
-
-## 6. Verify monitoring history is being recorded
+## 7. Verify monitoring history is being recorded
 
 Wait 30 seconds, then on NODE1:
 
@@ -144,13 +237,23 @@ ORDER BY last_monitor_time DESC
 LIMIT 5;"
 ```
 
+Expected output (yours will differ):
+```
+ node_id |     last_monitor_time      | replication_lag
+---------+----------------------------+-----------------
+       2 | 2026-05-22 14:30:15.123+00 |               0
+       3 | 2026-05-22 14:30:15.456+00 |               0
+       2 | 2026-05-22 14:30:13.123+00 |               0
+       ...
+```
+
+Rows for node_id 2 and 3 with recent timestamps and low lag values.
+
 ```bash
 exit
 ```
 
-**You are now back to root.**
-
-Expected: rows for node_id 2 and 3 with recent timestamps and low lag values.
+**You are now back to ec2-user.**
 
 > **Concept - monitoring_history**: When `monitoring_history=yes` is set in
 > repmgr.conf, repmgrd writes replication lag measurements to this table on
@@ -158,7 +261,7 @@ Expected: rows for node_id 2 and 3 with recent timestamps and low lag values.
 > alerting. In production, you would query this table from your monitoring
 > system.
 
-## 7. Test automatic failover detection (optional - read-only)
+## 8. Test automatic failover detection (optional - read-only)
 
 Do NOT actually stop the primary yet. Instead, understand what would happen:
 
@@ -173,7 +276,7 @@ Do NOT actually stop the primary yet. Instead, understand what would happen:
 
 You will test this in Phase 3 (SURVIVE).
 
-## 8. Run repmgr cluster crosscheck
+## 9. Run repmgr cluster crosscheck
 
 This tests connectivity between all node pairs:
 
@@ -184,16 +287,10 @@ sudo -iu postgres
 **You are now the postgres user.**
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
-```bash
-exit
-```
-
-**You are now back to root.**
-
-Expected:
+Expected output (yours will differ):
 ```
  Name         | ID | 1 | 2 | 3 | 4
 --------------+----+---+---+---+---
@@ -205,6 +302,12 @@ Expected:
 
 Each `*` means that node can connect to the column node. Any `x` indicates
 a connectivity problem.
+
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
 
 > **Concept - cluster crosscheck**: This command has each node try to connect
 > to every other node. It catches one-directional connectivity issues (where
@@ -218,15 +321,15 @@ a connectivity problem.
 
 ```
   NODE1 (primary)        NODE2 (standby 1)      NODE3 (standby 2)      NODE4 (witness)
- ┌───────────────┐      ┌───────────────┐      ┌───────────────┐      ┌───────────────┐
- │ PostgreSQL 16 │      │ PostgreSQL 16 │      │ PostgreSQL 16 │      │ PostgreSQL 16 │
- │ repmgr 5.4    │      │ repmgr 5.4    │      │ repmgr 5.4    │      │ repmgr 5.4    │
- │ repmgrd       │      │ repmgrd       │      │ repmgrd       │      │ repmgrd       │
- │ id=1, primary │      │ id=2, standby │      │ id=3, standby │      │ id=4, witness │
- └──────┬────────┘      └───────────────┘      └───────────────┘      └───────────────┘
-        │                      ^                      ^
-        ├─────streaming WAL────┘                      │
-        └─────streaming WAL───────────────────────────┘
+ +---------------+      +---------------+      +---------------+      +---------------+
+ | PostgreSQL 16 |      | PostgreSQL 16 |      | PostgreSQL 16 |      | PostgreSQL 16 |
+ | repmgr 5.4    |      | repmgr 5.4    |      | repmgr 5.4    |      | repmgr 5.4    |
+ | repmgrd       |      | repmgrd       |      | repmgrd       |      | repmgrd       |
+ | id=1, primary |      | id=2, standby |      | id=3, standby |      | id=4, witness |
+ +------+--------+      +---------------+      +---------------+      +---------------+
+        |                      ^                      ^
+        +-----streaming WAL----+                      |
+        +-----streaming WAL---------------------------+
 
  repmgrd on each node monitors the primary. If the primary fails:
  - Standbys hold an election (witness votes but does not compete)
@@ -248,7 +351,8 @@ Proceed to `use/01-check-cluster-status.md` for Phase 2.
 ## Checkpoint
 
 All four nodes have:
-- [x] repmgrd systemd service created and enabled
+- [x] repmgrd systemd service (`repmgr-16`) created and enabled
+- [x] Sudoers configured for postgres user to manage postgresql-16 service
 - [x] repmgrd running and monitoring
 - [x] Monitoring history being recorded
 - [x] `repmgr cluster crosscheck` shows full connectivity

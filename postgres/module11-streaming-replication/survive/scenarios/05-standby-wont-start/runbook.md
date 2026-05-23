@@ -12,11 +12,11 @@
 SSH to [NODE2] and try starting PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 You will likely see the service fail to start, or it starts as a primary (no standby.signal).
@@ -26,7 +26,7 @@ You will likely see the service fail to start, or it starts as a primary (no sta
 On [NODE2], inspect the log:
 
 ```bash
-sudo tail -50 /var/log/postgresql/postgresql-16-main.log
+sudo tail -50 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for errors related to:
@@ -47,7 +47,7 @@ sudo -iu postgres
 ```
 
 ```bash
-touch /var/lib/postgresql/16/main/standby.signal
+touch /var/lib/pgsql/16/data/standby.signal
 ```
 
 ```bash
@@ -65,7 +65,7 @@ sudo -iu postgres
 ```
 
 ```bash
-cat /var/lib/postgresql/16/main/postgresql.auto.conf
+cat /var/lib/pgsql/16/data/postgresql.auto.conf
 ```
 
 The `primary_conninfo` line will have incorrect connection details. Fix it:
@@ -79,7 +79,7 @@ psql -c "
 Or edit the file directly:
 
 ```bash
-vi /var/lib/postgresql/16/main/postgresql.auto.conf
+vi /var/lib/pgsql/16/data/postgresql.auto.conf
 ```
 
 ```bash
@@ -93,13 +93,13 @@ exit
 On [NODE2]:
 
 ```bash
-sudo systemctl restart postgresql
+sudo systemctl restart postgresql-16
 ```
 
 Check the log again for successful startup:
 
 ```bash
-sudo tail -20 /var/log/postgresql/postgresql-16-main.log
+sudo tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for: "started streaming WAL from primary" or "redo starts at".

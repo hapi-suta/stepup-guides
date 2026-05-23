@@ -12,7 +12,7 @@
 SSH to [NODE2] and verify PostgreSQL is not running:
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 Check if PostgreSQL is accepting connections. Switch to the postgres user:
@@ -62,13 +62,13 @@ Expected: `active` is `f` (false), and `retained_bytes` is large and growing.
 On [NODE1], check how much disk space WAL is consuming:
 
 ```bash
-sudo du -sh /var/lib/postgresql/16/main/pg_wal/
+sudo du -sh /var/lib/pgsql/16/data/pg_wal/
 ```
 
 `-s` shows a single summary total. `-h` shows sizes in human-readable format (MB, GB).
 
 ```bash
-df -h /var/lib/postgresql/16/main/
+df -h /var/lib/pgsql/16/data/
 ```
 
 `df -h` shows disk free space in human-readable format for the filesystem containing the data directory.
@@ -81,7 +81,7 @@ If usage is critical (above 80%), you may need to drop the slot temporarily. Oth
 
 ```bash
 # On [NODE2]
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Wait 10-20 seconds, then check from [NODE1]. Switch to the postgres user:
@@ -167,7 +167,7 @@ Expected: `state` is `streaming` and `lag_bytes` is decreasing toward 0.
 On [NODE1], check disk usage again:
 
 ```bash
-sudo du -sh /var/lib/postgresql/16/main/pg_wal/
+sudo du -sh /var/lib/pgsql/16/data/pg_wal/
 ```
 
 It should stabilize or decrease as the standby consumes retained WAL.

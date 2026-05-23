@@ -1,4 +1,4 @@
-# Build 04: Configure the Standby
+# Build 04: Configure the Standby (CentOS Stream 9)
 
 Clone NODE1 to NODE2 using pg_basebackup and start streaming replication.
 
@@ -9,7 +9,7 @@ All steps run on NODE2 unless noted.
 ## 1. Stop PostgreSQL on the standby
 
 ```bash
-sudo systemctl stop postgresql
+sudo systemctl stop postgresql-16
 ```
 
 ## 2. Remove the existing data directory
@@ -23,20 +23,20 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -rf /var/lib/postgresql/16/main/*
+rm -rf /var/lib/pgsql/16/data/*
 ```
 
 Verify it is empty:
 
 ```bash
-ls -la /var/lib/postgresql/16/main/
+ls -la /var/lib/pgsql/16/data/
 ```
+
+Expected: empty directory (only `.` and `..`).
 
 ```bash
 exit
 ```
-
-Expected: empty directory.
 
 > **Concept - Why we wipe the standby's data**: `pg_basebackup` needs an empty
 > target directory. The standby's original data (from its own `initdb` during
@@ -55,14 +55,17 @@ sudo -iu postgres
 pg_basebackup \
   -h pg-primary \
   -U replicator \
-  -D /var/lib/postgresql/16/main \
+  -D /var/lib/pgsql/16/data \
   -Fp -Xs -P -R \
   -S standby_slot
 ```
 
 Enter password when prompted: `replicator_pass_2026`
 
-Expected: progress bar reaching 100%, ending with a basebackup completion message.
+Expected output (yours will differ):
+```
+30406/30406 kB (100%), 1/1 tablespace
+```
 
 > **Concept - pg_basebackup flags**:
 > - `-Fp`: plain format (not tar). Files are written directly to the data directory.
@@ -86,7 +89,7 @@ sudo -iu postgres
 ```
 
 ```bash
-ls -la /var/lib/postgresql/16/main/standby.signal
+ls -la /var/lib/pgsql/16/data/standby.signal
 ```
 
 Expected: file exists (can be empty, its presence is what matters).
@@ -96,7 +99,7 @@ Expected: file exists (can be empty, its presence is what matters).
 Still as the postgres user (if you exited, run `sudo -iu postgres` again):
 
 ```bash
-cat /var/lib/postgresql/16/main/postgresql.auto.conf
+cat /var/lib/pgsql/16/data/postgresql.auto.conf
 ```
 
 Expected: a `primary_conninfo` line pointing to the primary, with the replication
@@ -112,7 +115,7 @@ slot reference.
 Still as the postgres user:
 
 ```bash
-vim /etc/postgresql/16/main/postgresql.conf
+vi /var/lib/pgsql/16/data/postgresql.conf
 ```
 
 Set:
@@ -127,7 +130,7 @@ hot_standby = on
 > recovery. In production, hot standby is almost always enabled so the standby
 > can serve read traffic.
 
-Save and exit vim, then exit back to root:
+Save and exit vi (`:wq`), then exit back to your previous user:
 
 ```bash
 exit
@@ -136,7 +139,7 @@ exit
 ## 7. Start PostgreSQL on the standby
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Check the log for successful startup. Switch to the postgres user:
@@ -146,11 +149,17 @@ sudo -iu postgres
 ```
 
 ```bash
-tail -20 /var/log/postgresql/postgresql-16-main.log
+tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
-Expected: messages about entering standby mode, connecting to primary, starting
-WAL streaming.
+Expected output (yours will differ):
+```
+LOG:  entering standby mode
+LOG:  redo starts at 0/3000028
+LOG:  consistent recovery state reached at 0/3000100
+LOG:  started streaming WAL from primary at 0/4000000 on timeline 1
+...
+```
 
 ## 8. Verify the standby is in recovery mode
 

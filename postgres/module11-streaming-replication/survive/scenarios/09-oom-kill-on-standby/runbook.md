@@ -12,7 +12,7 @@
 SSH to [NODE2] and check the service:
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 Check if PostgreSQL is accepting connections. Switch to the postgres user:
@@ -66,7 +66,7 @@ Expected output (yours will differ):
 ### Step 3: Check PostgreSQL logs for crash evidence
 
 ```bash
-sudo tail -30 /var/log/postgresql/postgresql-16-main.log
+sudo tail -30 /var/lib/pgsql/16/data/log/postgresql-*.log
 ```
 
 Look for: "server process was terminated by signal 9: Killed" followed by "terminating any other active server processes".
@@ -82,13 +82,13 @@ sudo -iu postgres
 ```
 
 ```bash
-ls -la /var/lib/postgresql/16/main/postmaster.pid
+ls -la /var/lib/pgsql/16/data/postmaster.pid
 ```
 
 If the PID file exists but the process is not running, PostgreSQL's startup will handle it. If startup fails with "lock file postmaster.pid already exists":
 
 ```bash
-rm /var/lib/postgresql/16/main/postmaster.pid
+rm /var/lib/pgsql/16/data/postmaster.pid
 ```
 
 ```bash
@@ -100,13 +100,13 @@ exit
 On [NODE2]:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Verify it started:
 
 ```bash
-sudo systemctl status postgresql
+sudo systemctl status postgresql-16
 ```
 
 Switch to the postgres user:

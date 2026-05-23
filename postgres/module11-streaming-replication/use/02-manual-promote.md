@@ -1,4 +1,4 @@
-# Exercise 02 - Manual Promote
+# Exercise 02 - Manual Promote (CentOS Stream 9)
 
 **Time estimate:** 15-20 minutes
 **Prerequisites:** Exercise 01 complete - both nodes healthy, replication lag at zero
@@ -13,7 +13,11 @@ Promote NODE2 from standby to primary. Understand what happens to timelines duri
 
 ## Step 1 - Confirm Starting State
 
-On **NODE2** (standby):
+On **NODE2** (standby), switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
 
 ```sql
 SELECT pg_is_in_recovery();
@@ -21,13 +25,19 @@ SELECT pg_is_in_recovery();
 
 **Expected:** `t`
 
-On **NODE1** (primary):
+On **NODE1** (primary), as the postgres user:
 
 ```sql
 SELECT client_addr, state FROM pg_stat_replication;
 ```
 
 **Expected:** One row showing NODE2 streaming.
+
+Exit the postgres user on both nodes when done checking:
+
+```bash
+exit
+```
 
 ---
 
@@ -38,13 +48,7 @@ This simulates a planned failover where you stop the primary first to prevent sp
 On **NODE1**:
 
 ```bash
-sudo systemctl stop postgresql
-```
-
-Or if not using systemd:
-
-```bash
-pg_ctl -D /var/lib/postgresql/16/main stop -m fast
+sudo systemctl stop postgresql-16
 ```
 
 **Expected:** PostgreSQL stops cleanly.
@@ -59,15 +63,15 @@ You have two options. Pick one.
 
 ### Option A - pg_ctl promote (from the OS)
 
-On **NODE2**:
+On **NODE2**, switch to the postgres user:
 
 ```bash
-/usr/lib/postgresql/16/bin/pg_ctl -D /var/lib/postgresql/16/main promote
+sudo -iu postgres
 ```
 
-> **Note:** On Debian, `pg_ctl` is not in the default PATH. Use the full path
-> as shown above, or switch to the postgres user first with `sudo -iu postgres`
-> and then run `pg_ctl -D /var/lib/postgresql/16/main promote`.
+```bash
+/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/16/data promote
+```
 
 **Expected:**
 ```
@@ -75,9 +79,17 @@ waiting for server to promote.... done
 server promoted
 ```
 
+```bash
+exit
+```
+
 ### Option B - pg_promote() (from SQL)
 
-On **NODE2**, connect to psql:
+On **NODE2**, switch to the postgres user and connect to psql:
+
+```bash
+sudo -iu postgres
+```
 
 ```sql
 SELECT pg_promote(wait := true, wait_seconds := 60);
@@ -96,7 +108,7 @@ SELECT pg_promote(wait := true, wait_seconds := 60);
 
 ## Step 4 - Verify Promotion Succeeded
 
-On **NODE2** (now primary):
+On **NODE2** (now primary), as the postgres user:
 
 ```sql
 SELECT pg_is_in_recovery();
@@ -110,7 +122,7 @@ This is the definitive check. If it returns `f`, NODE2 is now a read-write prima
 
 ## Step 5 - Verify Writes Work
 
-On **NODE2**:
+On **NODE2**, as the postgres user:
 
 ```sql
 \c labdb
@@ -134,7 +146,7 @@ The count should be 10,001 (original 10,000 plus the test row). If the INSERT su
 
 ## Step 6 - Understand the Timeline Change
 
-On **NODE2** (new primary):
+On **NODE2** (new primary), as the postgres user:
 
 ```sql
 SELECT timeline_id FROM pg_control_checkpoint();
@@ -155,16 +167,16 @@ Before promotion, both nodes were on timeline 1. After promotion, NODE2 advanced
 
 ## Step 7 - Check the Timeline History File
 
-On **NODE2**, look at the timeline history file:
+On **NODE2**, as the postgres user:
 
 ```bash
-ls -la /var/lib/postgresql/16/main/pg_wal/00000002.history
+ls -la /var/lib/pgsql/16/data/pg_wal/00000002.history
 ```
 
 **Expected:** The file exists.
 
 ```bash
-cat /var/lib/postgresql/16/main/pg_wal/00000002.history
+cat /var/lib/pgsql/16/data/pg_wal/00000002.history
 ```
 
 **Expected:**
@@ -180,7 +192,7 @@ This tells you: timeline 2 branched from timeline 1 at LSN `0/5000148`.
 
 ## Step 8 - Check pg_stat_wal_receiver Is Gone
 
-On **NODE2** (new primary):
+On **NODE2** (new primary), as the postgres user:
 
 ```sql
 SELECT * FROM pg_stat_wal_receiver;
@@ -192,13 +204,19 @@ SELECT * FROM pg_stat_wal_receiver;
 
 ## Step 9 - Verify the Replication Slot State
 
-On **NODE2** (new primary):
+On **NODE2** (new primary), as the postgres user:
 
 ```sql
 SELECT slot_name, active FROM pg_replication_slots;
 ```
 
 **Expected:** Either zero rows or an inactive slot. The old `standby_slot` was on NODE1. NODE2 does not have replication slots unless you create them.
+
+Exit the postgres user:
+
+```bash
+exit
+```
 
 ---
 

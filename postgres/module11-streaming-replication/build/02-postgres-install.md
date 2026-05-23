@@ -1,4 +1,4 @@
-# Build 02: PostgreSQL Installation
+# Build 02: PostgreSQL Installation (CentOS Stream 9)
 
 Install PostgreSQL 16 from the official PGDG repository on BOTH servers.
 
@@ -6,51 +6,80 @@ Install PostgreSQL 16 from the official PGDG repository on BOTH servers.
 
 ## 1. Add the PGDG repository
 
-Add the PGDG apt source list:
+Install the PGDG RPM for CentOS/RHEL 9:
 
 ```bash
-sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 ```
 
-Download and install the PGDG signing key. The pipe here streams the key directly into `gpg` for conversion:
+This adds the official PostgreSQL repository to your system.
+
+Disable the built-in PostgreSQL module so it does not conflict with PGDG:
 
 ```bash
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+sudo dnf -qy module disable postgresql
 ```
 
-`-f` fails silently on HTTP errors. `-s` is silent mode. `-S` shows errors even in silent mode. `-L` follows redirects.
-
-Update the package list so apt sees the new PGDG repo:
-
-```bash
-apt update
-```
-
-Verify:
-```bash
-apt-cache policy postgresql-16
-```
-
-Expected: shows the PGDG version (16.x) as the candidate.
-
-> **Concept - Why PGDG, not the OS default**: Debian/Ubuntu ship older PG versions
-> that lag behind features and security patches. The PGDG repo is maintained by the
+> **Concept - Why PGDG, not the OS default**: CentOS ships an older PostgreSQL version
+> that lags behind features and security patches. The PGDG repo is maintained by the
 > PostgreSQL core team and tracks every minor release within days. Always use PGDG
 > in production.
 
 ## 2. Install PostgreSQL 16
 
 ```bash
-apt install -y postgresql-16 postgresql-client-16
+sudo dnf install -y postgresql16-server postgresql16
 ```
 
-## 3. Verify the service is running
+`postgresql16-server` installs the server. `postgresql16` installs the client tools (psql, pg_dump, etc).
+
+## 3. Initialize the database cluster
+
+On CentOS, PostgreSQL does not auto-initialize after install. You must run initdb:
 
 ```bash
-systemctl status postgresql
+sudo /usr/pgsql-16/bin/postgresql-16-setup initdb
 ```
 
-Expected: `active (exited)` or `active (running)`.
+Expected output (yours will differ):
+```
+Initializing database ... OK
+```
+
+> **Concept - initdb creates the data directory**: This creates the cluster at
+> `/var/lib/pgsql/16/data/` with default settings, the `postgres` superuser,
+> and the template databases. On Debian/Ubuntu this happens automatically during
+> package install, but on Red Hat systems you must do it explicitly.
+
+## 4. Start and enable the service
+
+Start PostgreSQL:
+
+```bash
+sudo systemctl start postgresql-16
+```
+
+Enable it to start on boot:
+
+```bash
+sudo systemctl enable postgresql-16
+```
+
+Expected output (yours will differ):
+```
+Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16.service ...
+```
+
+> **Important**: On CentOS, the service name is `postgresql-16`, NOT `postgresql`.
+> This is different from Debian/Ubuntu where the service is just `postgresql`.
+
+## 5. Verify the service is running
+
+```bash
+sudo systemctl status postgresql-16
+```
+
+Expected: `active (running)`.
 
 Switch to the postgres user:
 
@@ -64,13 +93,13 @@ psql -c "SELECT version();"
 
 Expected: `PostgreSQL 16.x on ...`.
 
-When you are done, type `exit` to return to the root user:
+When you are done, type `exit` to return to your previous user:
 
 ```bash
 exit
 ```
 
-## 4. Verify the data directory
+## 6. Verify the data directory
 
 Switch to the postgres user:
 
@@ -82,35 +111,44 @@ sudo -iu postgres
 psql -c "SHOW data_directory;"
 ```
 
-Expected: `/var/lib/postgresql/16/main`.
+Expected: `/var/lib/pgsql/16/data`.
 
 ```bash
 exit
 ```
 
 ```bash
-ls -la /var/lib/postgresql/16/main/
+ls -la /var/lib/pgsql/16/data/
 ```
 
-Expected: PG_VERSION, base/, global/, pg_wal/, etc.
+Expected: PG_VERSION, base/, global/, pg_wal/, postgresql.conf, pg_hba.conf, etc.
 
-## 5. Verify key config files
+## 7. Verify key config files
+
+On CentOS, config files live inside the data directory:
 
 ```bash
-ls -la /etc/postgresql/16/main/
+ls -la /var/lib/pgsql/16/data/postgresql.conf
 ```
 
-Expected: `postgresql.conf`, `pg_hba.conf`, `pg_ident.conf`.
+```bash
+ls -la /var/lib/pgsql/16/data/pg_hba.conf
+```
 
-> **Concept - Debian splits config from data**: Unlike Red Hat where config lives
-> inside PGDATA, Debian keeps configs under `/etc/postgresql/`. The `data_directory`
-> parameter in `postgresql.conf` points to the actual data. Know where both live.
+Expected: both files exist.
 
-## 6. Check the postgres user
+> **Concept - Red Hat keeps config inside PGDATA**: Unlike Debian where configs live
+> under `/etc/postgresql/`, Red Hat-based systems keep `postgresql.conf` and
+> `pg_hba.conf` inside the data directory (`/var/lib/pgsql/16/data/`). Know where
+> your configs live on your OS.
+
+## 8. Check the postgres user
 
 ```bash
 id postgres
 ```
+
+Expected: user `postgres` exists with a UID and GID.
 
 Switch to the postgres user and verify:
 
@@ -128,27 +166,17 @@ Expected: `postgres`.
 exit
 ```
 
-Expected: user `postgres` exists, UID typically 26 or similar.
-
-## 7. Verify pg_lsclusters
-
-```bash
-pg_lsclusters
-```
-
-Expected: one row showing `16 main 5432 online`.
-
 ---
 
 ## Checkpoint
 
 Both servers have:
-- [x] PGDG repo added and updated
+- [x] PGDG repo added and OS module disabled
 - [x] PostgreSQL 16 installed
-- [x] Service running
-- [x] Data directory at `/var/lib/postgresql/16/main`
-- [x] Config files at `/etc/postgresql/16/main/`
+- [x] Database cluster initialized (initdb)
+- [x] Service running and enabled (`postgresql-16`)
+- [x] Data directory at `/var/lib/pgsql/16/data`
+- [x] Config files at `/var/lib/pgsql/16/data/`
 - [x] `postgres` OS user exists
-- [x] Cluster visible in `pg_lsclusters`
 
 Proceed to `03-configure-primary.md`.

@@ -20,7 +20,7 @@ sudo -iu postgres
 Check repmgr logs on the standbys for connection failures:
 
 ```bash
-tail -50 /var/log/postgresql/repmgr.log
+tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
 ```
 
 Look for messages like:
@@ -36,7 +36,7 @@ If repmgrd had enough quorum (standbys + witness agree the primary is unreachabl
 it will have promoted a standby. Check from any standby:
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Look for a new primary. If a standby was promoted, verify the old primary is
@@ -72,11 +72,15 @@ If the old primary is still accepting writes while isolated:
 On the old primary - stop PostgreSQL immediately:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
 ```bash
-sudo systemctl stop repmgrd
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo systemctl stop repmgr-16
 ```
 
 The old primary must be stopped before the partition is lifted. Otherwise,
@@ -98,22 +102,34 @@ ssh root@<OLD_PRIMARY> 'pg_isready -h pg-repmgr-2 -p 5432'
 
 ### Step 5: Rejoin the old primary as a standby
 
-On the old primary:
-
-If PostgreSQL is still running, stop it:
+Switch to the postgres user on the old primary:
 
 ```bash
-sudo systemctl stop postgresql
+sudo -iu postgres
+```
+
+If PostgreSQL is still running, stop it first:
+
+```bash
+exit
 ```
 
 ```bash
-sudo systemctl stop repmgrd
+sudo systemctl stop postgresql-16
+```
+
+```bash
+sudo systemctl stop repmgr-16
+```
+
+```bash
+sudo -iu postgres
 ```
 
 Rejoin using pg_rewind:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -121,29 +137,45 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails, do a full reclone:
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
 ```
 
 ```bash
-sudo systemctl start postgresql
+exit
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo systemctl start postgresql-16
+```
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 6: Restart repmgrd on the rejoined node
 
 ```bash
-sudo systemctl start repmgrd
+exit
+```
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 ### Step 7: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -157,7 +189,7 @@ Expected output (yours will differ):
 ```
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster crosscheck
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
 ```
 
 Expected output (yours will differ):
@@ -171,6 +203,10 @@ Expected output (yours will differ):
 ```
 
 All 4 nodes should be running with full connectivity.
+
+```bash
+exit
+```
 
 ---
 

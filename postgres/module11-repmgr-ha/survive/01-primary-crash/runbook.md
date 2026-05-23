@@ -21,7 +21,7 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for the remaining steps.**
 
 ```bash
-tail -f /var/log/postgresql/repmgr.log
+tail -f /var/lib/pgsql/16/data/log/repmgrd.log
 ```
 
 Press `Ctrl+C` to stop tailing once you see the promotion messages.
@@ -37,7 +37,7 @@ Look for messages like:
 ### Step 2: Verify the new topology
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -67,24 +67,23 @@ Should succeed without error. Count should be >= 10,000.
 ### Step 4: Check that the other standby followed
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 The standby that was NOT promoted should show the new primary as its upstream.
 If it does not, manually redirect it:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby follow \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby follow \
   --upstream-node-id=<NEW_PRIMARY_ID>
 ```
 
 ### Step 5: Rejoin the old primary as a standby
 
-On the failed node, start PostgreSQL first (it needs to be running for node rejoin
-to detect the shutdown state):
+On the failed node, rejoin using pg_rewind:
 
 ```bash
-repmgr -f /etc/repmgr.conf node rejoin \
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf node rejoin \
   -d 'host=<NEW_PRIMARY_HOSTNAME> user=repmgr dbname=repmgr' \
   --force-rewind
 ```
@@ -92,39 +91,65 @@ repmgr -f /etc/repmgr.conf node rejoin \
 If rejoin fails, do a full reclone. Stop PostgreSQL first:
 
 ```bash
-sudo systemctl stop postgresql
+exit
 ```
 
-Clone from the new primary:
+You are now back as the ec2-user. Stop PostgreSQL:
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+sudo systemctl stop postgresql-16
+```
+
+Switch back to postgres and clone from the new primary:
+
+```bash
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf \
   -h <NEW_PRIMARY_HOSTNAME> -U repmgr -d repmgr \
   standby clone --force
+```
+
+```bash
+exit
 ```
 
 Start PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql
+sudo systemctl start postgresql-16
 ```
 
 Re-register as standby:
 
 ```bash
-repmgr -f /etc/repmgr.conf standby register --force
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf standby register --force
 ```
 
 ### Step 6: Restart repmgrd on the rejoined node
 
 ```bash
-sudo systemctl start repmgrd
+exit
+```
+
+```bash
+sudo systemctl start repmgr-16
 ```
 
 ### Step 7: Verify full cluster health
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+sudo -iu postgres
+```
+
+```bash
+/usr/pgsql-16/bin/repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
 Expected output (yours will differ):
@@ -138,6 +163,10 @@ Expected output (yours will differ):
 ```
 
 All 4 nodes should be running: 1 primary, 2 standbys, 1 witness.
+
+```bash
+exit
+```
 
 ---
 

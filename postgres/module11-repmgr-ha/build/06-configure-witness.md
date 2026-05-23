@@ -1,4 +1,4 @@
-# Build 06: Configure the Witness Node
+# Build 06: Configure the Witness Node (CentOS Stream 9)
 
 Set up NODE4 as a witness server. The witness does NOT replicate data - it
 exists solely to participate in failover elections and prevent split-brain.
@@ -36,52 +36,79 @@ sudo -iu postgres
 psql -c "SELECT version();"
 ```
 
+Expected output (yours will differ):
+```
+                                                 version
+---------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.x on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.x.x, 64-bit
+(1 row)
+```
+
 ```bash
 exit
 ```
 
-**You are now back to root.**
-
-Expected: PostgreSQL 16.x running.
+**You are now back to ec2-user.**
 
 ## 3. Create repmgr.conf on NODE4
 
 ```bash
-cat > /etc/repmgr.conf <<'EOF'
+sudo vi /etc/repmgr/16/repmgr.conf
+```
+
+> **Note**: If the directory `/etc/repmgr/16/` does not exist, create it first:
+> `sudo mkdir -p /etc/repmgr/16`
+
+Enter the following content:
+
+```
 node_id=4
 node_name='pg-repmgr-w'
 conninfo='host=pg-repmgr-w user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/postgresql/16/main'
+data_directory='/var/lib/pgsql/16/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/log/postgresql/repmgr.log'
+log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql'
-service_stop_command='sudo systemctl stop postgresql'
-service_restart_command='sudo systemctl restart postgresql'
-service_reload_command='sudo systemctl reload postgresql'
+service_start_command='sudo systemctl start postgresql-16'
+service_stop_command='sudo systemctl stop postgresql-16'
+service_restart_command='sudo systemctl restart postgresql-16'
+service_reload_command='sudo systemctl reload postgresql-16'
 
 failover='automatic'
-promote_command='repmgr standby promote -f /etc/repmgr.conf --log-to-file'
-follow_command='repmgr standby follow -f /etc/repmgr.conf --log-to-file --upstream-node-id=%n'
+promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
+follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
 monitor_interval_secs=2
 reconnect_attempts=6
 reconnect_interval=10
-EOF
 ```
+
+Save and exit vi (`:wq`).
 
 ## 4. Configure pg_hba.conf on NODE4
 
-On NODE4, add the same repmgr access rules:
+On NODE4, add the repmgr access rules so the witness can communicate with all nodes.
+
+Switch to the postgres user:
 
 ```bash
-cat >> /etc/postgresql/16/main/pg_hba.conf <<EOF
+sudo -iu postgres
+```
 
+**You are now the postgres user.**
+
+```bash
+vi /var/lib/pgsql/16/data/pg_hba.conf
+```
+
+Add these lines at the end of the file (substitute your actual IPs for the placeholders):
+
+```
 # repmgr connections
 local   repmgr        repmgr                              trust
 host    repmgr        repmgr        [NODE1_IP]/32         trust
@@ -89,18 +116,26 @@ host    repmgr        repmgr        [NODE2_IP]/32         trust
 host    repmgr        repmgr        [NODE3_IP]/32         trust
 host    repmgr        repmgr        [NODE4_IP]/32         trust
 
+# replication connections
 local   replication   repmgr                              trust
 host    replication   repmgr        [NODE1_IP]/32         trust
 host    replication   repmgr        [NODE2_IP]/32         trust
 host    replication   repmgr        [NODE3_IP]/32         trust
 host    replication   repmgr        [NODE4_IP]/32         trust
-EOF
 ```
 
-Reload PostgreSQL to apply:
+Save and exit vi (`:wq`).
 
 ```bash
-sudo systemctl reload postgresql
+exit
+```
+
+**You are now back to ec2-user.**
+
+Reload PostgreSQL to apply the new pg_hba.conf:
+
+```bash
+sudo systemctl reload postgresql-16
 ```
 
 ## 5. Register NODE4 as a witness
@@ -114,12 +149,12 @@ sudo -iu postgres
 **You are now the postgres user.**
 
 ```bash
-repmgr -f /etc/repmgr.conf \
+repmgr -f /etc/repmgr/16/repmgr.conf \
   -h pg-repmgr-1 -U repmgr -d repmgr \
   witness register
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
 INFO: connecting to witness node "pg-repmgr-w" (ID: 4)
 INFO: connecting to primary node
@@ -136,15 +171,13 @@ NOTICE: witness node "pg-repmgr-w" (ID: 4) successfully registered
 
 ## 6. Verify the full 4-node cluster
 
-From any node:
-
-You should still be the postgres user from Step 5. If not, run `sudo -iu postgres`.
+You should still be the postgres user from Step 5.
 
 ```bash
-repmgr -f /etc/repmgr.conf cluster show
+repmgr -f /etc/repmgr/16/repmgr.conf cluster show
 ```
 
-Expected:
+Expected output (yours will differ):
 ```
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
 ----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------
@@ -162,7 +195,7 @@ Its upstream is the primary because it syncs its metadata from the primary.
 You should still be the postgres user.
 
 ```bash
-repmgr -f /etc/repmgr.conf node check
+repmgr -f /etc/repmgr/16/repmgr.conf node check
 ```
 
 Expected: all checks should pass.
@@ -171,7 +204,7 @@ Expected: all checks should pass.
 exit
 ```
 
-**You are now back to root.**
+**You are now back to ec2-user.**
 
 ## 8. Verify the witness is NOT replicating
 
@@ -187,21 +220,29 @@ sudo -iu postgres
 psql -c "SELECT client_addr, state FROM pg_stat_replication;"
 ```
 
+Expected output (yours will differ):
+```
+  client_addr   |   state
+----------------+-----------
+ [NODE2_IP]     | streaming
+ [NODE3_IP]     | streaming
+(2 rows)
+```
+
+Two rows (NODE2 and NODE3). NODE4 should NOT appear - it does not stream WAL.
+
 ```bash
 exit
 ```
 
-**You are now back to root.**
-
-Expected: two rows (NODE2 and NODE3). NODE4 should NOT appear - it does not
-stream WAL.
+**You are now back to ec2-user.**
 
 ---
 
 ## Checkpoint
 
 NODE4 (witness) has:
-- [x] `/etc/repmgr.conf` with node_id=4
+- [x] `/etc/repmgr/16/repmgr.conf` with node_id=4
 - [x] pg_hba.conf allows repmgr connections from all nodes
 - [x] Registered as witness with `repmgr witness register`
 - [x] Shows as `* running` witness in `repmgr cluster show`
