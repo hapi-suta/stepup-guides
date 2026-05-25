@@ -114,7 +114,7 @@ Restore the entire cluster to a point before the attack happened.
 Check the injection time in the state file:
 
 ```bash
-cat /tmp/stepup-capstone-02-state.env
+cat ${CHAOS_STATE_DIR:-/tmp}/stepup-capstone-02-state.env
 ```
 
 Use the `INJECTED_AT` timestamp. Set your PITR target to 1 minute before that.

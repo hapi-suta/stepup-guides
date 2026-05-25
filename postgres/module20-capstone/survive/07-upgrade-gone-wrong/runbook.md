@@ -163,7 +163,7 @@ su - postgres
 /usr/pgsql-16/bin/psql -d appdb -c "SELECT count(*) FROM app.customers;"
 ```
 
-Compare with the values in the state file (`/tmp/stepup-capstone-07-state.env`).
+Compare with the values in the state file (`${CHAOS_STATE_DIR:-/tmp}/stepup-capstone-07-state.env`).
 
 ```bash
 /usr/pgsql-16/bin/psql -c "SELECT version();"

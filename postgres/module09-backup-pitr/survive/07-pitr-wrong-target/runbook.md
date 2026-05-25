@@ -73,7 +73,7 @@ sudo grep -i 'pitr_marker\|GOOD_STATE' /opt/pgsql/log/postgresql-*.log
 Or use the state file timestamp as a reference:
 
 ```bash
-cat /tmp/stepup-07-state.env | grep CORRECT_TARGET
+cat ${CHAOS_STATE_DIR:-/tmp}/stepup-07-state.env | grep CORRECT_TARGET
 ```
 
 > **Concept - pg_waldump**: This tool decodes WAL files into human-readable format. It shows the exact LSN, timestamp, and operation for every WAL record. Use it to find the precise point where unwanted changes occurred.

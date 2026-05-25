@@ -86,7 +86,7 @@ Expected: `f` (now a primary).
 /usr/pgsql-16/bin/psql -d appdb -c "SELECT email FROM app.customers WHERE email = 'pre-crash-marker@capstone.lab';"
 ```
 
-Compare counts with the pre-failure values (from the state file at /tmp/stepup-capstone-01-state.env). Customers should be +1 (the marker row).
+Compare counts with the pre-failure values (from the state file at ${CHAOS_STATE_DIR:-/tmp}/stepup-capstone-01-state.env). Customers should be +1 (the marker row).
 
 ### Step 5: Test writes on the new primary
 

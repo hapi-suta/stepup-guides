@@ -51,7 +51,7 @@ Look for:
 If you find a large fill file or temp file:
 
 ```bash
-sudo rm -f /tmp/stepup-diskfill.dat
+sudo rm -f ${CHAOS_STATE_DIR:-/tmp}/stepup-diskfill.dat
 ```
 
 Verify space was recovered:
