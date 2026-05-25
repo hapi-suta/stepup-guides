@@ -222,7 +222,6 @@ ALTER SYSTEM SET max_wal_senders = 10;
 ALTER SYSTEM SET max_replication_slots = 10;
 ALTER SYSTEM SET hot_standby = on;
 ALTER SYSTEM SET wal_keep_size = '1GB';
-ALTER SYSTEM SET shared_preload_libraries = 'repmgr';
 SQL
 ```
 
@@ -234,8 +233,11 @@ ALTER SYSTEM
 ALTER SYSTEM
 ALTER SYSTEM
 ALTER SYSTEM
-ALTER SYSTEM
 ```
+
+> **Note**: We will set `shared_preload_libraries = 'repmgr'` in the next guide
+> after installing the repmgr package. Setting it now would prevent PostgreSQL
+> from starting because the library file does not exist yet.
 
 ```bash
 exit
@@ -276,12 +278,6 @@ psql -c "SHOW hot_standby;"
 Expected: `on`.
 
 ```bash
-psql -c "SHOW shared_preload_libraries;"
-```
-
-Expected: `repmgr`.
-
-```bash
 exit
 ```
 
@@ -311,7 +307,6 @@ All four servers have:
 - [x] Data directory at `/var/lib/pgsql/16/data`
 - [x] `wal_log_hints = on`
 - [x] `wal_level = replica`, `max_wal_senders = 10`
-- [x] `shared_preload_libraries = 'repmgr'`
 - [x] `hot_standby = on`
 
 Proceed to `03-install-repmgr.md`.

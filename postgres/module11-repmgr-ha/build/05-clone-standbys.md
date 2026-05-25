@@ -40,8 +40,6 @@ failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
 follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
-use_replication_slots=true
-
 monitor_interval_secs=2
 reconnect_attempts=6
 reconnect_interval=10
@@ -67,8 +65,10 @@ sudo -iu postgres
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr/16/repmgr.conf standby clone --dry-run
+  -f /etc/repmgr/16/repmgr.conf standby clone --force --dry-run
 ```
+
+The `--force` flag is needed because the data directory already has data from when we ran `initdb` earlier. Without `--force`, repmgr will refuse to overwrite it.
 
 Expected output (yours will differ):
 ```
@@ -92,7 +92,7 @@ You should still be the postgres user from Step 3.
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr/16/repmgr.conf standby clone
+  -f /etc/repmgr/16/repmgr.conf standby clone --force
 ```
 
 Expected output (yours will differ):
@@ -227,8 +227,6 @@ failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
 follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
-use_replication_slots=true
-
 monitor_interval_secs=2
 reconnect_attempts=6
 reconnect_interval=10
@@ -256,7 +254,7 @@ Run the dry-run first:
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr/16/repmgr.conf standby clone --dry-run
+  -f /etc/repmgr/16/repmgr.conf standby clone --force --dry-run
 ```
 
 Expected: `all prerequisites for "standby clone" are met`.
@@ -265,7 +263,7 @@ If the dry-run passes, run the actual clone:
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
-  -f /etc/repmgr/16/repmgr.conf standby clone
+  -f /etc/repmgr/16/repmgr.conf standby clone --force
 ```
 
 Expected: `standby clone (using pg_basebackup) complete`.

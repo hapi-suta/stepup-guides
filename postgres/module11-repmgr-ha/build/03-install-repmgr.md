@@ -51,6 +51,21 @@ export PATH=/usr/pgsql-16/bin:$PATH
 
 Save and exit vi (`:wq`).
 
+Also add the same line to `.bashrc` - this is needed for non-login SSH commands
+(repmgr crosscheck SSHes between nodes and runs repmgr remotely):
+
+```bash
+vi ~/.bashrc
+```
+
+Add this line at the bottom:
+
+```
+export PATH=/usr/pgsql-16/bin:$PATH
+```
+
+Save and exit vi (`:wq`).
+
 Reload the profile:
 
 ```bash
@@ -77,7 +92,67 @@ exit
 > provides commands for cloning standbys, registering nodes, performing
 > switchovers, and - through the repmgrd daemon - automatic failover.
 
-## 2. Create the repmgr user and database (NODE1 only)
+## 2. Enable shared_preload_libraries (ALL FOUR servers)
+
+Now that repmgr is installed, configure PostgreSQL to load it at startup:
+
+Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "ALTER SYSTEM SET shared_preload_libraries = 'repmgr';"
+```
+
+Expected output (yours will differ):
+```
+ALTER SYSTEM
+```
+
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
+
+Restart PostgreSQL to load the library:
+
+```bash
+sudo systemctl restart postgresql-16
+```
+
+Verify:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+psql -c "SHOW shared_preload_libraries;"
+```
+
+Expected: `repmgr`.
+
+```bash
+exit
+```
+
+**You are now back to ec2-user.**
+
+> **Concept - shared_preload_libraries = 'repmgr'**: The repmgr extension
+> includes a background worker (repmgrd) that monitors cluster health and
+> triggers automatic failover. To load background workers, the library must
+> be preloaded at server start. Without this setting, the repmgrd daemon
+> cannot start. We set it here - after installing repmgr - because PostgreSQL
+> will refuse to start if the library file does not exist.
+
+## 3. Create the repmgr user and database (NODE1 only)
 
 On NODE1 (primary):
 
@@ -139,7 +214,7 @@ exit
 > can use a non-superuser with specific grants, but superuser simplifies the
 > lab setup.
 
-## 3. Install the repmgr extension (NODE1 only)
+## 4. Install the repmgr extension (NODE1 only)
 
 On NODE1:
 
@@ -186,7 +261,7 @@ exit
 > When you clone standbys later, the repmgr database replicates to them
 > automatically through streaming replication.
 
-## 4. Configure pg_hba.conf for repmgr (NODE1 only for now)
+## 5. Configure pg_hba.conf for repmgr (NODE1 only for now)
 
 On NODE1, edit `/var/lib/pgsql/16/data/pg_hba.conf` and add repmgr access rules.
 
@@ -202,7 +277,11 @@ sudo -iu postgres
 vi /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
-Add these lines at the end of the file (substitute your actual IPs for the placeholders):
+Add these lines **BEFORE** the default `local all all peer` line (substitute your actual private IPs for the placeholders).
+
+> **Important**: pg_hba.conf is first-match-wins. If you add these after
+> `local all all peer`, the peer rule matches first and repmgr connections
+> will fail with "Peer authentication failed". The repmgr rules must come first.
 
 ```
 # repmgr connections
@@ -248,7 +327,7 @@ exit
 > scram-sha-256 or certificate-based auth. For this lab, trust is acceptable
 > because the firewall limits access to cluster nodes.
 
-## 5. Test repmgr connectivity from NODE1
+## 6. Test repmgr connectivity from NODE1
 
 Switch to the postgres user:
 
@@ -277,6 +356,7 @@ exit
 All four servers have:
 - [x] repmgr installed (`repmgr_16` package)
 - [x] `/usr/pgsql-16/bin/` added to postgres user's PATH
+- [x] `shared_preload_libraries = 'repmgr'` set and PostgreSQL restarted
 
 NODE1 (primary) additionally has:
 - [x] `repmgr` superuser role created
