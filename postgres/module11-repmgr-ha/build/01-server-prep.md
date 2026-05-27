@@ -6,10 +6,28 @@ Run every step on ALL FOUR servers unless noted otherwise.
 
 ---
 
+## 0. Switch to root
+
+When you first SSH into each server, you land as `ec2-user`. All lab commands
+run as root. Switch now:
+
+```bash
+sudo su -
+```
+
+You should see your prompt change to `root@pg-repmgr-1` (or whichever node you are on).
+Stay as root for the rest of this guide.
+
+> **Why root?** repmgr needs root access to configure PostgreSQL, edit system files,
+> and manage services. We switch once at the start so you do not need `sudo` before
+> every command.
+
+---
+
 ## 1. Update the OS
 
 ```bash
-sudo dnf update -y
+dnf update -y
 ```
 
 `-y` automatically answers "yes" to all prompts.
@@ -23,22 +41,22 @@ Complete!
 
 On NODE1:
 ```bash
-sudo hostnamectl set-hostname pg-repmgr-1
+hostnamectl set-hostname pg-repmgr-1
 ```
 
 On NODE2:
 ```bash
-sudo hostnamectl set-hostname pg-repmgr-2
+hostnamectl set-hostname pg-repmgr-2
 ```
 
 On NODE3:
 ```bash
-sudo hostnamectl set-hostname pg-repmgr-3
+hostnamectl set-hostname pg-repmgr-3
 ```
 
 On NODE4:
 ```bash
-sudo hostnamectl set-hostname pg-repmgr-w
+hostnamectl set-hostname pg-repmgr-w
 ```
 
 Verify the hostname was set:
@@ -54,7 +72,7 @@ Expected: `pg-repmgr-1`, `pg-repmgr-2`, `pg-repmgr-3`, or `pg-repmgr-w` dependin
 On ALL FOUR servers, add entries for every node to `/etc/hosts` (substitute your actual IPs):
 
 ```bash
-sudo vi /etc/hosts
+vi /etc/hosts
 ```
 
 Add these four lines at the bottom:
@@ -98,19 +116,19 @@ Expected: all four resolve and respond.
 If you are NOT on AWS and want to configure firewalld:
 
 ```bash
-sudo firewall-cmd --permanent --add-service=ssh
+firewall-cmd --permanent --add-service=ssh
 ```
 
 This allows SSH connections through the firewall. The `--permanent` flag makes the rule survive reboots.
 
 ```bash
-sudo firewall-cmd --permanent --add-port=5432/tcp
+firewall-cmd --permanent --add-port=5432/tcp
 ```
 
 This allows PostgreSQL connections through the firewall.
 
 ```bash
-sudo firewall-cmd --reload
+firewall-cmd --reload
 ```
 
 This reloads the firewall so the new rules take effect.
@@ -118,7 +136,7 @@ This reloads the firewall so the new rules take effect.
 Verify:
 
 ```bash
-sudo firewall-cmd --list-all
+firewall-cmd --list-all
 ```
 
 Expected output (yours will differ):
@@ -138,13 +156,13 @@ public (active)
 ## 5. Install essential tools
 
 ```bash
-sudo dnf install -y vim curl wget net-tools
+dnf install -y vim curl wget net-tools
 ```
 
 ## 6. Set timezone to UTC
 
 ```bash
-sudo timedatectl set-timezone UTC
+timedatectl set-timezone UTC
 ```
 
 Verify the timezone is now UTC:
@@ -166,65 +184,70 @@ because repmgr executes remote commands (like `repmgr standby switchover`) over 
 
 Inter-node SSH has been pre-configured for you during server setup. Let's verify it works.
 
-From each node, test connecting to every other node. If it asks "Are you sure you want to continue connecting?" type `yes` and press Enter. You should NOT be asked for a password.
+**Make sure you are root** (your prompt should show `root@`). If not, run `sudo su -` first.
 
-From NODE1:
+From NODE1, test connecting to every other node:
 
 ```bash
-ssh root@pg-repmgr-2 hostname
+ssh pg-repmgr-2 hostname
+```
+
+Expected output (yours will differ):
+```
+pg-repmgr-2
 ```
 
 ```bash
-ssh root@pg-repmgr-3 hostname
+ssh pg-repmgr-3 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-w hostname
+ssh pg-repmgr-w hostname
 ```
 
 From NODE2:
 
 ```bash
-ssh root@pg-repmgr-1 hostname
+ssh pg-repmgr-1 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-3 hostname
+ssh pg-repmgr-3 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-w hostname
+ssh pg-repmgr-w hostname
 ```
 
 From NODE3:
 
 ```bash
-ssh root@pg-repmgr-1 hostname
+ssh pg-repmgr-1 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-2 hostname
+ssh pg-repmgr-2 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-w hostname
+ssh pg-repmgr-w hostname
 ```
 
 From NODE4:
 
 ```bash
-ssh root@pg-repmgr-1 hostname
+ssh pg-repmgr-1 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-2 hostname
+ssh pg-repmgr-2 hostname
 ```
 
 ```bash
-ssh root@pg-repmgr-3 hostname
+ssh pg-repmgr-3 hostname
 ```
 
-Expected: returns each node's hostname without password prompt. If any test asks for a password, contact your instructor.
+Expected: returns each node's hostname without password prompt. You should NOT be asked for a password or fingerprint confirmation. If any test fails, contact your instructor.
 
 > **Concept - SSH for repmgr operations**: Unlike basic streaming replication,
 > repmgr needs SSH access between nodes. During a switchover, repmgr SSHes to
@@ -236,13 +259,15 @@ Expected: returns each node's hostname without password prompt. If any test asks
 repmgr runs commands as the `postgres` OS user. The postgres user also needs
 passwordless SSH between nodes. This has been pre-configured - let's verify.
 
-From each node, switch to the postgres user and test:
+From each node, switch to the postgres user:
 
 ```bash
 sudo -iu postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt should show `postgres@`.
+
+Test SSH to every other node:
 
 ```bash
 ssh postgres@pg-repmgr-1 hostname
@@ -264,11 +289,11 @@ ssh postgres@pg-repmgr-w hostname
 
 Expected: returns hostnames without password prompt.
 
+When done, exit back to root:
+
 ```bash
 exit
 ```
-
-**You are now back to ec2-user.**
 
 Repeat on all four nodes. If any test asks for a password, contact your instructor.
 
@@ -277,6 +302,7 @@ Repeat on all four nodes. If any test asks for a password, contact your instruct
 ## Checkpoint
 
 All four servers have:
+- [x] Switched to root (`sudo su -`)
 - [x] Updated OS
 - [x] Correct hostname (pg-repmgr-1, pg-repmgr-2, pg-repmgr-3, pg-repmgr-w)
 - [x] /etc/hosts with all four nodes
