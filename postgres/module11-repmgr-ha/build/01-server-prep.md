@@ -259,15 +259,56 @@ Expected: returns each node's hostname without password prompt. You should NOT b
 repmgr runs commands as the `postgres` OS user. The postgres user also needs
 passwordless SSH between nodes. This has been pre-configured - let's verify.
 
-From each node, switch to the postgres user:
+**Stay as root.** From each node, test SSH as the postgres user to every other node:
+
+From NODE1:
 
 ```bash
-sudo -iu postgres
+ssh postgres@pg-repmgr-2 hostname
 ```
 
-**You are now the postgres user.** Your prompt should show `postgres@`.
+Expected output (yours will differ):
+```
+pg-repmgr-2
+```
 
-Test SSH to every other node:
+```bash
+ssh postgres@pg-repmgr-3 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-w hostname
+```
+
+From NODE2:
+
+```bash
+ssh postgres@pg-repmgr-1 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-3 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-w hostname
+```
+
+From NODE3:
+
+```bash
+ssh postgres@pg-repmgr-1 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-2 hostname
+```
+
+```bash
+ssh postgres@pg-repmgr-w hostname
+```
+
+From NODE4:
 
 ```bash
 ssh postgres@pg-repmgr-1 hostname
@@ -281,21 +322,7 @@ ssh postgres@pg-repmgr-2 hostname
 ssh postgres@pg-repmgr-3 hostname
 ```
 
-```bash
-ssh postgres@pg-repmgr-w hostname
-```
-
-(Skip the hostname that matches the node you are on.)
-
-Expected: returns hostnames without password prompt.
-
-When done, exit back to root:
-
-```bash
-exit
-```
-
-Repeat on all four nodes. If any test asks for a password, contact your instructor.
+Expected: returns each node's hostname without password prompt. If any test fails, contact your instructor.
 
 ---
 
