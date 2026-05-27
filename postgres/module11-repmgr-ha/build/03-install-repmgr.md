@@ -2,12 +2,14 @@
 
 Install repmgr on all four nodes and create the repmgr extension on the primary.
 
+You should be **root** on each server. If your prompt does not show `root@`, run `sudo su -` first.
+
 ---
 
 ## 1. Install repmgr on ALL FOUR servers
 
 ```bash
-sudo dnf install -y repmgr_16
+dnf install -y repmgr_16
 ```
 
 This installs the repmgr package from the PGDG repository. The `_16` suffix means it is built for PostgreSQL 16.
@@ -34,10 +36,10 @@ repmgr 5.4.1
 Add the PostgreSQL 16 bin directory to the postgres user's PATH so you can run `repmgr` without the full path:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 vi ~/.bash_profile
@@ -69,7 +71,7 @@ Expected: `repmgr 5.4.x` - now accessible without the full path.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - What is repmgr**: repmgr is a suite of open-source tools for
 > managing PostgreSQL replication and failover. It wraps native streaming
@@ -84,10 +86,10 @@ On NODE1 (primary):
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 createuser -s repmgr
@@ -131,7 +133,7 @@ Expected output (yours will differ):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - Why repmgr needs a superuser**: repmgr performs operations that
 > require elevated privileges: creating extensions, modifying replication
@@ -146,10 +148,10 @@ On NODE1:
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -d repmgr -c "CREATE EXTENSION repmgr;"
@@ -178,7 +180,7 @@ Expected output (yours will differ):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - The repmgr extension**: This creates the `repmgr` schema in the
 > repmgr database. It contains tables like `repmgr.nodes` (cluster membership),
@@ -193,10 +195,10 @@ On NODE1, edit `/var/lib/pgsql/16/data/pg_hba.conf` and add repmgr access rules.
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 vi /var/lib/pgsql/16/data/pg_hba.conf
@@ -240,7 +242,7 @@ Expected output (yours will differ):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - Trust auth for repmgr**: We use `trust` authentication for the
 > repmgr user because repmgrd and repmgr CLI tools need to connect without
@@ -253,10 +255,10 @@ exit
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -d repmgr -U repmgr -c "SELECT 1;"
@@ -268,7 +270,7 @@ Expected: returns `1` without a password prompt.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ---
 

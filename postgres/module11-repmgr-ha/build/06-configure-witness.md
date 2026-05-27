@@ -3,7 +3,7 @@
 Set up NODE4 as a witness server. The witness does NOT replicate data - it
 exists solely to participate in failover elections and prevent split-brain.
 
-All steps run on NODE4 unless noted.
+All steps run on **NODE4** unless noted. You should be **root**. If your prompt does not show `root@`, run `sudo su -` first.
 
 ---
 
@@ -27,10 +27,10 @@ All steps run on NODE4 unless noted.
 ## 2. Verify PostgreSQL is running on NODE4
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SELECT version();"
@@ -48,7 +48,7 @@ Expected output (yours will differ):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 3. Create repmgr.conf on NODE4
 
@@ -74,10 +74,10 @@ log_level=INFO
 log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql-16'
-service_stop_command='sudo systemctl stop postgresql-16'
-service_restart_command='sudo systemctl restart postgresql-16'
-service_reload_command='sudo systemctl reload postgresql-16'
+service_start_command='systemctl start postgresql-16'
+service_stop_command='systemctl stop postgresql-16'
+service_restart_command='systemctl restart postgresql-16'
+service_reload_command='systemctl reload postgresql-16'
 
 failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
@@ -97,10 +97,10 @@ On NODE4, add the repmgr access rules so the witness can communicate with all no
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 vi /var/lib/pgsql/16/data/pg_hba.conf
@@ -130,12 +130,12 @@ Save and exit vi (`:wq`).
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 Reload PostgreSQL to apply the new pg_hba.conf:
 
 ```bash
-sudo systemctl reload postgresql-16
+systemctl reload postgresql-16
 ```
 
 ## 5. Register NODE4 as a witness
@@ -143,10 +143,10 @@ sudo systemctl reload postgresql-16
 On NODE4:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 repmgr -f /etc/repmgr/16/repmgr.conf \
@@ -204,17 +204,17 @@ Expected: all checks should pass.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 8. Verify the witness is NOT replicating
 
 On NODE1 (primary), check replication connections:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SELECT client_addr, state FROM pg_stat_replication;"
@@ -235,7 +235,7 @@ Two rows (NODE2 and NODE3). NODE4 should NOT appear - it does not stream WAL.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ---
 

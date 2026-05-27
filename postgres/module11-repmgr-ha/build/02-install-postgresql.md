@@ -2,7 +2,7 @@
 
 Install PostgreSQL 16 from the official PGDG repository on all four nodes.
 
-Run every step on ALL FOUR servers.
+Run every step on **ALL FOUR servers** as **root**. If your prompt does not show `root@`, run `sudo su -` first.
 
 ---
 
@@ -11,7 +11,7 @@ Run every step on ALL FOUR servers.
 Install the PGDG RPM for CentOS/RHEL 9:
 
 ```bash
-sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 ```
 
 This adds the official PostgreSQL repository to your system.
@@ -19,7 +19,7 @@ This adds the official PostgreSQL repository to your system.
 Disable the built-in PostgreSQL module so it does not conflict with PGDG:
 
 ```bash
-sudo dnf -qy module disable postgresql
+dnf -qy module disable postgresql
 ```
 
 `-q` suppresses unnecessary output. `-y` auto-confirms.
@@ -37,7 +37,7 @@ Complete!
 ## 2. Install PostgreSQL 16
 
 ```bash
-sudo dnf install -y postgresql16-server postgresql16-contrib
+dnf install -y postgresql16-server postgresql16-contrib
 ```
 
 `postgresql16-server` installs the database server. `postgresql16-contrib` installs extra modules and extensions (including utilities needed by repmgr).
@@ -52,7 +52,7 @@ Complete!
 On CentOS, PostgreSQL does not auto-initialize after install. You must run initdb:
 
 ```bash
-sudo /usr/pgsql-16/bin/postgresql-16-setup initdb
+/usr/pgsql-16/bin/postgresql-16-setup initdb
 ```
 
 Expected output (yours will differ):
@@ -70,13 +70,13 @@ Initializing database ... OK
 Start PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql-16
+systemctl start postgresql-16
 ```
 
 Enable it to start on boot:
 
 ```bash
-sudo systemctl enable postgresql-16
+systemctl enable postgresql-16
 ```
 
 Expected output (yours will differ):
@@ -90,7 +90,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16.servic
 ## 5. Verify PostgreSQL is running
 
 ```bash
-sudo systemctl status postgresql-16
+systemctl status postgresql-16
 ```
 
 Expected: `active (running)`.
@@ -98,10 +98,10 @@ Expected: `active (running)`.
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SELECT version();"
@@ -119,17 +119,17 @@ Expected output (yours will differ):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 6. Confirm the data directory
 
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SHOW data_directory;"
@@ -141,7 +141,7 @@ Expected: `/var/lib/pgsql/16/data`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - Red Hat keeps config inside PGDATA**: Unlike Debian where configs live
 > under `/etc/postgresql/`, Red Hat-based systems keep `postgresql.conf` and
@@ -155,10 +155,10 @@ This is required for `pg_rewind` (used by repmgr node rejoin):
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "ALTER SYSTEM SET wal_log_hints = on;"
@@ -168,21 +168,21 @@ psql -c "ALTER SYSTEM SET wal_log_hints = on;"
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 Restart to apply:
 
 ```bash
-sudo systemctl restart postgresql-16
+systemctl restart postgresql-16
 ```
 
 Verify:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SHOW wal_log_hints;"
@@ -194,7 +194,7 @@ Expected: `on`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - wal_log_hints**: This parameter logs hint-bit changes in WAL,
 > which is required by `pg_rewind`. Without it, `pg_rewind` cannot safely
@@ -209,10 +209,10 @@ On ALL FOUR servers:
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql <<SQL
@@ -241,21 +241,21 @@ ALTER SYSTEM
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 Restart PostgreSQL:
 
 ```bash
-sudo systemctl restart postgresql-16
+systemctl restart postgresql-16
 ```
 
 Verify the settings. Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SHOW wal_level;"
@@ -285,7 +285,7 @@ Expected: `repmgr`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - shared_preload_libraries = 'repmgr'**: The repmgr extension
 > includes a background worker (repmgrd) that monitors cluster health and

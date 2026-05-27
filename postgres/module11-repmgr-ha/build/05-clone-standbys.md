@@ -3,6 +3,7 @@
 Clone NODE2 and NODE3 from the primary using `repmgr standby clone` and
 register them as standbys.
 
+You should be **root** on each server. If your prompt does not show `root@`, run `sudo su -` first.
 ---
 
 ## NODE2 - Clone and Register
@@ -31,10 +32,10 @@ log_level=INFO
 log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql-16'
-service_stop_command='sudo systemctl stop postgresql-16'
-service_restart_command='sudo systemctl restart postgresql-16'
-service_reload_command='sudo systemctl reload postgresql-16'
+service_start_command='systemctl start postgresql-16'
+service_stop_command='systemctl stop postgresql-16'
+service_restart_command='systemctl restart postgresql-16'
+service_reload_command='systemctl reload postgresql-16'
 
 failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
@@ -52,7 +53,7 @@ Save and exit vi (`:wq`).
 ### 2. Stop PostgreSQL on NODE2
 
 ```bash
-sudo systemctl stop postgresql-16
+systemctl stop postgresql-16
 ```
 
 ### 3. Dry-run the clone
@@ -60,10 +61,10 @@ sudo systemctl stop postgresql-16
 Always dry-run first to catch config issues before touching any data:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
@@ -122,19 +123,19 @@ NOTICE: you can now start your PostgreSQL server
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ```bash
-sudo systemctl start postgresql-16
+systemctl start postgresql-16
 ```
 
 Verify it is streaming:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SELECT pg_is_in_recovery();"
@@ -188,7 +189,7 @@ Expected: `10000`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ---
 
@@ -218,10 +219,10 @@ log_level=INFO
 log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
-service_start_command='sudo systemctl start postgresql-16'
-service_stop_command='sudo systemctl stop postgresql-16'
-service_restart_command='sudo systemctl restart postgresql-16'
-service_reload_command='sudo systemctl reload postgresql-16'
+service_start_command='systemctl start postgresql-16'
+service_stop_command='systemctl stop postgresql-16'
+service_restart_command='systemctl restart postgresql-16'
+service_reload_command='systemctl reload postgresql-16'
 
 failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
@@ -239,7 +240,7 @@ Save and exit vi (`:wq`).
 ### 10. Stop PostgreSQL on NODE3
 
 ```bash
-sudo systemctl stop postgresql-16
+systemctl stop postgresql-16
 ```
 
 ### 11. Dry-run and clone
@@ -247,10 +248,10 @@ sudo systemctl stop postgresql-16
 Switch to the postgres user:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 Run the dry-run first:
 
@@ -274,21 +275,21 @@ Expected: `standby clone (using pg_basebackup) complete`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 Start PostgreSQL:
 
 ```bash
-sudo systemctl start postgresql-16
+systemctl start postgresql-16
 ```
 
 ### 12. Register NODE3 as a standby
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 repmgr -f /etc/repmgr/16/repmgr.conf standby register
@@ -333,7 +334,7 @@ Expected: `10000`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - Replication slots per standby**: repmgr creates a dedicated
 > replication slot for each standby (repmgr_slot_2, repmgr_slot_3, etc.).
@@ -343,10 +344,10 @@ exit
 Verify slots on NODE1:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -c "SELECT slot_name, active FROM pg_replication_slots;"
@@ -367,7 +368,7 @@ Two slots, both active.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ---
 

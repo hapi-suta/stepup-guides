@@ -2,7 +2,7 @@
 
 Register NODE1 as the primary in the repmgr cluster and create test data.
 
-All steps run on NODE1 only.
+All steps run on **NODE1 only** as **root**. If your prompt does not show `root@`, run `sudo su -` first.
 
 ---
 
@@ -36,10 +36,10 @@ log_file='/var/lib/pgsql/16/data/log/repmgr.log'
 log_status_interval=60
 
 # Service control (CentOS Stream 9 - service is postgresql-16)
-service_start_command='sudo systemctl start postgresql-16'
-service_stop_command='sudo systemctl stop postgresql-16'
-service_restart_command='sudo systemctl restart postgresql-16'
-service_reload_command='sudo systemctl reload postgresql-16'
+service_start_command='systemctl start postgresql-16'
+service_stop_command='systemctl stop postgresql-16'
+service_restart_command='systemctl restart postgresql-16'
+service_reload_command='systemctl reload postgresql-16'
 
 # Failover settings (repmgrd)
 failover='automatic'
@@ -92,10 +92,10 @@ Expected: the contents you just typed.
 The log file path in repmgr.conf points to `/var/lib/pgsql/16/data/log/`. This directory is created by PostgreSQL on CentOS, but let's verify:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 ls -la /var/lib/pgsql/16/data/log/
@@ -111,7 +111,7 @@ mkdir -p /var/lib/pgsql/16/data/log
 
 ## 3. Register NODE1 as primary
 
-You should still be the postgres user from Step 2. If not, run `sudo -iu postgres`.
+You should still be the postgres user from Step 2. If not, run `su - postgres`.
 
 ```bash
 repmgr -f /etc/repmgr/16/repmgr.conf primary register
@@ -147,7 +147,7 @@ Expected output (yours will differ):
 
 ## 4. Create a test database with sample data
 
-You should still be the postgres user from Step 3. If not, run `sudo -iu postgres`.
+You should still be the postgres user from Step 3. If not, run `su - postgres`.
 
 ```bash
 psql <<SQL
@@ -184,7 +184,7 @@ Expected: `10000`.
 
 ## 5. Check the repmgr metadata
 
-You should still be the postgres user. If not, run `sudo -iu postgres`.
+You should still be the postgres user. If not, run `su - postgres`.
 
 ```bash
 psql -d repmgr -c "SELECT * FROM repmgr.nodes;"
@@ -202,7 +202,7 @@ Expected: a `primary_register` event.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - repmgr metadata tables**: The `repmgr.nodes` table tracks every
 > registered node, its role, connection info, and active status. The

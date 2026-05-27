@@ -3,7 +3,7 @@
 Configure and start the repmgrd daemon on all four nodes to enable automatic
 failover detection and promotion.
 
-Run each step on the specified node.
+Run each step on the specified node as **root**. If your prompt does not show `root@`, run `sudo su -` first.
 
 ---
 
@@ -33,7 +33,7 @@ to verify it points to the correct config file.
 Check if the service file exists:
 
 ```bash
-sudo systemctl cat repmgr-16
+systemctl cat repmgr-16
 ```
 
 If the service exists, check that `ExecStart` references `/etc/repmgr/16/repmgr.conf`.
@@ -76,13 +76,13 @@ Save and exit vi (`:wq`).
 Reload systemd and enable the service:
 
 ```bash
-sudo systemctl daemon-reload
+systemctl daemon-reload
 ```
 
 This tells systemd to re-read its service files so it finds the new or updated `repmgr-16.service`.
 
 ```bash
-sudo systemctl enable repmgr-16
+systemctl enable repmgr-16
 ```
 
 This configures repmgrd to start automatically on boot.
@@ -99,7 +99,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/repmgr-16.service ..
 
 ## 3. Configure sudoers for the postgres user on ALL FOUR nodes
 
-repmgr's `service_*_command` entries use `sudo systemctl`. The postgres user
+repmgr's `service_*_command` entries use `systemctl`. The postgres user
 needs passwordless sudo for these specific commands. On ALL FOUR nodes:
 
 ```bash
@@ -125,13 +125,13 @@ sudo chmod 440 /etc/sudoers.d/postgres-repmgr
 Verify it works:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
-sudo systemctl status postgresql-16
+systemctl status postgresql-16
 ```
 
 Expected: runs without asking for a password and shows `active (running)`.
@@ -140,18 +140,18 @@ Expected: runs without asking for a password and shows `active (running)`.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 4. Start repmgrd on ALL FOUR nodes
 
 On ALL FOUR servers:
 
 ```bash
-sudo systemctl start repmgr-16
+systemctl start repmgr-16
 ```
 
 ```bash
-sudo systemctl status repmgr-16
+systemctl status repmgr-16
 ```
 
 Expected: `active (running)`.
@@ -167,10 +167,10 @@ Expected output (yours will differ):
 Wait 10-15 seconds for the first monitoring cycle, then check the log:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 tail -20 /var/lib/pgsql/16/data/log/repmgr.log
@@ -195,17 +195,17 @@ On the witness (NODE4):
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 6. Check cluster events
 
 From any node:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 repmgr -f /etc/repmgr/16/repmgr.conf cluster event --limit 10
@@ -217,17 +217,17 @@ Expected: events showing `repmgrd_start` for all nodes.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 ## 7. Verify monitoring history is being recorded
 
 Wait 30 seconds, then on NODE1:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 psql -d repmgr -c "
@@ -253,7 +253,7 @@ Rows for node_id 2 and 3 with recent timestamps and low lag values.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - monitoring_history**: When `monitoring_history=yes` is set in
 > repmgr.conf, repmgrd writes replication lag measurements to this table on
@@ -281,10 +281,10 @@ You will test this in Phase 3 (SURVIVE).
 This tests connectivity between all node pairs:
 
 ```bash
-sudo -iu postgres
+su - postgres
 ```
 
-**You are now the postgres user.**
+**You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
 repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck
@@ -307,7 +307,7 @@ a connectivity problem.
 exit
 ```
 
-**You are now back to ec2-user.**
+**You are back to root.** Your prompt shows `root@`.
 
 > **Concept - cluster crosscheck**: This command has each node try to connect
 > to every other node. It catches one-directional connectivity issues (where
