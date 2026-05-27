@@ -90,32 +90,7 @@ reconnect_interval=10
 
 Save and exit vi (`:wq`).
 
-## 4. Create the repmgr user and database on NODE4
-
-Unlike the standbys (which got the repmgr user via cloning), the witness has its own
-independent PostgreSQL instance. You need to create the repmgr user and database manually.
-
-```bash
-sudo -iu postgres
-```
-
-**You are now the postgres user.**
-
-```bash
-createuser -s repmgr
-```
-
-```bash
-createdb repmgr -O repmgr
-```
-
-```bash
-exit
-```
-
-**You are now back to ec2-user.**
-
-## 5. Configure pg_hba.conf on NODE4
+## 4. Configure pg_hba.conf on NODE4
 
 On NODE4, add the repmgr access rules so the witness can communicate with all nodes.
 
@@ -131,10 +106,7 @@ sudo -iu postgres
 vi /var/lib/pgsql/16/data/pg_hba.conf
 ```
 
-Add these lines **BEFORE** the default `local all all peer` line (substitute your actual private IPs for the placeholders).
-
-> **Important**: pg_hba.conf is first-match-wins. These rules must come before
-> `local all all peer` or repmgr connections will fail with "Peer authentication failed".
+Add these lines at the end of the file (substitute your actual IPs for the placeholders):
 
 ```
 # repmgr connections
@@ -166,7 +138,7 @@ Reload PostgreSQL to apply the new pg_hba.conf:
 sudo systemctl reload postgresql-16
 ```
 
-## 6. Register NODE4 as a witness
+## 5. Register NODE4 as a witness
 
 On NODE4:
 
@@ -197,7 +169,7 @@ NOTICE: witness node "pg-repmgr-w" (ID: 4) successfully registered
 > `repmgr.nodes` and `repmgr.events`. Unlike standbys, the witness does NOT
 > stream WAL - its metadata is periodically synced by repmgrd.
 
-## 7. Verify the full 4-node cluster
+## 6. Verify the full 4-node cluster
 
 You should still be the postgres user from Step 5.
 
@@ -218,7 +190,7 @@ Expected output (yours will differ):
 Note: the witness has `Priority = 0` because it should never be promoted.
 Its upstream is the primary because it syncs its metadata from the primary.
 
-## 8. Run repmgr node check on the witness
+## 7. Run repmgr node check on the witness
 
 You should still be the postgres user.
 
@@ -234,7 +206,7 @@ exit
 
 **You are now back to ec2-user.**
 
-## 9. Verify the witness is NOT replicating
+## 8. Verify the witness is NOT replicating
 
 On NODE1 (primary), check replication connections:
 

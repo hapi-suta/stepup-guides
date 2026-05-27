@@ -46,6 +46,9 @@ failover='automatic'
 promote_command='/usr/pgsql-16/bin/repmgr standby promote -f /etc/repmgr/16/repmgr.conf --log-to-file'
 follow_command='/usr/pgsql-16/bin/repmgr standby follow -f /etc/repmgr/16/repmgr.conf --log-to-file --upstream-node-id=%n'
 
+# pg_rewind for node rejoin
+use_replication_slots=true
+
 # Monitoring
 monitor_interval_secs=2
 reconnect_attempts=6

@@ -1,0 +1,16 @@
+2026-04-20T19:54:18Z|01-stanza-misconfigured|PASS|3s|pg1-path corrected, stanza check passes
+2026-04-20T19:55:09Z|02-archive-command-broken|PASS|8s|archive_command restored, archiving working
+2026-04-20T19:56:17Z|03-repo-corruption|PASS|4s|repo rebuilt, valid backup exists, archiving working
+2026-04-20T19:57:19Z|04-backup-expiry-crisis|PASS|4s|retention fixed, 2+ full backups, archiving working
+2026-04-20T20:04:36Z|05-wal-accumulation|PASS|3s|archive_command restored, WAL count normal, disk usage OK
+2026-04-20T20:10:23Z|06-restore-wrong-target|PASS|4s|all markers present, data recovered, backup taken
+2026-04-20T20:12:07Z|07-full-cluster-recovery|PASS|5s|cluster restored, all data present, archiving working
+2026-04-20T20:12:40Z|08-backup-verification-failure|PASS|3s|config fixed, archiving working, backups visible
+2026-05-11T23:41:33Z|01-stanza-misconfigured|PASS|4s|pg1-path corrected, stanza check passes
+2026-05-13T22:00:05Z|01-stanza-misconfigured|PASS|5s|pg1-path corrected, stanza check passes
+2026-05-13T23:37:53Z|02-archive-command-broken|PASS|11s|archive_command restored, archiving working
+2026-05-13T23:38:11Z|02-archive-command-broken|PASS|11s|archive_command restored, archiving working
+2026-05-14T02:20:05Z|03-repo-corruption|PASS|6s|repo rebuilt, valid backup exists, archiving working
+2026-05-14T02:20:15Z|03-repo-corruption|PASS|5s|repo rebuilt, valid backup exists, archiving working
+2026-05-14T03:26:46Z|04-backup-expiry-crisis|PASS|5s|retention fixed, 2+ full backups, archiving working
+2026-05-15T15:52:14Z|05-wal-accumulation|PASS|4s|archive_command restored, WAL count normal, disk usage OK
