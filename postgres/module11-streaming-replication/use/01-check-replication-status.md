@@ -76,7 +76,7 @@ SELECT
     pid,
     status,
     receive_start_lsn,
-    received_lsn,
+    latest_end_lsn,
     last_msg_send_time,
     last_msg_receipt_time,
     sender_host,
