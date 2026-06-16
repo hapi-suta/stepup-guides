@@ -183,7 +183,7 @@ Check pg_stat_wal_receiver - this view only exists on standbys:
 SELECT
   status,
   receive_start_lsn,
-  received_lsn,
+  flushed_lsn,
   last_msg_send_time,
   last_msg_receipt_time,
   sender_host,
@@ -193,7 +193,7 @@ FROM pg_stat_wal_receiver;
 
 Expected output (yours will differ):
 ```
-  status   | receive_start_lsn | received_lsn | last_msg_send_time | last_msg_receipt_time |  sender_host  | sender_port
+  status   | receive_start_lsn | flushed_lsn | last_msg_send_time | last_msg_receipt_time |  sender_host  | sender_port
 -----------+-------------------+--------------+--------------------+-----------------------+---------------+-------------
  streaming | 0/7000000         | 0/8A00100    | 2026-06-15...      | 2026-06-15...         | 172.31.19.86  | 5432
 (1 row)

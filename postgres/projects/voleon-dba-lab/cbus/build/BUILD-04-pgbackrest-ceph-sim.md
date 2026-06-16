@@ -128,37 +128,37 @@ Expected output (yours will differ):
   Physical volume "/dev/loop0" successfully created.
 ```
 
-Create a volume group named `ceph-vg`. A volume group is a named pool of storage. We are naming it `ceph-vg` to remind us it simulates a Ceph volume group.
+Create a volume group named `ceph_vg`. A volume group is a named pool of storage. We are naming it `ceph_vg` to remind us it simulates a Ceph volume group.
 
 ```bash
-sudo vgcreate ceph-vg /dev/loop0
+sudo vgcreate ceph_vg /dev/loop0
 ```
 
 ```
 Expected output (yours will differ):
-  Volume group "ceph-vg" successfully created
+  Volume group "ceph_vg" successfully created
 ```
 
-Create a logical volume named `pg-lv` using 100% of the available space in `ceph-vg`. `-l 100%FREE` means "use all free extents." `-n pg-lv` names the logical volume.
+Create a logical volume named `pg_data` using 100% of the available space in `ceph_vg`. `-l 100%FREE` means "use all free extents." `-n pg_data` names the logical volume.
 
 ```bash
-sudo lvcreate -l 100%FREE -n pg-lv ceph-vg
+sudo lvcreate -l 100%FREE -n pg_data ceph_vg
 ```
 
 ```
 Expected output (yours will differ):
-  Logical volume "pg-lv" created.
+  Logical volume "pg_data" created.
 ```
 
 Format the logical volume with XFS. XFS is the recommended filesystem for PostgreSQL on RHEL/CentOS. It handles large files well and has excellent performance for sequential writes.
 
 ```bash
-sudo mkfs.xfs /dev/ceph-vg/pg-lv
+sudo mkfs.xfs /dev/ceph_vg/pg_data
 ```
 
 ```
 Expected output (yours will differ):
-meta-data=/dev/ceph-vg/pg-lv     isize=512    agcount=4, agsize=655104 blks
+meta-data=/dev/ceph_vg/pg_data     isize=512    agcount=4, agsize=655104 blks
 ...
 naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
 log      =internal log           bsize=4096   blocks=2560, version=2
@@ -172,7 +172,7 @@ sudo mkdir -p /mnt/ceph-sim
 ```
 
 ```bash
-sudo mount /dev/ceph-vg/pg-lv /mnt/ceph-sim
+sudo mount /dev/ceph_vg/pg_data /mnt/ceph-sim
 ```
 
 Set ownership so the postgres user can write to it. pgBackRest runs as postgres and needs to create directories and files under this path.
@@ -192,12 +192,12 @@ On **pg-replica**, as **ec2-user**:
 First, get the UUID of the filesystem so fstab can identify it reliably:
 
 ```bash
-sudo blkid /dev/ceph-vg/pg-lv
+sudo blkid /dev/ceph_vg/pg_data
 ```
 
 ```
 Expected output (yours will differ):
-/dev/ceph-vg/pg-lv: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" BLOCK_SIZE="512" TYPE="xfs"
+/dev/ceph_vg/pg_data: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" BLOCK_SIZE="512" TYPE="xfs"
 ```
 
 Copy the UUID from your output. Open fstab:
@@ -283,7 +283,7 @@ sudo lvs
 ```
 Expected output (yours will differ):
   LV    VG      Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
-  pg-lv ceph-vg -wi-ao---- <10.00g
+  pg_data ceph_vg -wi-ao---- <10.00g
 ```
 
 List physical volumes:
@@ -295,7 +295,7 @@ sudo pvs
 ```
 Expected output (yours will differ):
   PV         VG      Fmt  Attr PSize   PFree
-  /dev/loop0 ceph-vg lvm2 a--  <10.00g    0
+  /dev/loop0 ceph_vg lvm2 a--  <10.00g    0
 ```
 
 The simulated Ceph storage is ready.

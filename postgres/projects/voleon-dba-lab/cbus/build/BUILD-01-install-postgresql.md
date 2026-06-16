@@ -184,8 +184,8 @@ shared_buffers = '512MB'
 effective_cache_size = '1536MB'
 maintenance_work_mem = '128MB'
 wal_level = 'replica'
-max_wal_senders = 5
-max_replication_slots = 5
+max_wal_senders = 10
+max_replication_slots = 10
 wal_keep_size = '256MB'
 hot_standby = on
 archive_mode = on
@@ -209,8 +209,8 @@ What these settings mean:
 - `effective_cache_size = '1536MB'` - Tells the query planner how much total memory is available for disk caching (OS + PostgreSQL combined).
 - `maintenance_work_mem = '128MB'` - Memory used for maintenance operations like VACUUM, CREATE INDEX, and REINDEX.
 - `wal_level = 'replica'` - Sets the level of information written to WAL; `replica` is required for streaming replication.
-- `max_wal_senders = 5` - Maximum number of concurrent connections from standby servers or replication tools.
-- `max_replication_slots = 5` - Maximum number of replication slots (used by standbys and logical replication consumers).
+- `max_wal_senders = 10` - Maximum number of concurrent connections from standby servers or replication tools.
+- `max_replication_slots = 10` - Maximum number of replication slots (used by standbys and logical replication consumers).
 - `wal_keep_size = '256MB'` - Minimum amount of WAL to keep on disk so standbys that fall behind can catch up.
 - `hot_standby = on` - Allows read queries on a standby server while it is applying WAL from the primary.
 - `archive_mode = on` - Enables WAL archiving (required for point-in-time recovery setups).
@@ -258,8 +258,8 @@ local   all             all                                     scram-sha-256
 # Allow all remote connections using password (scram-sha-256)
 host    all             all             0.0.0.0/0               scram-sha-256
 
-# Allow replication connections from the 172.31.0.0/16 subnet (internal AWS VPC)
-host    replication     replicator      172.31.0.0/16           scram-sha-256
+# Allow replication connections from any host (password still required)
+host    replication     replicator      0.0.0.0/0               scram-sha-256
 ```
 
 What each line means:
@@ -267,7 +267,7 @@ What each line means:
 - `local all postgres peer` - The `postgres` OS user can connect to any database over a local Unix socket using "peer" authentication (no password needed; the OS identity is trusted).
 - `local all all scram-sha-256` - All other local connections require a password, verified using SCRAM-SHA-256.
 - `host all all 0.0.0.0/0 scram-sha-256` - TCP connections from any IP address are allowed but require a SCRAM-SHA-256 password. This covers application servers and your workstation.
-- `host replication replicator 172.31.0.0/16 scram-sha-256` - Standby servers on the internal AWS VPC subnet can connect as the `replicator` user to stream WAL data.
+- `host replication replicator 0.0.0.0/0 scram-sha-256` - Any host can attempt a replication connection as the `replicator` user, but the SCRAM-SHA-256 password is still required.
 
 Press `Esc`, then type `:wq` and press `Enter` to save and quit.
 
@@ -391,7 +391,7 @@ Expected output (yours will differ):
 
  max_wal_senders
 -----------------
- 5
+ 10
 (1 row)
 
  shared_preload_libraries

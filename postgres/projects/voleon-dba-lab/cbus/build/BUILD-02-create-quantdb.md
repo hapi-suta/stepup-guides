@@ -435,68 +435,68 @@ CREATE TABLE
 
 ## Step 11: Create Partitions for market_data and signals
 
-Partitioned tables need explicit child partitions created before data can be inserted. You will create one partition per month for the full year 2024.
+Partitioned tables need explicit child partitions created before data can be inserted. You will create one partition per month covering July 2025 through June 2026.
 
 Still as **postgres** on **pg-primary**, inside psql, connected to quantdb:
 
 Create monthly partitions for `quant.market_data`:
 
 ```sql
-CREATE TABLE quant.market_data_2024_01 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
-CREATE TABLE quant.market_data_2024_02 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-02-01') TO ('2024-03-01');
-CREATE TABLE quant.market_data_2024_03 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-03-01') TO ('2024-04-01');
-CREATE TABLE quant.market_data_2024_04 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-04-01') TO ('2024-05-01');
-CREATE TABLE quant.market_data_2024_05 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-05-01') TO ('2024-06-01');
-CREATE TABLE quant.market_data_2024_06 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-06-01') TO ('2024-07-01');
-CREATE TABLE quant.market_data_2024_07 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-07-01') TO ('2024-08-01');
-CREATE TABLE quant.market_data_2024_08 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-08-01') TO ('2024-09-01');
-CREATE TABLE quant.market_data_2024_09 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-09-01') TO ('2024-10-01');
-CREATE TABLE quant.market_data_2024_10 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-10-01') TO ('2024-11-01');
-CREATE TABLE quant.market_data_2024_11 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-11-01') TO ('2024-12-01');
-CREATE TABLE quant.market_data_2024_12 PARTITION OF quant.market_data
-    FOR VALUES FROM ('2024-12-01') TO ('2025-01-01');
+CREATE TABLE quant.market_data_2025_07 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-07-01') TO ('2025-08-01');
+CREATE TABLE quant.market_data_2025_08 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-08-01') TO ('2025-09-01');
+CREATE TABLE quant.market_data_2025_09 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-09-01') TO ('2025-10-01');
+CREATE TABLE quant.market_data_2025_10 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-10-01') TO ('2025-11-01');
+CREATE TABLE quant.market_data_2025_11 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+CREATE TABLE quant.market_data_2025_12 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2025-12-01') TO ('2026-01-01');
+CREATE TABLE quant.market_data_2026_01 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
+CREATE TABLE quant.market_data_2026_02 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
+CREATE TABLE quant.market_data_2026_03 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-03-01') TO ('2026-04-01');
+CREATE TABLE quant.market_data_2026_04 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-04-01') TO ('2026-05-01');
+CREATE TABLE quant.market_data_2026_05 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
+CREATE TABLE quant.market_data_2026_06 PARTITION OF quant.market_data
+    FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
 ```
 
-Each `PARTITION OF` statement creates a child table that automatically stores rows where `trade_date` falls within that month's range. The upper bound is exclusive (e.g., `TO ('2024-02-01')` means up to but not including February 1st).
+Each `PARTITION OF` statement creates a child table that automatically stores rows where `trade_date` falls within that month's range. The upper bound is exclusive (e.g., `TO ('2025-08-01')` means up to but not including August 1st).
 
 Create monthly partitions for `quant.signals`:
 
 ```sql
-CREATE TABLE quant.signals_2024_01 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
-CREATE TABLE quant.signals_2024_02 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-02-01') TO ('2024-03-01');
-CREATE TABLE quant.signals_2024_03 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-03-01') TO ('2024-04-01');
-CREATE TABLE quant.signals_2024_04 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-04-01') TO ('2024-05-01');
-CREATE TABLE quant.signals_2024_05 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-05-01') TO ('2024-06-01');
-CREATE TABLE quant.signals_2024_06 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-06-01') TO ('2024-07-01');
-CREATE TABLE quant.signals_2024_07 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-07-01') TO ('2024-08-01');
-CREATE TABLE quant.signals_2024_08 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-08-01') TO ('2024-09-01');
-CREATE TABLE quant.signals_2024_09 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-09-01') TO ('2024-10-01');
-CREATE TABLE quant.signals_2024_10 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-10-01') TO ('2024-11-01');
-CREATE TABLE quant.signals_2024_11 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-11-01') TO ('2024-12-01');
-CREATE TABLE quant.signals_2024_12 PARTITION OF quant.signals
-    FOR VALUES FROM ('2024-12-01') TO ('2025-01-01');
+CREATE TABLE quant.signals_2025_07 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-07-01') TO ('2025-08-01');
+CREATE TABLE quant.signals_2025_08 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-08-01') TO ('2025-09-01');
+CREATE TABLE quant.signals_2025_09 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-09-01') TO ('2025-10-01');
+CREATE TABLE quant.signals_2025_10 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-10-01') TO ('2025-11-01');
+CREATE TABLE quant.signals_2025_11 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+CREATE TABLE quant.signals_2025_12 PARTITION OF quant.signals
+    FOR VALUES FROM ('2025-12-01') TO ('2026-01-01');
+CREATE TABLE quant.signals_2026_01 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
+CREATE TABLE quant.signals_2026_02 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
+CREATE TABLE quant.signals_2026_03 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-03-01') TO ('2026-04-01');
+CREATE TABLE quant.signals_2026_04 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-04-01') TO ('2026-05-01');
+CREATE TABLE quant.signals_2026_05 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
+CREATE TABLE quant.signals_2026_06 PARTITION OF quant.signals
+    FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
 ```
 
 Expected output (for each partition):
@@ -517,11 +517,11 @@ Expected output (yours will differ):
  backtests
  instruments
  market_data
- market_data_2024_01
- market_data_2024_02
+ market_data_2025_07
+ market_data_2025_08
  ...
  signals
- signals_2024_01
+ signals_2025_07
  ...
 (27 rows)
 ```
@@ -638,7 +638,7 @@ Expected output:
 INSERT 0 4
 ```
 
-Insert sample market data using `generate_series` to produce one row per trading day for January 2024 for instrument_id 1 (AAPL):
+Insert sample market data using `generate_series` to produce one row per trading day for July 2025 for instrument_id 1 (AAPL):
 
 ```sql
 INSERT INTO quant.market_data (instrument_id, trade_date, open_price, high_price, low_price, close_price, volume, vwap, source_feed, exchange_timestamp, created_at)
@@ -654,7 +654,7 @@ SELECT
     'bloomberg',
     gs + interval '16 hours',
     now()
-FROM generate_series('2024-01-02'::date, '2024-01-31'::date, '1 day'::interval) AS gs
+FROM generate_series('2025-07-01'::date, '2025-07-31'::date, '1 day'::interval) AS gs
 WHERE EXTRACT(DOW FROM gs) NOT IN (0, 6);
 ```
 
@@ -678,7 +678,7 @@ SELECT
     (random() * 0.3 + 0.6)::numeric(5,4),
     24,
     now()
-FROM generate_series('2024-01-02'::date, '2024-01-31'::date, '1 day'::interval) AS gs
+FROM generate_series('2025-07-01'::date, '2025-07-31'::date, '1 day'::interval) AS gs
 WHERE EXTRACT(DOW FROM gs) NOT IN (0, 6);
 ```
 
@@ -895,7 +895,7 @@ You have:
 - Created five application roles with appropriate privilege levels
 - Built a two-schema design (`quant` for trading data, `ops` for infrastructure)
 - Created seven tables in the `quant` schema and three in the `ops` schema
-- Created monthly range partitions for `market_data` and `signals` (2024)
+- Created monthly range partitions for `market_data` and `signals` (2025-07 through 2026-06)
 - Granted fine-grained permissions to each role
 - Loaded seed data and created performance indexes
 - Enabled `pg_stat_statements` for query monitoring

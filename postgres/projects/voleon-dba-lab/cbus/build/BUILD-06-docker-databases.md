@@ -194,7 +194,7 @@ docker run -d \
   --restart unless-stopped \
   -e POSTGRES_PASSWORD=docker_pg_2026 \
   -p 5433:5432 \
-  -v pg_data:/var/lib/postgresql/data \
+  -v pg_docker_data:/var/lib/postgresql/data \
   postgres:17
 ```
 
@@ -204,7 +204,7 @@ docker run -d \
 - `--restart unless-stopped` - Docker automatically restarts this container if it crashes or if the server reboots, unless you explicitly stop it with `docker stop`.
 - `-e POSTGRES_PASSWORD=docker_pg_2026` - Sets an environment variable inside the container. The official PostgreSQL image reads this to set the `postgres` superuser password.
 - `-p 5433:5432` - Maps port 5433 on the host to port 5432 inside the container. Format is `host_port:container_port`. We use 5433 to avoid conflicting with any local PostgreSQL.
-- `-v pg_data:/var/lib/postgresql/data` - Mounts a named Docker volume at the path where PostgreSQL stores its data files. Named volumes persist even if you remove the container.
+- `-v pg_docker_data:/var/lib/postgresql/data` - Mounts a named Docker volume at the path where PostgreSQL stores its data files. Named volumes persist even if you remove the container.
 - `postgres:17` - The image name and tag. Docker pulls this from Docker Hub if not already cached locally.
 
 Expected output (yours will differ):
@@ -262,13 +262,13 @@ docker run -d \
   --restart unless-stopped \
   -e MYSQL_ROOT_PASSWORD=docker_mysql_2026 \
   -p 3306:3306 \
-  -v mysql_data:/var/lib/mysql \
+  -v mysql_docker_data:/var/lib/mysql \
   mysql:latest
 ```
 
 - `-e MYSQL_ROOT_PASSWORD=docker_mysql_2026` - The MySQL image reads this variable to set the root password on first start.
 - `-p 3306:3306` - Maps MySQL's default port on the host to the container. No offset needed since we have no local MySQL installation.
-- `-v mysql_data:/var/lib/mysql` - Named volume for MySQL data files.
+- `-v mysql_docker_data:/var/lib/mysql` - Named volume for MySQL data files.
 
 Expected output (yours will differ):
 ```
@@ -510,8 +510,8 @@ docker volume ls
 Expected output (yours will differ):
 ```
 DRIVER    VOLUME NAME
-local     mysql_data
-local     pg_data
+local     mysql_docker_data
+local     pg_docker_data
 ```
 
 ---
@@ -598,8 +598,8 @@ All three containers should show `Up` in the STATUS column.
 
 You now have a container host running:
 
-- **PostgreSQL 17** in Docker on port 5433 with data persisted to a named volume `pg_data`
-- **MySQL 9** in Docker on port 3306 with data persisted to a named volume `mysql_data`
+- **PostgreSQL 17** in Docker on port 5433 with data persisted to a named volume `pg_docker_data`
+- **MySQL 9** in Docker on port 3306 with data persisted to a named volume `mysql_docker_data`
 - **Redis 7** in Docker on port 6380 with password authentication
 - **Python data tools** - pyarrow and duckdb installed and verified
 - **Podman** installed as an alternative container runtime
