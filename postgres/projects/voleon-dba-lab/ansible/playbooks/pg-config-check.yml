@@ -1,0 +1,38 @@
+---
+# pg-config-check.yml - Compare running PG config against expected values
+- name: Check PostgreSQL configuration
+  hosts: pg_servers
+  become: true
+
+  vars:
+    expected_config:
+      shared_buffers: "512MB"
+      max_connections: "200"
+      wal_level: "replica"
+      max_wal_senders: "5"
+      max_replication_slots: "5"
+      hot_standby: "on"
+      archive_mode: "on"
+      password_encryption: "scram-sha-256"
+      log_statement: "ddl"
+      logging_collector: "on"
+
+  tasks:
+    - name: Check each parameter
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT name, setting FROM pg_settings WHERE name = '{{ item.key }}';"
+      register: param_results
+      changed_when: false
+      loop: "{{ expected_config | dict2items }}"
+
+    - name: Compare expected vs actual
+      debug:
+        msg: >
+          {{ item.item.key }}:
+          expected={{ item.item.value }},
+          actual={{ item.stdout | trim | regex_replace('.*\|\\s*', '') }}
+          {{ 'MATCH' if item.item.value in item.stdout else 'DRIFT DETECTED' }}
+      loop: "{{ param_results.results }}"
+      loop_control:
+        label: "{{ item.item.key }}"

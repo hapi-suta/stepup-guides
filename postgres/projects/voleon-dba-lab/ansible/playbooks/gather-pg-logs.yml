@@ -1,0 +1,28 @@
+---
+# gather-pg-logs.yml - Collect recent PostgreSQL log entries from all PG servers
+- name: Gather PostgreSQL logs
+  hosts: pg_servers
+  become: true
+
+  vars:
+    log_dir: "{{ pg_data }}/log"
+    lines: 50
+
+  tasks:
+    - name: Find the latest log file
+      shell: ls -t {{ log_dir }}/postgresql-*.log | head -1
+      register: latest_log
+      changed_when: false
+
+    - name: Display latest log file name
+      debug:
+        msg: "Latest log: {{ latest_log.stdout }}"
+
+    - name: Get last N lines from the log
+      command: tail -{{ lines }} {{ latest_log.stdout }}
+      register: log_content
+      changed_when: false
+
+    - name: Display log content
+      debug:
+        msg: "{{ log_content.stdout_lines }}"

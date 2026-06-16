@@ -1,0 +1,66 @@
+---
+# check-pg-status.yml - Gather PostgreSQL status from all PG servers
+- name: Check PostgreSQL status
+  hosts: pg_servers
+  become: true
+
+  tasks:
+    - name: Check PostgreSQL service status
+      systemd:
+        name: postgresql-17
+      register: pg_service
+
+    - name: Display service status
+      debug:
+        msg: "PostgreSQL is {{ pg_service.status.ActiveState }}"
+
+    - name: Get PostgreSQL version
+      command: sudo -u postgres {{ pg_bin }}/psql -t -c "SELECT version();"
+      register: pg_version_out
+      changed_when: false
+
+    - name: Display version
+      debug:
+        msg: "{{ pg_version_out.stdout | trim }}"
+
+    - name: Check if server is in recovery
+      command: sudo -u postgres {{ pg_bin }}/psql -t -c "SELECT pg_is_in_recovery();"
+      register: pg_recovery
+      changed_when: false
+
+    - name: Display recovery status
+      debug:
+        msg: "In recovery: {{ pg_recovery.stdout | trim }}"
+
+    - name: Get active connections
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT count(*) FROM pg_stat_activity WHERE state = 'active';"
+      register: pg_connections
+      changed_when: false
+
+    - name: Display connection count
+      debug:
+        msg: "Active connections: {{ pg_connections.stdout | trim }}"
+
+    - name: Get database sizes
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT datname, pg_size_pretty(pg_database_size(datname))
+         FROM pg_database WHERE datname NOT IN ('template0','template1')
+         ORDER BY pg_database_size(datname) DESC;"
+      register: pg_sizes
+      changed_when: false
+
+    - name: Display database sizes
+      debug:
+        msg: "{{ pg_sizes.stdout }}"
+
+    - name: Check disk usage on data directory
+      command: df -h {{ pg_data }}
+      register: disk_usage
+      changed_when: false
+
+    - name: Display disk usage
+      debug:
+        msg: "{{ disk_usage.stdout }}"

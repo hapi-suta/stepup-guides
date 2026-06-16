@@ -1,0 +1,64 @@
+---
+# rolling-reload.yml - Rolling PostgreSQL config reload (replica first, then primary)
+- name: Rolling PostgreSQL reload
+  hosts: pg_servers
+  become: true
+  serial: 1
+  order: reverse_sorted
+
+  tasks:
+    - name: Pre-check - verify PostgreSQL is running
+      command: sudo -u postgres {{ pg_bin }}/pg_isready -p 5432
+      register: pre_check
+      changed_when: false
+
+    - name: Display pre-check status
+      debug:
+        msg: "Pre-check: {{ pre_check.stdout }}"
+
+    - name: Pre-check - record current config timestamp
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT pg_conf_load_time();"
+      register: pre_conf_time
+      changed_when: false
+
+    - name: Reload PostgreSQL configuration
+      systemd:
+        name: postgresql-17
+        state: reloaded
+
+    - name: Wait for PostgreSQL to be ready after reload
+      command: sudo -u postgres {{ pg_bin }}/pg_isready -p 5432
+      register: post_check
+      retries: 5
+      delay: 2
+      until: post_check.rc == 0
+      changed_when: false
+
+    - name: Post-check - verify config was reloaded
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT pg_conf_load_time();"
+      register: post_conf_time
+      changed_when: false
+
+    - name: Display reload result
+      debug:
+        msg: >
+          Config reload on {{ inventory_hostname }}:
+          before={{ pre_conf_time.stdout | trim }},
+          after={{ post_conf_time.stdout | trim }}
+
+    - name: Post-check - verify replication still working (primary only)
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SELECT count(*) FROM pg_stat_replication WHERE state = 'streaming';"
+      register: repl_check
+      changed_when: false
+      when: pg_role == 'primary'
+
+    - name: Display replication check (primary only)
+      debug:
+        msg: "Streaming replicas: {{ repl_check.stdout | trim }}"
+      when: pg_role == 'primary'

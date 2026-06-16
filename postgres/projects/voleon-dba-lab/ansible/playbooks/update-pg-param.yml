@@ -1,0 +1,62 @@
+---
+# update-pg-param.yml - Update a PostgreSQL parameter with rolling reload
+# Usage: ansible-playbook playbooks/update-pg-param.yml -e "param=work_mem value=8MB"
+- name: Update PostgreSQL parameter
+  hosts: pg_servers
+  become: true
+  serial: 1
+  order: reverse_sorted
+
+  vars:
+    pg_conf: "{{ pg_data }}/postgresql.conf"
+
+  tasks:
+    - name: Validate required variables
+      assert:
+        that:
+          - param is defined
+          - value is defined
+        fail_msg: "Usage: -e 'param=PARAM_NAME value=NEW_VALUE'"
+
+    - name: Pre-check - get current value
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SHOW {{ param }};"
+      register: current_value
+      changed_when: false
+
+    - name: Display current value
+      debug:
+        msg: "{{ inventory_hostname }}: {{ param }} = {{ current_value.stdout | trim }} (changing to {{ value }})"
+
+    - name: Update parameter in postgresql.conf
+      lineinfile:
+        path: "{{ pg_conf }}"
+        regexp: "^#?{{ param }}\\s*="
+        line: "{{ param }} = '{{ value }}'"
+        owner: postgres
+        group: postgres
+
+    - name: Reload PostgreSQL
+      systemd:
+        name: postgresql-17
+        state: reloaded
+
+    - name: Wait for PostgreSQL to be ready
+      command: sudo -u postgres {{ pg_bin }}/pg_isready -p 5432
+      retries: 5
+      delay: 2
+      register: ready_check
+      until: ready_check.rc == 0
+      changed_when: false
+
+    - name: Post-check - verify new value
+      command: >
+        sudo -u postgres {{ pg_bin }}/psql -t -c
+        "SHOW {{ param }};"
+      register: new_value
+      changed_when: false
+
+    - name: Display result
+      debug:
+        msg: "{{ inventory_hostname }}: {{ param }} changed from {{ current_value.stdout | trim }} to {{ new_value.stdout | trim }}"

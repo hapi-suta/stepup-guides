@@ -1,0 +1,25 @@
+---
+# disk-check.yml - Check disk space on all nodes
+- name: Check disk space
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Get disk usage
+      command: df -h
+      register: disk_output
+      changed_when: false
+
+    - name: Display disk usage
+      debug:
+        msg: "{{ disk_output.stdout_lines }}"
+
+    - name: Check for partitions over 80% usage
+      shell: df -h | awk 'NR>1 && int($5) > 80 {print $0}'
+      register: high_usage
+      changed_when: false
+
+    - name: Warn on high disk usage
+      debug:
+        msg: "WARNING - High disk usage detected: {{ high_usage.stdout_lines }}"
+      when: high_usage.stdout | length > 0
