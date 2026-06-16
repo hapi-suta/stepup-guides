@@ -26,18 +26,28 @@ DEFAULT_STANZA         = "voleon-lab"
 WARN_FULL_HOURS        = 24
 WARN_DIFF_HOURS        = 6
 PGBACKREST_BIN         = "/usr/bin/pgbackrest"
+DEFAULT_SSH_HOST       = "172.31.19.86"
+DEFAULT_SSH_USER       = "ec2-user"
+DEFAULT_SSH_KEY        = "~/.ssh/id_ed25519"
 
 
 def indicator(status: str) -> str:
     return {"PASS": "[ PASS ]", "WARN": "[ WARN ]", "FAIL": "[ FAIL ]"}.get(status, "[ INFO ]")
 
 
-def run_pgbackrest(stanza: str) -> dict:
-    cmd = [PGBACKREST_BIN, "--stanza", stanza, "info", "--output=json"]
+def run_pgbackrest(stanza: str, ssh_host: str = None, ssh_user: str = None, ssh_key: str = None) -> dict:
+    if ssh_host:
+        ssh_opts = f"-o StrictHostKeyChecking=no -o ConnectTimeout=10"
+        if ssh_key:
+            ssh_opts += f" -i {ssh_key}"
+        remote_cmd = f"sudo -u postgres pgbackrest --stanza={stanza} info --output=json"
+        cmd = ["ssh"] + ssh_opts.split() + [f"{ssh_user}@{ssh_host}", remote_cmd]
+    else:
+        cmd = [PGBACKREST_BIN, "--stanza", stanza, "info", "--output=json"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except FileNotFoundError:
-        print(f"ERROR: pgbackrest not found at {PGBACKREST_BIN}")
+        print(f"ERROR: pgbackrest not found at {PGBACKREST_BIN}. Use --ssh-host to run remotely.")
         sys.exit(1)
     except subprocess.TimeoutExpired:
         print("ERROR: pgbackrest info timed out after 30 seconds")
@@ -56,12 +66,15 @@ def run_pgbackrest(stanza: str) -> dict:
         sys.exit(1)
 
 
-def age_hours(timestamp_str: str) -> float:
-    """Return age in hours given an ISO-8601 or pgBackRest timestamp string."""
+def age_hours(timestamp_val) -> float:
+    """Return age in hours given an epoch int, ISO-8601 string, or pgBackRest timestamp."""
+    now = datetime.now(tz=timezone.utc)
+    if isinstance(timestamp_val, (int, float)):
+        dt = datetime.fromtimestamp(timestamp_val, tz=timezone.utc)
+        return (now - dt).total_seconds() / 3600
     for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
         try:
-            dt = datetime.strptime(timestamp_str, fmt).replace(tzinfo=timezone.utc)
-            now = datetime.now(tz=timezone.utc)
+            dt = datetime.strptime(str(timestamp_val), fmt).replace(tzinfo=timezone.utc)
             return (now - dt).total_seconds() / 3600
         except ValueError:
             continue
@@ -87,8 +100,10 @@ def report_backup(backup: dict, btype: str, warn_hours: float) -> None:
     status = "WARN" if age > warn_hours else "PASS"
     print(f"  {indicator(status)} Last {btype.upper():4s} backup")
     print(f"           Label      : {label}")
-    print(f"           Start      : {start_time}")
-    print(f"           Stop       : {stop_time}")
+    fmt_start = datetime.fromtimestamp(start_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC") if isinstance(start_time, (int, float)) else start_time
+    fmt_stop = datetime.fromtimestamp(stop_time, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC") if isinstance(stop_time, (int, float)) else stop_time
+    print(f"           Start      : {fmt_start}")
+    print(f"           Stop       : {fmt_stop}")
     print(f"           Age        : {age:.1f} hours  (warn > {warn_hours}h)")
     print(f"           DB size    : {bytes_human(size_db)}")
     print(f"           Repo size  : {bytes_human(size_repo)}")
@@ -101,6 +116,12 @@ def parse_args():
                    help="Warn if last FULL backup is older than N hours (default 24)")
     p.add_argument("--diff-warn-hours", type=float, default=WARN_DIFF_HOURS,
                    help="Warn if last DIFF backup is older than N hours (default 6)")
+    p.add_argument("--ssh-host",       default=DEFAULT_SSH_HOST,
+                   help="Run pgbackrest via SSH on this host (default: primary)")
+    p.add_argument("--ssh-user",       default=DEFAULT_SSH_USER)
+    p.add_argument("--ssh-key",        default=DEFAULT_SSH_KEY)
+    p.add_argument("--local",          action="store_true",
+                   help="Run pgbackrest locally instead of via SSH")
     return p.parse_args()
 
 
@@ -112,7 +133,10 @@ def main():
     print(f"  Stanza: {args.stanza}  |  {now}")
     print("=" * 60)
 
-    data = run_pgbackrest(args.stanza)
+    if args.local:
+        data = run_pgbackrest(args.stanza)
+    else:
+        data = run_pgbackrest(args.stanza, args.ssh_host, args.ssh_user, args.ssh_key)
 
     if not data:
         print("  [ INFO ] No stanza data returned by pgbackrest")
