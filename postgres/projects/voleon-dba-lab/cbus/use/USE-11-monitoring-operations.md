@@ -195,7 +195,7 @@ On **pg-ops**, as **ec2-user**:
 
 ```bash
 curl -s http://localhost:9090/api/v1/query \
-  --data-urlencode 'query=pg_replication_lag' \
+  --data-urlencode 'query=pg_replication_lag_seconds' \
   | python3 -m json.tool
 ```
 
@@ -287,7 +287,7 @@ On **pg-ops**, as **ec2-user**:
 
 ```bash
 curl -s http://localhost:9090/api/v1/query \
-  --data-urlencode 'query=rate(pg_wal_stat_wal_bytes[5m])' \
+  --data-urlencode 'query=rate(pg_stat_replication_pg_current_wal_lsn_bytes[5m])' \
   | python3 -m json.tool
 ```
 
@@ -386,7 +386,7 @@ groups:
 
       # Rule 3: WAL generation rate above 50MB/s
       - alert: WALGenerationHigh
-        expr: rate(pg_wal_stat_wal_bytes[5m]) > 52428800
+        expr: rate(pg_stat_replication_pg_current_wal_lsn_bytes[5m]) > 52428800
         for: 5m
         labels:
           severity: warning
@@ -416,7 +416,7 @@ groups:
       # If archiver has stopped or failed, archive_count stops incrementing.
       - alert: BackupStale
         expr: >
-          time() - pg_stat_archiver_last_archived_time > 86400
+          pg_stat_archiver_last_archive_age > 86400
         for: 10m
         labels:
           severity: critical
@@ -568,7 +568,7 @@ Expected output (yours will differ):
 [
     {
         "id": 1,
-        "uid": "prometheus",
+        "uid": "dfpkj7ljqzfnka",
         "name": "Prometheus",
         "type": "prometheus",
         "url": "http://localhost:9090",
@@ -606,7 +606,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
           "name": "instance",
           "label": "PG Instance",
           "type": "query",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
           "query": "label_values(pg_up, instance)",
           "refresh": 2,
           "multi": false,
@@ -621,7 +621,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "Active Connections",
         "type": "stat",
         "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
             "expr": "sum(pg_stat_activity_count{datname=\"quantdb\", state=\"active\", instance=~\"$instance\"})",
@@ -650,7 +650,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "Transaction Rate (commits/s and rollbacks/s)",
         "type": "timeseries",
         "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
             "expr": "rate(pg_stat_database_xact_commit{datname=\"quantdb\", instance=~\"$instance\"}[5m])",
@@ -675,7 +675,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "Cache Hit Ratio",
         "type": "gauge",
         "gridPos": { "h": 4, "w": 6, "x": 0, "y": 4 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
             "expr": "pg_stat_database_blks_hit{datname=\"quantdb\", instance=~\"$instance\"} / (pg_stat_database_blks_hit{datname=\"quantdb\", instance=~\"$instance\"} + pg_stat_database_blks_read{datname=\"quantdb\", instance=~\"$instance\"}) * 100",
@@ -706,10 +706,10 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "Replication Lag (bytes behind primary)",
         "type": "timeseries",
         "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
-            "expr": "pg_replication_lag",
+            "expr": "pg_replication_lag_seconds",
             "legendFormat": "Lag (seconds) - {{instance}}",
             "refId": "A"
           }
@@ -734,7 +734,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "Top Databases by Size",
         "type": "table",
         "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
             "expr": "topk(10, pg_database_size_bytes{instance=~\"$instance\"})",
@@ -759,7 +759,7 @@ Press `i` to enter insert mode and type the following. This creates a six-panel 
         "title": "CPU and Memory",
         "type": "timeseries",
         "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "targets": [
           {
             "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\", instance=~\"172.31.19.86:9100|172.31.22.69:9100\"}[5m])) * 100)",
@@ -1063,7 +1063,7 @@ Expected output (yours will differ):
 
 The target is now `"health": "down"`. Prometheus is recording the failure.
 
-Check if a `PostgresDown` alert (or similar) is in pending state:
+Check if a `PostgreSQLDown` alert (or similar) is in pending state:
 
 ```bash
 curl -s http://localhost:9090/api/v1/alerts \
@@ -1076,7 +1076,7 @@ Expected output (yours will differ):
 ```json
 {
     "labels": {
-        "alertname": "PostgresDown",
+        "alertname": "PostgreSQLDown",
         "instance": "172.31.19.86:9187",
         "severity": "critical"
     },
@@ -1103,7 +1103,7 @@ Expected output (yours will differ):
 ```json
 {
     "labels": {
-        "alertname": "PostgresDown",
+        "alertname": "PostgreSQLDown",
         "instance": "172.31.19.86:9187",
         "severity": "critical"
     },
@@ -1119,7 +1119,7 @@ You can also check the Prometheus alerts page in your browser at:
 http://34.228.32.17:9090/alerts
 ```
 
-Look for the `PostgresDown` alert highlighted in red.
+Look for the `PostgreSQLDown` alert highlighted in red.
 
 ### Step 5.4: Check Alertmanager Has Received the Alert
 
@@ -1135,7 +1135,7 @@ Expected output (yours will differ):
 [
     {
         "labels": {
-            "alertname": "PostgresDown",
+            "alertname": "PostgreSQLDown",
             "instance": "172.31.19.86:9187",
             "severity": "critical"
         },
@@ -1167,7 +1167,7 @@ curl -s -X POST http://localhost:9093/api/v2/silences \
     "matchers": [
       {
         "name": "alertname",
-        "value": "PostgresDown",
+        "value": "PostgreSQLDown",
         "isRegex": false,
         "isEqual": true
       },
@@ -1277,7 +1277,7 @@ Expected output (yours will differ):
 0
 ```
 
-Zero firing alerts means the PostgresDown alert has resolved.
+Zero firing alerts means the PostgreSQLDown alert has resolved.
 
 ### Step 5.8: Expire the Working Silence
 
@@ -1312,7 +1312,7 @@ Title: postgres_exporter Down on pg-primary
 Timeline:
 - 02:47:00 UTC - postgres_exporter stopped (simulated)
 - 02:47:30 UTC - Prometheus scrape fails, target marked "down"
-- 02:48:00 UTC - PostgresDown alert transitions to "pending"
+- 02:48:00 UTC - PostgreSQLDown alert transitions to "pending"
 - 02:50:00 UTC - Alert transitions to "firing", Alertmanager notified
 - 02:51:00 UTC - On-call DBA acknowledged alert, created 30m silence
 - 02:51:30 UTC - SSH to pg-primary, checked journalctl logs

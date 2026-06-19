@@ -567,14 +567,19 @@ Checkpoints per minute (timed - triggered by checkpoint_timeout):
 rate(pg_stat_bgwriter_checkpoints_timed_total[5m]) * 60
 ```
 
-Checkpoints per minute (requested - triggered by max_wal_size being exceeded):
+Background writer buffer cleaning rate:
 ```
-rate(pg_stat_bgwriter_checkpoints_req_total[5m]) * 60
+rate(pg_stat_bgwriter_buffers_clean_total[5m])
 ```
 
-**What it measures:** How often PostgreSQL is flushing dirty buffers to disk. Timed checkpoints are healthy and expected. Requested checkpoints happen when WAL generation outpaces the checkpoint interval - a sign of a write-heavy workload exceeding your configuration.
+Background writer maxpages limit hits (indicates bgwriter cannot keep up):
+```
+rate(pg_stat_bgwriter_maxwritten_clean_total[5m])
+```
 
-**What to watch for:** If requested checkpoints outnumber timed checkpoints, increase `max_wal_size` and consider tuning `checkpoint_completion_target` to 0.9. Frequent checkpoints cause I/O spikes that compete with query execution.
+**What it measures:** How actively the background writer is cleaning dirty buffers. `buffers_clean_total` shows the rate of buffer writes. `maxwritten_clean_total` counts how often the bgwriter stopped because it hit the `bgwriter_lru_maxpages` limit - a sign it cannot keep up with the write load.
+
+**What to watch for:** If `maxwritten_clean_total` is increasing, consider raising `bgwriter_lru_maxpages` or `bgwriter_lru_multiplier`. This reduces the I/O burden on checkpoints.
 
 ---
 

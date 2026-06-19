@@ -10,7 +10,7 @@
 
 By the end of this guide you will have:
 
-- Alertmanager 0.27.0 installed and running on pg-ops at port 9093
+- Alertmanager 0.28.1 installed and running on pg-ops at port 9093
 - A routing tree that sends critical alerts to one receiver and warning alerts to another
 - 10 alert rules covering PostgreSQL health, replication lag, connections, disk, CPU, and node availability
 - Recording rules that pre-compute expensive queries for faster dashboards
@@ -97,35 +97,35 @@ cd /opt/prometheus
 
 ### Step 3: Download Alertmanager
 
-This downloads the Alertmanager 0.27.0 binary for Linux amd64 from the official GitHub releases page.
+This downloads the Alertmanager 0.28.1 binary for Linux amd64 from the official GitHub releases page.
 
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+sudo wget https://github.com/prometheus/alertmanager/releases/download/v0.28.1/alertmanager-0.28.1.linux-amd64.tar.gz
 ```
 
 Expected output (yours will differ):
 ```
---2026-06-18 14:22:10--  https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz
+--2026-06-18 14:22:10--  https://github.com/prometheus/alertmanager/releases/download/v0.28.1/alertmanager-0.28.1.linux-amd64.tar.gz
 Resolving github.com... 140.82.114.4
 Connecting to github.com|140.82.114.4|:443... connected.
 HTTP request sent, awaiting response... 302 Found
 Location: https://objects.githubusercontent.com/...
 HTTP request sent, awaiting response... 200 OK
 Length: 36254892 (35M) [application/octet-stream]
-Saving to: 'alertmanager-0.27.0.linux-amd64.tar.gz'
-alertmanager-0.27.0.linux-amd64.tar.gz    100%[=====>]  34.57M  ...
+Saving to: 'alertmanager-0.28.1.linux-amd64.tar.gz'
+alertmanager-0.28.1.linux-amd64.tar.gz    100%[=====>]  34.57M  ...
 ```
 
 ### Step 4: Extract the archive
 
-This unpacks the tarball into a folder named `alertmanager-0.27.0.linux-amd64/`.
+This unpacks the tarball into a folder named `alertmanager-0.28.1.linux-amd64/`.
 
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo tar -xzf alertmanager-0.27.0.linux-amd64.tar.gz
+sudo tar -xzf alertmanager-0.28.1.linux-amd64.tar.gz
 ```
 
 ### Step 5: Rename the extracted folder
@@ -135,7 +135,7 @@ This renames the folder to a cleaner name without the OS suffix.
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo mv alertmanager-0.27.0.linux-amd64 alertmanager-0.27.0
+sudo mv alertmanager-0.28.1.linux-amd64 alertmanager-0.28.1
 ```
 
 ### Step 6: Create a symlink
@@ -145,7 +145,7 @@ The symlink lets you upgrade Alertmanager later by pointing the symlink to a new
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo ln -s /opt/prometheus/alertmanager-0.27.0 /opt/prometheus/alertmanager
+sudo ln -s /opt/prometheus/alertmanager-0.28.1 /opt/prometheus/alertmanager
 ```
 
 ### Step 7: Verify the symlink
@@ -158,8 +158,8 @@ ls -la /opt/prometheus/ | grep alertmanager
 
 Expected output (yours will differ):
 ```
-lrwxrwxrwx 1 root root   41 Jun 18 14:25 alertmanager -> /opt/prometheus/alertmanager-0.27.0
-drwxr-xr-x 4 root root 4096 Jun 18 14:24 alertmanager-0.27.0
+lrwxrwxrwx 1 root root   41 Jun 18 14:25 alertmanager -> /opt/prometheus/alertmanager-0.28.1
+drwxr-xr-x 4 root root 4096 Jun 18 14:24 alertmanager-0.28.1
 ```
 
 ### Step 8: Create the data directory
@@ -179,7 +179,7 @@ The prometheus OS user (which runs the service) needs read/write access to this 
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo chown -R prometheus:prometheus /opt/prometheus/alertmanager-0.27.0
+sudo chown -R prometheus:prometheus /opt/prometheus/alertmanager-0.28.1
 sudo chown -R prometheus:prometheus /opt/prometheus/alertmanager-data
 sudo chown -R prometheus:prometheus /opt/prometheus/alertmanager
 ```
@@ -189,7 +189,7 @@ sudo chown -R prometheus:prometheus /opt/prometheus/alertmanager
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-sudo rm /opt/prometheus/alertmanager-0.27.0.linux-amd64.tar.gz
+sudo rm /opt/prometheus/alertmanager-0.28.1.linux-amd64.tar.gz
 ```
 
 ### Step 11: Create a placeholder config file
@@ -246,7 +246,7 @@ After=network-online.target
 Type=simple
 User=prometheus
 Group=prometheus
-ExecStart=/opt/prometheus/alertmanager/alertmanager \
+ExecStart=/opt/prometheus/alertmanager \
     --config.file=/opt/prometheus/alertmanager.yml \
     --storage.path=/opt/prometheus/alertmanager-data \
     --web.listen-address=0.0.0.0:9093 \
@@ -306,7 +306,7 @@ alertmanager.service - Alertmanager
      Memory: 14.2M
         CPU: 89ms
      CGroup: /system.slice/alertmanager.service
-             └─18345 /opt/prometheus/alertmanager/alertmanager ...
+             └─18345 /opt/prometheus/alertmanager ...
 ```
 
 ### Step 15: Verify the web UI is reachable
@@ -447,7 +447,7 @@ Alertmanager ships with `amtool` for checking configs before applying them.
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool check-config /opt/prometheus/alertmanager.yml
+/opt/prometheus/amtool check-config /opt/prometheus/alertmanager.yml
 ```
 
 Expected output:
@@ -571,7 +571,7 @@ groups:
       # ----------------------------------------------------------------
       - alert: TooManyConnections
         expr: >
-          (pg_stat_activity_count / pg_settings_max_connections) > 0.8
+          (sum by (instance) (pg_stat_activity_count) / pg_settings_max_connections) > 0.8
         for: 5m
         labels:
           severity: warning
@@ -667,7 +667,7 @@ groups:
       # This catches complete node failures, not just PostgreSQL failures.
       # ----------------------------------------------------------------
       - alert: NodeDown
-        expr: up{job="node_exporter"} == 0
+        expr: up{job="node"} == 0
         for: 1m
         labels:
           severity: critical
@@ -677,22 +677,22 @@ groups:
           runbook: "Try to ping the instance. Check AWS console for instance state. If node is up but port 9100 is blocked, check security group rules."
 
       # ----------------------------------------------------------------
-      # Rule 10: CheckpointsTooFrequent
-      # pg_stat_bgwriter_checkpoints_req_total counts checkpoints that
-      # were triggered because WAL filled up (not by the scheduler).
-      # Requested checkpoints mean max_wal_size is too small for the
-      # write load. More than 1 per minute average is a warning.
+      # Rule 10: BgwriterMaxwrittenClean
+      # pg_stat_bgwriter_maxwritten_clean_total counts how many times
+      # the background writer stopped its cleaning scan because it had
+      # already written bgwriter_lru_maxpages buffers. A rising counter
+      # means the background writer cannot keep up with dirty pages.
       # ----------------------------------------------------------------
-      - alert: CheckpointsTooFrequent
+      - alert: BgwriterMaxwrittenClean
         expr: >
-          rate(pg_stat_bgwriter_checkpoints_req_total[5m]) * 60 > 1
+          rate(pg_stat_bgwriter_maxwritten_clean_total[5m]) > 0
         for: 10m
         labels:
           severity: warning
         annotations:
-          summary: "Checkpoints too frequent on {{ $labels.instance }}"
-          description: "PostgreSQL on {{ $labels.instance }} is writing more than 1 requested checkpoint per minute. This indicates max_wal_size may be too small."
-          runbook: "Check pg_stat_bgwriter. Consider increasing max_wal_size in postgresql.conf (requires reload, not restart). Also review checkpoint_completion_target."
+          summary: "Background writer hitting maxpages limit on {{ $labels.instance }}"
+          description: "PostgreSQL background writer on {{ $labels.instance }} is repeatedly hitting the bgwriter_lru_maxpages limit. Consider increasing bgwriter_lru_maxpages or bgwriter_lru_multiplier."
+          runbook: "Check pg_stat_bgwriter. Consider increasing bgwriter_lru_maxpages in postgresql.conf (requires reload)."
 ```
 
 Save and exit.
@@ -745,7 +745,7 @@ Important: only add the `alerting` and `rule_files` sections. Do not remove or c
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/prometheus/promtool check rules /opt/prometheus/alert_rules.yml
+/opt/prometheus/promtool check rules /opt/prometheus/alert_rules.yml
 ```
 
 Expected output:
@@ -761,7 +761,7 @@ If you see errors, the output will point to the specific line. Fix the indentati
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/prometheus/promtool check config /opt/prometheus/prometheus.yml
+/opt/prometheus/promtool check config /opt/prometheus/prometheus.yml
 ```
 
 Expected output:
@@ -1016,7 +1016,7 @@ groups:
       # needing to know max_connections at query time.
       - record: pg:connections_usage:ratio
         expr: >
-          pg_stat_activity_count / pg_settings_max_connections
+          sum by (instance) (pg_stat_activity_count) / pg_settings_max_connections
 
       # Pre-compute replication lag in bytes under a cleaner metric name.
       # Alert rules and dashboards reference this instead of the raw
@@ -1039,7 +1039,7 @@ sudo chown prometheus:prometheus /opt/prometheus/recording_rules.yml
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/prometheus/promtool check rules /opt/prometheus/recording_rules.yml
+/opt/prometheus/promtool check rules /opt/prometheus/recording_rules.yml
 ```
 
 Expected output:
@@ -1126,7 +1126,7 @@ This re-validates the config file and shows a summary of what was loaded.
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool check-config /opt/prometheus/alertmanager.yml
+/opt/prometheus/amtool check-config /opt/prometheus/alertmanager.yml
 ```
 
 Expected output:
@@ -1141,7 +1141,7 @@ Found inhibit rules: 1
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool --alertmanager.url=http://localhost:9093 alert
+/opt/prometheus/amtool --alertmanager.url=http://localhost:9093 alert
 ```
 
 When no alerts are firing, the output will be empty. When alerts are firing, you will see a table like:
@@ -1158,7 +1158,7 @@ This is the CLI equivalent of the silence you created in the UI. It is useful fo
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool \
+/opt/prometheus/amtool \
   --alertmanager.url=http://localhost:9093 \
   silence add \
   --author="ec2-user" \
@@ -1179,7 +1179,7 @@ b3f8a7c2-1234-5678-abcd-ef0123456789
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool \
+/opt/prometheus/amtool \
   --alertmanager.url=http://localhost:9093 \
   silence query
 ```
@@ -1197,7 +1197,7 @@ Use the silence ID from the list above.
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-/opt/prometheus/alertmanager/amtool \
+/opt/prometheus/amtool \
   --alertmanager.url=http://localhost:9093 \
   silence expire b3f8a7c2-1234-5678-abcd-ef0123456789
 ```

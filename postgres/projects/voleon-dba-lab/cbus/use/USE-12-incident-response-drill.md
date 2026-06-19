@@ -96,7 +96,7 @@ Still on **pg-ops**, as **ec2-user**:
 Check the current replication lag value:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=pg_replication_lag' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=pg_replication_lag_seconds' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -152,7 +152,7 @@ Expected output (yours will differ):
 Check the trend over the last 10 minutes to see if lag is growing or stable:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=deriv(pg_replication_lag[10m])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=deriv(pg_replication_lag_seconds[10m])' | python3 -m json.tool
 ```
 
 `deriv()` returns the per-second rate of change. A positive value means lag is growing. A negative value means lag is shrinking (recovery). A value near 0 means lag is stable.
@@ -333,13 +333,13 @@ On **pg-ops**, as **ec2-user**:
 Check CPU usage on the replica around the alert start time. Use a range query to look at the last 30 minutes:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query_range?query=100-(avg+by(instance)(rate(node_cpu_seconds_total{instance="172.31.22.69:9100",mode="idle"}[5m]))*100)&start=now-30m&end=now&step=60' | python3 -m json.tool | grep -A3 '"values"'
+curl -s 'http://localhost:9090/api/v1/query_range?query=100-(avg+by(instance)(rate(node_cpu_seconds_total{instance="172.31.22.69:9100",mode="idle"}[5m]))*100)&start=$(date -u -d '30 minutes ago' +%s)&end=$(date -u +%s)&step=60' | python3 -m json.tool | grep -A3 '"values"'
 ```
 
 Check I/O wait on the replica. High I/O wait means the disk is the bottleneck:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query_range?query=rate(node_cpu_seconds_total{instance="172.31.22.69:9100",mode="iowait"}[5m])&start=now-30m&end=now&step=60' | python3 -m json.tool | grep -A3 '"values"'
+curl -s 'http://localhost:9090/api/v1/query_range?query=rate(node_cpu_seconds_total{instance="172.31.22.69:9100",mode="iowait"}[5m])&start=$(date -u -d '30 minutes ago' +%s)&end=$(date -u +%s)&step=60' | python3 -m json.tool | grep -A3 '"values"'
 ```
 
 Expected output (yours will differ):
@@ -476,7 +476,7 @@ Poll the replication lag every 15 seconds for 2 minutes to watch it change:
 ```bash
 for i in $(seq 1 8); do
   echo "--- Check $i at $(date +%H:%M:%S) ---"
-  curl -s 'http://localhost:9090/api/v1/query?query=pg_replication_lag' | python3 -c "import sys,json; data=json.load(sys.stdin); [print(r['metric'].get('instance','?'), '->', r['value'][1]+'s') for r in data['data']['result']]"
+  curl -s 'http://localhost:9090/api/v1/query?query=pg_replication_lag_seconds' | python3 -c "import sys,json; data=json.load(sys.stdin); [print(r['metric'].get('instance','?'), '->', r['value'][1]+'s') for r in data['data']['result']]"
   sleep 15
 done
 ```
@@ -587,15 +587,15 @@ ssh -i ~/.ssh/id_ed25519 ec2-user@34.228.32.17
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=increase(pg_wal_directory_size_bytes{instance="172.31.19.86:9187"}[24h])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=increase(pg_stat_replication_pg_stat_replication_pg_current_wal_lsn_bytes{instance="172.31.19.86:9187"}[24h])' | python3 -m json.tool
 ```
 
-`increase()` returns the total increase of a gauge or counter over the given time range. Here it shows how many bytes the WAL directory grew in the last 24 hours. This is an approximation - WAL files are recycled, so `pg_wal_directory_size_bytes` may not grow linearly.
+`increase()` returns the total increase of a gauge or counter over the given time range. Here it shows how many bytes the WAL directory grew in the last 24 hours. This is an approximation - WAL files are recycled, so `pg_stat_replication_pg_stat_replication_pg_current_wal_lsn_bytes` may not grow linearly.
 
 A more accurate approach is to use the LSN position counter:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=increase(pg_current_wal_lsn_bytes{instance="172.31.19.86:9187"}[24h])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=increase(pg_stat_replication_pg_current_wal_lsn_bytes{instance="172.31.19.86:9187"}[24h])' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -1047,7 +1047,7 @@ On **pg-ops**, as **ec2-user**:
 Check WAL directory size:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=pg_wal_directory_size_bytes{instance="172.31.19.86:9187"}' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=pg_stat_replication_pg_stat_replication_pg_current_wal_lsn_bytes{instance="172.31.19.86:9187"}' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -1068,7 +1068,7 @@ Expected output (yours will differ):
 `3221225472` bytes is 3 GB of WAL. Check if this is growing:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=deriv(pg_wal_directory_size_bytes{instance="172.31.19.86:9187"}[30m])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=deriv(pg_stat_replication_pg_stat_replication_pg_current_wal_lsn_bytes{instance="172.31.19.86:9187"}[30m])' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -1317,7 +1317,7 @@ Copy to Prometheus and reload:
 
 ```bash
 sudo cp /tmp/disk_recording_rules.yml /opt/prometheus/disk_recording_rules.yml
-sudo chown prometheus:prometheus /opt/prometheus/disk_recording_rules.yml
+sudo chown ec2-user:ec2-user /opt/prometheus/disk_recording_rules.yml
 ```
 
 Add to Prometheus config:
@@ -1391,7 +1391,7 @@ Timeouts can also come from queries waiting on locks for too long.
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=pg_stat_activity_count{datname="quantdb",wait_event_type="Lock",instance="172.31.19.86:9187"}' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=pg_locks_count{datname="quantdb",instance="172.31.19.86:9187"}' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -1401,7 +1401,7 @@ Expected output (yours will differ):
     "data": {
         "result": [
             {
-                "metric": { "datname": "quantdb", "wait_event_type": "Lock", "instance": "172.31.19.86:9187" },
+                "metric": { "datname": "quantdb", "mode": "accesssharelock", "instance": "172.31.19.86:9187" },
                 "value": [ 1750208534, "12" ]
             }
         ]
@@ -1412,7 +1412,7 @@ Expected output (yours will differ):
 12 connections are currently waiting on locks. That is significant. Check if this is elevated compared to the past hour:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=max_over_time(pg_stat_activity_count{datname="quantdb",wait_event_type="Lock",instance="172.31.19.86:9187"}[1h])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=max_over_time(pg_locks_count{datname="quantdb",instance="172.31.19.86:9187"}[1h])' | python3 -m json.tool
 ```
 
 If the max lock wait count is much higher than the current value, there were lock spikes earlier that correlate with the reported timeout window.
@@ -1420,7 +1420,7 @@ If the max lock wait count is much higher than the current value, there were loc
 To visualize the trend, open your browser and go to `http://34.228.32.17:9090/graph`. Run this query and set the time range to "Last 1 hour":
 
 ```
-pg_stat_activity_count{datname="quantdb", wait_event_type="Lock"}
+pg_locks_count{datname="quantdb"}
 ```
 
 Look for spikes that correlate with the time the application reported timeouts.
@@ -1549,7 +1549,7 @@ When the primary is under very high load, it sometimes cannot send WAL to the re
 On **pg-ops**, as **ec2-user**:
 
 ```bash
-curl -s 'http://localhost:9090/api/v1/query?query=max_over_time(pg_replication_lag[1h])' | python3 -m json.tool
+curl -s 'http://localhost:9090/api/v1/query?query=max_over_time(pg_replication_lag_seconds[1h])' | python3 -m json.tool
 ```
 
 Expected output (yours will differ):
@@ -1652,7 +1652,7 @@ Press `i` to enter insert mode and type:
             "refId": "B"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": { "defaults": { "unit": "short" } }
       },
       {
@@ -1662,12 +1662,12 @@ Press `i` to enter insert mode and type:
         "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
         "targets": [
           {
-            "expr": "pg_stat_activity_count{datname=\"quantdb\", wait_event_type=\"Lock\", instance=\"172.31.19.86:9187\"}",
+            "expr": "pg_locks_count{datname=\"quantdb\", instance=\"172.31.19.86:9187\"}",
             "legendFormat": "lock waiters",
             "refId": "A"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": {
           "defaults": {
             "unit": "short",
@@ -1694,7 +1694,7 @@ Press `i` to enter insert mode and type:
             "refId": "A"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": {
           "defaults": {
             "unit": "percent",
@@ -1723,7 +1723,7 @@ Press `i` to enter insert mode and type:
             "refId": "A"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": { "defaults": { "unit": "short" } }
       },
       {
@@ -1733,12 +1733,12 @@ Press `i` to enter insert mode and type:
         "gridPos": { "h": 6, "w": 8, "x": 8, "y": 6 },
         "targets": [
           {
-            "expr": "pg_replication_lag",
+            "expr": "pg_replication_lag_seconds",
             "legendFormat": "lag",
             "refId": "A"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": {
           "defaults": {
             "unit": "s",
@@ -1765,7 +1765,7 @@ Press `i` to enter insert mode and type:
             "refId": "A"
           }
         ],
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "datasource": { "type": "prometheus", "uid": "dfpkj7ljqzfnka" },
         "fieldConfig": {
           "defaults": {
             "unit": "percentunit",
