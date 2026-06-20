@@ -1,0 +1,133 @@
+============================================================
+BUILD-02: Create quantdb Schema and Load Data
+Test Date: 2026-06-20
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Check 1: quantdb database exists ---
+$ sudo -u postgres psql -t -c "SELECT datname FROM pg_database WHERE datname = 'quantdb';"
+ quantdb
+
+--- Check 2: schemas quant and ops exist ---
+$ sudo -u postgres psql -d quantdb -t -c "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('quant', 'ops') ORDER BY schema_name;"
+ ops
+ quant
+
+--- Check 3: Roles exist ---
+$ sudo -u postgres psql -t -c "SELECT rolname FROM pg_roles WHERE rolname IN ('quant_app', 'quant_research', 'quant_pipeline', 'quant_readonly', 'replicator') ORDER BY rolname;"
+ quant_app
+ quant_pipeline
+ quant_readonly
+ quant_research
+ replicator
+
+All 5 roles present.
+
+--- Check 4: Tables in quant schema ---
+$ sudo -u postgres psql -d quantdb -t -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'quant' ORDER BY table_name;"
+ backtests
+ instruments
+ market_data
+ market_data_2025_07
+ market_data_2025_08
+ market_data_2025_09
+ market_data_2025_10
+ market_data_2025_11
+ market_data_2025_12
+ market_data_2026_01
+ market_data_2026_02
+ market_data_2026_03
+ market_data_2026_04
+ market_data_2026_05
+ market_data_2026_06
+ model_features
+ models
+ positions
+ signals
+ signals_2025_07
+ signals_2025_08
+ signals_2025_09
+ signals_2025_10
+ signals_2025_11
+ signals_2025_12
+ signals_2026_01
+ signals_2026_02
+ signals_2026_03
+ signals_2026_04
+ signals_2026_05
+ signals_2026_06
+
+30 tables (includes partitioned parent + monthly child partitions for market_data and signals)
+
+--- Check 5: Tables in ops schema ---
+$ sudo -u postgres psql -d quantdb -t -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'ops' ORDER BY table_name;"
+ alerts
+ deployments
+ pipeline_runs
+
+3 tables present.
+
+--- Check 6: Key table row counts ---
+$ sudo -u postgres psql -d quantdb -t -c "SELECT 'quant.signals: ' || count(*) FROM quant.signals;"
+ quant.signals: 5000000
+
+$ sudo -u postgres psql -d quantdb -t -c "SELECT 'quant.market_data: ' || count(*) FROM quant.market_data;"
+ quant.market_data: 1004850
+
+--- Check 7: All table row counts ---
+$ sudo -u postgres psql -d quantdb -c "SELECT schemaname, relname, n_live_tup FROM pg_stat_user_tables ORDER BY schemaname, relname;"
+
+ schemaname |       relname       | n_live_tup
+------------+---------------------+------------
+ ops        | alerts              |          0
+ ops        | deployments         |       2000
+ ops        | pipeline_runs       |       5000
+ quant      | backtests           |      10000
+ quant      | instruments         |      50004
+ quant      | market_data         |          0  (partitioned parent - expected)
+ quant      | market_data_2025_07 |      88550
+ quant      | market_data_2025_08 |      80850
+ quant      | market_data_2025_09 |      84700
+ quant      | market_data_2025_10 |      88550
+ quant      | market_data_2025_11 |      77000
+ quant      | market_data_2025_12 |      88550
+ quant      | market_data_2026_01 |      84700
+ quant      | market_data_2026_02 |      77000
+ quant      | market_data_2026_03 |      84700
+ quant      | market_data_2026_04 |      84700
+ quant      | market_data_2026_05 |      80850
+ quant      | market_data_2026_06 |      84700
+ quant      | model_features      |    2000000
+ quant      | models              |        500
+ quant      | positions           |     200000
+ quant      | signals             |          0  (partitioned parent - expected)
+ quant      | signals_2025_07     |     516676
+ quant      | signals_2025_08     |     516677
+ quant      | signals_2025_09     |     500010
+ quant      | signals_2025_10     |     516677
+ quant      | signals_2025_11     |     500010
+ quant      | signals_2025_12     |     516677
+ quant      | signals_2026_01     |     516677
+ quant      | signals_2026_02     |     466676
+ quant      | signals_2026_03     |     516677
+ quant      | signals_2026_04     |     433243
+ quant      | signals_2026_05     |          0
+ quant      | signals_2026_06     |          0
+(34 rows)
+
+NOTE: ops.alerts has 0 rows. signals_2026_05 and signals_2026_06 have 0 rows.
+      This may be expected (future partitions not yet populated).
+
+============================================================
+RESULT: PASS
+
+Summary:
+- quantdb database exists
+- Both quant and ops schemas present
+- All 5 roles created (quant_app, quant_research, quant_pipeline, quant_readonly, replicator)
+- 30 tables in quant schema (including partitioned tables with monthly children)
+- 3 tables in ops schema
+- quant.signals: 5,000,000 rows
+- quant.market_data: 1,004,850 rows
+- Total data footprint is substantial with partitioned tables
+============================================================

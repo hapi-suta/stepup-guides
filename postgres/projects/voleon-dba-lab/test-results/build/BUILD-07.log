@@ -1,0 +1,103 @@
+============================================================
+BUILD-07: Ansible Automation
+Test Date: 2026-06-20
+Server: pg-ops (34.228.32.17)
+============================================================
+
+--- Check 1: Ansible installed ---
+$ which ansible
+/usr/local/bin/ansible
+
+$ ansible --version
+ansible [core 2.15.13]
+  config file = None
+  configured module search path = ['/home/ec2-user/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible
+
+--- Check 2: Inventory file ---
+$ ls -la ~/ansible/inventory/
+total 4
+-rw-r--r--. 1 ec2-user ec2-user 811 Jun 19 03:19 hosts.yml
+
+$ cat ~/ansible/inventory/hosts.yml
+all:
+  vars:
+    ansible_user: ec2-user
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    pg_version: "17"
+    pg_bin: "/usr/pgsql-17/bin"
+    pg_data: "/var/lib/pgsql/17/data"
+    pg_db: "quantdb"
+  children:
+    pg_primary:
+      hosts:
+        pg-primary:
+          ansible_host: 172.31.19.86
+          pg_role: primary
+    pg_replica:
+      hosts:
+        pg-replica:
+          ansible_host: 172.31.22.69
+          pg_role: replica
+    pg_container:
+      hosts:
+        pg-container:
+          ansible_host: 172.31.21.45
+    pg_ops:
+      hosts:
+        pg-ops:
+          ansible_host: 172.31.26.19
+    pg_servers:
+      children:
+        pg_primary:
+        pg_replica:
+    all_db:
+      children:
+        pg_servers:
+        pg_container:
+
+Inventory well-structured with host groups and PG-specific variables.
+
+--- Check 3: Playbooks ---
+$ ls -la ~/ansible/playbooks/
+-rw-r--r--. 1 ec2-user ec2-user 1931 Jun 16 02:50 check-pg-status.yml
+-rw-r--r--. 1 ec2-user ec2-user  644 Jun 16 02:50 disk-check.yml
+-rw-r--r--. 1 ec2-user ec2-user  719 Jun 16 02:50 gather-pg-logs.yml
+-rw-r--r--. 1 ec2-user ec2-user 1166 Jun 16 03:09 pg-config-check.yml
+-rw-r--r--. 1 ec2-user ec2-user 1945 Jun 16 02:50 rolling-reload.yml
+-rw-r--r--. 1 ec2-user ec2-user 1798 Jun 16 02:50 update-pg-param.yml
+
+6 playbooks present:
+  - check-pg-status.yml
+  - disk-check.yml
+  - gather-pg-logs.yml
+  - pg-config-check.yml
+  - rolling-reload.yml
+  - update-pg-param.yml
+
+--- Check 4: Ansible can reach hosts ---
+$ ansible all --list-hosts
+[WARNING]: No inventory was parsed, only implicit localhost is available
+[WARNING]: provided hosts list is empty, only localhost is available.
+  hosts (0):
+
+NOTE: Ansible defaults to no config file (config file = None).
+The inventory works but requires -i flag:
+  ansible -i ~/ansible/inventory/hosts.yml all --list-hosts
+There is no ansible.cfg pointing to the inventory directory.
+This is a minor usability issue - adding an ansible.cfg would help.
+
+============================================================
+RESULT: PASS (with note)
+
+Summary:
+- Ansible core 2.15.13 installed
+- Inventory at ~/ansible/inventory/hosts.yml with all 4 servers defined
+- 6 operational playbooks covering: PG status, disk checks, log gathering,
+  config checks, rolling reload, parameter updates
+- NOTE: No ansible.cfg configured, so `ansible all --list-hosts` fails
+  without explicit -i flag. The guide should either:
+  (a) Create ~/ansible/ansible.cfg with inventory path, or
+  (b) Always use -i ~/ansible/inventory/hosts.yml in examples
+============================================================

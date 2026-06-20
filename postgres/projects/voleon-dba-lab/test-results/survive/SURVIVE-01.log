@@ -1,0 +1,51 @@
+============================================================
+SURVIVE-01: Primary Failover - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/01-primary-failover/inject.sh   EXISTS +x  OK
+    chaos/scenarios/01-primary-failover/validate.sh EXISTS +x  OK
+    cbus/survive/01-primary-failover/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Layer 1 (Junior):   FOUND
+    Layer 2 (Mid-Level): FOUND
+    Layer 3 (Senior):   FOUND
+    Root Cause:         FOUND
+    Resolution:         FOUND
+    Prevention:         FOUND
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (PG accepting connections): PASS
+    Check 2 (Not in recovery mode):     FAIL
+      BUG: ssh_node called with IP address "$WRITE_HOST" (e.g. 54.144.241.128)
+      but ssh_node() in config.sh only accepts names: primary, replica, container, ops.
+      Line 47: ssh_node "${WRITE_HOST}" "sudo -u postgres..."
+    Check 3 (PgBouncer connections):    PASS
+    Check 4 (INSERT into quant.signals): FAIL
+      BUG 1: Same ssh_node IP issue as Check 2 (line 83)
+      BUG 2: INSERT uses columns (symbol, signal_type, value, generated_at)
+        but quant.signals table has columns (signal_id, model_id, instrument_id,
+        signal_date, score, confidence, decay_hours, signal_type, generated_at).
+        Column "symbol" and "value" do not exist. Column "id" (RETURNING) does
+        not exist - should be "signal_id".
+
+BUGS FOUND:
+  1. validate.sh lines 47,83,90: ssh_node called with IP instead of node name
+  2. validate.sh lines 83-84: INSERT uses wrong column names for quant.signals
+
+RESULT: FAIL (2 bugs in validate.sh)
+============================================================

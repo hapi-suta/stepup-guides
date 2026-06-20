@@ -1,0 +1,93 @@
+BUILD-11: Ansible Fleet Operations
+Test Date: 2026-06-20
+Tested By: Claude Agent
+Target Node: pg-ops (34.228.32.17)
+
+================================================================================
+CHECK 1: Ansible version
+================================================================================
+
+Command: ansible --version
+Output:
+ansible [core 2.15.13]
+  config file = None
+  configured module search path = ['/home/ec2-user/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/local/lib/python3.9/site-packages/ansible
+  ansible collection location = /home/ec2-user/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/local/bin/ansible
+  python version = 3.9.25
+
+================================================================================
+CHECK 2: Ansible can ping all nodes
+================================================================================
+
+Command: cd ~/ansible && ansible all -i inventory/hosts.yml -m ping
+Output:
+pg-container | SUCCESS => { "ping": "pong" }
+pg-primary   | SUCCESS => { "ping": "pong" }
+pg-replica   | SUCCESS => { "ping": "pong" }
+pg-ops       | SUCCESS => { "ping": "pong" }
+
+All 4 nodes responded successfully.
+
+================================================================================
+CHECK 3: Inventory file
+================================================================================
+
+File: ~/ansible/inventory/hosts.yml
+Contents:
+  all:
+    vars:
+      ansible_user: ec2-user
+      ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+      pg_version: "17"
+      pg_bin: "/usr/pgsql-17/bin"
+      pg_data: "/var/lib/pgsql/17/data"
+      pg_db: "quantdb"
+    children:
+      pg_primary:
+        hosts:
+          pg-primary: { ansible_host: 172.31.19.86, pg_role: primary }
+      pg_replica:
+        hosts:
+          pg-replica: { ansible_host: 172.31.22.69, pg_role: replica }
+      pg_container:
+        hosts:
+          pg-container: { ansible_host: 172.31.21.45 }
+      pg_ops:
+        hosts:
+          pg-ops: { ansible_host: 172.31.26.19 }
+      pg_servers:
+        children: { pg_primary, pg_replica }
+      all_db:
+        children: { pg_servers, pg_container }
+
+================================================================================
+CHECK 4: Playbook files exist
+================================================================================
+
+Directory: ~/ansible/playbooks/
+Files found:
+  - check-pg-status.yml
+  - disk-check.yml
+  - gather-pg-logs.yml
+  - pg-config-check.yml
+  - rolling-reload.yml
+  - update-pg-param.yml
+
+Additional directories:
+  - ~/ansible/roles/ (8 subdirectories)
+  - ~/ansible/ansible.cfg
+
+================================================================================
+SUMMARY
+================================================================================
+
+- Ansible core 2.15.13 installed
+- All 4 nodes respond to ping (pg-primary, pg-replica, pg-container, pg-ops)
+- Inventory properly configured with private IPs and PG variables
+- 6 playbooks present covering status checks, disk, logs, config, rolling reload, param updates
+- Roles directory present with 8 roles
+
+VERDICT: PASS

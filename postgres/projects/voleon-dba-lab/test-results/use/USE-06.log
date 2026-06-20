@@ -1,0 +1,36 @@
+USE-06: Container Operations
+Test Date: 2026-06-19
+Server: pg-container (34.228.73.232)
+============================================================
+
+--- Test 1: docker ps ---
+CONTAINER ID   IMAGE                       NAMES            STATUS        PORTS
+b806007b6cc4   jenkins/jenkins:lts-jdk17   voleon-jenkins   Up 23 hours   8080, 50000
+838010487ce0   redis:7                     voleon-redis     Up 27 hours   6380->6379
+1569dadb3740   mysql:9.7                   voleon-mysql     Up 27 hours   3306
+7dc28b5f5d95   postgres:17                 voleon-pg        Up 27 hours   5433->5432
+RESULT: PASS - 4 containers running (jenkins, redis, mysql, postgres)
+
+--- Test 2: Connect to voleon-pg container PG (port 5433) ---
+Connected via: docker exec voleon-pg psql -U postgres
+PG version: PostgreSQL 17.10 (Debian 17.10-1.pgdg13+1)
+NOTE: Container PG does NOT have quantdb database - only default postgres db.
+      External psql with PGPASSWORD=quantpass failed (auth error).
+      Exercise may need to specify correct credentials or create quantdb first.
+RESULT: PASS (with NOTE) - PG accessible via docker exec, but quantdb not present in container
+
+--- Test 3: redis-cli ping ---
+Redis password: redis_docker_2026 (from container cmd args)
+docker exec voleon-redis redis-cli -a redis_docker_2026 ping -> PONG
+NOTE: redis-cli not installed on host; must use docker exec.
+      Exercise should specify the password or instruct students to find it.
+RESULT: PASS - Redis responds to PING with correct auth
+
+============================================================
+OVERALL: PASS (3/3 checks passed, 2 notes about credentials/setup)
+
+ISSUES TO ADDRESS IN EXERCISE:
+1. Container PG has no quantdb - exercise says "Connect to voleon-pg container's PG"
+   but doesn't specify what to do there. Guide should clarify.
+2. Redis requires password (redis_docker_2026). Exercise should either provide it
+   or teach students how to discover it (docker inspect).

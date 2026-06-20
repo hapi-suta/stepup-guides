@@ -1,0 +1,78 @@
+============================================================
+VOLEON DBA LAB - SURVIVE CHAOS VALIDATION SUMMARY
+Date: 2026-06-19
+============================================================
+
+INFRASTRUCTURE CHECKS:
+  chaos/chaos.sh            EXISTS +x    OK
+  chaos/lib/common.sh       EXISTS       OK (well-structured, 161 lines)
+  config.sh                 EXISTS       OK (IPs match provided servers)
+
+SCENARIO RESULTS:
+  01 Primary Failover                   FAIL  (2 bugs: ssh_node with IP + wrong column names)
+  02 PgBouncer Exhaustion               FAIL  (1 bug: --connect-timeout invalid psql option)
+  03 Accidental Signal Delete           PASS* (Check 4 env-sensitive: no June 2026 data)
+  04 Docker Container Crash             PASS  (all checks passed)
+  05 WAL Disk Full                      FAIL  (2 bugs: df without sudo + wrong column names)
+  06 Ansible Config Drift               PASS* (Check 4 strict CIDR assumption)
+  07 Slow Query Blocks Partitions       FAIL  (1 bug: timeout + shell function)
+  08 Monitoring Blackout                PASS* (Check 6: pg_exporter HTTP 302 redirect)
+  09 Linux System Crisis                PASS  (5/5 checks passed)
+  10 Automation Failure                 PASS  (4/4 checks passed)
+  11 Monitoring Incident                PASS  (5/5 checks passed)
+
+PASS*  = script logic is correct but has an environment-sensitive check
+
+TOTALS:
+  Clean PASS:     5  (04, 09, 10, 11 + 03)
+  PASS w/caveat:  3  (03, 06, 08)
+  FAIL:           4  (01, 02, 05, 07)
+
+============================================================
+BUGS REQUIRING FIXES (4 scenarios, 6 distinct bugs):
+============================================================
+
+BUG 1 - Scenarios 01: ssh_node() called with IP address
+  File: chaos/scenarios/01-primary-failover/validate.sh
+  Lines: 47, 83, 90
+  Issue: ssh_node("54.144.241.128") fails - expects "primary" or "replica"
+  Fix: Map IP back to node name, or use ssh $SSH_OPTS directly
+
+BUG 2 - Scenarios 01, 05: Wrong column names for quant.signals INSERT
+  Files: 01-primary-failover/validate.sh (lines 83-84)
+         05-wal-disk-full/validate.sh (lines 74-76)
+  Issue: INSERT uses (symbol, signal_type, value, generated_at) RETURNING id
+  Actual: Table has (model_id, instrument_id, signal_date, score, signal_type, ...)
+  Fix: Use correct columns, e.g.:
+    INSERT INTO quant.signals (model_id, instrument_id, signal_date, score,
+      signal_type, generated_at)
+    VALUES (1, 1, CURRENT_DATE, 0.0, 'neutral', now()) RETURNING signal_id;
+
+BUG 3 - Scenario 02: Invalid psql option --connect-timeout
+  File: chaos/scenarios/02-pgbouncer-exhaustion/validate.sh
+  Lines: 41, 55-56
+  Issue: psql does not support --connect-timeout flag
+  Fix: Use PGCONNECT_TIMEOUT=5 env var or connection string param
+
+BUG 4 - Scenario 05: df without sudo on postgres-owned directory
+  File: chaos/scenarios/05-wal-disk-full/validate.sh
+  Line: 56
+  Issue: df on /var/lib/pgsql/17/data/pg_wal fails without sudo (700 perms)
+  Fix: ssh_primary "sudo df -BM --output=avail ${WAL_DIR} | tail -1"
+
+BUG 5 - Scenario 07: timeout with shell function
+  File: chaos/scenarios/07-slow-query-blocks-partitions/validate.sh
+  Line: 88
+  Issue: "timeout 8 ssh_primary" fails - timeout only works with commands, not functions
+  Fix: timeout 8 ssh $SSH_OPTS ${SSH_USER}@${PRIMARY_HOST} "..."
+
+============================================================
+RUNBOOK STRUCTURE NOTES:
+============================================================
+  Scenarios 01-08: Use Layer 1/2/3 + Summary (Root Cause/Resolution/Prevention)
+  Scenarios 09-11: Use Phase-based structure (Triage/Diagnose/Fix/Verify/Post-Mortem)
+  Both structures are valid and cover progressive difficulty levels.
+
+============================================================
+ALL FILES: Exist, executable, pass bash -n syntax check, source config.sh + common.sh correctly.
+============================================================

@@ -1,0 +1,57 @@
+============================================================
+SURVIVE-05: WAL Disk Full - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/05-wal-disk-full/inject.sh   EXISTS +x  OK
+    chaos/scenarios/05-wal-disk-full/validate.sh EXISTS +x  OK
+    cbus/survive/05-wal-disk-full/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Layer 1 (Junior):   FOUND
+    Layer 2 (Mid-Level): FOUND
+    Layer 3 (Senior):   FOUND
+    Root Cause:         FOUND
+    Resolution:         FOUND
+    Prevention:         FOUND
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (SSH reachable):             PASS
+    Check 2 (Dummy files removed):       PASS (none present)
+    Check 3 (pg_wal >= 500MB free):      FAIL
+      BUG: Line 56 runs df as ec2-user without sudo:
+        ssh_primary "df -BM --output=avail ${WAL_DIR} | tail -1"
+      Returns "Permission denied" because /var/lib/pgsql/17/data/pg_wal
+      is owned by postgres (700 permissions). The df output is empty,
+      parsed as "", fails the >= 500MB check.
+      Fix: Add sudo: ssh_primary "sudo df -BM --output=avail ${WAL_DIR} | tail -1"
+      Actual free space is 24518MB (verified with sudo).
+    Check 4 (PG accepting connections):  PASS
+    Check 5 (Write to quant.signals):    FAIL
+      BUG: INSERT uses wrong column names. Line 74-76 does:
+        INSERT INTO quant.signals (symbol, signal_type, value, generated_at)
+      But quant.signals columns are: signal_id, model_id, instrument_id,
+        signal_date, score, confidence, decay_hours, signal_type, generated_at.
+      "symbol" and "value" do not exist. Also references "id" in RETURNING
+      but column is "signal_id".
+    Check 6 (Replication lag):           PASS (fallback: 1 replica streaming)
+
+BUGS FOUND:
+  1. validate.sh line 56: df without sudo - permission denied on pg_wal
+  2. validate.sh lines 74-76: INSERT uses wrong column names for quant.signals
+
+RESULT: FAIL (2 bugs in validate.sh)
+============================================================

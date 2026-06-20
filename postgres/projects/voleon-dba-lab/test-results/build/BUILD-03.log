@@ -1,0 +1,100 @@
+============================================================
+BUILD-03: Streaming Replication
+Test Date: 2026-06-20
+Servers: pg-primary (100.26.54.122), pg-replica (54.144.241.128)
+============================================================
+
+=== pg-primary (100.26.54.122) ===
+
+--- Check 1: pg_stat_replication ---
+$ sudo -u postgres psql -c "SELECT pid, usename, client_addr, state, sent_lsn, write_lsn, flush_lsn, replay_lsn FROM pg_stat_replication;"
+  pid  |  usename   | client_addr  |   state   |  sent_lsn  | write_lsn  | flush_lsn  | replay_lsn
+-------+------------+--------------+-----------+------------+------------+------------+------------
+ 10238 | replicator | 172.31.22.69 | streaming | 0/7C001098 | 0/7C001098 | 0/7C001098 | 0/7C001098
+(1 row)
+
+Replica is actively streaming. All LSN positions are equal (no lag).
+
+--- Check 2: Replication slots ---
+$ sudo -u postgres psql -c "SELECT slot_name, slot_type, active FROM pg_replication_slots;"
+  slot_name   | slot_type | active
+--------------+-----------+--------
+ replica_slot | physical  | f
+(1 row)
+
+WARNING: replica_slot exists but is NOT active (active = f).
+The replica's primary_slot_name is empty, meaning the replica is streaming
+WITHOUT using the slot. The slot exists but is not being consumed.
+This is not breaking replication but means WAL retention via the slot is not
+functioning as intended.
+
+--- Check 3: wal_level ---
+$ sudo -u postgres psql -t -c "SHOW wal_level;"
+ replica
+
+--- Check 4: max_wal_senders ---
+$ sudo -u postgres psql -t -c "SHOW max_wal_senders;"
+ 10
+
+--- Check 5: pg_hba replication entries ---
+$ sudo -u postgres psql -t -c "SELECT type, database, user_name, address FROM pg_hba_file_rules WHERE database::text LIKE '%replication%';"
+ host | {replication} | {replicator} | 0.0.0.0
+
+NOTE: Replication allowed from 0.0.0.0 (any host). Acceptable for lab but would
+be restricted in production.
+
+=== pg-replica (54.144.241.128) ===
+
+--- Check 1: pg_is_in_recovery() ---
+$ sudo -u postgres psql -t -c "SELECT pg_is_in_recovery();"
+ t
+
+Confirmed: replica is in recovery mode (standby).
+
+--- Check 2: Replication lag ---
+$ sudo -u postgres psql -t -c "SELECT ... replication_lag;"
+ 0 seconds
+
+No replication lag detected.
+
+--- Check 3: standby.signal ---
+$ sudo ls -la /var/lib/pgsql/17/data/standby.signal
+-rw-------. 1 postgres postgres 0 Jun 16 02:36 /var/lib/pgsql/17/data/standby.signal
+
+standby.signal file present.
+
+--- Check 4: primary_conninfo ---
+$ sudo -u postgres psql -t -c "SHOW primary_conninfo;"
+ user=replicator password=repl_voleon_2026 host=172.31.19.86 port=5432 sslmode=prefer
+
+--- Check 5: primary_slot_name ---
+$ sudo -u postgres psql -t -c "SHOW primary_slot_name;"
+ (empty)
+
+Confirms replica is NOT using the replication slot.
+
+--- Check 6: quantdb replicated ---
+$ sudo -u postgres psql -t -c "SELECT datname FROM pg_database WHERE datname = 'quantdb';"
+ quantdb
+
+$ sudo -u postgres psql -d quantdb -t -c "SELECT count(*) FROM information_schema.tables WHERE table_schema IN ('quant', 'ops');"
+    34
+
+All 34 tables replicated to the standby.
+
+============================================================
+RESULT: PASS (with warning)
+
+Summary:
+- Streaming replication is active and healthy
+- Replica is in recovery mode (pg_is_in_recovery = true)
+- Replication lag: 0 seconds
+- All LSNs match between primary and replica
+- All 34 tables replicated
+- WARNING: replication slot "replica_slot" exists but is inactive.
+  The replica is not configured with primary_slot_name.
+  This means the slot is not providing WAL retention protection.
+  Consider either:
+  (a) Setting primary_slot_name = 'replica_slot' on the replica, or
+  (b) Dropping the unused slot to prevent WAL accumulation.
+============================================================

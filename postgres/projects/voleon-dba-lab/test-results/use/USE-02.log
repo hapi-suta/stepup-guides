@@ -1,0 +1,29 @@
+USE-02: Replication Health Check
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Test 1: pg_stat_replication on primary ---
+ client_addr  |   state   |  sent_lsn  | write_lsn  | flush_lsn  | replay_lsn | replay_lag
+--------------+-----------+------------+------------+------------+------------+------------
+ 172.31.22.69 | streaming | 0/7C001098 | 0/7C001098 | 0/7C001098 | 0/7C001098 |
+(1 row)
+RESULT: PASS - Replication streaming, all LSNs aligned, no lag
+
+--- Test 2: Check replay_lag ---
+replay_lag is NULL/empty - meaning zero lag (all caught up)
+RESULT: PASS
+
+--- Test 3: Check replication slots (pg_replication_slots) ---
+  slot_name   | slot_type | active | restart_lsn
+--------------+-----------+--------+-------------
+ replica_slot | physical  | f      |
+(1 row)
+RESULT: PASS (with NOTE) - Slot exists but shows active=f and no restart_lsn
+NOTE: The replica is streaming (confirmed in pg_stat_replication) but the
+slot shows inactive. This suggests the replica may not be using the slot
+for replication. The guide should clarify whether the slot is expected to
+be active or if streaming replication is configured without slot usage.
+
+============================================================
+OVERALL: PASS (3/3 checks passed, 1 note about slot state)

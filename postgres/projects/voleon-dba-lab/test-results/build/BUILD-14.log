@@ -1,0 +1,89 @@
+BUILD-14: PromQL and Recording Rules
+Test Date: 2026-06-20
+Tested By: Claude Agent
+Target Node: pg-ops (34.228.32.17)
+
+================================================================================
+CHECK 1: Prometheus scraping targets
+================================================================================
+
+Command: curl -s http://localhost:9090/api/v1/targets
+
+Active targets (all healthy):
+
+Job: alertmanager
+  - localhost:9093 -> UP
+
+Job: node (node_exporter on all 4 nodes)
+  - 172.31.21.45:9100 (pg-container) -> UP
+  - 172.31.26.19:9100 (pg-ops) -> UP
+  - 172.31.19.86:9100 (pg-primary) -> UP
+  - 172.31.22.69:9100 (pg-replica) -> UP
+
+Job: postgres (postgres_exporter on PG nodes)
+  - 172.31.19.86:9187 (pg-primary) -> UP
+  - 172.31.22.69:9187 (pg-replica) -> UP
+
+Job: prometheus (self-scrape)
+  - localhost:9090 -> UP
+
+Total: 8 targets, ALL UP
+
+================================================================================
+CHECK 2: Recording rules loaded
+================================================================================
+
+Command: curl -s http://localhost:9090/api/v1/rules
+
+No recording rules found. Only alerting rules are loaded (from alert_rules.yml).
+The prometheus.yml rule_files section only includes: alert_rules.yml
+No recording_rules.yml file exists on the system.
+
+NOTE: This is a gap. BUILD-14 is titled "PromQL and Recording Rules" but no
+recording rules are configured. Only alert rules exist.
+
+================================================================================
+CHECK 3: Grafana datasources configured
+================================================================================
+
+Command: curl -s http://admin:admin@localhost:3000/api/datasources
+
+Grafana service: active (running) since Thu 2026-06-18 23:07:08 UTC
+Port 3000: listening
+
+Datasources configured:
+  1. Name: Prometheus
+     Type: prometheus
+     URL: http://localhost:9090
+     Default: true
+     Access: proxy
+
+================================================================================
+CHECK 4: Grafana service status
+================================================================================
+
+grafana-server.service - Grafana instance
+  Loaded: loaded (/usr/lib/systemd/system/grafana-server.service; enabled)
+  Active: active (running) since Thu 2026-06-18 23:07:08 UTC; 1 day 3h ago
+  Memory: 315.0M
+
+================================================================================
+SUMMARY
+================================================================================
+
+PASSING:
+- Prometheus running and scraping all 8 targets (all UP)
+- 4 scrape jobs configured: prometheus, node, postgres, alertmanager
+- Grafana running on port 3000
+- Grafana has Prometheus datasource configured and set as default
+
+ISSUE:
+- No recording rules exist. Only alert rules are loaded.
+  File /opt/prometheus/recording_rules.yml does not exist.
+  The prometheus.yml rule_files only references alert_rules.yml.
+  If BUILD-14 expects recording rules to be pre-configured, this is a gap.
+
+VERDICT: PARTIAL PASS
+- Prometheus targets: PASS
+- Grafana datasource: PASS
+- Recording rules: FAIL (not configured)

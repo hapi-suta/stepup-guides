@@ -1,0 +1,30 @@
+USE-11: Monitoring Operations
+Test Date: 2026-06-19
+Server: pg-ops (34.228.32.17)
+============================================================
+
+--- Test 1: Prometheus API for up targets ---
+curl http://127.0.0.1:9090/api/v1/targets -> status: success
+Active targets (all healthy/up):
+  - alertmanager  (localhost:9093)     - UP
+  - node exporter (172.31.26.19:9100)  - UP (pg-ops)
+  - node exporter (172.31.19.86:9100)  - UP (pg-primary)
+  - node exporter (172.31.22.69:9100)  - UP (pg-replica)
+  - node exporter (172.31.21.45:9100)  - UP (pg-container)
+  - postgres      (172.31.19.86:9187)  - UP (pg-primary)
+  - postgres      (172.31.22.69:9187)  - UP (pg-replica)
+  - prometheus    (localhost:9090)      - UP
+Prometheus health: "Prometheus Server is Healthy."
+RESULT: PASS - 8 targets all reporting UP
+
+--- Test 2: Grafana accessible (port 3000) ---
+curl http://127.0.0.1:3000/ -> HTTP 302 (redirect to login)
+RESULT: PASS - Grafana running and accessible
+
+--- Test 3: PromQL query: up{} ---
+curl "http://127.0.0.1:9090/api/v1/query?query=up" -> status: success
+All 8 targets return value "1" (up)
+RESULT: PASS - PromQL queries working
+
+============================================================
+OVERALL: PASS (3/3 checks passed)

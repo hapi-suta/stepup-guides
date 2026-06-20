@@ -1,0 +1,82 @@
+============================================================
+BUILD-04: pgBackRest with Simulated Ceph RBD
+Test Date: 2026-06-20
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Check 1: pgbackrest installed ---
+$ which pgbackrest
+/usr/bin/pgbackrest
+
+$ pgbackrest version
+pgBackRest 2.58.0
+
+--- Check 2: Stanza info ---
+$ sudo -u postgres pgbackrest --stanza=voleon-lab info
+stanza: voleon-lab
+    status: ok
+    cipher: none
+
+    db (current)
+        wal archive min/max (17): 000000010000000000000001/00000001000000000000007B
+
+        full backup: 20260616-023713F
+            timestamp start/stop: 2026-06-16 02:37:13+00 / 2026-06-16 02:37:17+00
+            wal start/stop: 000000010000000000000004 / 000000010000000000000004
+            database size: 29.3MB, database backup size: 29.3MB
+            repo1: backup set size: 5.7MB, backup size: 5.7MB
+
+Stanza "voleon-lab" exists and is OK.
+1 full backup present (June 16). WAL archiving active (123 WAL segments archived).
+
+--- Check 3: archive_mode ---
+$ sudo -u postgres psql -t -c "SHOW archive_mode;"
+ on
+
+--- Check 4: archive_command ---
+$ sudo -u postgres psql -t -c "SHOW archive_command;"
+ pgbackrest --stanza=voleon-lab archive-push %p
+
+--- Check 5: pgbackrest config ---
+$ cat /etc/pgbackrest/pgbackrest.conf
+[voleon-lab]
+pg1-path=/var/lib/pgsql/17/data
+
+[global]
+repo1-path=/var/lib/pgbackrest
+repo1-retention-full=2
+repo1-retention-diff=7
+start-fast=y
+log-level-console=info
+log-level-file=detail
+compress-type=lz4
+
+--- Check 6: Backup repo path ---
+$ sudo ls -la /var/lib/pgbackrest/
+total 4
+drwx------.  4 postgres postgres   35 Jun 16 02:37 .
+drwxr-xr-x. 28 root     root     4096 Jun 18 23:11 ..
+drwxr-x---.  3 postgres postgres   24 Jun 16 02:37 archive
+drwxr-x---.  3 postgres postgres   24 Jun 16 02:37 backup
+
+Repo at /var/lib/pgbackrest/ with archive and backup subdirectories.
+
+$ ls -la /mnt/ceph-rbd/
+No such file or directory
+
+NOTE: The guide title mentions "Simulated Ceph RBD" but the backup repo is at
+/var/lib/pgbackrest (standard local path). No /mnt/ceph-rbd mount exists.
+The "simulated" aspect may be conceptual rather than an actual mount point.
+
+============================================================
+RESULT: PASS
+
+Summary:
+- pgBackRest 2.58.0 installed
+- Stanza "voleon-lab" configured and healthy (status: ok)
+- archive_mode = on, archive_command uses pgbackrest
+- 1 full backup exists (29.3MB database, 5.7MB compressed)
+- 123 WAL segments archived (000000010000000000000001 through 7B)
+- Config has retention: 2 full, 7 diff, lz4 compression
+- Backup repo at /var/lib/pgbackrest/ (not /mnt/ceph-rbd)
+============================================================

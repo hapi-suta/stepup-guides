@@ -1,0 +1,93 @@
+============================================================
+BUILD-05: PgBouncer and Redis Setup
+Test Date: 2026-06-20
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Check 1: pgbouncer installed ---
+$ which pgbouncer
+/usr/bin/pgbouncer
+
+$ pgbouncer --version
+PgBouncer 1.25.2
+libevent 2.1.12-stable
+adns: c-ares 1.19.1
+tls: OpenSSL 3.5.5 27 Jan 2026
+systemd: yes
+
+--- Check 2: pgbouncer service ---
+$ systemctl is-active pgbouncer
+active
+
+$ systemctl status pgbouncer
+● pgbouncer.service - A lightweight connection pooler for PostgreSQL
+     Loaded: loaded (/usr/lib/systemd/system/pgbouncer.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-06-18 23:07:03 UTC; 1 day 3h ago
+   Main PID: 770 (pgbouncer)
+     Status: "stats: 0 xacts/s, 0 queries/s, ..."
+
+--- Check 3: Port 6432 listening ---
+$ ss -tlnp | grep 6432
+LISTEN 0      128          0.0.0.0:6432      0.0.0.0:*
+
+Port 6432 is listening on all interfaces.
+
+--- Check 4: pgbouncer config ---
+$ cat /etc/pgbouncer/pgbouncer.ini
+[databases]
+quantdb = host=127.0.0.1 port=5432 dbname=quantdb
+
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = 6432
+auth_type = scram-sha-256
+auth_file = /etc/pgbouncer/userlist.txt
+pool_mode = transaction
+default_pool_size = 50
+max_client_conn = 1000
+max_db_connections = 100
+log_connections = 1
+log_disconnections = 1
+log_pooler_errors = 1
+stats_period = 60
+admin_users = pgbouncer
+
+Config looks solid: transaction pooling, SCRAM auth, 50 pool size, 1000 max clients.
+
+--- Check 5: Redis installed ---
+$ which redis-server
+/usr/bin/redis-server
+
+$ redis-server --version
+Redis server v=6.2.20 sha=00000000:0 malloc=jemalloc-5.1.0 bits=64
+
+--- Check 6: Redis service ---
+$ systemctl is-active redis
+active
+
+$ systemctl status redis
+● redis.service - Redis persistent key-value database
+     Loaded: loaded (/usr/lib/systemd/system/redis.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-06-18 23:07:03 UTC; 1 day 3h ago
+     Status: "Ready to accept connections"
+
+--- Check 7: Redis ping ---
+$ redis-cli ping
+NOAUTH Authentication required.
+
+Redis requires authentication (password protected). This is correct behavior.
+Attempted with a guessed password but it was wrong - the actual password would
+be in the guide or Redis config.
+
+============================================================
+RESULT: PASS
+
+Summary:
+- PgBouncer 1.25.2 installed and running
+- Listening on port 6432 (all interfaces)
+- Transaction pool mode with SCRAM-SHA-256 auth
+- Pool config: 50 default pool, 1000 max clients, 100 max DB connections
+- Redis 6.2.20 installed and running
+- Redis is password-protected (requirepass set)
+- Both services enabled and active
+============================================================

@@ -1,0 +1,72 @@
+============================================================
+BUILD-06: Docker Databases Setup
+Test Date: 2026-06-20
+Server: pg-container (34.228.73.232)
+============================================================
+
+--- Check 1: Docker installed ---
+$ which docker
+/usr/bin/docker
+
+$ docker --version
+Docker version 29.5.3, build d1c06ef
+
+--- Check 2: Docker service ---
+$ systemctl is-active docker
+active
+
+--- Check 3: Running containers ---
+$ docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+NAMES            IMAGE                       STATUS        PORTS
+voleon-jenkins   jenkins/jenkins:lts-jdk17   Up 23 hours   0.0.0.0:8080->8080/tcp, 0.0.0.0:50000->50000/tcp
+voleon-redis     redis:7                     Up 27 hours   0.0.0.0:6380->6379/tcp
+voleon-mysql     mysql:9.7                   Up 27 hours   0.0.0.0:3306->3306/tcp, 33060/tcp
+voleon-pg        postgres:17                 Up 27 hours   0.0.0.0:5433->5432/tcp
+
+4 containers running (voleon-pg, voleon-mysql, voleon-redis, voleon-jenkins).
+NOTE: voleon-jenkins and voleon-redis are bonus containers not in the original spec.
+
+--- Check 4: voleon-pg container ---
+$ docker inspect voleon-pg --format "{{.State.Status}}"
+running
+
+--- Check 5: voleon-mysql container ---
+$ docker inspect voleon-mysql --format "{{.State.Status}}"
+running
+
+--- Check 6: Port 5433 (Docker PostgreSQL) ---
+$ ss -tlnp | grep 5433
+LISTEN 0      4096         0.0.0.0:5433       0.0.0.0:*
+LISTEN 0      4096            [::]:5433          [::]:*
+
+Port 5433 listening on both IPv4 and IPv6.
+
+--- Check 7: Port 3306 (Docker MySQL) ---
+$ ss -tlnp | grep 3306
+LISTEN 0      4096         0.0.0.0:3306       0.0.0.0:*
+LISTEN 0      4096            [::]:3306          [::]:*
+
+Port 3306 listening on both IPv4 and IPv6.
+
+--- Check 8: Docker volumes ---
+$ docker volume ls
+DRIVER    VOLUME NAME
+local     d471c4c9...  (anonymous)
+local     jenkins-data
+local     mysql_docker_data
+local     pg_docker_data
+
+Named volumes for persistent data: pg_docker_data, mysql_docker_data, jenkins-data.
+
+============================================================
+RESULT: PASS
+
+Summary:
+- Docker 29.5.3 installed and running
+- voleon-pg (postgres:17) running on port 5433
+- voleon-mysql (mysql:9.7) running on port 3306
+- voleon-redis (redis:7) running on port 6380 (bonus)
+- voleon-jenkins (jenkins:lts-jdk17) running on port 8080 (bonus)
+- All containers have named volumes for data persistence
+- All 4 containers up for 23-27 hours (stable)
+============================================================

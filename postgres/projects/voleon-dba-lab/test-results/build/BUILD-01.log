@@ -1,0 +1,82 @@
+============================================================
+BUILD-01: Install PostgreSQL 17
+Test Date: 2026-06-20
+Servers: pg-primary (100.26.54.122), pg-replica (54.144.241.128)
+============================================================
+
+=== pg-primary (100.26.54.122) ===
+
+--- Check 1: PG 17 RPM installed ---
+$ rpm -q postgresql17-server
+postgresql17-server-17.10-2PGDG.rhel9.8.x86_64
+
+--- Check 2: PG service running ---
+$ systemctl is-active postgresql-17
+active
+
+$ systemctl status postgresql-17
+● postgresql-17.service - PostgreSQL 17 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-17.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-06-18 23:07:03 UTC; 1 day 3h ago
+   Main PID: 813 (postgres)
+     CGroup: /system.slice/postgresql-17.service
+             ├─  813 /usr/pgsql-17/bin/postgres -D /var/lib/pgsql/17/data/
+
+--- Check 3: Data directory exists ---
+$ ls -ld /var/lib/pgsql/17/data
+Permission denied (expected - owned by postgres, not readable by ec2-user)
+Confirmed via process listing: postgres running with -D /var/lib/pgsql/17/data/
+
+--- Check 4: pg_isready ---
+$ pg_isready
+bash: pg_isready: command not found
+NOTE: pg_isready not in ec2-user PATH. PG binaries are at /usr/pgsql-17/bin/.
+However, PG is confirmed running via systemctl and psql queries succeed.
+
+--- Check 5: PG version ---
+$ sudo -u postgres psql -t -c "SELECT version();"
+PostgreSQL 17.10 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-14), 64-bit
+
+=== pg-replica (54.144.241.128) ===
+
+--- Check 1: PG 17 RPM installed ---
+$ rpm -q postgresql17-server
+postgresql17-server-17.10-2PGDG.rhel9.8.x86_64
+
+--- Check 2: PG service running ---
+$ systemctl is-active postgresql-17
+active
+
+$ systemctl status postgresql-17
+● postgresql-17.service - PostgreSQL 17 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-17.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-06-19 03:15:34 UTC; 23h ago
+   Main PID: 7133 (postgres)
+     CGroup: /system.slice/postgresql-17.service
+             ├─7133 /usr/pgsql-17/bin/postgres -D /var/lib/pgsql/17/data/
+             ├─7137 "postgres: startup recovering 00000001000000000000007C"
+
+--- Check 3: Data directory exists ---
+$ ls -ld /var/lib/pgsql/17/data
+Permission denied (expected - owned by postgres)
+Confirmed via process listing: postgres running with -D /var/lib/pgsql/17/data/
+
+--- Check 4: pg_isready ---
+$ pg_isready
+bash: pg_isready: command not found
+NOTE: Same PATH issue as primary. PG binaries at /usr/pgsql-17/bin/.
+
+--- Check 5: PG version ---
+$ sudo -u postgres psql -t -c "SELECT version();"
+PostgreSQL 17.10 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-14), 64-bit
+
+============================================================
+RESULT: PASS
+
+Summary:
+- PG 17.10 installed and running on both primary and replica
+- Service enabled and active on both servers
+- Data directory at /var/lib/pgsql/17/data/ confirmed on both
+- Minor note: pg_isready not in ec2-user PATH (/usr/pgsql-17/bin not in PATH)
+  This is cosmetic - the guide may want to add PATH setup or use full path.
+============================================================

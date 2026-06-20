@@ -24,7 +24,7 @@ Do not skip ahead - the later guides assume the earlier ones are complete.
 
 | # | Guide | Time | What You'll Build |
 |---|-------|------|-------------------|
-| 01 | [Install and Configure PostgreSQL 17](build/BUILD-01-install-postgresql.md) | 45 min | PostgreSQL 17 on all nodes, data directories, OS tuning |
+| 01 | [Install and Configure PostgreSQL 17](build/BUILD-01-install-postgresql.md) | 30 min | PostgreSQL 17 on all nodes, data directories, OS tuning |
 | 02 | [Create quantdb Schema and Load Data](build/BUILD-02-create-quantdb.md) | 60 min | quantdb database, quant and ops schemas, roles, seed data |
 | 03 | [Setup Streaming Replication](build/BUILD-03-streaming-replication.md) | 45 min | Primary/replica streaming replication with replicator role |
 | 04 | [Setup pgBackRest with Simulated Ceph RBD](build/BUILD-04-pgbackrest-ceph-sim.md) | 60 min | pgBackRest stanza, full/incr backups, WAL archiving |
@@ -32,8 +32,14 @@ Do not skip ahead - the later guides assume the earlier ones are complete.
 | 06 | [Docker Databases Setup](build/BUILD-06-docker-databases.md) | 45 min | voleon-pg and voleon-mysql containers on pg-container |
 | 07 | [Ansible Automation for PostgreSQL](build/BUILD-07-ansible-automation.md) | 60 min | Ansible inventory, playbooks for config and role management |
 | 08 | [Prometheus and Grafana Monitoring](build/BUILD-08-prometheus-grafana.md) | 60 min | Prometheus, node_exporter, pg_exporter, Grafana dashboards |
+| 09 | [Linux & Systems Fundamentals Mastery](build/BUILD-09-linux-systems-mastery.md) | 90 min | Process management, networking, disk I/O, kernel tuning |
+| 10 | [Jenkins CI/CD Pipelines](build/BUILD-10-jenkins-ci-pipeline.md) | 90 min | Jenkins on pg-container, CI pipelines for database operations |
+| 11 | [Ansible Fleet Operations](build/BUILD-11-ansible-fleet-operations.md) | 90 min | Advanced Ansible playbooks for fleet-wide PG management |
+| 12 | [Terraform for Database Infrastructure](build/BUILD-12-terraform-lifecycle.md) | 75 min | Terraform provisioning and lifecycle management for PG infra |
+| 13 | [Alertmanager Setup and Alert Rules](build/BUILD-13-alertmanager-setup.md) | 60 min | Alertmanager, routing, inhibition, alert rule authoring |
+| 14 | [PromQL Mastery and Advanced Grafana](build/BUILD-14-promql-and-recording-rules.md) | 120 min | PromQL queries, recording rules, advanced Grafana dashboards |
 
-Total estimated time: **7 hours** (spread across multiple sessions)
+Total estimated time: **14.5 hours** (spread across multiple sessions)
 
 ---
 
@@ -47,13 +53,17 @@ Complete USE-01 first to get oriented. The rest can be done in any order.
 | 01 | [Connect and Explore quantdb](use/USE-01-connect-and-explore.md) | 30 min | Connect as all roles, explore schemas, verify replica is read-only |
 | 02 | [Replication Health Check](use/USE-02-replication-health.md) | 30 min | pg_stat_replication, lag monitoring, slot inspection |
 | 03 | [PITR Drill](use/USE-03-pitr-drill.md) | 45 min | Restore quantdb to a point in time using pgBackRest |
-| 04 | PgBouncer Operations | 30 min | Pool tuning, SHOW commands, connection management |
+| 04 | [Performance Investigation](use/USE-04-performance-tuning.md) | 40 min | Query analysis, EXPLAIN plans, index tuning, pg_stat_statements |
 | 05 | [Ansible Rolling Configuration Changes](use/USE-05-ansible-rolling-changes.md) | 45 min | Push pg config changes across nodes with zero downtime |
 | 06 | [Container Database Operations](use/USE-06-container-operations.md) | 50 min | Docker lifecycle, container PG queries, Redis cache inspection |
-| 07 | Grafana Dashboard Deep-Dive | 30 min | Read key metrics, understand what normal looks like |
-| 08 | Partition Maintenance | 40 min | Add a new partition, check bloat, manual VACUUM on a partition |
+| 07 | [Parquet Export Pipeline](use/USE-07-parquet-export.md) | 40 min | Export quantdb data to Parquet format for analytics |
+| 08 | [Security Audit](use/USE-08-security-audit.md) | 40 min | Role permissions, pg_hba.conf review, privilege escalation checks |
+| 09 | [Linux Troubleshooting Drills](use/USE-09-linux-troubleshooting-drills.md) | 60 min | 5 timed drills simulating real production Linux incidents |
+| 10 | [End-to-End Automation Workflows](use/USE-10-automation-end-to-end.md) | 100 min | Jenkins + Ansible + Terraform integrated workflows |
+| 11 | [Monitoring Operations](use/USE-11-monitoring-operations.md) | 110 min | Prometheus queries, Grafana dashboards, alert investigation |
+| 12 | [Incident Response Workflow Drills](use/USE-12-incident-response-drill.md) | 100 min | 4 timed incident response exercises end-to-end |
 
-Total estimated time: **5.5 hours**
+Total estimated time: **11.5 hours**
 
 ---
 
@@ -71,13 +81,16 @@ Severity guide:
 | # | Scenario | Severity | What Breaks |
 |---|----------|----------|-------------|
 | 01 | [Primary Failover](survive/01-primary-failover/runbook.md) | Critical | PostgreSQL stops on primary. All writes fail. Replica must be promoted. |
-| 02 | PgBouncer Pool Exhaustion | High | Connection pool flooded. New app connections queue or timeout. |
-| 03 | Accidental Signal Delete | Critical | Current month signals partition wiped. PITR required to recover data. |
-| 04 | Docker Container Crash | Medium | voleon-pg container killed. Port 5433 stops responding. |
-| 05 | WAL Disk Full | Critical | pg_wal filesystem filled. PostgreSQL panics and shuts down. |
-| 06 | Ansible Config Drift | High | pg_hba.conf corrupted with wrong CIDR. Replication breaks on reload. |
-| 07 | Slow Query Blocks Partitions | Medium | Long-running query holds lock. Partition maintenance hangs. |
-| 08 | Monitoring Blackout | High | Prometheus down. Replica lag builds silently. No alerts fire. |
+| 02 | [PgBouncer Pool Exhaustion](survive/02-pgbouncer-exhaustion/runbook.md) | High | Connection pool flooded. New app connections queue or timeout. |
+| 03 | [Accidental Signal Delete](survive/03-accidental-signal-delete/runbook.md) | Critical | Current month signals partition wiped. PITR required to recover data. |
+| 04 | [Docker Container Crash](survive/04-docker-container-crash/runbook.md) | Medium | voleon-pg container killed. Port 5433 stops responding. |
+| 05 | [WAL Disk Full](survive/05-wal-disk-full/runbook.md) | Critical | pg_wal filesystem filled. PostgreSQL panics and shuts down. |
+| 06 | [Ansible Config Drift](survive/06-ansible-config-drift/runbook.md) | High | pg_hba.conf corrupted with wrong CIDR. Replication breaks on reload. |
+| 07 | [Slow Query Blocks Partitions](survive/07-slow-query-blocks-partitions/runbook.md) | Medium | Long-running query holds lock. Partition maintenance hangs. |
+| 08 | [Monitoring Blackout](survive/08-monitoring-blackout/runbook.md) | High | Prometheus down. Replica lag builds silently. No alerts fire. |
+| 09 | [Linux System Crisis](survive/09-linux-system-crisis/runbook.md) | High | /tmp full, swappiness at 100, 50% packet loss to replica. Three simultaneous OS-level failures. |
+| 10 | [Automation Failure](survive/10-automation-failure/runbook.md) | High | Ansible inventory has wrong IP + pg_hba.conf rejects replication. Tooling and replication both broken. |
+| 11 | [Monitoring Incident](survive/11-monitoring-incident/runbook.md) | High | Prometheus scraping wrong port, node_exporter stopped, invalid alert rule. Monitoring stack dark. |
 
 ### Running Scenarios
 
@@ -116,16 +129,29 @@ the technologies used in this lab.
 
 ---
 
+## Interview Prep Guides
+
+These guides map directly to specific Voleon interview panel members and their focus areas.
+
+| Doc | Panel Member | Focus Area |
+|-----|-------------|------------|
+| [interview-guide.md](../docs/interview-guide.md) | All | Overall interview strategy and question bank |
+| [interview-prep-01-linux.md](../docs/interview-prep-01-linux.md) | Lukasz Mucha | Linux & systems fundamentals |
+| [interview-prep-02-automation.md](../docs/interview-prep-02-automation.md) | Mark Selby | Ansible, Terraform, Jenkins automation |
+| [interview-prep-03-monitoring.md](../docs/interview-prep-03-monitoring.md) | Ed Byrne | Prometheus, Grafana, incident response |
+
+---
+
 ## Recommended Order
 
 This sequence builds skills progressively from zero to autonomous incident response.
 
 1. Read **concepts/voleon-architecture.md** to understand what you are building
-2. Complete all **BUILD guides** in order (01 through 08)
+2. Complete all **BUILD guides** in order (01 through 14)
 3. Run **USE-01** to verify the full stack is working end-to-end
-4. Work through **USE exercises** 02-08 (any order, but do 02 before 07)
+4. Work through **USE exercises** 02-12 (any order, but do 02 before 08)
 5. Attempt **SURVIVE scenarios** - start with Medium severity, work up to Critical
-   - Recommended order: 04 -> 07 -> 02 -> 06 -> 08 -> 05 -> 03 -> 01
+   - Recommended order: 04 -> 07 -> 02 -> 06 -> 08 -> 09 -> 10 -> 11 -> 05 -> 03 -> 01
 6. Repeat Critical scenarios without the runbook until recovery time is under 10 minutes
 
 ### Tips for the SURVIVE phase

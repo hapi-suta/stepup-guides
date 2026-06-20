@@ -1,0 +1,31 @@
+USE-05: Ansible Rolling Changes
+Test Date: 2026-06-19
+Server: pg-ops (34.228.32.17)
+============================================================
+
+--- Test 1: ansible-playbook command exists ---
+/usr/local/bin/ansible-playbook
+ansible-playbook [core 2.15.13]
+RESULT: PASS - Ansible 2.15.13 installed
+
+--- Test 2: Playbooks available ---
+Found playbooks in /home/ec2-user/ansible/playbooks/:
+  - check-pg-status.yml
+  - update-pg-param.yml
+  - disk-check.yml
+  - pg-config-check.yml
+  - gather-pg-logs.yml
+  - rolling-reload.yml
+Also found: ansible.cfg, inventory/, roles/
+RESULT: PASS - 6 playbooks available
+
+--- Test 3: Ansible check mode test ---
+Ran: ansible-playbook playbooks/check-pg-status.yml --check --diff -i inventory/hosts.yml
+
+PLAY RECAP:
+pg-primary  : ok=8  changed=0  unreachable=0  failed=0  skipped=5  rescued=0  ignored=0
+pg-replica  : ok=8  changed=0  unreachable=0  failed=0  skipped=5  rescued=0  ignored=0
+RESULT: PASS - Check mode runs successfully against both pg-primary and pg-replica
+
+============================================================
+OVERALL: PASS (3/3 checks passed)

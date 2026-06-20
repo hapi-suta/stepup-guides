@@ -1,0 +1,26 @@
+USE-07: Parquet Export
+Test Date: 2026-06-19
+Server: pg-container (34.228.73.232)
+============================================================
+
+--- Test 1: python3 available ---
+Python 3.9.25
+RESULT: PASS
+
+--- Test 2: pyarrow/pandas available ---
+pyarrow: 21.0.0 - INSTALLED
+pandas: NOT INSTALLED (ModuleNotFoundError)
+RESULT: FAIL - pandas is missing, needed for parquet export workflow
+
+--- Test 3: Export script exists ---
+No export scripts found in /home/ec2-user/scripts/ (directory does not exist)
+No *export* or *parquet* files found anywhere in /home/ec2-user/ or /opt/
+RESULT: FAIL - No export script present
+
+============================================================
+OVERALL: FAIL (1/3 checks passed)
+
+ISSUES TO FIX:
+1. Install pandas: pip3 install pandas
+2. Create export script in /home/ec2-user/scripts/ (or wherever the exercise expects it)
+3. Also need psycopg2 or similar driver to connect PG -> Python -> Parquet

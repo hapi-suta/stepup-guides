@@ -1,0 +1,127 @@
+BUILD-09: Linux & Systems Fundamentals Mastery
+Test Date: 2026-06-20
+Tested By: Claude Agent
+
+================================================================================
+CHECK 1: Basic Linux tools available on all nodes
+================================================================================
+
+--- pg-primary (100.26.54.122) ---
+FOUND: top -> /usr/bin/top
+FOUND: iotop -> /usr/sbin/iotop
+FOUND: sar -> /usr/bin/sar
+FOUND: ss -> /usr/sbin/ss
+FOUND: lsof -> /usr/bin/lsof
+FOUND: strace -> /usr/bin/strace
+FOUND: tcpdump -> /usr/sbin/tcpdump
+Result: ALL 7 TOOLS PRESENT
+
+--- pg-replica (54.144.241.128) ---
+FOUND: top -> /usr/bin/top
+FOUND: iotop -> /usr/sbin/iotop
+FOUND: sar -> /usr/bin/sar
+FOUND: ss -> /usr/sbin/ss
+FOUND: lsof -> /usr/bin/lsof
+FOUND: strace -> /usr/bin/strace
+FOUND: tcpdump -> /usr/sbin/tcpdump
+Result: ALL 7 TOOLS PRESENT
+
+--- pg-container (34.228.73.232) ---
+FOUND: top -> /usr/bin/top
+FOUND: iotop -> /usr/sbin/iotop
+FOUND: sar -> /usr/bin/sar
+FOUND: ss -> /usr/sbin/ss
+FOUND: lsof -> /usr/bin/lsof
+FOUND: strace -> /usr/bin/strace
+FOUND: tcpdump -> /usr/sbin/tcpdump
+Result: ALL 7 TOOLS PRESENT
+
+--- pg-ops (34.228.32.17) ---
+FOUND: top -> /usr/bin/top
+FOUND: iotop -> /usr/sbin/iotop
+FOUND: sar -> /usr/bin/sar
+FOUND: ss -> /usr/sbin/ss
+FOUND: lsof -> /usr/bin/lsof
+FOUND: strace -> /usr/bin/strace
+FOUND: tcpdump -> /usr/sbin/tcpdump
+Result: ALL 7 TOOLS PRESENT
+
+================================================================================
+CHECK 2: sysstat installed (provides sar)
+================================================================================
+
+pg-primary:  sysstat-12.5.4-11.el9.x86_64     INSTALLED
+pg-replica:  sysstat-12.5.4-11.el9.x86_64     INSTALLED
+pg-container: sysstat-12.5.4-11.el9.x86_64    INSTALLED
+pg-ops:      sysstat-12.5.4-11.el9.x86_64     INSTALLED
+
+================================================================================
+CHECK 3: /proc/sys/vm/swappiness
+================================================================================
+
+pg-primary:   1    (tuned for PostgreSQL)
+pg-replica:   1    (tuned for PostgreSQL)
+pg-container: 60   (default - expected, no PG on this node)
+pg-ops:       60   (default - expected, no PG on this node)
+
+================================================================================
+CHECK 4: ulimits for postgres user
+================================================================================
+
+--- pg-primary ---
+open files: 1024
+max user processes: 14017
+max locked memory: 8192 kbytes
+stack size: 8192 kbytes
+Note: open files at default 1024 - guide may want higher for production
+
+--- pg-replica ---
+open files: 1024
+max user processes: 14017
+max locked memory: 8192 kbytes
+stack size: 8192 kbytes
+
+--- pg-container ---
+No postgres user exists on this node (container-only node)
+
+--- pg-ops ---
+No postgres user exists on this node (ops/monitoring node)
+
+================================================================================
+CHECK 5: Kernel parameters (shmmax, shmall)
+================================================================================
+
+--- pg-primary ---
+shmmax: 1073741824 (1 GB - tuned)
+shmall: 262144 (1 GB in 4K pages - tuned)
+Source: /etc/sysctl.d/99-postgresql.conf
+
+--- pg-replica ---
+shmmax: 1073741824 (1 GB - tuned)
+shmall: 262144 (1 GB in 4K pages - tuned)
+
+--- pg-container ---
+shmmax: 18446744073692774399 (default/unlimited)
+shmall: 18446744073692774399 (default/unlimited)
+
+--- pg-ops ---
+shmmax: 18446744073692774399 (default/unlimited)
+shmall: 18446744073692774399 (default/unlimited)
+
+================================================================================
+SUMMARY
+================================================================================
+
+All checks on pg-primary and pg-replica: PASS
+- All 7 tools installed on all 4 nodes
+- sysstat installed on all 4 nodes
+- swappiness tuned to 1 on PG nodes (primary, replica)
+- Kernel params (shmmax, shmall) tuned on PG nodes
+- ulimits available for postgres user on PG nodes
+
+Minor notes (not failures):
+- pg-container and pg-ops have default swappiness (60) - expected since no PG runs natively
+- pg-container and pg-ops have no postgres OS user - expected
+- open files limit is default 1024 on PG nodes (production would want higher, but acceptable for lab)
+
+VERDICT: PASS

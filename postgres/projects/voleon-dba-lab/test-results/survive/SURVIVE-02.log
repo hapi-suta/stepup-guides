@@ -1,0 +1,47 @@
+============================================================
+SURVIVE-02: PgBouncer Connection Pool Exhaustion - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/02-pgbouncer-exhaustion/inject.sh   EXISTS +x  OK
+    chaos/scenarios/02-pgbouncer-exhaustion/validate.sh EXISTS +x  OK
+    cbus/survive/02-pgbouncer-exhaustion/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Layer 1 (Junior):   FOUND
+    Layer 2 (Mid-Level): FOUND
+    Layer 3 (Senior):   FOUND
+    Root Cause:         FOUND
+    Resolution:         FOUND
+    Prevention:         FOUND
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (PgBouncer port open):       PASS
+    Check 2 (Query via PgBouncer):       FAIL
+      BUG: Uses --connect-timeout=5 flag which is not supported by
+      local psql 14.20 (Homebrew). Should use "connect_timeout=5"
+      in connection string or PGCONNECT_TIMEOUT env var.
+      Line 41: --connect-timeout=5
+    Check 3 (Pool saturation):           SKIPPED (pgbouncer admin auth issue - acceptable)
+    Check 4 (PostgreSQL primary health): PASS
+
+BUGS FOUND:
+  1. validate.sh line 41: --connect-timeout=5 not a valid psql option.
+     Fix: use "options='-c connect_timeout=5'" or PGCONNECT_TIMEOUT=5
+     Note: Also on line 55-56 for SHOW POOLS query.
+
+RESULT: FAIL (1 bug: invalid psql option)
+============================================================

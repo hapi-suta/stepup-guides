@@ -1,0 +1,42 @@
+============================================================
+SURVIVE-10: Automation Failure - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/10-automation-failure/inject.sh   EXISTS +x  OK
+    chaos/scenarios/10-automation-failure/validate.sh EXISTS +x  OK
+    cbus/survive/10-automation-failure/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Uses Phase-based structure instead of Layer-based:
+    Phase 1 (Triage):    FOUND
+    Phase 2 (Diagnose):  FOUND
+    Phase 3 (Fix):       FOUND
+    Phase 4 (Verify):    FOUND
+    Phase 5 (Post-Mortem): FOUND
+    Root Cause:          FOUND
+    Prevention:          FOUND
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (Ansible connectivity):      PASS (4 nodes responding)
+    Check 2 (No reject rules in pg_hba): PASS
+    Check 3 (Replication streaming):     PASS (lag: -1s)
+    Check 4 (PG accepting connections):  PASS
+
+    ALL 4/4 CHECKS PASSED
+
+RESULT: PASS
+============================================================

@@ -1,0 +1,49 @@
+============================================================
+SURVIVE-07: Slow Query Blocks Partition Maintenance - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/07-slow-query-blocks-partitions/inject.sh   EXISTS +x  OK
+    chaos/scenarios/07-slow-query-blocks-partitions/validate.sh EXISTS +x  OK
+    cbus/survive/07-slow-query-blocks-partitions/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Layer 1 (Junior):   FOUND
+    Layer 2 (Mid-Level): FOUND
+    Layer 3 (Senior):   FOUND
+    Root Cause:         FOUND
+    Resolution:         FOUND
+    Prevention:         FOUND
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (PG accepting connections):  PASS
+    Check 2 (No blocking queries):       PASS
+    Check 3 (No lock waits):             PASS
+    Check 4 (Partition COMMENT test):    FAIL
+      BUG: Line 88 uses "timeout 8 ssh_primary" but ssh_primary is a
+      shell function (defined in config.sh), not an executable command.
+      The timeout command only works with external commands, not functions.
+      Error: "timeout: failed to run command 'ssh_primary': No such file or directory"
+      Fix: Use "timeout 8 ssh $SSH_OPTS ${SSH_USER}@${PRIMARY_HOST} ..." instead,
+      or export the function and use "timeout 8 bash -c 'ssh_primary ...'"
+    Check 5 (Chaos blocker cleaned up):  PASS
+
+BUGS FOUND:
+  1. validate.sh line 88: "timeout" cannot execute shell functions.
+     ssh_primary is a function, not a binary. timeout requires a command path.
+
+RESULT: FAIL (1 bug: timeout + shell function incompatibility)
+============================================================

@@ -1,0 +1,42 @@
+============================================================
+SURVIVE-11: Monitoring Incident - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/11-monitoring-incident/inject.sh   EXISTS +x  OK
+    chaos/scenarios/11-monitoring-incident/validate.sh EXISTS +x  OK
+    cbus/survive/11-monitoring-incident/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Uses Phase-based structure instead of Layer-based:
+    Phase 1 (Detection):  FOUND
+    Phase 2 (Diagnosis):  FOUND
+    Phase 3 (Fix Prometheus): FOUND
+    Phase 4 (Fix Alerts): FOUND
+    Note: No explicit Root Cause/Resolution/Prevention sections,
+    but diagnostic and fix phases cover equivalent content.
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (prometheus.yml port):       PASS (no :9999 refs)
+    Check 2 (alert_rules.yml clean):     PASS (no chaos rules)
+    Check 3 (node_exporter running):     PASS (active)
+    Check 4 (Prometheus targets):        PASS (8/8 healthy)
+    Check 5 (Prometheus rules):          PASS (11 rules loaded)
+
+    ALL 5/5 CHECKS PASSED
+
+RESULT: PASS
+============================================================

@@ -1,0 +1,30 @@
+USE-12: Incident Response
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Test 1: pg_stat_activity query ---
+  pid  |    usename     | state  |          query_start          |                            query
+-------+----------------+--------+-------------------------------+--------------------------------------------------------------
+  1799 | quant_readonly | idle   | 2026-06-20 02:25:42.613908+00 | SELECT * FROM pg_stat_database_conflicts;
+ 24572 | quant_readonly | idle   | 2026-06-20 02:25:21.307453+00 | SELECT 1;
+ 25949 | postgres       | active | 2026-06-20 02:25:43.067307+00 | SELECT pid, usename, state, query_start, left(query, 60) as
+(3 rows)
+RESULT: PASS - pg_stat_activity shows active sessions including monitoring queries
+
+--- Test 2: pg_locks query ---
+ locktype | relation |      mode       | granted |  pid
+----------+----------+-----------------+---------+-------
+ relation | pg_locks | AccessShareLock | t       | 25953
+(1 row)
+RESULT: PASS - pg_locks query works (only self-lock visible - healthy state)
+
+--- Test 3: Replication monitoring query ---
+ client_addr  |   state   |  sent_lsn  | replay_lsn | replay_lag | sync_state
+--------------+-----------+------------+------------+------------+------------
+ 172.31.22.69 | streaming | 0/7C001098 | 0/7C001098 |            | async
+(1 row)
+RESULT: PASS - Replication monitoring shows async streaming, no lag
+
+============================================================
+OVERALL: PASS (3/3 checks passed)

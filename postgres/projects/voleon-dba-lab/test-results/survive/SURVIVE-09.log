@@ -1,0 +1,43 @@
+============================================================
+SURVIVE-09: Linux System Crisis - Validation Test
+Date: 2026-06-19
+============================================================
+
+[1] File Existence & Permissions
+    chaos/scenarios/09-linux-system-crisis/inject.sh   EXISTS +x  OK
+    chaos/scenarios/09-linux-system-crisis/validate.sh EXISTS +x  OK
+    cbus/survive/09-linux-system-crisis/runbook.md     EXISTS     OK
+
+[2] Syntax Check (bash -n)
+    inject.sh:   PASS (no syntax errors)
+    validate.sh: PASS (no syntax errors)
+
+[3] Source References
+    inject.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+    validate.sh sources:
+      - ${SCRIPT_DIR}/../../lib/common.sh       OK
+      - ${SCRIPT_DIR}/../../../config.sh        OK
+
+[4] Runbook Completeness
+    Uses Phase-based structure instead of Layer-based:
+    Phase 1 (Triage):    FOUND
+    Phase 2 (Diagnose):  FOUND
+    Phase 3 (Fix):       FOUND
+    Phase 4 (Verify):    FOUND
+    Phase 5 (Post-Mortem): FOUND
+    Note: No explicit Layer 1/2/3 or Root Cause/Resolution/Prevention
+    sections, but the Phase structure covers equivalent content.
+
+[5] Validate Script - Pre-Chaos Run
+    Check 1 (/tmp chaos file):           PASS (removed, /tmp at 21%)
+    Check 2 (vm.swappiness):             PASS (value: 1)
+    Check 3 (iptables DROP rules):       PASS (no packet-drop rules)
+    Check 4 (PG connectivity):           PASS (quantdb responds)
+    Check 5 (Replication):               PASS (streaming, lag: -1s)
+
+    ALL 5/5 CHECKS PASSED
+
+RESULT: PASS
+============================================================

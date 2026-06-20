@@ -1,0 +1,22 @@
+USE-09: Linux Troubleshooting Drills
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Test 1: Check tools exist ---
+FOUND: strace    (/usr/bin/strace)
+FOUND: tcpdump   (/usr/sbin/tcpdump)
+FOUND: ss        (/usr/sbin/ss)
+FOUND: lsof      (/usr/bin/lsof)
+FOUND: iotop     (/usr/sbin/iotop)
+FOUND: dmesg     (/usr/bin/dmesg)
+RESULT: PASS - All 6 troubleshooting tools installed
+
+--- Test 2: ss -tlnp on primary (check PG ports) ---
+LISTEN 0      400          0.0.0.0:5432      0.0.0.0:*    users:(("postgres",pid=813,fd=7))
+LISTEN 0      400             [::]:5432         [::]:*    users:(("postgres",pid=813,fd=8))
+LISTEN 0      4096               *:9187            *:*    users:(("postgres_export",pid=685,fd=3))
+RESULT: PASS - PG listening on 5432 (IPv4+IPv6), postgres_exporter on 9187
+
+============================================================
+OVERALL: PASS (2/2 checks passed)

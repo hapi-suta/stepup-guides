@@ -1,0 +1,41 @@
+USE-08: Security Audit
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Test 1: List roles and privileges ---
+                                List of roles
+   Role name    |                         Attributes
+----------------+------------------------------------------------------------
+ postgres       | Superuser, Create role, Create DB, Replication, Bypass RLS
+ quant_app      |
+ quant_pipeline |
+ quant_readonly |
+ quant_research |
+ replicator     | Replication
+RESULT: PASS - 6 roles present with appropriate attributes
+
+--- Test 2: pg_hba.conf entries ---
+local   all             postgres                                peer
+local   all             all                                     scram-sha-256
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             0.0.0.0/0               scram-sha-256
+host    replication     replicator      0.0.0.0/0               scram-sha-256
+RESULT: PASS - HBA rules present
+NOTE: "host all all 0.0.0.0/0 scram-sha-256" is very permissive.
+      Good teaching opportunity for security audit exercise.
+
+--- Test 3: SSL settings ---
+ssl = off
+ssl_cert_file = server.crt
+ssl_key_file = server.key
+ssl_min_protocol_version = TLSv1.2
+RESULT: PASS - SSL settings queryable (SSL is OFF - another audit finding for the exercise)
+
+============================================================
+OVERALL: PASS (3/3 checks passed)
+
+SECURITY FINDINGS (good for exercise discussion):
+1. SSL is disabled - production systems should have SSL on
+2. pg_hba.conf allows 0.0.0.0/0 - overly permissive for production
+3. All auth uses scram-sha-256 (good)

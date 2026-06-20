@@ -1,0 +1,152 @@
+============================================================
+BUILD-08: Prometheus and Grafana
+Test Date: 2026-06-20
+Servers: pg-ops (34.228.32.17), pg-primary (100.26.54.122)
+============================================================
+
+=== pg-ops (34.228.32.17) - Monitoring Server ===
+
+--- Check 1: Prometheus installed and running ---
+$ ls /opt/prometheus/prometheus
+/opt/prometheus/prometheus
+
+$ systemctl is-active prometheus
+active
+
+$ systemctl status prometheus
+● prometheus.service - Prometheus
+     Loaded: loaded (/etc/systemd/system/prometheus.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-06-19 03:58:06 UTC; 22h ago
+   Main PID: 10808 (prometheus)
+     CGroup: /system.slice/prometheus.service
+             └─10808 /opt/prometheus/prometheus --config.file=/opt/prometheus/prometheus.yml --storage.tsdb.path=/opt/prometheus/data --web.listen-address=:9090
+
+--- Check 2: Grafana installed and running ---
+$ which grafana-server
+/usr/sbin/grafana-server
+
+$ systemctl is-active grafana-server
+active
+
+$ systemctl status grafana-server
+● grafana-server.service - Grafana instance
+     Loaded: loaded (/usr/lib/systemd/system/grafana-server.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-06-18 23:07:08 UTC; 1 day 3h ago
+
+--- Check 3: Prometheus port 9090 ---
+$ ss -tlnp | grep 9090
+LISTEN 0      4096               *:9090            *:*
+
+$ curl -s http://localhost:9090/-/healthy
+Prometheus Server is Healthy.
+
+--- Check 4: Grafana port 3000 ---
+$ ss -tlnp | grep 3000
+LISTEN 0      4096               *:3000            *:*
+
+$ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health
+200
+
+--- Check 5: Prometheus config ---
+$ cat /opt/prometheus/prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093
+
+rule_files:
+  - alert_rules.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: node
+    static_configs:
+      - targets:
+          - 172.31.19.86:9100
+          - 172.31.22.69:9100
+          - 172.31.21.45:9100
+          - 172.31.26.19:9100
+        labels:
+          cluster: voleon-lab
+
+  - job_name: postgres
+    static_configs:
+      - targets:
+          - 172.31.19.86:9187
+          - 172.31.22.69:9187
+        labels:
+          cluster: voleon-lab
+
+  - job_name: alertmanager
+    static_configs:
+      - targets: ['localhost:9093']
+
+Config scrapes: prometheus, 4x node_exporter, 2x postgres_exporter, alertmanager.
+
+=== pg-primary (100.26.54.122) - Exporters ===
+
+--- Check 6: node_exporter ---
+$ systemctl is-active node_exporter
+active
+
+$ systemctl status node_exporter
+● node_exporter.service - Node Exporter
+     Loaded: loaded (/etc/systemd/system/node_exporter.service; enabled; preset: disabled)
+     Active: active (running) since Fri 2026-06-19 03:58:05 UTC; 22h ago
+   Main PID: 12610 (node_exporter)
+     CGroup: /system.slice/node_exporter.service
+             └─12610 /opt/node_exporter/node_exporter
+
+$ ss -tlnp | grep 9100
+LISTEN 0      4096               *:9100            *:*
+
+$ curl -s http://localhost:9100/metrics | head -5
+# HELP go_gc_duration_seconds A summary of the wall-time pause...
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 3.132e-05
+...
+
+node_exporter serving metrics on port 9100.
+
+--- Check 7: postgres_exporter ---
+$ systemctl is-active postgres_exporter
+active
+
+$ systemctl status postgres_exporter
+● postgres_exporter.service - Postgres Exporter
+     Loaded: loaded (/etc/systemd/system/postgres_exporter.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-06-18 23:07:02 UTC; 1 day 3h ago
+   Main PID: 685 (postgres_export)
+     CGroup: /system.slice/postgres_exporter.service
+             └─685 /opt/postgres_exporter/postgres_exporter
+
+$ ss -tlnp | grep 9187
+LISTEN 0      4096               *:9187            *:*
+
+$ curl -s http://localhost:9187/metrics | head -5
+# HELP go_gc_duration_seconds A summary of the wall-time pause...
+# TYPE go_gc_duration_seconds summary
+...
+
+postgres_exporter serving metrics on port 9187.
+
+============================================================
+RESULT: PASS
+
+Summary:
+- Prometheus installed at /opt/prometheus/, running and healthy on port 9090
+- Grafana installed and running on port 3000 (HTTP 200)
+- Prometheus config scrapes 4 node_exporters + 2 postgres_exporters + alertmanager
+- node_exporter running on pg-primary port 9100, serving metrics
+- postgres_exporter running on pg-primary port 9187, serving metrics
+- Both services enabled (start on boot)
+- Alertmanager configured (port 9093) with alert_rules.yml
+============================================================

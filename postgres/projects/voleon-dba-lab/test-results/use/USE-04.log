@@ -1,0 +1,40 @@
+USE-04: Performance Investigation
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122)
+============================================================
+
+--- Test 1: pg_stat_statements extension exists ---
+      extname       | extversion
+--------------------+------------
+ pg_stat_statements | 1.11
+(1 row)
+RESULT: PASS - pg_stat_statements v1.11 installed
+
+--- Test 2: EXPLAIN on quant.signals ---
+                                          QUERY PLAN
+-----------------------------------------------------------------------------------------------
+ Limit  (cost=0.00..0.25 rows=10 width=48)
+   ->  Append  (cost=0.00..126551.01 rows=5000002 width=48)
+         ->  Seq Scan on signals_2025_07 signals_1  (cost=0.00..10493.76 rows=516676 width=48)
+         ->  Seq Scan on signals_2025_08 signals_2  (cost=0.00..10493.77 rows=516677 width=48)
+         ...  (12 partitions total)
+RESULT: PASS - EXPLAIN works, shows partitioned table plan
+
+--- Test 3: pg_stat_user_tables seq_scan/idx_scan counts ---
+ schemaname |     relname     | seq_scan | idx_scan | n_tup_ins | n_tup_upd
+------------+-----------------+----------+----------+-----------+-----------
+ quant      | signals_2026_03 |       27 |        3 |    516677 |         0
+ quant      | signals_2026_02 |       27 |        3 |    466676 |         0
+ quant      | signals_2025_11 |       27 |        3 |    500010 |         0
+ quant      | signals_2025_10 |       27 |        3 |    516677 |         0
+ quant      | signals_2025_12 |       27 |        3 |    516677 |         0
+ quant      | signals_2026_01 |       27 |        3 |    516677 |         0
+ quant      | signals_2025_08 |       27 |        3 |    516677 |         0
+ quant      | signals_2025_07 |       27 |        3 |    516676 |         0
+ quant      | signals_2025_09 |       27 |        3 |    500010 |         0
+ quant      | signals_2026_04 |       27 |        3 |    433243 |         0
+(10 rows)
+RESULT: PASS - Stats tracking active, ~5M rows across signal partitions
+
+============================================================
+OVERALL: PASS (3/3 checks passed)

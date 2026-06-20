@@ -1,0 +1,32 @@
+USE-10: Automation End-to-End
+Test Date: 2026-06-19
+Servers: pg-container (34.228.73.232), pg-ops (34.228.32.17)
+============================================================
+
+--- Test 1: Jenkins accessible on pg-container:8080 ---
+curl http://127.0.0.1:8080/ -> HTTP 403 (login required)
+Container voleon-jenkins is running (jenkins/jenkins:lts-jdk17)
+RESULT: PASS - Jenkins is accessible (403 = auth gate, expected)
+
+--- Test 2: Ansible inventory on pg-ops ---
+File: /home/ec2-user/ansible/inventory/hosts.yml
+Contents show 4 host groups:
+  pg_primary:   pg-primary (172.31.19.86)
+  pg_replica:   pg-replica (172.31.22.69)
+  pg_container: pg-container (172.31.21.45)
+  pg_ops:       pg-ops (172.31.26.19)
+RESULT: PASS - Inventory correctly configured with all 4 servers
+
+--- Test 3: Terraform state on pg-ops ---
+Terraform v1.15.6 installed at /usr/bin/terraform
+No terraform directory exists at /home/ec2-user/terraform/
+No terraform state file found
+RESULT: FAIL - Terraform installed but no project/state directory exists
+
+============================================================
+OVERALL: FAIL (2/3 checks passed)
+
+ISSUE TO FIX:
+1. Create /home/ec2-user/terraform/ with a basic Terraform project
+   (e.g., terraform config for the lab infrastructure or a sample project)
+   so students can practice terraform plan/apply/show commands.

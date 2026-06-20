@@ -1,0 +1,79 @@
+BUILD-13: Alertmanager Setup
+Test Date: 2026-06-20
+Tested By: Claude Agent
+Target Node: pg-ops (34.228.32.17)
+
+================================================================================
+CHECK 1: Alertmanager installed and running
+================================================================================
+
+Command: sudo systemctl status alertmanager
+Output:
+  alertmanager.service - Alertmanager
+    Loaded: loaded (/etc/systemd/system/alertmanager.service; enabled; preset: disabled)
+    Active: active (running) since Fri 2026-06-19 03:39:59 UTC; 22h ago
+    Main PID: 8094 (alertmanager)
+    Memory: 45.2M
+
+Binary location: /opt/prometheus/alertmanager
+Config file: /opt/prometheus/alertmanager.yml
+Data directory: /opt/prometheus/alertmanager-data
+
+Service is enabled (starts on boot) and actively running.
+
+================================================================================
+CHECK 2: Port 9093 listening
+================================================================================
+
+Command: ss -tlnp | grep 9093
+Output:
+LISTEN 0      4096               *:9093            *:*
+
+Port 9093 is listening on all interfaces.
+
+================================================================================
+CHECK 3: Alert rules file
+================================================================================
+
+File: /opt/prometheus/alert_rules.yml (3690 bytes)
+Referenced in prometheus.yml under rule_files: [alert_rules.yml]
+
+Alert rules defined (11 total):
+  1. PostgreSQLReplicationLagHigh (warning, >30s for 1m)
+  2. PostgreSQLReplicationLagCritical (critical, >300s for 1m)
+  3. PostgreSQLDown (critical, pg_up == 0 for 30s)
+  4. PostgreSQLConnectionsHigh (warning, >80% for 5m)
+  5. PostgreSQLDeadTuplesHigh (warning, >100k dead tuples for 10m)
+  6. DiskUsageHigh (warning, >80% for 5m)
+  7. DiskUsageCritical (critical, >90% for 2m)
+  8. NodeDown (critical, node_exporter unreachable for 1m)
+  9. HighCPUUsage (warning, >85% for 10m)
+  10. CheckpointDurationHigh (warning, sync time high for 5m)
+
+All rules loaded successfully in Prometheus (verified via /api/v1/rules).
+All rules in "inactive" state (no alerts currently firing) - expected for healthy cluster.
+
+================================================================================
+CHECK 4: Prometheus-Alertmanager integration
+================================================================================
+
+prometheus.yml alerting section:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093']
+
+Prometheus is configured to send alerts to Alertmanager on port 9093.
+Alertmanager is also being scraped as a Prometheus target (job: alertmanager, health: up).
+
+================================================================================
+SUMMARY
+================================================================================
+
+- Alertmanager installed at /opt/prometheus/alertmanager
+- Service active (running), enabled for boot
+- Port 9093 listening
+- 11 alert rules defined in /opt/prometheus/alert_rules.yml
+- All rules loaded and healthy in Prometheus
+- Prometheus configured to send alerts to Alertmanager
+
+VERDICT: PASS

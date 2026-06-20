@@ -1,0 +1,76 @@
+USE-01: Connect and Explore
+Test Date: 2026-06-19
+Server: pg-primary (100.26.54.122), pg-replica (54.144.241.128)
+============================================================
+
+--- Test 1: Connect as postgres to quantdb, list schemas (\dn) ---
+      List of schemas
+  Name  |       Owner
+--------+-------------------
+ ops    | postgres
+ public | pg_database_owner
+ quant  | postgres
+(3 rows)
+RESULT: PASS - 3 schemas found (ops, public, quant)
+
+--- Test 2: List tables in quant schema (\dt quant.*) ---
+ Schema |        Name         |       Type        |  Owner
+--------+---------------------+-------------------+----------
+ quant  | backtests           | table             | postgres
+ quant  | instruments         | table             | postgres
+ quant  | market_data         | partitioned table | postgres
+ quant  | market_data_2025_07 | table             | postgres
+ quant  | market_data_2025_08 | table             | postgres
+ quant  | market_data_2025_09 | table             | postgres
+ quant  | market_data_2025_10 | table             | postgres
+ quant  | market_data_2025_11 | table             | postgres
+ quant  | market_data_2025_12 | table             | postgres
+ quant  | market_data_2026_01 | table             | postgres
+ quant  | market_data_2026_02 | table             | postgres
+ quant  | market_data_2026_03 | table             | postgres
+ quant  | market_data_2026_04 | table             | postgres
+ quant  | market_data_2026_05 | table             | postgres
+ quant  | market_data_2026_06 | table             | postgres
+ quant  | model_features      | table             | postgres
+ quant  | models              | table             | postgres
+ quant  | positions           | table             | postgres
+ quant  | signals             | partitioned table | postgres
+ quant  | signals_2025_07     | table             | postgres
+ quant  | signals_2025_08     | table             | postgres
+ quant  | signals_2025_09     | table             | postgres
+ quant  | signals_2025_10     | table             | postgres
+ quant  | signals_2025_11     | table             | postgres
+ quant  | signals_2025_12     | table             | postgres
+ quant  | signals_2026_01     | table             | postgres
+ quant  | signals_2026_02     | table             | postgres
+ quant  | signals_2026_03     | table             | postgres
+ quant  | signals_2026_04     | table             | postgres
+ quant  | signals_2026_05     | table             | postgres
+ quant  | signals_2026_06     | table             | postgres
+(31 rows)
+RESULT: PASS - 31 relations in quant schema (includes partitioned tables + partitions)
+
+--- Test 3: List tables in ops schema (\dt ops.*) ---
+ Schema |     Name      | Type  |  Owner
+--------+---------------+-------+----------
+ ops    | alerts        | table | postgres
+ ops    | deployments   | table | postgres
+ ops    | pipeline_runs | table | postgres
+(3 rows)
+RESULT: PASS - 3 ops tables found
+
+--- Test 4: Connect to replica, verify pg_is_in_recovery() = true ---
+ pg_is_in_recovery
+-------------------
+ t
+(1 row)
+RESULT: PASS - Replica correctly reports in recovery mode
+
+NOTE: Primary reports pg_is_in_recovery = false (correct)
+
+--- Test 5: INSERT on replica should fail (read-only) ---
+ERROR:  cannot execute INSERT in a read-only transaction
+RESULT: PASS - Replica correctly rejects writes
+
+============================================================
+OVERALL: PASS (5/5 checks passed)

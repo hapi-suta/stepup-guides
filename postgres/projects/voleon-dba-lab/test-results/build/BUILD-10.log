@@ -1,0 +1,55 @@
+BUILD-10: Jenkins CI/CD Pipeline
+Test Date: 2026-06-20
+Tested By: Claude Agent
+Target Node: pg-container (34.228.73.232)
+
+================================================================================
+CHECK 1: Jenkins installed/running on pg-container
+================================================================================
+
+Command: rpm -q jenkins
+Output: package jenkins is not installed
+Note: Jenkins is containerized, not installed as RPM. This is expected.
+
+================================================================================
+CHECK 2: voleon-jenkins container running
+================================================================================
+
+Command: sudo docker ps -a --filter name=jenkins
+Output:
+CONTAINER ID   IMAGE                       COMMAND                  CREATED        STATUS        PORTS                                                                                          NAMES
+b806007b6cc4   jenkins/jenkins:lts-jdk17   "/usr/bin/tini -- /u..."   23 hours ago   Up 23 hours   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp, 0.0.0.0:50000->50000/tcp, [::]:50000->50000/tcp   voleon-jenkins
+
+Container name: voleon-jenkins
+Image: jenkins/jenkins:lts-jdk17
+Status: Up 23 hours
+Ports: 8080 (web UI) + 50000 (agent)
+
+================================================================================
+CHECK 3: Port 8080 accessible
+================================================================================
+
+Command: ss -tlnp | grep 8080
+Output:
+LISTEN 0      4096         0.0.0.0:8080       0.0.0.0:*
+LISTEN 0      4096            [::]:8080          [::]:*
+
+Port 8080 is listening on all interfaces (IPv4 and IPv6).
+
+Command: curl -s -o /dev/null -w "HTTP Status: %{http_code}" http://localhost:8080/
+Output: HTTP Status: 403
+
+Note: HTTP 403 is expected - Jenkins returns 403 for unauthenticated requests
+to the root URL. This confirms Jenkins is running and responding.
+
+================================================================================
+SUMMARY
+================================================================================
+
+- Jenkins RPM not installed (containerized instead) - OK
+- voleon-jenkins container running (Up 23 hours)
+- Image: jenkins/jenkins:lts-jdk17
+- Port 8080 listening and responding (HTTP 403 = auth required, expected)
+- Port 50000 also mapped (Jenkins agent port)
+
+VERDICT: PASS
