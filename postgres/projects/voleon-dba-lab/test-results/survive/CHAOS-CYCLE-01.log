@@ -1,0 +1,20 @@
+=== SCENARIO 01: Primary Failover - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (4/4)
+STEP 2 - Inject: PASS (postgresql-17 stopped on primary, confirmed DOWN)
+STEP 3 - Validate after inject: CORRECT FAIL
+  - Check 1 PASS: Replica responds on 54.144.241.128
+  - Check 2 FAIL: Replica is in recovery mode (not promoted) - correct
+  - Check 3: Timed out (PgBouncer connecting to dead primary)
+  - Check 4: Not reached (timeout)
+STEP 4 - Restore: PASS (postgresql-17 started on primary)
+STEP 5 - Final validate: PASS (4/4)
+  - Check 3: PgBouncer connected via ops host (34.228.32.17:6432) after primary timeout
+  - Replication confirmed streaming after restore
+
+KNOWN ISSUES:
+  - Check 3 takes ~76s when primary PgBouncer is down (connection timeout before fallback)
+  - After PG restart, replica reconnects automatically (replication self-heals)
+
+VERDICT: FULL CYCLE PASS

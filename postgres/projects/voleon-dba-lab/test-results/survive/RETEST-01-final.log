@@ -1,0 +1,46 @@
+===============================================================================
+RETEST: Scenario 01 - Primary Failover
+Date: 2026-06-20
+===============================================================================
+
+STEP 1: Baseline Validate (expect PASS)
+---------------------------------------
+Result: PASS (4/4)
+  Check 1: PostgreSQL responding on 100.26.54.122 - PASS
+  Check 2: pg_is_in_recovery = f (read-write mode) - PASS
+  Check 3: PgBouncer on 100.26.54.122:6432 accepting connections - PASS
+  Check 4: INSERT into quant.signals succeeded - PASS
+
+STEP 2: Inject Chaos
+---------------------
+Action: Stopped postgresql-17 on primary (100.26.54.122)
+Result: PostgreSQL confirmed DOWN after injection
+
+STEP 3: Validate After Inject (expect FAIL)
+--------------------------------------------
+Result: FAIL (2 PASS, 2 FAIL) - detection works correctly
+  Check 1: PostgreSQL responding on 54.144.241.128 (replica) - PASS
+  Check 2: Replica still in recovery mode (not promoted) - FAIL (correct)
+  Check 3: PgBouncer on 34.228.32.17:6432 accepting connections - PASS
+  Check 4: INSERT failed (read-only transaction) - FAIL (correct)
+
+STEP 4: Restore
+-----------------
+Action: sudo systemctl start postgresql-17 on primary (100.26.54.122)
+Wait: 10 seconds for PG to fully start
+
+STEP 5: Final Validate (expect PASS)
+--------------------------------------
+Result: PASS (4/4)
+  Check 1: PostgreSQL responding on 100.26.54.122 - PASS
+  Check 2: pg_is_in_recovery = f (read-write mode) - PASS
+  Check 3: PgBouncer on 100.26.54.122:6432 accepting connections - PASS
+  Check 4: INSERT into quant.signals succeeded - PASS
+
+===============================================================================
+VERDICT: Scenario 01 inject/validate cycle - ALL STEPS PASSED
+  - Baseline: PASS
+  - Detection after inject: correctly detected failure (2 FAILs)
+  - Restore: successful
+  - Final validate: PASS
+===============================================================================

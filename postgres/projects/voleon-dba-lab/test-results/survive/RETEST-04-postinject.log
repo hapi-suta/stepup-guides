@@ -1,0 +1,18 @@
+[0;36m[INFO][0m  08:08:00 Validating Scenario 04: Docker Container Crash recovery
+
+[0;36m[INFO][0m  08:08:00 Check 1: Container host 34.228.73.232 is reachable...
+[0;32m[OK][0m    08:08:01 Container host 34.228.73.232 is reachable via SSH
+[0;36m[INFO][0m  08:08:01 Check 2: Container 'voleon-pg' is running...
+[0;31m[ERROR][0m 08:08:02 Container 'voleon-pg' is in state: exited
+[0;36m[INFO][0m  08:08:02 Check 3: Container has been running for at least 10 seconds...
+[0;32m[OK][0m    08:08:03 Container has been running for 41385s (not in crash loop)
+[0;36m[INFO][0m  08:08:03 Check 4: PostgreSQL responding on 34.228.73.232:5433...
+[0;31m[ERROR][0m 08:08:06 PostgreSQL is not responding on 34.228.73.232:5433
+[0;36m[INFO][0m  08:08:06 Check 5: Query executes inside the container database...
+[0;31m[ERROR][0m 08:09:21 Query inside container failed: psql: error: connection to server at "34.228.73.232", port 5433 failed: Operation timed out
+	Is the server running on that host and accepting TCP/IP connections?
+FAILED
+
+  Results: [0;32mPASS: 2[0m  [0;31mFAIL: 3[0m
+
+[0;31m[ERROR][0m 08:09:21 Scenario 04 FAILED - 3 check(s) did not pass

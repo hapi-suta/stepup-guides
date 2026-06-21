@@ -1,0 +1,19 @@
+=== SCENARIO 07: Slow Query Blocks Partitions - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (5/5)
+STEP 2 - Inject: PASS (AccessShareLock on quant.market_data_2025_07, PID 31664)
+STEP 3 - Validate after inject (immediate): 1/5 FAIL (check 5 - blocker PID alive)
+  NOTE: Check 2 passed because query < 60s old. Check 4 passed because COMMENT doesn't need AccessExclusiveLock.
+STEP 3b - Validate after inject (60s+): 2/5 FAIL
+  - Check 2 FAIL: 1 long-running query holding AccessShareLock > 60s (correct)
+  - Check 5 FAIL: Blocker PID still running (correct)
+STEP 4 - Restore: PASS (killed PID 31664, cleaned up PID file)
+STEP 5 - Final validate: PASS (5/5)
+
+KNOWN ISSUES:
+  - Check 2 needs > 60s elapsed to detect the blocker - may pass immediately after injection
+  - Check 4 (COMMENT simulation) doesn't actually conflict with AccessShareLock
+  - A better partition maintenance test would use ALTER TABLE...DETACH PARTITION
+
+VERDICT: FULL CYCLE PASS

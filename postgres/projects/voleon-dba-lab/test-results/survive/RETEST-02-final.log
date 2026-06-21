@@ -1,0 +1,59 @@
+===============================================================================
+RETEST: Scenario 02 - PgBouncer Connection Pool Exhaustion
+Date: 2026-06-20
+===============================================================================
+
+BUG FOUND AND FIXED:
+  validate.sh line 69 - awk '{print $4}' assumed space-delimited output,
+  but PgBouncer SHOW POOLS uses pipe-delimited format. Fixed to:
+    awk -F'|' '{gsub(/[ \t]/,"",$3); print $3}'
+  This was causing baseline to FAIL with "syntax error: operand expected"
+
+STEP 1: Baseline Validate (expect PASS)
+-----------------------------------------
+Result (before fix): FAIL - Check 3 parse error (bug)
+Result (after fix): PASS (4/4)
+  Check 1: PgBouncer port 6432 open on 100.26.54.122 - PASS
+  Check 2: Query through PgBouncer in 0s - PASS
+  Check 3: cl_active = 0 (not saturated) - PASS
+  Check 4: PostgreSQL on primary healthy - PASS
+
+STEP 2: Inject Chaos
+---------------------
+Action: Flooded PgBouncer with 200 connections holding advisory locks
+Result: Pool exhausted (inject script's test connection timed out - exit 124)
+Note: inject.sh timed out at the saturation-check step because the fresh
+      connection queued forever. This confirms injection worked.
+
+STEP 3: Validate After Inject (expect FAIL)
+---------------------------------------------
+Result: FAIL (3 PASS, 1 FAIL) - detection works correctly
+  Check 1: PgBouncer port 6432 open - PASS
+  Check 2: Query through PgBouncer in 0s - PASS (transaction pooling lets some through)
+  Check 3: cl_active = 50 (saturated, threshold is 50) - FAIL (correct)
+  Check 4: PostgreSQL primary healthy - PASS
+
+Note: In transaction pooling mode, short queries can still execute between
+      transactions even while pool is flooded. Check 3 (cl_active count)
+      is the reliable detection mechanism.
+
+STEP 4: Restore
+-----------------
+Action: pkill -f 'pg_advisory_lock' + systemctl restart pgbouncer on primary
+Wait: 5 seconds after restart
+
+STEP 5: Final Validate (expect PASS)
+--------------------------------------
+Result: PASS (4/4)
+  Check 1: PgBouncer port 6432 open - PASS
+  Check 2: Query through PgBouncer in 1s - PASS
+  Check 3: cl_active = 0 (not saturated) - PASS
+  Check 4: PostgreSQL primary healthy - PASS
+
+===============================================================================
+VERDICT: Scenario 02 inject/validate cycle - ALL STEPS PASSED (after bug fix)
+  - Baseline: PASS (after fixing awk parsing bug)
+  - Detection after inject: correctly detected saturation (1 FAIL)
+  - Restore: successful
+  - Final validate: PASS
+===============================================================================

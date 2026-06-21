@@ -1,0 +1,79 @@
+================================================================================
+ CHAOS CYCLE TEST SUMMARY - Voleon DBA Lab
+ Date: 2026-06-19
+ Tester: Claude Agent (automated)
+================================================================================
+
+ Scenario                              | Inject | Validate Detects | Restore | VERDICT
+ --------------------------------------|--------|------------------|---------|-------------
+ 01 - Primary Failover                 | PASS   | PASS (2 FAIL)    | PASS    | FULL PASS
+ 02 - PgBouncer Exhaustion             | PASS*  | FAIL**           | PASS    | PARTIAL
+ 03 - Accidental Signal Delete          | SKIP   | SKIP             | SKIP    | SKIPPED
+ 04 - Docker Container Crash           | PASS   | PASS (3 FAIL)    | PASS    | FULL PASS***
+ 05 - WAL Disk Full                    | FAIL*  | PASS (1 FAIL)    | PASS    | PARTIAL
+ 06 - Ansible Config Drift             | PART*  | PASS (1 FAIL)    | PASS    | PARTIAL
+ 07 - Slow Query Blocks Partitions     | PASS   | PASS (2 FAIL)    | PASS    | FULL PASS
+ 08 - Monitoring Blackout              | PASS   | PASS (5 FAIL)    | PASS    | FULL PASS
+ 09 - Linux System Crisis              | PASS   | PASS (3 FAIL)    | PASS    | FULL PASS
+ 10 - Automation Failure               | PASS   | PASS (1 FAIL)    | PASS    | FULL PASS
+ 11 - Monitoring Incident              | PASS   | PASS (4 FAIL)    | PASS    | FULL PASS
+
+ SUMMARY: 7 FULL PASS | 3 PARTIAL | 1 SKIPPED
+
+================================================================================
+ BUGS FOUND (by scenario)
+================================================================================
+
+ SCENARIO 02 - PgBouncer Exhaustion:
+   * inject.sh: 60 flood connections insufficient - pool_size > 60, pool never saturated
+   * validate.sh Check 3: Cannot connect to pgbouncer admin (auth required), always skipped
+   * Impact: Injection doesn't actually break anything; validate can't detect saturation
+
+ SCENARIO 04 - Docker Container Crash:
+   * validate.sh Check 3: macOS date parsing bug (-d flag vs -jf)
+   * validate.sh Check 5: psql_docker() missing PGPASSWORD, always fails
+   *** Core checks (2, 4) work correctly for inject/restore detection
+
+ SCENARIO 05 - WAL Disk Full:
+   * inject.sh: ssh_primary runs df without sudo, fails on mode-700 pg_wal
+   * inject.sh: Script exits with error - must inject manually
+   * validate.sh Check 2: ssh_primary ls without sudo can't see files in pg_wal
+   * Cleanup: rm glob expansion fails with >200 files; need find -delete
+
+ SCENARIO 06 - Ansible Config Drift:
+   * inject.sh: sed targets 172.31.0.0/16 but actual pg_hba.conf uses 0.0.0.0/0
+   * CIDR injection has no effect - only the TRUST line injection works
+   * validate.sh Check 4: Expects 172.31.0.0/16 which doesn't exist (always FAIL)
+   * validate.sh Check 6: write_lag query returns empty (warns but doesn't fail)
+
+ SCENARIO 07 - Slow Query Blocks Partitions:
+   * validate.sh Check 2: Needs > 60s after injection to detect blocker
+   * validate.sh Check 4: COMMENT doesn't need AccessExclusiveLock, so it always passes
+
+ SCENARIO 08 - Monitoring Blackout:
+   * validate.sh Check 3: When Prometheus is down, empty JSON parsed as 0 DOWN = false PASS
+   * validate.sh Check 5: Replica lag threshold 5s too aggressive (normally 20-30s)
+   * validate.sh Check 6: pg_exporter returns HTTP 302, not 200 (pre-existing)
+
+ SCENARIO 10 - Automation Failure:
+   * validate.sh Check 1: Threshold >= 2 nodes too low (should require all 4)
+   * Replication stays streaming after pg_hba reject until connection drops (may take minutes)
+
+ SCENARIO 11 - Monitoring Incident:
+   * Prometheus lifecycle API returns 403 (--web.enable-lifecycle not set)
+   * validate.sh Check 4: After restart, needs ~30s for all 8 targets to register
+
+================================================================================
+ TOTAL BUGS: 18 across 8 scenarios
+ CRITICAL: 3 (inject.sh failures in 02, 05, 06)
+ MODERATE: 8 (validate.sh false positives/negatives)
+ MINOR: 7 (timing, auth, macOS compat)
+================================================================================
+
+ PRE-EXISTING ISSUES (not bugs, but lab config differences):
+   - pg_hba.conf uses 0.0.0.0/0 not 172.31.0.0/16 for replication
+   - pg_exporter returns 302 redirect (may need /metrics path)
+   - Replica lag baseline ~20-30s (lag queries return -1 or empty)
+   - PgBouncer admin requires password (pgbouncer user)
+
+================================================================================

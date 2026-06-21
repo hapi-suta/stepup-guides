@@ -1,0 +1,27 @@
+[0;36m[INFO][0m  08:07:48 Scenario 04: Docker Container Crash
+[0;36m[INFO][0m  08:07:48 Target: voleon-pg on 34.228.73.232
+
+[0;36m[INFO][0m  08:07:48 Checking SSH connectivity to container host...
+[0;32m[OK][0m    08:07:49 Container host is reachable
+[0;36m[INFO][0m  08:07:49 Checking container status...
+[0;36m[INFO][0m  08:07:50 Container status: running
+[0;32m[OK][0m    08:07:50 Docker PostgreSQL is currently accepting connections on port 5433
+
+[1;33m[WARN][0m  08:07:50 Force-killing container 'voleon-pg' with SIGKILL...
+voleon-pg
+[0;36m[INFO][0m  08:07:53 Container state after kill: exited
+[0;32m[OK][0m    08:07:56 Docker PostgreSQL on port 5433 is no longer responding
+
+  Container 'voleon-pg' on 34.228.73.232 is DOWN.
+  Port 5433 is no longer accepting PostgreSQL connections.
+
+  Your tasks:
+    1. SSH into 34.228.73.232
+    2. Check container state: docker ps -a
+    3. Review container exit code and logs: docker logs voleon-pg
+    4. Restart the container: docker start voleon-pg
+    5. Verify PostgreSQL inside is accepting connections
+       psql -h 34.228.73.232 -p 5433 -U postgres -d postgres
+    6. Check if data is intact after crash recovery
+
+  When done: ./chaos.sh validate 04-docker-container-crash

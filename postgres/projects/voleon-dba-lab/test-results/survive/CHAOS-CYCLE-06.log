@@ -1,0 +1,21 @@
+=== SCENARIO 06: Ansible Config Drift - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: 4/5 PASS (Check 4 pre-existing FAIL)
+  - Check 4: validate.sh expects 172.31.0.0/16 but actual config uses 0.0.0.0/0 for replication
+STEP 2 - Inject: PARTIAL
+  - TRUST line added to pg_hba.conf successfully
+  - sed for 172.31.0.0/16 -> 10.99.0.0/16 had no match (config uses 0.0.0.0/0)
+  - Replication not actually broken (0.0.0.0/0 still allows replica)
+STEP 3 - Validate after inject: 2/5 FAIL
+  - Check 3 FAIL: TRUST entry detected (correct - injection worked for this part)
+  - Check 4 FAIL: pre-existing (not from injection)
+STEP 4 - Restore: PASS (pg_hba.conf.chaos06_backup restored, PG reloaded)
+STEP 5 - Final validate: Same as baseline (4/5 pass)
+
+KNOWN BUGS:
+  1. inject.sh: sed targets 172.31.0.0/16 but actual config uses 0.0.0.0/0 - CIDR injection doesn't fire
+  2. validate.sh Check 4: expects 172.31.0.0/16 which doesn't exist in the actual config
+  3. validate.sh Check 6: write_lag query returns empty (no error, just no data)
+
+VERDICT: PARTIAL CYCLE PASS - TRUST injection works, CIDR injection doesn't match actual config

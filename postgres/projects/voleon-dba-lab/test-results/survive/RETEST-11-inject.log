@@ -1,0 +1,41 @@
+===========================================
+ CHAOS INJECTION: Monitoring Incident
+===========================================
+
+[1/3] Corrupting prometheus.yml on pg-ops (34.228.32.17)...
+  [INFO] Backup already exists - using existing backup
+  [DONE] Changed postgres_exporter target port from 9187 to 9999
+  [OK] prometheus.yml corrupted.
+
+[2/3] Stopping node_exporter on pg-primary (100.26.54.122)...
+  [INFO] node_exporter is running - stopping it now
+  [DONE] node_exporter stopped
+  [OK] node_exporter stopped on pg-primary.
+
+[3/3] Injecting invalid alert rule into alert_rules.yml on pg-ops (34.228.32.17)...
+  [INFO] Backup already exists - using existing backup
+  [DONE] Appended syntactically invalid rule (missing expr field)
+  [OK] Invalid alert rule injected into alert_rules.yml.
+
+[...] Reloading Prometheus on pg-ops (34.228.32.17) to apply broken config...
+  [INFO] Prometheus reload returned HTTP 403 - bad config likely rejected
+  [OK] Prometheus reload attempted.
+
+===========================================
+ CHAOS INJECTED SUCCESSFULLY
+===========================================
+
+ Injected issues:
+   1. pg-ops: prometheus.yml has wrong postgres_exporter port (9999 instead of 9187)
+      Original saved as /opt/prometheus/prometheus.yml.chaos_backup
+   2. pg-primary: node_exporter service is stopped
+      Pre-chaos state saved at /tmp/.chaos_node_exporter_state
+   3. pg-ops: alert_rules.yml has an invalid rule (missing expr field)
+      Original saved as /opt/prometheus/alert_rules.yml.chaos_backup
+
+ Symptoms to expect:
+   - Grafana shows no postgres metrics (postgres_exporter targets scraping wrong port)
+   - Prometheus targets page shows pg-primary node_exporter as DOWN
+   - Prometheus logs or /api/v1/rules shows rule evaluation errors
+   - Alerts that depend on the corrupted rule group will not fire
+

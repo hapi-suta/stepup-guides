@@ -1,0 +1,32 @@
+===========================================
+ CHAOS INJECTION: Automation Failure
+===========================================
+
+[1/2] Corrupting Ansible inventory on pg-ops (34.228.32.17)...
+  [INFO] Backup already exists - using existing backup
+  [DONE] Changed pg-primary ansible_host to 10.99.99.99
+  [OK] Ansible inventory corrupted.
+
+[2/2] Injecting bad pg_hba.conf rule on pg-primary (100.26.54.122)...
+  [SAVED] Original pg_hba.conf backed up
+  [DONE] Added reject rule for replicator from 172.31.22.69
+  [DONE] PostgreSQL reloaded with bad pg_hba.conf
+  [OK] Bad pg_hba.conf applied.
+
+[...] Waiting 10 seconds for replication to disconnect...
+
+===========================================
+ CHAOS INJECTED SUCCESSFULLY
+===========================================
+
+ Injected issues:
+   1. pg-ops: Ansible inventory has wrong IP for pg-primary (10.99.99.99)
+      Original saved as ~/ansible/inventory/hosts.yml.chaos_backup
+   2. pg-primary: pg_hba.conf rejects replication from replica (172.31.22.69)
+      Original saved as pg_hba.conf.chaos_backup
+
+ Symptoms to expect:
+   - Ansible cannot reach pg-primary (connection timeout)
+   - Replication lag climbing, then replica disconnects
+   - pg_stat_replication on primary shows no active replicas
+

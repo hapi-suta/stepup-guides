@@ -1,0 +1,10 @@
+=== SCENARIO 09: Linux System Crisis - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (5/5)
+STEP 2 - Inject: PASS (tmpfill, swappiness=100, iptables DROP)
+STEP 3 - Validate after inject: CORRECT FAIL (3/5 - checks 1,2,3 fail as expected)
+STEP 4 - Restore: PASS (rm tmpfill, swappiness=1, iptables -D)
+STEP 5 - Final validate: PASS (5/5)
+
+VERDICT: FULL CYCLE PASS - All inject/validate checks work correctly

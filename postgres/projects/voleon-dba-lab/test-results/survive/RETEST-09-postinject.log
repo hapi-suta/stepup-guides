@@ -1,0 +1,31 @@
+===========================================
+ VALIDATION: Linux System Crisis
+===========================================
+
+[1/5] Checking /tmp chaos file on pg-primary (100.26.54.122)...
+  [FAIL] /tmp chaos fill file removed
+         /tmp/.chaos_tmpfill still exists - remove it
+
+[2/5] Checking vm.swappiness on pg-primary (100.26.54.122)...
+  [FAIL] vm.swappiness is 10 or less
+         Current value: 100 (should be 1-10)
+
+[3/5] Checking iptables OUTPUT rules on pg-primary (100.26.54.122)...
+  [FAIL] No iptables DROP rules for replica traffic
+         Found 1 DROP rule(s) targeting 172.31.22.69
+
+[4/5] Checking PostgreSQL connectivity on pg-primary (100.26.54.122)...
+  [PASS] PostgreSQL is running and accepting connections
+         quantdb responds to queries
+
+[5/5] Checking replication status on pg-primary (100.26.54.122)...
+  [PASS] Replication is streaming with acceptable lag
+         State: streaming, Lag: -1s
+
+===========================================
+ RESULTS: 2/5 checks passed
+===========================================
+
+ 3 check(s) failed - issues remain.
+ Review the failures above and re-run this script.
+

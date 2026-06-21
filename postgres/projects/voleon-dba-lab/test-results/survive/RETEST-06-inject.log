@@ -1,0 +1,33 @@
+[0;36m[INFO][0m  08:17:46 Scenario 06: Ansible Config Drift - Bad pg_hba.conf
+[0;36m[INFO][0m  08:17:46 Target: /var/lib/pgsql/17/data/pg_hba.conf on 100.26.54.122
+
+[0;36m[INFO][0m  08:17:46 Checking SSH and PostgreSQL connectivity...
+[0;32m[OK][0m    08:17:47 Primary is reachable
+[0;36m[INFO][0m  08:17:47 Backing up current pg_hba.conf to /var/lib/pgsql/17/data/pg_hba.conf.chaos06_backup...
+[0;32m[OK][0m    08:17:47 Backup saved
+[0;36m[INFO][0m  08:17:47 Current replication entries in pg_hba.conf:
+6:host    replication     replicator      0.0.0.0/0               scram-sha-256
+
+[1;33m[WARN][0m  08:17:48 Injecting bad pg_hba.conf - changing replication CIDR to wrong subnet...
+[1;33m[WARN][0m  08:17:50 Reloading PostgreSQL to apply the broken configuration...
+[0;36m[INFO][0m  08:17:53 Checking replication status after bad config reload...
+
+[1;33m[WARN][0m  08:17:54 Replication still shows 1 streaming replica(s).
+[1;33m[WARN][0m  08:17:54 The replica may still be using an existing connection.
+[1;33m[WARN][0m  08:17:54 It will break on next reconnect attempt.
+
+  pg_hba.conf on 100.26.54.122 has been corrupted:
+    - Replication CIDR changed to 10.99.0.0/16 (wrong subnet)
+    - Suspicious TRUST entry added for 0.0.0.0/0
+
+  Your tasks:
+    1. Run Ansible to detect config drift:
+       ansible-playbook -i inventory/hosts.ini playbooks/pg-config.yml --check
+    2. Identify the bad entries in /var/lib/pgsql/17/data/pg_hba.conf
+    3. Restore from backup: sudo cp /var/lib/pgsql/17/data/pg_hba.conf.chaos06_backup /var/lib/pgsql/17/data/pg_hba.conf
+       OR manually fix the replication CIDR back to the correct subnet
+    4. Remove the suspicious TRUST line
+    5. Reload PostgreSQL: sudo systemctl reload postgresql-17
+    6. Confirm replication is streaming again
+
+  When done: ./chaos.sh validate 06-ansible-config-drift
