@@ -1,0 +1,8 @@
+{
+  "8": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/backup/pgbackrest/backup/main",
+    "hint": "Create the stanza: `sudo -iu postgres pgbackrest --stanza=main stanza-create`.",
+    "done": "your pgBackRest 'main' stanza is created"
+  }
+}

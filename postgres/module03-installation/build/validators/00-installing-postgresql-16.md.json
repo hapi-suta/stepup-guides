@@ -1,0 +1,26 @@
+{
+  "7": {
+    "type": "ssh",
+    "check": "rpm -q postgresql16-server >/dev/null 2>&1",
+    "hint": "Install the PostgreSQL 16 packages: `sudo dnf install -y postgresql16 postgresql16-server postgresql16-contrib`.",
+    "done": "the PostgreSQL 16 packages are installed"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo test -f /var/lib/pgsql/16/data/PG_VERSION",
+    "hint": "Initialize the data directory: `sudo /usr/pgsql-16/bin/postgresql-16-setup initdb`.",
+    "done": "your data directory is initialized"
+  },
+  "14": {
+    "type": "ssh",
+    "check": "systemctl is-active --quiet postgresql-16",
+    "hint": "Start the service: `sudo systemctl start postgresql-16`.",
+    "done": "PostgreSQL 16 is running"
+  },
+  "16": {
+    "type": "ssh",
+    "check": "systemctl is-enabled --quiet postgresql-16",
+    "hint": "Enable it at boot: `sudo systemctl enable postgresql-16`.",
+    "done": "PostgreSQL 16 will start automatically on boot"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "4": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select 1 from pg_extension where extname='pageinspect'\" 2>/dev/null | grep -q 1",
+    "hint": "Create the pageinspect extension: `CREATE EXTENSION IF NOT EXISTS pageinspect;`",
+    "done": "the pageinspect extension is installed"
+  }
+}

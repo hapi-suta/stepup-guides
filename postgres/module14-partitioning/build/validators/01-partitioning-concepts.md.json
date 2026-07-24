@@ -1,0 +1,8 @@
+{
+  "10": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select 1 from pg_class where relname='orders_partitioned' and relkind='p'\" 2>/dev/null | grep -q 1",
+    "hint": "Create the partitioned table: `CREATE TABLE orders_partitioned (...) PARTITION BY RANGE (order_date);`",
+    "done": "your partitioned table orders_partitioned is created"
+  }
+}

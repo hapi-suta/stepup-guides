@@ -1,0 +1,8 @@
+{
+  "7": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -tAc \"select count(*) from pg_roles where rolname in ('app_user','readonly_user','admin_user')\" 2>/dev/null | grep -qx 3",
+    "hint": "Create the three login roles: app_user, readonly_user, and admin_user (steps 5-7 with CREATE ROLE).",
+    "done": "your app_user, readonly_user, and admin_user roles are created"
+  }
+}
