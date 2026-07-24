@@ -1,0 +1,8 @@
+{
+  "10": {
+    "type": "ssh",
+    "check": "command -v pgbackrest >/dev/null 2>&1",
+    "hint": "Install pgBackRest: `sudo dnf install -y epel-release && sudo dnf install -y pgbackrest`.",
+    "done": "pgBackRest is installed"
+  }
+}

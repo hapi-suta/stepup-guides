@@ -1,0 +1,8 @@
+{
+  "15": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select 1 from pg_extension where extname='pg_stat_statements'\" 2>/dev/null | grep -q 1",
+    "hint": "Enable pg_stat_statements (shared_preload_libraries + restart), then `CREATE EXTENSION pg_stat_statements;`",
+    "done": "pg_stat_statements is enabled"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "12": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select relrowsecurity from pg_class where relname='orders'\" 2>/dev/null | grep -qx t",
+    "hint": "Enable row-level security on orders: `ALTER TABLE orders ENABLE ROW LEVEL SECURITY;`",
+    "done": "row-level security is now enabled on the orders table"
+  },
+  "18": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select 1 from pg_policies where tablename='orders' and policyname='tenant_select_policy'\" 2>/dev/null | grep -q 1",
+    "hint": "Create the tenant select policy on orders (CREATE POLICY tenant_select_policy ...).",
+    "done": "your tenant_select_policy is in place on orders"
+  }
+}

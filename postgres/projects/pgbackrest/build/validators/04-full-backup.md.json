@@ -1,0 +1,8 @@
+{
+  "3": {
+    "type": "ssh",
+    "check": "sudo -iu postgres pgbackrest --stanza=main info 2>/dev/null | grep -qi 'full backup'",
+    "hint": "Take a full backup: `sudo -iu postgres pgbackrest --stanza=main --type=full backup`.",
+    "done": "your first full backup is complete"
+  }
+}

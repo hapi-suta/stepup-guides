@@ -1,0 +1,8 @@
+{
+  "4": {
+    "type": "ssh",
+    "check": "sudo -iu postgres psql -p 5432 -d stepup_store -tAc \"select 1 from pg_extension where extname='pgstattuple'\" 2>/dev/null | grep -q 1",
+    "hint": "Create the pgstattuple extension: `CREATE EXTENSION IF NOT EXISTS pgstattuple;`",
+    "done": "the pgstattuple extension is installed"
+  }
+}
