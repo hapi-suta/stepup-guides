@@ -1,0 +1,9 @@
+{
+  "12": {
+    "type": "ssh",
+    "node": 0,
+    "check": "sudo -iu postgres psql -tAc \"select count(*) from pg_replication_slots where slot_name='standby_slot'\" 2>/dev/null | grep -qx 1",
+    "hint": "Create the physical replication slot: `SELECT pg_create_physical_replication_slot('standby_slot');`",
+    "done": "the standby_slot physical replication slot exists on the primary"
+  }
+}

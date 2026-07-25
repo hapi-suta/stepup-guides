@@ -1,0 +1,9 @@
+{
+  "18": {
+    "type": "ssh",
+    "node": 0,
+    "check": "test \"$(sudo -iu postgres psql -d repmgr -tAc \"select count(*) from repmgr.nodes where type='standby'\" 2>/dev/null)\" -ge 2",
+    "hint": "Clone + register each standby: `repmgr -f ... standby register`.",
+    "done": "your standbys are registered with repmgr"
+  }
+}

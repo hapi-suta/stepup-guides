@@ -1,0 +1,16 @@
+{
+  "58": {
+    "type": "ssh",
+    "node": 0,
+    "check": "test \"$(sudo -iu postgres psql -tAc \"select count(*) from pg_roles where rolname in ('replicator','app_owner','app_readwrite','app_readonly')\" 2>/dev/null)\" -ge 4",
+    "hint": "Create the four production roles: replicator, app_owner, app_readwrite, app_readonly.",
+    "done": "your production roles are created"
+  },
+  "75": {
+    "type": "ssh",
+    "node": 0,
+    "check": "sudo -iu postgres psql -tAc \"select to_regclass('app.customers') is not null\" 2>/dev/null | grep -qx t",
+    "hint": "Create the app schema and the app.customers table.",
+    "done": "your app.customers table is created"
+  }
+}

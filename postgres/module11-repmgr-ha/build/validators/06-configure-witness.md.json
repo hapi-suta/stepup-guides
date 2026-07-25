@@ -1,0 +1,9 @@
+{
+  "12": {
+    "type": "ssh",
+    "node": 0,
+    "check": "test \"$(sudo -iu postgres psql -d repmgr -tAc \"select count(*) from repmgr.nodes where type='witness'\" 2>/dev/null)\" -ge 1",
+    "hint": "Register the witness: `repmgr -f ... witness register -h <primary>`.",
+    "done": "the witness node is registered"
+  }
+}

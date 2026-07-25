@@ -1,0 +1,9 @@
+{
+  "1": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -d labdb -tAc \"select count(*)>0 from products\" 2>/dev/null | grep -qx t",
+    "hint": "Once the subscription is active, rows from the primary replicate here - check `SELECT count(*) FROM products;`.",
+    "done": "data is replicating from the primary to the subscriber"
+  }
+}

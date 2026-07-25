@@ -1,0 +1,9 @@
+{
+  "16": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres psql -tAc \"select pg_is_in_recovery()\" 2>/dev/null | grep -qx t",
+    "hint": "After pg_basebackup + standby.signal, start the standby - it should come up in recovery.",
+    "done": "the standby is in recovery, streaming from the primary"
+  }
+}

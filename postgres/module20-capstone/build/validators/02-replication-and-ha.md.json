@@ -1,0 +1,9 @@
+{
+  "22": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres psql -tAc \"select pg_is_in_recovery()\" 2>/dev/null | grep -qx t",
+    "hint": "Bring up the standby from pg_basebackup + standby.signal - it should be in recovery.",
+    "done": "your capstone standby is in recovery"
+  }
+}
