@@ -1,0 +1,9 @@
+{
+  "6": {
+    "type": "ssh",
+    "node": 0,
+    "check": "test \"$(sudo -iu postgres psql -d repmgr -tAc \"select count(*) from repmgr.nodes where type='primary'\" 2>/dev/null)\" -ge 1",
+    "hint": "Register the primary: `repmgr -f /etc/repmgr/16/repmgr.conf primary register`.",
+    "done": "the primary is registered with repmgr"
+  }
+}

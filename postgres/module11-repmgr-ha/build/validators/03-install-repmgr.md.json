@@ -1,0 +1,9 @@
+{
+  "15": {
+    "type": "ssh",
+    "node": 0,
+    "check": "sudo -iu postgres psql -d repmgr -tAc \"select 1 from pg_extension where extname='repmgr'\" 2>/dev/null | grep -q 1",
+    "hint": "Install repmgr and run `CREATE EXTENSION repmgr;` in the repmgr database.",
+    "done": "the repmgr extension is installed on the primary"
+  }
+}

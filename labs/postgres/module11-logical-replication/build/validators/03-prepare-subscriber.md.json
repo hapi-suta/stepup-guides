@@ -1,0 +1,16 @@
+{
+  "4": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -tAc \"select pg_is_in_recovery()\" 2>/dev/null | grep -qx f",
+    "hint": "Promote the subscriber: `/usr/pgsql-16/bin/pg_ctl promote -D /var/lib/pgsql/16/data`.",
+    "done": "node 2 is promoted and no longer a standby"
+  },
+  "16": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -d labdb -tAc \"select to_regclass('public.products') is not null\" 2>/dev/null | grep -qx t",
+    "hint": "Create the products table on the subscriber so the subscription has a target.",
+    "done": "the products table exists on the subscriber"
+  }
+}

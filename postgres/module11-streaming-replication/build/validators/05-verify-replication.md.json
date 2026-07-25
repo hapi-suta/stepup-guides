@@ -1,0 +1,9 @@
+{
+  "5": {
+    "type": "ssh",
+    "node": 0,
+    "check": "test \"$(sudo -iu postgres psql -tAc \"select count(*) from pg_stat_replication where state='streaming'\" 2>/dev/null)\" -ge 1",
+    "hint": "Check `SELECT * FROM pg_stat_replication;` on the primary - the standby should show state=streaming.",
+    "done": "the standby is actively streaming from the primary"
+  }
+}
