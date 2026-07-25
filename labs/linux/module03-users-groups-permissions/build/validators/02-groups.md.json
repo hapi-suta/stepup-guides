@@ -1,0 +1,8 @@
+{
+  "8": {
+    "type": "ssh",
+    "check": "getent group dbateam >/dev/null 2>&1 && id -nG alice 2>/dev/null | grep -qw dbateam",
+    "hint": "Create the dbateam group and add alice: `groupadd dbateam; usermod -aG dbateam alice`.",
+    "done": "the dbateam group exists and alice is a member"
+  }
+}

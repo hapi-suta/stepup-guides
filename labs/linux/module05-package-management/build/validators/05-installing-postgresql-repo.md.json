@@ -1,0 +1,8 @@
+{
+  "5": {
+    "type": "ssh",
+    "check": "rpm -q postgresql16-server >/dev/null 2>&1",
+    "hint": "Install the server package: `sudo dnf install -y postgresql16-server`.",
+    "done": "the PostgreSQL 16 server package is installed"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "test -d ~/vi-practice",
+    "hint": "Create the practice folder: `mkdir -p ~/vi-practice`.",
+    "done": "your vi-practice folder is created"
+  }
+}

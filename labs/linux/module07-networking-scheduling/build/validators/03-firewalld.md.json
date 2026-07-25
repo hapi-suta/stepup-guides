@@ -1,0 +1,8 @@
+{
+  "2": {
+    "type": "ssh",
+    "check": "systemctl is-enabled firewalld >/dev/null 2>&1",
+    "hint": "Enable the firewall: `sudo systemctl enable --now firewalld`.",
+    "done": "firewalld is enabled"
+  }
+}

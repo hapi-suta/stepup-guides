@@ -1,0 +1,8 @@
+{
+  "3": {
+    "type": "ssh",
+    "check": "rpm -q git >/dev/null 2>&1",
+    "hint": "Install git: `sudo dnf install -y git`.",
+    "done": "git is installed"
+  }
+}

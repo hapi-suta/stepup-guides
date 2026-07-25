@@ -1,0 +1,8 @@
+{
+  "2": {
+    "type": "ssh",
+    "check": "rpm -q lvm2 >/dev/null 2>&1",
+    "hint": "Install LVM tools: `sudo dnf install -y lvm2`.",
+    "done": "the LVM tools (lvm2) are installed"
+  }
+}
