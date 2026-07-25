@@ -1,0 +1,8 @@
+{
+  "37": {
+    "type": "ssh",
+    "check": "test -d ~/practice/data && test -d ~/practice/logs && test -d ~/practice/backups && test -d ~/practice/scripts",
+    "hint": "Create the structure: `mkdir -p ~/practice/{data,logs,backups,scripts}`.",
+    "done": "your practice directory structure (data/logs/backups/scripts) is created"
+  }
+}
