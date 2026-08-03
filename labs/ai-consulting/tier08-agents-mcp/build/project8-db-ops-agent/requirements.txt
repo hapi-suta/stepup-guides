@@ -1,0 +1,11 @@
+# Project 8 runs on the MOCK model with the Python standard library only -
+# no packages are required for BUILD, USE, or SURVIVE.
+#
+# Two OPTIONAL extras:
+#   anthropic   - only if you run the agent against a REAL Claude model
+#                 (needs ANTHROPIC_API_KEY). Everything else works without it.
+#   pytest      - only if you prefer `pytest` over the built-in test runner.
+#
+# Install the optional extras with:  pip install anthropic pytest
+anthropic>=0.40.0
+pytest>=8.0.0

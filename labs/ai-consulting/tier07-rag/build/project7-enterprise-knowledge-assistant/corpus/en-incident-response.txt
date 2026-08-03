@@ -1,0 +1,13 @@
+Security Incident Response Runbook
+
+Classification
+Security incidents are classified as low, high, or critical severity. A critical incident is any event that involves confirmed data exfiltration, ransomware, or the compromise of a production database.
+
+First response
+On detecting a critical incident, the on-call engineer must page the security lead within fifteen minutes. Do not attempt to remediate a critical incident alone. Preserve evidence: do not reboot affected hosts, as this destroys volatile memory needed for forensics.
+
+Containment
+Isolate the affected host from the network by revoking its security group rules rather than shutting it down. Rotate any credentials that may have been exposed. The security lead decides when to disconnect production systems.
+
+Communication
+The security lead is the single point of contact for all incident communication. Employees must not discuss active incidents outside the incident channel. Customer notification, if required, is handled by the legal team only.

@@ -1,0 +1,16 @@
+{
+  "1":  {"check":"command -v git",                                  "hint":"git is not installed yet. Run step 1: *sudo dnf install -y git*"},
+  "2":  {"check":"command -v git",                                  "hint":"git is not found - finish step 1: *sudo dnf install -y git*"},
+  "3":  {"check":"command -v python3.12",                           "hint":"Python 3.12 is not installed. Run: *sudo dnf install -y python3.12 python3.12-pip*"},
+  "4":  {"check":"command -v python3.12",                           "hint":"python3.12 not found - finish step 3."},
+  "7":  {"check":"test -d $HOME/myenv",                             "hint":"The myenv virtual environment is not there. Run: *python3.12 -m venv myenv*"},
+  "15": {"check":"command -v docker",                               "hint":"Docker is not installed. Run step 15: *sudo dnf install -y docker-ce docker-ce-cli containerd.io*"},
+  "16": {"check":"command -v docker",                               "hint":"docker not found - finish the Docker install (step 15)."},
+  "17": {"check":"systemctl is-active --quiet docker",              "hint":"Docker service is not running. Run: *sudo systemctl enable --now docker*"},
+  "22": {"check":"command -v psql",                                 "hint":"PostgreSQL is not installed. Run: *sudo dnf install -y postgresql-server postgresql*"},
+  "24": {"check":"sudo test -d /var/lib/pgsql/data/base",           "hint":"The database cluster is not initialized. Run: *sudo postgresql-setup --initdb*"},
+  "25": {"check":"systemctl is-active --quiet postgresql",          "hint":"PostgreSQL is not running. Run: *sudo systemctl enable --now postgresql*"},
+  "26": {"check":"systemctl is-active --quiet postgresql",          "hint":"PostgreSQL is not active. Run: *sudo systemctl enable --now postgresql*"},
+  "29": {"check":"sudo -u postgres psql -tAc \"SELECT 1 FROM pg_database WHERE datname='labdb'\" | grep -q 1", "hint":"Database labdb does not exist yet. As postgres: *psql -c \"CREATE DATABASE labdb OWNER labuser;\"*"},
+  "33": {"check":"PGPASSWORD=labpass psql -h 127.0.0.1 -U labuser -d labdb -c 'SELECT 1'", "hint":"Cannot connect as labuser yet. Make sure pg_hba.conf uses md5 for 127.0.0.1 and you reloaded PostgreSQL."}
+}

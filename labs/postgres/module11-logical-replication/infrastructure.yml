@@ -1,0 +1,30 @@
+# Infrastructure spec for logical-replication lab.
+# Happy uses this to provision servers per student.
+
+lab: postgres/logical-replication
+nodes: 2
+
+node1:
+  role: node
+  label: pg-suta-labs-1
+  os: centos-stream-9
+  plan: g6-nanode-1        # Linode nanode ($5/mo, 1 CPU, 1GB RAM, 25GB disk)
+  region: us-east           # or nearest to student
+  ports:
+    - 22/tcp                # SSH
+    - 5432/tcp              # PostgreSQL
+
+node2:
+  role: node
+  label: pg-suta-labs-2
+  os: centos-stream-9
+  plan: g6-nanode-1
+  region: us-east
+  ports:
+    - 22/tcp
+    - 5432/tcp
+
+estimated_cost: $10/month
+auto_destroy_hours: 72
+
+postgres_version: "16"

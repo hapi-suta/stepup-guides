@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enterprise Knowledge Assistant</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main>
+    <h1>Enterprise Knowledge Assistant</h1>
+
+    <!-- Login: mock OIDC. Type an email that exists (alice@example.com or
+         admin@example.com); the server issues a session cookie. -->
+    <section id="login-box" class="card">
+      <h2>Sign in (SSO)</h2>
+      <p class="hint">Demo mode: enter a known email. A real deployment redirects
+        you to your identity provider.</p>
+      <input id="email" type="email" placeholder="alice@example.com" />
+      <button id="login-btn">Sign in</button>
+      <p id="who" class="muted"></p>
+    </section>
+
+    <!-- Ask: any signed-in user. -->
+    <section id="ask-box" class="card hidden">
+      <h2>Ask a question</h2>
+      <input id="query" type="text" placeholder="What is the meal expense cap?" />
+      <button id="ask-btn">Ask</button>
+      <pre id="answer" class="answer"></pre>
+    </section>
+
+    <!-- Admin panel: only shown to admins, and the API enforces it too. -->
+    <section id="admin-box" class="card hidden">
+      <h2>Admin</h2>
+      <h3>Upload a document (background ingestion)</h3>
+      <input id="doc-title" type="text" placeholder="Title" />
+      <input id="doc-source" type="text" placeholder="source.txt" />
+      <textarea id="doc-body" rows="4" placeholder="Document text..."></textarea>
+      <button id="ingest-btn">Enqueue</button>
+      <button id="jobs-btn">Refresh queue</button>
+      <pre id="admin-out" class="answer"></pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

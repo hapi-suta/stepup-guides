@@ -1,0 +1,26 @@
+[
+  {
+    "id": "kb-001",
+    "source": "hr-handbook.md",
+    "text": "Employees accrue 15 vacation days per year. Request time off in the HR portal at least two weeks in advance.",
+    "trusted": true
+  },
+  {
+    "id": "kb-002",
+    "source": "expense-policy.md",
+    "text": "Expense reports must be submitted within 30 days. Meals over 75 dollars require an itemized receipt.",
+    "trusted": true
+  },
+  {
+    "id": "kb-003",
+    "source": "onboarding.md",
+    "text": "New hires complete security training in the first week. Contact IT at helpdesk to set up your laptop and VPN.",
+    "trusted": true
+  },
+  {
+    "id": "kb-004",
+    "source": "vpn-guide.md",
+    "text": "To connect to the corporate VPN, install the client, sign in with your SSO credentials, and choose the nearest gateway.",
+    "trusted": true
+  }
+]

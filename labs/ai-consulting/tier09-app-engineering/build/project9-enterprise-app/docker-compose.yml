@@ -1,0 +1,59 @@
+# The deployment architecture, as code.
+#
+#   client -> gateway (nginx) -> api (FastAPI)  -> db (PostgreSQL)
+#                                worker          -> db
+#
+# - gateway is the single public entry point (API gateway): TLS termination,
+#   rate limiting, one place to add auth headers and routing.
+# - api and worker are the SAME image, different commands (one serves HTTP, one
+#   drains the ingestion queue) - horizontally scalable independently.
+# - db holds all state; everything else is stateless and replaceable.
+#
+# Secrets come from the .env file (env_file), never committed. In production
+# these would come from a secrets manager injected at deploy time.
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: labdb
+      POSTGRES_USER: labuser
+      POSTGRES_PASSWORD: labpass
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labuser -d labdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    # No public port: only the gateway may reach the API.
+    expose:
+      - "8000"
+
+  worker:
+    build: .
+    command: ["python", "worker.py"]
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  gateway:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api
+    ports:
+      - "8080:80"     # the ONLY public port
+    volumes:
+      - ./gateway.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  dbdata:

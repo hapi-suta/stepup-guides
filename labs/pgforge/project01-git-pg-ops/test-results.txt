@@ -1,0 +1,543 @@
+=== PROJECT 1 GUIDE TEST RUN ===
+Date: Wed Jul 22 23:13:57 PDT 2026
+Machine: Darwin Happys-MacBook-Pro.local 24.6.0 Darwin Kernel Version
+git: git version 2.50.1 (Apple Git-155) | gitleaks: 8.30.1 | gh: gh version 2.83.2 (2025-12-10)
+
+-----------------------------------------------
+STEP: 1a: create directory
+$ mkdir -p /tmp/pgforge-p01-test/pg-ops && cd /tmp/pgforge-p01-test/pg-ops
+/tmp/pgforge-p01-test/pg-ops
+RESULT: PASS
+-----------------------------------------------
+STEP: 1b: git init
+$ git init -b main
+Initialized empty Git repository in /private/tmp/pgforge-p01-test/pg-ops/.git/
+RESULT: PASS
+-----------------------------------------------
+STEP: 2: confirm identity
+$ git config user.name && git config user.email
+Happy Afopezi
+thedevopsdba@gmail.com
+RESULT: PASS
+-----------------------------------------------
+STEP: 3: gitleaks version
+$ gitleaks version
+8.30.1
+RESULT: PASS
+-----------------------------------------------
+STEP: 4a: write pre-commit hook
+$ cat > .git/hooks/pre-commit << 'EOF' ... EOF
+#!/bin/sh
+gitleaks protect --staged --verbose
+RESULT: PASS
+-----------------------------------------------
+STEP: 4b: make hook executable
+$ chmod +x .git/hooks/pre-commit
+-rwxr-xr-x  1 hafopezi  wheel  46 Jul 22 23:13 .git/hooks/pre-commit
+RESULT: PASS
+-----------------------------------------------
+STEP: 5: write .gitignore
+$ cat > .gitignore << 'EOF' ... EOF
+# secrets - never in history
+*.pem
+*.key
+.pgpass
+*.env
+credentials*
+
+# noise
+.DS_Store
+*.log
+*.swp
+RESULT: PASS
+-----------------------------------------------
+STEP: 6: create repo layout
+$ mkdir -p config/postgresql config/pg_hba scripts runbooks docs
+.
+./config
+./config/pg_hba
+./config/postgresql
+./docs
+./runbooks
+./scripts
+RESULT: PASS
+-----------------------------------------------
+STEP: 7: first git status
+$ git status
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.gitignore
+
+nothing added to commit but untracked files present (use "git add" to track)
+RESULT: PASS
+-----------------------------------------------
+STEP: 8: import sample template (sanitized)
+$ cp template -> config/postgresql/oltp-16.conf
+# OLTP tuning profile - PostgreSQL 16
+# workload: high-concurrency OLTP, 16GB RAM host
+shared_buffers = 4GB
+effective_cache_size = 12GB
+work_mem = 16MB
+RESULT: PASS
+-----------------------------------------------
+STEP: 9a: stage files
+$ git add .gitignore config/postgresql/oltp-16.conf
+RESULT: PASS
+-----------------------------------------------
+STEP: 9b: status after staging
+$ git status
+On branch main
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+	new file:   .gitignore
+	new file:   config/postgresql/oltp-16.conf
+
+RESULT: PASS
+-----------------------------------------------
+STEP: 9c: first commit (hook runs)
+$ git commit -m 'feat: add OLTP PostgreSQL 16 tuning template and gitignore'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:13PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:13PM[0m [32mINF[0m [1mscanned ~381 bytes (381 bytes) in 34.4ms[0m
+[90m11:13PM[0m [32mINF[0m [1mno leaks found[0m
+[main (root-commit) aa13149] feat: add OLTP PostgreSQL 16 tuning template and gitignore
+ 2 files changed, 21 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 config/postgresql/oltp-16.conf
+RESULT: PASS
+-----------------------------------------------
+STEP: 10a: git log
+$ git log --oneline
+aa13149 feat: add OLTP PostgreSQL 16 tuning template and gitignore
+RESULT: PASS
+-----------------------------------------------
+STEP: 10b: git show --stat HEAD
+$ git show --stat HEAD
+commit aa1314977060a8e700137bf08a2640aada8c92aa
+Author: Happy Afopezi <thedevopsdba@gmail.com>
+Date:   Wed Jul 22 23:13:58 2026 -0700
+
+    feat: add OLTP PostgreSQL 16 tuning template and gitignore
+
+ .gitignore                     | 11 +++++++++++
+ config/postgresql/oltp-16.conf | 10 ++++++++++
+ 2 files changed, 21 insertions(+)
+RESULT: PASS
+-----------------------------------------------
+STEP: 11a: edit work_mem 16MB->32MB
+$ vi config/postgresql/oltp-16.conf (edit work_mem)
+RESULT: PASS
+-----------------------------------------------
+STEP: 11b: git diff
+$ git diff
+diff --git a/config/postgresql/oltp-16.conf b/config/postgresql/oltp-16.conf
+index afe9cec..fa32033 100644
+--- a/config/postgresql/oltp-16.conf
++++ b/config/postgresql/oltp-16.conf
+@@ -2,7 +2,7 @@
+ # workload: high-concurrency OLTP, 16GB RAM host
+ shared_buffers = 4GB
+ effective_cache_size = 12GB
+-work_mem = 16MB
++work_mem = 32MB
+ maintenance_work_mem = 512MB
+ wal_compression = on
+ checkpoint_completion_target = 0.9
+RESULT: PASS
+-----------------------------------------------
+STEP: 11c: stage and commit the change
+$ git add ... && git commit -m 'perf: raise work_mem...'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:13PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:13PM[0m [32mINF[0m [1mscanned ~16 bytes (16 bytes) in 29.4ms[0m
+[90m11:13PM[0m [32mINF[0m [1mno leaks found[0m
+[main 8145740] perf: raise work_mem 16MB->32MB for OLTP sort-heavy workloads
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+RESULT: PASS
+-----------------------------------------------
+STEP: 12: publish to GitHub (private test repo)
+$ gh repo create pg-ops-guide-test --private --source . --push
+https://github.com/hafopezi10/pg-ops-guide-test
+To https://github.com/hafopezi10/pg-ops-guide-test.git
+ * [new branch]      HEAD -> main
+branch 'main' set up to track 'origin/main'.
+RESULT: PASS
+-----------------------------------------------
+STEP: 13a: create feature branch
+$ git switch -c feature/add-dw-template
+Switched to a new branch 'feature/add-dw-template'
+RESULT: PASS
+-----------------------------------------------
+STEP: 13b: add DW template + commit
+$ add dw-16.conf, git add, git commit
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:14PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:14PM[0m [32mINF[0m [1mscanned ~219 bytes (219 bytes) in 24.2ms[0m
+[90m11:14PM[0m [32mINF[0m [1mno leaks found[0m
+[feature/add-dw-template 2992f83] feat: add data-warehouse tuning template
+ 1 file changed, 7 insertions(+)
+ create mode 100644 config/postgresql/dw-16.conf
+RESULT: PASS
+-----------------------------------------------
+STEP: 13c: push branch
+$ git push -u origin feature/add-dw-template
+remote: 
+remote: Create a pull request for 'feature/add-dw-template' on GitHub by visiting:        
+remote:      https://github.com/hafopezi10/pg-ops-guide-test/pull/new/feature/add-dw-template        
+remote: 
+To https://github.com/hafopezi10/pg-ops-guide-test.git
+ * [new branch]      feature/add-dw-template -> feature/add-dw-template
+branch 'feature/add-dw-template' set up to track 'origin/feature/add-dw-template'.
+RESULT: PASS
+-----------------------------------------------
+STEP: 13d: create PR
+$ gh pr create --fill
+https://github.com/hafopezi10/pg-ops-guide-test/pull/1
+RESULT: PASS
+-----------------------------------------------
+STEP: 13e: merge PR (squash)
+$ gh pr merge --squash --delete-branch
+From https://github.com/hafopezi10/pg-ops-guide-test
+ * branch            main       -> FETCH_HEAD
+   8145740..1bf5818  main       -> origin/main
+Updating 8145740..1bf5818
+Fast-forward
+ config/postgresql/dw-16.conf | 7 +++++++
+ 1 file changed, 7 insertions(+)
+ create mode 100644 config/postgresql/dw-16.conf
+RESULT: PASS
+-----------------------------------------------
+STEP: 13f: back to main + pull
+$ git switch main && git pull
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+Already up to date.
+RESULT: PASS
+-----------------------------------------------
+STEP: 14a: tag baseline
+$ git tag -a v1.0.0 -m 'first reviewed baseline'
+RESULT: PASS
+-----------------------------------------------
+STEP: 14b: push tag
+$ git push origin v1.0.0
+To https://github.com/hafopezi10/pg-ops-guide-test.git
+ * [new tag]         v1.0.0 -> v1.0.0
+RESULT: PASS
+
+=== SURVIVE DRILLS ===
+-----------------------------------------------
+STEP: DrillA-1: bad change on branch, merged
+$ branch, set shared_buffers=128GB, merge to main
+Switched to a new branch 'fix/bad-tune'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:14PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:14PM[0m [32mINF[0m [1mscanned ~23 bytes (23 bytes) in 25.3ms[0m
+[90m11:14PM[0m [32mINF[0m [1mno leaks found[0m
+[fix/bad-tune 9ec2853] perf: raise shared_buffers
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+Updating 1bf5818..9ec2853
+Fast-forward
+ config/postgresql/oltp-16.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillA-2: find the offending commit
+$ git log --oneline -3
+9ec2853 perf: raise shared_buffers
+1bf5818 feat: add data-warehouse tuning template (#1)
+8145740 perf: raise work_mem 16MB->32MB for OLTP sort-heavy workloads
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillA-3: revert it
+$ git revert --no-edit HEAD
+[main 1acdd71] Revert "perf: raise shared_buffers"
+ Date: Wed Jul 22 23:14:12 2026 -0700
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+shared_buffers = 4GB
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-1: leak a fake credential bypassing hook
+$ git commit --no-verify (file with password=Fake123!)
+[main 8215a21] chore: add old backup config
+ 1 file changed, 2 insertions(+)
+ create mode 100644 scripts/old-backup.cfg
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-2: deleting the file does NOT remove it from history
+$ git rm + commit, then git log -p still shows the password
+rm 'scripts/old-backup.cfg'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:14PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:14PM[0m [32mINF[0m [1mscanned ~0 bytes (0) in 50.2ms[0m
+[90m11:14PM[0m [32mINF[0m [1mno leaks found[0m
+[main 18ef6ad] chore: remove backup config
+ 1 file changed, 2 deletions(-)
+ delete mode 100644 scripts/old-backup.cfg
+-password=Fake123!
+
+--
++password=Fake123!
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-3: purge with git-filter-repo
+$ git filter-repo --invert-paths --path scripts/old-backup.cfg --force
+NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'
+        in the manual if you want to push back there.
+        (was https://github.com/hafopezi10/pg-ops-guide-test.git)
+
+Parsed 8 commitsHEAD is now at cb4c398 Revert "perf: raise shared_buffers"
+
+New history written in 0.06 seconds; now repacking/cleaning...
+Repacking your repo and cleaning out old unneeded objects
+Completely finished after 0.17 seconds.
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-4: prove it is gone
+$ git log -p --all -- scripts/old-backup.cfg (empty)
+(no output above = purged)
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-5: filter-repo removed origin (expected!) - re-add and force push
+$ git remote add origin ... && git push --force
+To https://github.com/hafopezi10/pg-ops-guide-test.git
+ + 1bf5818...cb4c398 main -> main (forced update)
+RESULT: PASS
+-----------------------------------------------
+STEP: DrillB-6: verify hook survived filter-repo
+$ ls -l .git/hooks/pre-commit
+-rwxr-xr-x  1 hafopezi  wheel  46 Jul 22 23:13 .git/hooks/pre-commit
+RESULT: PASS
+-----------------------------------------------
+STEP: Scanner: prove the hook blocks a staged secret
+$ stage file with aws key pattern, commit should FAIL
+bash: scripts/creds.txt: No such file or directory
+EXIT=0
+RESULT: PASS
+
+=== CLEANUP ===
+-----------------------------------------------
+STEP: cleanup: attempt to delete test repo
+$ gh repo delete hafopezi10/pg-ops-guide-test --yes
+HTTP 403: Must have admin rights to Repository. (https://api.github.com/repos/hafopezi10/pg-ops-guide-test)
+This API operation needs the "delete_repo" scope. To request it, run:  gh auth refresh -h github.com -s delete_repo
+RESULT: FAIL (exit 1)
+
+=== END OF TEST RUN ===
+SUMMARY: 37 PASS / 1 FAIL
+
+=== RETEST: scanner block (first attempt was invalid - scripts/ dir missing after filter-repo) ===
+$ git commit -m 'test: should be blocked'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m11:15PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:15PM[0m [32mINF[0m [1mscanned ~102 bytes (102 bytes) in 29ms[0m
+[90m11:15PM[0m [32mINF[0m [1mno leaks found[0m
+[main 552679e] test: should be blocked
+ 1 file changed, 2 insertions(+)
+ create mode 100644 scripts/creds.txt
+EXIT=0
+
+=== RETEST 2: scanner block with realistic token (AWS example keys are allowlisted by gitleaks!) ===
+$ git commit -m 'test: should be blocked'
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+Finding:     github_token=[1;3;mghp_x7KpQ2mNvR8sT4wY6zA1bC3dE5fG9hJ0kLmN[0m
+Secret:      [1;3;mghp_x7KpQ2mNvR8sT4wY6zA1bC3dE5fG9hJ0kLmN[0m
+RuleID:      github-pat
+Entropy:     5.121928
+File:        scripts/creds.txt
+Line:        1
+Fingerprint: scripts/creds.txt:github-pat:1
+
+[90m11:15PM[0m [32mINF[0m [1m0 commits scanned.[0m
+[90m11:15PM[0m [32mINF[0m [1mscanned ~54 bytes (54 bytes) in 23.6ms[0m
+[90m11:15PM[0m [33mWRN[0m [1mleaks found: 1[0m
+EXIT=1
+
+=== SERVER TEST RUN (real PostgreSQL cluster) ===
+Date: Wed Jul 22 23:33:12 PDT 2026
+Instance: t3.small CentOS Stream 9, i-0d040e5c2cc59e1c2
+-----------------------------------------------
+STEP: S1: install PGDG repo
+$ sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm 2>&1 | tail -3
+  pgdg-redhat-repo-42.0-66.rhel9PGDG.noarch                                     
+
+Complete!
+RESULT: PASS
+-----------------------------------------------
+STEP: S2: disable built-in postgresql module
+$ sudo dnf -qy module disable postgresql 2>&1 | tail -2
+ Fingerprint: D4BF 08AE 67A0 B4C7 A1DB CCD2 40BC A2B4 08B4 0D20
+ From       : /etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY-RHEL
+RESULT: PASS
+-----------------------------------------------
+STEP: S3: install PostgreSQL 16 server
+$ sudo dnf install -y postgresql16-server 2>&1 | tail -3
+  postgresql16-server-16.14-2PGDG.rhel9.8.x86_64                                
+
+Complete!
+RESULT: PASS
+-----------------------------------------------
+STEP: S4: initialize the cluster
+$ sudo /usr/pgsql-16/bin/postgresql-16-setup initdb
+Initializing database ... OK
+
+RESULT: PASS
+-----------------------------------------------
+STEP: S5: enable and start
+$ sudo systemctl enable --now postgresql-16 && sudo systemctl status postgresql-16 --no-pager | head -5
+Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16.service → /usr/lib/systemd/system/postgresql-16.service.
+● postgresql-16.service - PostgreSQL 16 database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2026-07-23 06:33:55 UTC; 35ms ago
+       Docs: https://www.postgresql.org/docs/16/static/
+    Process: 5271 ExecStartPre=/usr/pgsql-16/bin/postgresql-16-check-db-dir ${PGDATA} (code=exited, status=0/SUCCESS)
+RESULT: PASS
+-----------------------------------------------
+STEP: S6: confirm version as postgres user
+$ sudo -u postgres /usr/pgsql-16/bin/psql -c 'SELECT version();' | head -3
+                                                  version                                                   
+------------------------------------------------------------------------------------------------------------
+ PostgreSQL 16.14 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 11.5.0 20240719 (Red Hat 11.5.0-14), 64-bit
+RESULT: PASS
+-----------------------------------------------
+STEP: S7: locate the real config
+$ sudo -u postgres /usr/pgsql-16/bin/psql -tc 'SHOW config_file;'
+ /var/lib/pgsql/16/data/postgresql.conf
+
+RESULT: PASS
+-----------------------------------------------
+STEP: S8: current shared_buffers (default)
+$ sudo -u postgres /usr/pgsql-16/bin/psql -tc 'SHOW shared_buffers;'
+ 128MB
+
+RESULT: PASS
+-----------------------------------------------
+STEP: C1: pull the REAL postgresql.conf from the server into the repo
+$ ssh ... 'sudo cat /var/lib/pgsql/16/data/postgresql.conf' > config/pgforge-1/postgresql.conf
+825 lines pulled
+RESULT: PASS
+-----------------------------------------------
+STEP: C2: pull pg_hba.conf too
+$ ssh ... 'sudo cat /var/lib/pgsql/16/data/pg_hba.conf' > config/pgforge-1/pg_hba.conf
+122 lines pulled
+RESULT: PASS
+-----------------------------------------------
+STEP: C3: baseline commit
+$ git commit -m 'feat: baseline pgforge-1 configs as installed'
+9c18b84 feat: baseline pgforge-1 configs as installed
+RESULT: PASS
+-----------------------------------------------
+STEP: C4: tune in the REPO (work_mem 4MB->8MB, shared_buffers 128MB->256MB)
+$ git diff
+diff --git a/config/pgforge-1/postgresql.conf b/config/pgforge-1/postgresql.conf
+index 64e5323..2ccaa76 100644
+--- a/config/pgforge-1/postgresql.conf
++++ b/config/pgforge-1/postgresql.conf
+@@ -127,7 +127,7 @@ max_connections = 100			# (change requires restart)
+ 
+ # - Memory -
+ 
+-shared_buffers = 128MB			# min 128kB
++shared_buffers = 256MB			# min 128kB
+ 					# (change requires restart)
+ #huge_pages = try			# on, off, or try
+ 					# (change requires restart)
+@@ -138,7 +138,7 @@ shared_buffers = 128MB			# min 128kB
+ 					# (change requires restart)
+ # Caution: it is not advisable to set max_prepared_transactions nonzero unless
+ # you actively intend to use prepared transactions.
+-#work_mem = 4MB				# min 64kB
++work_mem = 8MB				# min 64kB
+ #hash_mem_multiplier = 2.0		# 1-1000.0 multiplier on hash table work_mem
+ #maintenance_work_mem = 64MB		# min 1MB
+ #autovacuum_work_mem = -1		# min 1MB, or -1 to use maintenance_work_mem
+RESULT: PASS
+-----------------------------------------------
+STEP: C5: push repo config back to the server
+$ cat config/pgforge-1/postgresql.conf | ssh ... 'sudo tee /var/lib/pgsql/16/data/postgresql.conf > /dev/null'
+RESULT: PASS
+-----------------------------------------------
+STEP: C6: reload (NOT restart)
+$ sudo systemctl reload postgresql-16
+RESULT: PASS
+-----------------------------------------------
+STEP: C7: work_mem changed after reload
+$ sudo -u postgres /usr/pgsql-16/bin/psql -tc 'SHOW work_mem;'
+ 8MB
+
+RESULT: PASS
+-----------------------------------------------
+STEP: C8: shared_buffers did NOT change after reload
+$ sudo -u postgres /usr/pgsql-16/bin/psql -tc 'SHOW shared_buffers;'
+ 128MB
+
+RESULT: PASS
+-----------------------------------------------
+STEP: C9: PostgreSQL knows a restart is pending
+$ sudo -u postgres /usr/pgsql-16/bin/psql -c 'SELECT name, setting, pending_restart FROM pg_settings WHERE pending_restart;'
+      name      | setting | pending_restart 
+----------------+---------+-----------------
+ shared_buffers | 16384   | t
+(1 row)
+
+RESULT: PASS
+-----------------------------------------------
+STEP: C10: restart
+$ sudo systemctl restart postgresql-16
+RESULT: PASS
+-----------------------------------------------
+STEP: C11: shared_buffers changed after restart
+$ sudo -u postgres /usr/pgsql-16/bin/psql -tc 'SHOW shared_buffers;'
+ 256MB
+
+RESULT: PASS

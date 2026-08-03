@@ -1,0 +1,56 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "test -d ~/project11",
+    "hint": "Create your project folder first: run `mkdir -p ~/project11`.",
+    "done": "your project11 folder is created"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -d ~/project11/.venv && ~/project11/.venv/bin/pip show fastapi >/dev/null 2>&1",
+    "hint": "Create the venv and install: `cd ~/project11 && python3.12 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.",
+    "done": "your virtual environment is set up and dependencies are installed"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "cd ~/project11 && .venv/bin/python -m pytest -q >/dev/null 2>&1",
+    "hint": "Run the baseline tests from ~/project11 with the venv: `python -m pytest -q`.",
+    "done": "the baseline tests pass"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 || pgrep -f 'uvicorn app:app' >/dev/null",
+    "hint": "Start the target: `nohup uvicorn app:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &`.",
+    "done": "the target assistant is up on port 8000"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "test -s ~/project11/threat-model.md",
+    "hint": "Write the threat model: `cd ~/project11 && vi threat-model.md` and record the eleven questions.",
+    "done": "your threat model is written"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "test -s ~/project11/evidence-before.txt",
+    "hint": "Run the red-team suite and save it: `cd ~/project11 && python redteam.py > evidence-before.txt 2>&1`.",
+    "done": "your before-evidence red-team run is captured"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "test -s ~/project11/findings.md",
+    "hint": "Record findings with severity: `cd ~/project11 && vi findings.md`.",
+    "done": "your findings register with severity ratings exists"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "test -s ~/project11/evidence-after.txt",
+    "hint": "Retest after mitigations and save it: `cd ~/project11 && python redteam.py > evidence-after.txt 2>&1`.",
+    "done": "your after-evidence retest run is captured"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "test -s ~/project11/assessment-report.md",
+    "hint": "Write the report with residual risk and an IR plan: `cd ~/project11 && vi assessment-report.md`.",
+    "done": "your assessment report (residual risk + IR plan) is written"
+  }
+}

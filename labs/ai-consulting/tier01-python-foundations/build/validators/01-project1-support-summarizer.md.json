@@ -1,0 +1,38 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "test -d ~/project1",
+    "hint": "Create your project folder first: run `mkdir -p ~/project1`.",
+    "done": "your project1 folder is created"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "test \"$(PGPASSWORD=labpass psql -h 127.0.0.1 -U labuser -d labdb -tAc \"select count(*) from information_schema.tables where table_schema='public'\" 2>/dev/null)\" -gt 0",
+    "hint": "Seed the database from inside ~/project1: `PGPASSWORD=labpass psql -h 127.0.0.1 -U labuser -d labdb -f seed.sql`.",
+    "done": "your database is seeded and its tables are there"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "test -d ~/project1/.venv",
+    "hint": "Create the virtual environment inside ~/project1: `python3.12 -m venv .venv`.",
+    "done": "your virtual environment (.venv) is set up"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "~/project1/.venv/bin/pip show fastapi >/dev/null 2>&1",
+    "hint": "Install the dependencies with the venv active: `pip install -r requirements.txt`.",
+    "done": "your Python dependencies are installed"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 || pgrep -f 'uvicorn app:app' >/dev/null",
+    "hint": "Start the API: `nohup uvicorn app:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &`.",
+    "done": "your API is up and answering on port 8000"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "docker images --format '{{.Repository}}' | grep -q '^support-summary$'",
+    "hint": "Build the image from ~/project1: `docker build -t support-summary .`.",
+    "done": "your Docker image support-summary is built"
+  }
+}

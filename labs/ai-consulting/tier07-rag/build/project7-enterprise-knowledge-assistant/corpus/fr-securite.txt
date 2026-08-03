@@ -1,0 +1,13 @@
+Runbook de Reponse aux Incidents
+
+Classification
+Les incidents de securite sont classes en gravite faible, elevee ou critique. Un incident critique est tout evenement impliquant une exfiltration de donnees confirmee, un rancongiciel, ou la compromission d'une base de donnees de production.
+
+Premiere reponse
+Lors de la detection d'un incident critique, l'ingenieur d'astreinte doit alerter le responsable de la securite dans les quinze minutes. Ne tentez pas de remedier seul a un incident critique. Preservez les preuves : ne redemarrez pas les hotes affectes, car cela detruit la memoire volatile necessaire a l'analyse.
+
+Confinement
+Isolez l'hote affecte du reseau en revoquant ses regles de groupe de securite plutot qu'en l'eteignant. Faites tourner toutes les informations d'identification susceptibles d'avoir ete exposees.
+
+Communication
+Le responsable de la securite est le point de contact unique pour toute communication liee a un incident. Les employes ne doivent pas discuter des incidents actifs en dehors du canal dedie.

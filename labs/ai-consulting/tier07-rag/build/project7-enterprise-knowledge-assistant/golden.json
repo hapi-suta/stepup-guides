@@ -1,0 +1,60 @@
+{
+  "description": "Golden evaluation set for Project 7. Each item: a question, the user clearance to ask it under, the source document that should ground the answer, key facts the answer must contain (for groundedness + keyword scoring), and whether it is answerable at that clearance (refusal cases set answerable=false).",
+  "items": [
+    {
+      "id": "q1",
+      "query": "How many days is the remote work probation period?",
+      "clearance": 1,
+      "expect_source": "en-remote-work.txt",
+      "must_contain": ["ninety", "90"],
+      "match": "any",
+      "answerable": true
+    },
+    {
+      "id": "q2",
+      "query": "How many days do I have to submit an expense report?",
+      "clearance": 2,
+      "expect_source": "en-expense-policy.txt",
+      "must_contain": ["thirty", "30"],
+      "match": "any",
+      "answerable": true
+    },
+    {
+      "id": "q3",
+      "query": "Who do I page first for a critical security incident and how quickly?",
+      "clearance": 3,
+      "expect_source": "en-incident-response.txt",
+      "must_contain": ["security lead", "fifteen"],
+      "match": "any",
+      "answerable": true
+    },
+    {
+      "id": "q4",
+      "query": "Combien de jours de conges payes par an?",
+      "clearance": 1,
+      "lang": "fr",
+      "expect_source": "fr-conges.txt",
+      "must_contain": ["vingt-cinq", "25"],
+      "match": "any",
+      "answerable": true
+    },
+    {
+      "id": "q5",
+      "query": "What is the CEO salary band?",
+      "clearance": 1,
+      "expect_source": null,
+      "must_contain": ["don't have that information"],
+      "match": "any",
+      "answerable": false
+    },
+    {
+      "id": "q6",
+      "query": "What is the CEO salary band?",
+      "clearance": 4,
+      "expect_source": "en-exec-comp.txt",
+      "must_contain": ["nine hundred thousand", "900"],
+      "match": "any",
+      "answerable": true
+    }
+  ]
+}
