@@ -17,7 +17,7 @@ CentOS/RHEL and Ubuntu/Debian handle PostgreSQL cluster management very differen
 | PG repository | PGDG Yum repo | PGDG Apt repo |
 | Install command | `dnf install postgresql16-server` | `apt install postgresql-16` |
 | Auto-init on install | No (you run `initdb` manually) | Yes (`pg_createcluster` runs automatically) |
-| Config location | `/opt/pgsql/data/postgresql.conf` (or `/var/lib/pgsql/16/data/`) | `/etc/postgresql/16/main/postgresql.conf` |
+| Config location | `/opt/pgsql/data/postgresql.conf` (or `/opt/pgsql/data/`) | `/etc/postgresql/16/main/postgresql.conf` |
 | Data directory | You choose (we use `/opt/pgsql/data`) | `/var/lib/postgresql/16/main/` |
 | Service name | `postgresql-16` | `postgresql@16-main` |
 | systemd unit | One unit per version | One unit per version-cluster pair |

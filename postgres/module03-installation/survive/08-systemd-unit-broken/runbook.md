@@ -86,7 +86,7 @@ This is the problem. The override sets PGDATA to a non-existent path.
 
 ### Step 5 - Fix the override with the correct PGDATA path
 
-The base unit file (from the RPM package) defaults to `/var/lib/pgsql/16/data/`. This lab uses `/opt/pgsql/data`, so we need a correct override - not no override.
+The base unit file (from the RPM package) defaults to `/opt/pgsql/data/`. This lab uses `/opt/pgsql/data`, so we need a correct override - not no override.
 
 ```bash
 sudo vi /etc/systemd/system/postgresql-16.service.d/override.conf
@@ -128,7 +128,7 @@ Description=PostgreSQL 16 database server
 ...
 [Service]
 ...
-Environment=PGDATA=/var/lib/pgsql/16/data/
+Environment=PGDATA=/opt/pgsql/data/
 ...
 
 # /etc/systemd/system/postgresql-16.service.d/override.conf
@@ -212,7 +212,7 @@ sudo systemctl edit postgresql-16
 
 This opens the override file in your editor and automatically runs `daemon-reload` when you save. It's the safest way to modify systemd overrides.
 
-> **Warning about systemctl revert** - Do NOT use `systemctl revert postgresql-16` here. It removes ALL overrides, which would reset PGDATA back to the RPM default `/var/lib/pgsql/16/data/`. Since this lab uses a custom data directory at `/opt/pgsql/data`, removing the override would break PostgreSQL.
+> **Warning about systemctl revert** - Do NOT use `systemctl revert postgresql-16` here. It removes ALL overrides, which would reset PGDATA back to the RPM default `/opt/pgsql/data/`. Since this lab uses a custom data directory at `/opt/pgsql/data`, removing the override would break PostgreSQL.
 
 ---
 

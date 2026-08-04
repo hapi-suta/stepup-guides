@@ -7,8 +7,8 @@
   },
   "12": {
     "type": "ssh",
-    "check": "sudo test -f /var/lib/pgsql/16/data/PG_VERSION",
-    "hint": "Initialize the data directory: `sudo /usr/pgsql-16/bin/postgresql-16-setup initdb`.",
+    "check": "sudo test -f /opt/pgsql/data/PG_VERSION",
+    "hint": "Initialize the data directory: `sudo -u postgres /usr/pgsql-16/bin/initdb -D /opt/pgsql/data`.",
     "done": "your data directory is initialized"
   },
   "14": {

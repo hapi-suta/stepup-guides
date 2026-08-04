@@ -85,7 +85,7 @@ Never assume the location because:
 
 - A systemd drop-in override might change PGDATA (check `/etc/systemd/system/postgresql-16.service.d/override.conf`)
 - Someone may have started PostgreSQL with a `-D` flag pointing to a non-default location
-- The RPM default PGDATA is `/var/lib/pgsql/16/data/`, but many shops relocate it
+- The RPM default PGDATA is `/opt/pgsql/data/`, but many shops relocate it
 
 The `SHOW` commands read from the running server's memory, so they always reflect the truth.
 </details>

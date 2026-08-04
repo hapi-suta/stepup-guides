@@ -276,7 +276,7 @@ After=network-online.target
 Type=notify
 User=postgres
 Group=postgres
-Environment=PGDATA=/var/lib/pgsql/16/data/
+Environment=PGDATA=/opt/pgsql/data/
 OOMScoreAdjust=-1000
 ExecStartPre=/usr/pgsql-16/bin/postgresql-16-check-db-dir ${PGDATA}
 ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA}

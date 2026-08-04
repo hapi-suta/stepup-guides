@@ -148,7 +148,7 @@ sudo dnf install postgresql17-server
 sudo -iu postgres
 
 # 3. Initialize a new data directory
-/usr/pgsql-17/bin/initdb -D /var/lib/pgsql/17/data
+/usr/pgsql-17/bin/initdb -D /opt/pgsql/data17
 
 # 4. Exit back to ec2-user
 exit
@@ -162,16 +162,16 @@ sudo -iu postgres
 
 # 7. Run the upgrade check first
 /usr/pgsql-17/bin/pg_upgrade \
-    --old-datadir /var/lib/pgsql/16/data \
-    --new-datadir /var/lib/pgsql/17/data \
+    --old-datadir /opt/pgsql/data \
+    --new-datadir /opt/pgsql/data17 \
     --old-bindir /usr/pgsql-16/bin \
     --new-bindir /usr/pgsql-17/bin \
     --check
 
 # 8. If check passes, run the actual upgrade
 /usr/pgsql-17/bin/pg_upgrade \
-    --old-datadir /var/lib/pgsql/16/data \
-    --new-datadir /var/lib/pgsql/17/data \
+    --old-datadir /opt/pgsql/data \
+    --new-datadir /opt/pgsql/data17 \
     --old-bindir /usr/pgsql-16/bin \
     --new-bindir /usr/pgsql-17/bin \
     --link
@@ -446,7 +446,7 @@ Copy mode needs enough free space for a complete copy of the data directory.
 Check free space before starting:
 
 ```bash
-du -sh /var/lib/pgsql/16/data
+du -sh /opt/pgsql/data
 df -h /var/lib/pgsql/
 ```
 
@@ -456,8 +456,8 @@ pg_upgrade requires the old cluster to be stopped cleanly (not crashed). If it
 wasn't clean:
 
 ```bash
-/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/16/data start
-/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/16/data stop -m fast
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data start
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data stop -m fast
 ```
 
 ---

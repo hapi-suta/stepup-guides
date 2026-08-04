@@ -92,14 +92,14 @@ You create the actual database cluster by running `initdb`.
 - Records the cluster's locale and encoding (these cannot be changed later without re-initdb)
 
 ```bash
-/usr/pgsql-16/bin/postgresql-16-setup initdb
+sudo -u postgres /usr/pgsql-16/bin/initdb -D /opt/pgsql/data
 ```
 
 Or call initdb directly:
 
 ```bash
 su - postgres
-/usr/pgsql-16/bin/initdb -D /var/lib/pgsql/16/data
+/usr/pgsql-16/bin/initdb -D /opt/pgsql/data
 ```
 
 Expected output (yours will differ):
@@ -112,7 +112,7 @@ The database cluster will be initialized with locale "en_US.UTF-8".
 ...
 Success. You can now start the database server using:
 
-    pg_ctl -D /var/lib/pgsql/16/data -l logfile start
+    pg_ctl -D /opt/pgsql/data -l logfile start
 ```
 
 ---
@@ -128,7 +128,7 @@ The correct permissions are `700` on the PGDATA directory itself (no group or wo
 access - PostgreSQL enforces this and will not start if the permissions are wrong).
 
 ```bash
-ls -ld /var/lib/pgsql/16/data
+ls -ld /opt/pgsql/data
 # Should show: drwx------ postgres postgres ...
 ```
 
@@ -250,7 +250,7 @@ In postgresql.conf:
 include_dir = 'conf.d'
 ```
 
-Then create `/var/lib/pgsql/16/data/conf.d/` and put files like `memory.conf`,
+Then create `/opt/pgsql/data/conf.d/` and put files like `memory.conf`,
 `connections.conf`, `logging.conf` in there. PostgreSQL reads them in alphabetical order.
 Later files override earlier ones. The main postgresql.conf is read last of all (or
 first, depending on where the include_dir directive sits) - put the include_dir line at
@@ -281,12 +281,12 @@ the password but the app is sending one and getting confused. Check `pg_hba.conf
 **"FATAL: data directory has wrong ownership"**
 
 The PGDATA directory is not owned by the `postgres` OS user. Fix with:
-`chown -R postgres:postgres /var/lib/pgsql/16/data`
+`chown -R postgres:postgres /opt/pgsql/data`
 
 **"FATAL: could not create lock file" or "already running"**
 
 A stale postmaster.pid file from a previous crash. If PostgreSQL is definitely not
-running, remove the file: `rm /var/lib/pgsql/16/data/postmaster.pid` and try again.
+running, remove the file: `rm /opt/pgsql/data/postmaster.pid` and try again.
 
 **initdb fails with locale error**
 

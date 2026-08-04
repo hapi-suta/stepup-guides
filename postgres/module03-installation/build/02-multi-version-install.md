@@ -243,7 +243,7 @@ The `--full` flag opens the complete unit file for editing rather than creating 
 Find the line that sets the `Environment` variable for PGDATA. It will look something like:
 
 ```
-Environment=PGDATA=/var/lib/pgsql/15/data/
+Environment=PGDATA=/opt/pgsql/data15/
 ```
 
 Change it to:

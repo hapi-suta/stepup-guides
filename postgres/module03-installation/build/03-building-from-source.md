@@ -471,7 +471,7 @@ Expected output (if present):
 | `alternatives` symlinks | No | Yes |
 | Logrotate config | No | Yes |
 | Auto-created `postgres` user | No | Yes |
-| Default data directory setup | No | Yes (`/var/lib/pgsql/16/data/`) |
+| Default data directory setup | No | Yes (`/opt/pgsql/data/`) |
 | SELinux labels | No | Yes |
 | Dependency tracking (dnf) | No | Yes |
 

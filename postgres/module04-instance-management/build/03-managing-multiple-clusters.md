@@ -239,7 +239,7 @@ After=network-online.target
 Type=notify
 User=postgres
 Group=postgres
-Environment=PGDATA=/var/lib/pgsql/16/data/
+Environment=PGDATA=/opt/pgsql/data/
 ...
 ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA}
 ExecReload=/bin/kill -HUP $MAINPID
