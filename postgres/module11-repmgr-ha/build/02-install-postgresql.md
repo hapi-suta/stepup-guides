@@ -52,7 +52,7 @@ Complete!
 On CentOS, PostgreSQL does not auto-initialize after install. You must run initdb:
 
 ```bash
-/usr/pgsql-16/bin/postgresql-16-setup initdb
+sudo -u postgres /usr/pgsql-16/bin/initdb -D /opt/pgsql/data --waldir=/opt/pgsql/wal --encoding=UTF8 --locale=en_US.UTF-8
 ```
 
 Expected output (yours will differ):

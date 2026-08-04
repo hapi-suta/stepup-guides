@@ -38,7 +38,7 @@ sudo dnf install -y postgresql16-server postgresql16
 On CentOS, PostgreSQL does not auto-initialize after install. You must run initdb:
 
 ```bash
-sudo /usr/pgsql-16/bin/postgresql-16-setup initdb
+sudo -u postgres /usr/pgsql-16/bin/initdb -D /opt/pgsql/data --waldir=/opt/pgsql/wal --encoding=UTF8 --locale=en_US.UTF-8
 ```
 
 Expected output (yours will differ):
