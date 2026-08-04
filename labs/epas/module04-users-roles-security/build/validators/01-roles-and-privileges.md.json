@@ -1,0 +1,126 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (true)\" | grep -qx t",
+    "hint": "Connect: sudo -iu enterprisedb, then edb-psql -p 5444 -d edb."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (true)\" | grep -qx t",
+    "hint": "Open edb-psql on port 5444, database edb."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='app_read'))\" | grep -qx t",
+    "hint": "Run: CREATE ROLE app_read NOLOGIN;"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='app_service'))\" | grep -qx t",
+    "hint": "Run: CREATE USER app_service WITH LOGIN PASSWORD '...';"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='app_service'))\" | grep -qx t",
+    "hint": "app_service should exist (CREATE USER)."
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=2 FROM pg_roles WHERE rolname IN ('app_read','app_service')))\" | grep -qx t",
+    "hint": "Both app_read and app_service should exist (\\du app_*)."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_auth_members m JOIN pg_roles r ON m.roleid=r.oid JOIN pg_roles u ON m.member=u.oid WHERE r.rolname='app_read' AND u.rolname='app_service'))\" | grep -qx t",
+    "hint": "Run: GRANT app_read TO app_service;"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_auth_members m JOIN pg_roles r ON m.roleid=r.oid JOIN pg_roles u ON m.member=u.oid WHERE r.rolname='app_read' AND u.rolname='app_service'))\" | grep -qx t",
+    "hint": "app_service should be a member of app_read."
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name='app'))\" | grep -qx t",
+    "hint": "Run: CREATE SCHEMA app;"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (to_regclass('app.orders') IS NOT NULL)\" | grep -qx t",
+    "hint": "Run: CREATE TABLE app.orders (...);"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=3 FROM app.orders))\" | grep -qx t",
+    "hint": "Run: INSERT INTO app.orders VALUES ...(3 rows)."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (has_schema_privilege('app_read','app','USAGE'))\" | grep -qx t",
+    "hint": "Run: GRANT USAGE ON SCHEMA app TO app_read;"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (has_table_privilege('app_read','app.orders','SELECT'))\" | grep -qx t",
+    "hint": "Run: GRANT SELECT ON app.orders TO app_read;"
+  },
+  "14": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (has_table_privilege('app_read','app.orders','SELECT'))\" | grep -qx t",
+    "hint": "app_read should hold SELECT on app.orders."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SET ROLE app_service (membership must exist first)."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "As app_service you can SELECT (via app_read membership)."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "app_read must NOT have INSERT - the write should be denied."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "RESET ROLE back to superuser."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "\\dp app.orders shows app_read=r/enterprisedb."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "pg_roles shows both roles' attributes."
+  },
+  "21": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (to_regclass('app.orders') IS NULL)\" | grep -qx t",
+    "hint": "Clean up: DROP TABLE app.orders;"
+  },
+  "22": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (NOT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name='app'))\" | grep -qx t",
+    "hint": "Clean up: DROP SCHEMA app;"
+  },
+  "23": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='app_service'))\" | grep -qx t",
+    "hint": "Clean up: DROP ROLE app_service;"
+  },
+  "24": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='app_read'))\" | grep -qx t",
+    "hint": "Clean up: DROP ROLE app_read;"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=0 FROM pg_roles WHERE rolname IN ('app_read','app_service')))\" | grep -qx t",
+    "hint": "All app_* roles removed; leave the client with \\q."
+  },
+  "26": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=0 FROM pg_roles WHERE rolname IN ('app_read','app_service')))\" | grep -qx t",
+    "hint": "Guide complete; exit back to ec2-user."
+  }
+}

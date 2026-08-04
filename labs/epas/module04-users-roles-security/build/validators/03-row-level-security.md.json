@@ -1,0 +1,124 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (true)\" | grep -qx t",
+    "hint": "Connect as enterprisedb."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (true)\" | grep -qx t",
+    "hint": "Open edb-psql on 5444."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (to_regclass('public.orders') IS NOT NULL)\" | grep -qx t",
+    "hint": "Run: CREATE TABLE orders (id int PRIMARY KEY, owner text, amount numeric);"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=3 FROM public.orders))\" | grep -qx t",
+    "hint": "Run: INSERT INTO orders VALUES ...(3 rows)."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='sales_a'))\" | grep -qx t",
+    "hint": "Run: CREATE ROLE sales_a LOGIN PASSWORD 'x';"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_roles WHERE rolname='sales_b'))\" | grep -qx t",
+    "hint": "Run: CREATE ROLE sales_b LOGIN PASSWORD 'x';"
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (has_table_privilege('sales_a','public.orders','SELECT') AND has_table_privilege('sales_b','public.orders','SELECT'))\" | grep -qx t",
+    "hint": "Run: GRANT SELECT ON orders TO sales_a, sales_b;"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_class WHERE relname='orders' AND relrowsecurity))\" | grep -qx t",
+    "hint": "Run: ALTER TABLE orders ENABLE ROW LEVEL SECURITY;"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_class WHERE relname='orders' AND relrowsecurity))\" | grep -qx t",
+    "hint": "Row security should be enabled on orders."
+  },
+  "10": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='own_rows'))\" | grep -qx t",
+    "hint": "Run: CREATE POLICY own_rows ON orders FOR SELECT USING (owner = current_user);"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_policies WHERE tablename='orders' AND policyname='own_rows'))\" | grep -qx t",
+    "hint": "Policy own_rows should exist."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SET ROLE sales_a (policy must exist)."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "As sales_a you see only your own rows."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SET ROLE sales_b."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "As sales_b you see only your own row."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "RESET ROLE back to superuser."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "As the owner/superuser you see all rows (RLS bypass)."
+  },
+  "18": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_class WHERE relname='orders' AND relforcerowsecurity))\" | grep -qx t",
+    "hint": "Run: ALTER TABLE orders FORCE ROW LEVEL SECURITY;"
+  },
+  "19": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (EXISTS(SELECT 1 FROM pg_class WHERE relname='orders' AND relforcerowsecurity))\" | grep -qx t",
+    "hint": "FORCE row security is on."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Run: ALTER TABLE orders NO FORCE ROW LEVEL SECURITY;"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "pg_policies lists own_rows."
+  },
+  "22": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (to_regclass('public.orders') IS NULL)\" | grep -qx t",
+    "hint": "Clean up: DROP TABLE orders;"
+  },
+  "23": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='sales_a'))\" | grep -qx t",
+    "hint": "Clean up: DROP ROLE sales_a;"
+  },
+  "24": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='sales_b'))\" | grep -qx t",
+    "hint": "Clean up: DROP ROLE sales_b;"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=0 FROM pg_roles WHERE rolname IN ('sales_a','sales_b')))\" | grep -qx t",
+    "hint": "All sales_* roles removed; leave with \\q."
+  },
+  "26": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT ((SELECT count(*)=0 FROM pg_roles WHERE rolname IN ('sales_a','sales_b')))\" | grep -qx t",
+    "hint": "Guide complete; exit to ec2-user."
+  }
+}
