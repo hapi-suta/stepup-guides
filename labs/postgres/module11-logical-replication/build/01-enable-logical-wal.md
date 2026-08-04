@@ -89,7 +89,7 @@ sudo su -
 Open postgresql.conf in vi.
 
 ```bash
-vi /var/lib/pgsql/16/data/postgresql.conf
+vi /opt/pgsql/data/postgresql.conf
 ```
 
 Find the wal_level line. In vi, type `/wal_level` and press Enter to search for it.

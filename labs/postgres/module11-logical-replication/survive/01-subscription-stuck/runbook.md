@@ -61,10 +61,10 @@ exit
 
 On **pg-suta-labs-2**, as **ec2-user**:
 
-Check the most recent log file. PostgreSQL on CentOS Stream 9 logs to /var/lib/pgsql/16/data/log/.
+Check the most recent log file. PostgreSQL on CentOS Stream 9 logs to /opt/pgsql/data/log/.
 
 ```bash
-sudo ls -lt /var/lib/pgsql/16/data/log/ | head -3
+sudo ls -lt /opt/pgsql/data/log/ | head -3
 ```
 
 This lists log files sorted by most recent first. The `-l` flag shows details, `-t` sorts by time.
@@ -79,7 +79,7 @@ total 48
 Read the most recent log file. Replace the filename with the one you see.
 
 ```bash
-sudo tail -50 /var/lib/pgsql/16/data/log/postgresql-Sun.log
+sudo tail -50 /opt/pgsql/data/log/postgresql-Sun.log
 ```
 
 The `tail -50` command shows the last 50 lines of the file.
@@ -198,7 +198,7 @@ Still as **postgres** on **pg-suta-labs-1**, exit psql and check pg_hba.conf.
 ```
 
 ```bash
-cat /var/lib/pgsql/16/data/pg_hba.conf | grep replicator
+cat /opt/pgsql/data/pg_hba.conf | grep replicator
 ```
 
 Expected output (yours will differ):

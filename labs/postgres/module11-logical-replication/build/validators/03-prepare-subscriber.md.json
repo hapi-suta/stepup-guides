@@ -3,7 +3,7 @@
     "type": "ssh",
     "node": 1,
     "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -tAc \"select pg_is_in_recovery()\" 2>/dev/null | grep -qx f",
-    "hint": "Promote the subscriber: `/usr/pgsql-16/bin/pg_ctl promote -D /var/lib/pgsql/16/data`.",
+    "hint": "Promote the subscriber: `/usr/pgsql-16/bin/pg_ctl promote -D /opt/pgsql/data`.",
     "done": "node 2 is promoted and no longer a standby"
   },
   "16": {

@@ -35,7 +35,7 @@ Check if this node is a standby (in recovery).
 If the result is `t` (true), this is a streaming replica. You must promote it to make it standalone.
 
 ```bash
-/usr/pgsql-16/bin/pg_ctl promote -D /var/lib/pgsql/16/data
+/usr/pgsql-16/bin/pg_ctl promote -D /opt/pgsql/data
 ```
 
 Expected output (yours will differ):
@@ -81,7 +81,7 @@ sudo su -
 Open postgresql.conf.
 
 ```bash
-vi /var/lib/pgsql/16/data/postgresql.conf
+vi /opt/pgsql/data/postgresql.conf
 ```
 
 Find the wal_level line (type `/wal_level` in vi) and change it to:
