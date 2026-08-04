@@ -32,7 +32,7 @@ Expected: Empty result set (no connected standbys).
 SSH to [NODE2] (standby) and check the log:
 
 ```bash
-sudo tail -30 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -30 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for:
@@ -66,7 +66,7 @@ exit
 Check for replication entries. The pipe to `grep -i replication` filters to lines containing "replication":
 
 ```bash
-sudo cat /var/lib/pgsql/16/data/pg_hba.conf | grep -i replication
+sudo cat /opt/pgsql/data/pg_hba.conf | grep -i replication
 ```
 
 Expected: No lines with `replication` in the database column (empty output or no matching lines).
@@ -81,19 +81,19 @@ Expected output (yours will differ):
 On [NODE1], add the replication line. Use the standby's IP or a CIDR range:
 
 ```bash
-echo "host    replication     replicator      0.0.0.0/0               md5" | sudo tee -a /var/lib/pgsql/16/data/pg_hba.conf
+echo "host    replication     replicator      0.0.0.0/0               md5" | sudo tee -a /opt/pgsql/data/pg_hba.conf
 ```
 
 Or for more restrictive access (preferred in production):
 
 ```bash
-echo "host    replication     replicator      [NODE2_IP]/32            md5" | sudo tee -a /var/lib/pgsql/16/data/pg_hba.conf
+echo "host    replication     replicator      [NODE2_IP]/32            md5" | sudo tee -a /opt/pgsql/data/pg_hba.conf
 ```
 
 Verify the line was added:
 
 ```bash
-sudo cat /var/lib/pgsql/16/data/pg_hba.conf | grep replication
+sudo cat /opt/pgsql/data/pg_hba.conf | grep replication
 ```
 
 > **Concept - pg_hba.conf reload**: Changes to pg_hba.conf take effect after a reload (SIGHUP), not a restart. The file is processed top-to-bottom and the first matching rule wins. Order matters - a reject rule above a replication allow rule will block connections.
@@ -176,7 +176,7 @@ Counts should match.
 On [NODE1]:
 
 ```bash
-sudo rm -f /var/lib/pgsql/16/data/pg_hba.conf.bak
+sudo rm -f /opt/pgsql/data/pg_hba.conf.bak
 ```
 
 ---

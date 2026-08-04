@@ -62,7 +62,7 @@ sudo -iu postgres
 Promote it to primary:
 
 ```bash
-pg_ctl promote -D /var/lib/pgsql/16/data
+pg_ctl promote -D /opt/pgsql/data
 ```
 
 Or using the SQL function (PG 12+):

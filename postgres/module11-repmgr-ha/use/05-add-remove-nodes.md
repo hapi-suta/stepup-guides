@@ -130,7 +130,7 @@ sudo -iu postgres
 
 **Expected output (yours will differ):**
 ```
-NOTICE: destination directory "/var/lib/pgsql/16/data" provided
+NOTICE: destination directory "/opt/pgsql/data" provided
 INFO: connecting to source node
 ...
 INFO: all prerequisites for "standby clone" are met

@@ -61,7 +61,7 @@ Initializing database ... OK
 ```
 
 > **Concept - initdb creates the data directory**: This creates the cluster at
-> `/var/lib/pgsql/16/data/` with default settings, the `postgres` superuser,
+> `/opt/pgsql/data/` with default settings, the `postgres` superuser,
 > and the template databases. On Debian/Ubuntu this happens automatically during
 > package install, but on Red Hat systems you must do it explicitly.
 
@@ -135,7 +135,7 @@ su - postgres
 psql -c "SHOW data_directory;"
 ```
 
-Expected: `/var/lib/pgsql/16/data`.
+Expected: `/opt/pgsql/data`.
 
 ```bash
 exit
@@ -145,7 +145,7 @@ exit
 
 > **Concept - Red Hat keeps config inside PGDATA**: Unlike Debian where configs live
 > under `/etc/postgresql/`, Red Hat-based systems keep `postgresql.conf` and
-> `pg_hba.conf` inside the data directory (`/var/lib/pgsql/16/data/`). Know where
+> `pg_hba.conf` inside the data directory (`/opt/pgsql/data/`). Know where
 > your configs live on your OS.
 
 ## 7. Enable wal_log_hints
@@ -308,7 +308,7 @@ All four servers have:
 - [x] PostgreSQL 16 installed (`postgresql16-server postgresql16-contrib`)
 - [x] Database cluster initialized (initdb)
 - [x] Service running and enabled (`postgresql-16`)
-- [x] Data directory at `/var/lib/pgsql/16/data`
+- [x] Data directory at `/opt/pgsql/data`
 - [x] `wal_log_hints = on`
 - [x] `wal_level = replica`, `max_wal_senders = 10`
 - [x] `shared_preload_libraries = 'repmgr'`

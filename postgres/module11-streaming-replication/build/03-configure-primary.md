@@ -15,7 +15,7 @@ sudo -iu postgres
 ```
 
 ```bash
-vi /var/lib/pgsql/16/data/postgresql.conf
+vi /opt/pgsql/data/postgresql.conf
 ```
 
 Set or uncomment these parameters:
@@ -29,7 +29,7 @@ hot_standby = on
 wal_log_hints = on
 wal_keep_size = 1GB
 archive_mode = on
-archive_command = 'test ! -f /var/lib/pgsql/16/archive/%f && cp %p /var/lib/pgsql/16/archive/%f'
+archive_command = 'test ! -f /opt/pgsql/archive/%f && cp %p /opt/pgsql/archive/%f'
 archive_timeout = 60
 ```
 
@@ -68,7 +68,7 @@ sudo -iu postgres
 `-p` creates parent directories if needed and does not error if the directory already exists.
 
 ```bash
-mkdir -p /var/lib/pgsql/16/archive
+mkdir -p /opt/pgsql/archive
 ```
 
 ```bash
@@ -156,7 +156,7 @@ sudo -iu postgres
 ```
 
 ```bash
-vi /var/lib/pgsql/16/data/pg_hba.conf
+vi /opt/pgsql/data/pg_hba.conf
 ```
 
 Add at the end:
@@ -282,7 +282,7 @@ exit
 
 NODE1 (primary) has:
 - [x] `wal_level = replica`, `max_wal_senders = 10`, `archive_mode = on`
-- [x] Archive directory created at `/var/lib/pgsql/16/archive`
+- [x] Archive directory created at `/opt/pgsql/archive`
 - [x] `replicator` role with REPLICATION privilege
 - [x] Physical replication slot `standby_slot` created
 - [x] pg_hba.conf allows replication from NODE2

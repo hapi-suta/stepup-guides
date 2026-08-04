@@ -243,7 +243,7 @@ The repmgr configuration file lives at `/etc/repmgr.conf` (or wherever you speci
 node_id   = 1
 node_name = 'pg-primary'
 conninfo  = 'host=pg-primary dbname=repmgr user=repmgr connect_timeout=2'
-data_directory = '/var/lib/pgsql/16/data'
+data_directory = '/opt/pgsql/data'
 
 # The repmgr database
 repmgr_db = 'repmgr'

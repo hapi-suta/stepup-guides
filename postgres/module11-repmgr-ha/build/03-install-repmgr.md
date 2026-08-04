@@ -190,7 +190,7 @@ exit
 
 ## 4. Configure pg_hba.conf for repmgr (NODE1 only for now)
 
-On NODE1, edit `/var/lib/pgsql/16/data/pg_hba.conf` and add repmgr access rules.
+On NODE1, edit `/opt/pgsql/data/pg_hba.conf` and add repmgr access rules.
 
 Switch to the postgres user:
 
@@ -201,7 +201,7 @@ su - postgres
 **You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
-vi /var/lib/pgsql/16/data/pg_hba.conf
+vi /opt/pgsql/data/pg_hba.conf
 ```
 
 Add these lines at the end of the file (substitute your actual IPs for the placeholders):

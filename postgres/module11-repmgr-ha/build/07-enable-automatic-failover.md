@@ -173,7 +173,7 @@ su - postgres
 **You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
-tail -20 /var/lib/pgsql/16/data/log/repmgr.log
+tail -20 /opt/pgsql/data/log/repmgr.log
 ```
 
 On standbys (NODE2, NODE3), you should see:

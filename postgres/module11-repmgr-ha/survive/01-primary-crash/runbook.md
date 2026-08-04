@@ -21,7 +21,7 @@ sudo -iu postgres
 **You are now the postgres user. Stay as this user for the remaining steps.**
 
 ```bash
-tail -f /var/lib/pgsql/16/data/log/repmgrd.log
+tail -f /opt/pgsql/data/log/repmgrd.log
 ```
 
 Press `Ctrl+C` to stop tailing once you see the promotion messages.

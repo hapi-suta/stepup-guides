@@ -70,7 +70,7 @@ sudo -iu postgres
 ```
 
 ```bash
-/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/16/data promote
+/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data promote
 ```
 
 **Expected:**
@@ -170,13 +170,13 @@ Before promotion, both nodes were on timeline 1. After promotion, NODE2 advanced
 On **NODE2**, as the postgres user:
 
 ```bash
-ls -la /var/lib/pgsql/16/data/pg_wal/00000002.history
+ls -la /opt/pgsql/data/pg_wal/00000002.history
 ```
 
 **Expected:** The file exists.
 
 ```bash
-cat /var/lib/pgsql/16/data/pg_wal/00000002.history
+cat /opt/pgsql/data/pg_wal/00000002.history
 ```
 
 **Expected:**

@@ -48,7 +48,7 @@ On the surviving standby:
 ```
 
 ```bash
-tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
+tail -50 /opt/pgsql/data/log/repmgrd.log
 ```
 
 Look for promotion messages. repmgrd may or may not have promoted depending on

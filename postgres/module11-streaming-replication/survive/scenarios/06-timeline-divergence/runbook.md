@@ -22,7 +22,7 @@ sudo -iu postgres
 The pipe to `grep` filters the output to show only the timeline ID line:
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /var/lib/pgsql/16/data | grep 'Latest checkpoint.*TimeLineID'
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep 'Latest checkpoint.*TimeLineID'
 ```
 
 ```bash
@@ -36,7 +36,7 @@ sudo -iu postgres
 ```
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /var/lib/pgsql/16/data | grep 'Latest checkpoint.*TimeLineID'
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep 'Latest checkpoint.*TimeLineID'
 ```
 
 ```bash
@@ -103,7 +103,7 @@ Run pg_rewind. `--progress` shows a progress indicator:
 
 ```bash
 /usr/pgsql-16/bin/pg_rewind \
-  --target-pgdata=/var/lib/pgsql/16/data \
+  --target-pgdata=/opt/pgsql/data \
   --source-server="host=[NODE2] port=5432 user=replicator dbname=postgres" \
   --progress
 ```
@@ -111,7 +111,7 @@ Run pg_rewind. `--progress` shows a progress indicator:
 After pg_rewind completes, configure [NODE1] as a standby:
 
 ```bash
-touch /var/lib/pgsql/16/data/standby.signal
+touch /opt/pgsql/data/standby.signal
 ```
 
 ```bash
@@ -141,7 +141,7 @@ sudo -iu postgres
 Wipe the data directory:
 
 ```bash
-rm -rf /var/lib/pgsql/16/data/*
+rm -rf /opt/pgsql/data/*
 ```
 
 Rebuild from primary. `-R` creates standby.signal and sets primary_conninfo. `-P` shows progress. `-X stream` streams WAL during backup. `-C` creates the replication slot if it does not exist:
@@ -149,7 +149,7 @@ Rebuild from primary. `-R` creates standby.signal and sets primary_conninfo. `-P
 ```bash
 pg_basebackup \
   -h [NODE2] -p 5432 -U replicator \
-  -D /var/lib/pgsql/16/data \
+  -D /opt/pgsql/data \
   -R -P -X stream -C -S standby_slot
 ```
 
@@ -170,7 +170,7 @@ sudo systemctl start postgresql-16
 Check the log for successful startup:
 
 ```bash
-sudo tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -20 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for: "started streaming WAL from primary".

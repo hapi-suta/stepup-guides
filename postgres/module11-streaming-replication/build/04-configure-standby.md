@@ -23,13 +23,13 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -rf /var/lib/pgsql/16/data/*
+rm -rf /opt/pgsql/data/*
 ```
 
 Verify it is empty:
 
 ```bash
-ls -la /var/lib/pgsql/16/data/
+ls -la /opt/pgsql/data/
 ```
 
 Expected: empty directory (only `.` and `..`).
@@ -55,7 +55,7 @@ sudo -iu postgres
 pg_basebackup \
   -h pg-primary \
   -U replicator \
-  -D /var/lib/pgsql/16/data \
+  -D /opt/pgsql/data \
   -Fp -Xs -P -R \
   -S standby_slot
 ```
@@ -89,7 +89,7 @@ sudo -iu postgres
 ```
 
 ```bash
-ls -la /var/lib/pgsql/16/data/standby.signal
+ls -la /opt/pgsql/data/standby.signal
 ```
 
 Expected: file exists (can be empty, its presence is what matters).
@@ -99,7 +99,7 @@ Expected: file exists (can be empty, its presence is what matters).
 Still as the postgres user (if you exited, run `sudo -iu postgres` again):
 
 ```bash
-cat /var/lib/pgsql/16/data/postgresql.auto.conf
+cat /opt/pgsql/data/postgresql.auto.conf
 ```
 
 Expected: a `primary_conninfo` line pointing to the primary, with the replication
@@ -115,7 +115,7 @@ slot reference.
 Still as the postgres user:
 
 ```bash
-vi /var/lib/pgsql/16/data/postgresql.conf
+vi /opt/pgsql/data/postgresql.conf
 ```
 
 Set:
@@ -149,7 +149,7 @@ sudo -iu postgres
 ```
 
 ```bash
-tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
+tail -20 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Expected output (yours will differ):

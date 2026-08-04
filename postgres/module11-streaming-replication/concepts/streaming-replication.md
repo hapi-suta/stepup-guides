@@ -258,7 +258,7 @@ straightforward:
 
 ```bash
 # On the standby server
-/usr/pgsql-16/bin/pg_ctl promote -D /var/lib/pgsql/16/data
+/usr/pgsql-16/bin/pg_ctl promote -D /opt/pgsql/data
 ```
 
 Or use the trigger file method (configured in advance):

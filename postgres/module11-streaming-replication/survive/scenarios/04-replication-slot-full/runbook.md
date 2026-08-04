@@ -62,13 +62,13 @@ Expected: `active` is `f` (false), and `retained_bytes` is large and growing.
 On [NODE1], check how much disk space WAL is consuming:
 
 ```bash
-sudo du -sh /var/lib/pgsql/16/data/pg_wal/
+sudo du -sh /opt/pgsql/data/pg_wal/
 ```
 
 `-s` shows a single summary total. `-h` shows sizes in human-readable format (MB, GB).
 
 ```bash
-df -h /var/lib/pgsql/16/data/
+df -h /opt/pgsql/data/
 ```
 
 `df -h` shows disk free space in human-readable format for the filesystem containing the data directory.
@@ -167,7 +167,7 @@ Expected: `state` is `streaming` and `lag_bytes` is decreasing toward 0.
 On [NODE1], check disk usage again:
 
 ```bash
-sudo du -sh /var/lib/pgsql/16/data/pg_wal/
+sudo du -sh /opt/pgsql/data/pg_wal/
 ```
 
 It should stabilize or decrease as the standby consumes retained WAL.

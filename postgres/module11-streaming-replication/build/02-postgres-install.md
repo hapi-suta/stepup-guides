@@ -47,7 +47,7 @@ Initializing database ... OK
 ```
 
 > **Concept - initdb creates the data directory**: This creates the cluster at
-> `/var/lib/pgsql/16/data/` with default settings, the `postgres` superuser,
+> `/opt/pgsql/data/` with default settings, the `postgres` superuser,
 > and the template databases. On Debian/Ubuntu this happens automatically during
 > package install, but on Red Hat systems you must do it explicitly.
 
@@ -111,14 +111,14 @@ sudo -iu postgres
 psql -c "SHOW data_directory;"
 ```
 
-Expected: `/var/lib/pgsql/16/data`.
+Expected: `/opt/pgsql/data`.
 
 ```bash
 exit
 ```
 
 ```bash
-ls -la /var/lib/pgsql/16/data/
+ls -la /opt/pgsql/data/
 ```
 
 Expected: PG_VERSION, base/, global/, pg_wal/, postgresql.conf, pg_hba.conf, etc.
@@ -128,18 +128,18 @@ Expected: PG_VERSION, base/, global/, pg_wal/, postgresql.conf, pg_hba.conf, etc
 On CentOS, config files live inside the data directory:
 
 ```bash
-ls -la /var/lib/pgsql/16/data/postgresql.conf
+ls -la /opt/pgsql/data/postgresql.conf
 ```
 
 ```bash
-ls -la /var/lib/pgsql/16/data/pg_hba.conf
+ls -la /opt/pgsql/data/pg_hba.conf
 ```
 
 Expected: both files exist.
 
 > **Concept - Red Hat keeps config inside PGDATA**: Unlike Debian where configs live
 > under `/etc/postgresql/`, Red Hat-based systems keep `postgresql.conf` and
-> `pg_hba.conf` inside the data directory (`/var/lib/pgsql/16/data/`). Know where
+> `pg_hba.conf` inside the data directory (`/opt/pgsql/data/`). Know where
 > your configs live on your OS.
 
 ## 8. Check the postgres user
@@ -175,8 +175,8 @@ Both servers have:
 - [x] PostgreSQL 16 installed
 - [x] Database cluster initialized (initdb)
 - [x] Service running and enabled (`postgresql-16`)
-- [x] Data directory at `/var/lib/pgsql/16/data`
-- [x] Config files at `/var/lib/pgsql/16/data/`
+- [x] Data directory at `/opt/pgsql/data`
+- [x] Config files at `/opt/pgsql/data/`
 - [x] `postgres` OS user exists
 
 Proceed to `03-configure-primary.md`.

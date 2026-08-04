@@ -36,7 +36,7 @@ If `state` is `streaming` and lag is small, the WAL receiver may have already re
 SSH to [NODE2] (standby) and check the log:
 
 ```bash
-sudo tail -30 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -30 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for messages like:

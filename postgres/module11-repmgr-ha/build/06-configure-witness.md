@@ -65,13 +65,13 @@ Enter the following content:
 node_id=4
 node_name='pg-repmgr-w'
 conninfo='host=pg-repmgr-w user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/pgsql/16/data'
+data_directory='/opt/pgsql/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/lib/pgsql/16/data/log/repmgr.log'
+log_file='/opt/pgsql/data/log/repmgr.log'
 log_status_interval=60
 
 service_start_command='systemctl start postgresql-16'
@@ -103,7 +103,7 @@ su - postgres
 **You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
-vi /var/lib/pgsql/16/data/pg_hba.conf
+vi /opt/pgsql/data/pg_hba.conf
 ```
 
 Add these lines at the end of the file (substitute your actual IPs for the placeholders):

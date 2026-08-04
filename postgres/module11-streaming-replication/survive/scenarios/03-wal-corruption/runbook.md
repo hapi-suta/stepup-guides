@@ -34,7 +34,7 @@ It may be crashed or running but stuck (not replaying WAL).
 ### Step 2: Check the standby logs
 
 ```bash
-sudo tail -100 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -100 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -73,13 +73,13 @@ sudo -iu postgres
 Check for .corrupt files:
 
 ```bash
-ls -la /var/lib/pgsql/16/data/pg_wal/*.corrupt
+ls -la /opt/pgsql/data/pg_wal/*.corrupt
 ```
 
 Rename it back (replace FILENAME with the actual filename from the listing above):
 
 ```bash
-mv /var/lib/pgsql/16/data/pg_wal/FILENAME.corrupt /var/lib/pgsql/16/data/pg_wal/FILENAME
+mv /opt/pgsql/data/pg_wal/FILENAME.corrupt /opt/pgsql/data/pg_wal/FILENAME
 ```
 
 ```bash
@@ -119,7 +119,7 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -rf /var/lib/pgsql/16/data/*
+rm -rf /opt/pgsql/data/*
 ```
 
 Rebuild from primary. `-R` writes standby.signal and primary_conninfo. `-Xs` streams WAL during backup. `-P` shows progress:
@@ -127,7 +127,7 @@ Rebuild from primary. `-R` writes standby.signal and primary_conninfo. `-Xs` str
 ```bash
 pg_basebackup \
   -h [NODE1] -p 5432 -U replicator \
-  -D /var/lib/pgsql/16/data \
+  -D /opt/pgsql/data \
   -S standby_slot -R -Xs -P
 ```
 
@@ -172,7 +172,7 @@ sudo -iu postgres
 ```
 
 ```bash
-rm -f /var/lib/pgsql/16/data/pg_wal/*.corrupt
+rm -f /opt/pgsql/data/pg_wal/*.corrupt
 ```
 
 ```bash

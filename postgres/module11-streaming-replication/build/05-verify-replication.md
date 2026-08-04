@@ -138,7 +138,7 @@ Expected: `archived_count` > 0, `failed_count` = 0.
 List the first 5 archived WAL files. The pipe to `head -5` limits output to 5 lines:
 
 ```bash
-ls /var/lib/pgsql/16/archive/ | head -5
+ls /opt/pgsql/archive/ | head -5
 ```
 
 Expected: WAL segment files (names like `000000010000000000000001`).

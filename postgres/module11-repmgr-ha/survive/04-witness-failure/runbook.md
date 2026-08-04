@@ -22,7 +22,7 @@ sudo -iu postgres
 ```
 
 ```bash
-tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
+tail -50 /opt/pgsql/data/log/repmgrd.log
 ```
 
 Look for promotion messages. Without the witness, repmgrd may not have reached

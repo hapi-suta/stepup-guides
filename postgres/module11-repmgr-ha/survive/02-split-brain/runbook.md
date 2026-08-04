@@ -20,7 +20,7 @@ sudo -iu postgres
 Check repmgr logs on the standbys for connection failures:
 
 ```bash
-tail -50 /var/lib/pgsql/16/data/log/repmgrd.log
+tail -50 /opt/pgsql/data/log/repmgrd.log
 ```
 
 Look for messages like:

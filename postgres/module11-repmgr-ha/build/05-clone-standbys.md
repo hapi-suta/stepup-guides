@@ -23,13 +23,13 @@ Enter the following content:
 node_id=2
 node_name='pg-repmgr-2'
 conninfo='host=pg-repmgr-2 user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/pgsql/16/data'
+data_directory='/opt/pgsql/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/lib/pgsql/16/data/log/repmgr.log'
+log_file='/opt/pgsql/data/log/repmgr.log'
 log_status_interval=60
 
 service_start_command='systemctl start postgresql-16'
@@ -73,7 +73,7 @@ repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
 
 Expected output (yours will differ):
 ```
-NOTICE: destination directory "/var/lib/pgsql/16/data" provided
+NOTICE: destination directory "/opt/pgsql/data" provided
 INFO: connecting to source node
 DETAIL: connection string is: host=pg-repmgr-1 user=repmgr dbname=repmgr
 NOTICE: checking for available walsenders on the source node (2 required)
@@ -98,14 +98,14 @@ repmgr -h pg-repmgr-1 -U repmgr -d repmgr \
 
 Expected output (yours will differ):
 ```
-NOTICE: destination directory "/var/lib/pgsql/16/data" provided
+NOTICE: destination directory "/opt/pgsql/data" provided
 INFO: connecting to source node
 NOTICE: checking for available walsenders on the source node
 INFO: sufficient walsenders available on the source node
 NOTICE: starting backup (using pg_basebackup)...
 HINT: this may take some time; consider using the -c/--fast-checkpoint option
 INFO: executing:
-  pg_basebackup -l "repmgr base backup" -D /var/lib/pgsql/16/data -h pg-repmgr-1 -U repmgr -X stream -S repmgr_slot_2
+  pg_basebackup -l "repmgr base backup" -D /opt/pgsql/data -h pg-repmgr-1 -U repmgr -X stream -S repmgr_slot_2
 NOTICE: standby clone (using pg_basebackup) complete
 NOTICE: you can now start your PostgreSQL server
 ```
@@ -210,13 +210,13 @@ Enter the following content:
 node_id=3
 node_name='pg-repmgr-3'
 conninfo='host=pg-repmgr-3 user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/pgsql/16/data'
+data_directory='/opt/pgsql/data'
 
 use_replication_slots=true
 monitoring_history=yes
 
 log_level=INFO
-log_file='/var/lib/pgsql/16/data/log/repmgr.log'
+log_file='/opt/pgsql/data/log/repmgr.log'
 log_status_interval=60
 
 service_start_command='systemctl start postgresql-16'

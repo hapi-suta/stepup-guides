@@ -24,7 +24,7 @@ Enter the following content:
 node_id=1
 node_name='pg-repmgr-1'
 conninfo='host=pg-repmgr-1 user=repmgr dbname=repmgr connect_timeout=2'
-data_directory='/var/lib/pgsql/16/data'
+data_directory='/opt/pgsql/data'
 
 # Replication settings
 use_replication_slots=true
@@ -32,7 +32,7 @@ monitoring_history=yes
 
 # Logging
 log_level=INFO
-log_file='/var/lib/pgsql/16/data/log/repmgr.log'
+log_file='/opt/pgsql/data/log/repmgr.log'
 log_status_interval=60
 
 # Service control (CentOS Stream 9 - service is postgresql-16)
@@ -89,7 +89,7 @@ Expected: the contents you just typed.
 
 ## 2. Make sure the log directory exists
 
-The log file path in repmgr.conf points to `/var/lib/pgsql/16/data/log/`. This directory is created by PostgreSQL on CentOS, but let's verify:
+The log file path in repmgr.conf points to `/opt/pgsql/data/log/`. This directory is created by PostgreSQL on CentOS, but let's verify:
 
 ```bash
 su - postgres
@@ -98,7 +98,7 @@ su - postgres
 **You are now the postgres user.** Your prompt shows `postgres@`.
 
 ```bash
-ls -la /var/lib/pgsql/16/data/log/
+ls -la /opt/pgsql/data/log/
 ```
 
 Expected: the directory exists and contains PostgreSQL log files.
@@ -106,7 +106,7 @@ Expected: the directory exists and contains PostgreSQL log files.
 If the directory does not exist, create it:
 
 ```bash
-mkdir -p /var/lib/pgsql/16/data/log
+mkdir -p /opt/pgsql/data/log
 ```
 
 ## 3. Register NODE1 as primary

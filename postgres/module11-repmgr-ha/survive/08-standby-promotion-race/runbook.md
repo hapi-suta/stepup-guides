@@ -96,7 +96,7 @@ On the loser node:
 
 ```bash
 /usr/pgsql-16/bin/pg_rewind \
-  --target-pgdata=/var/lib/pgsql/16/data \
+  --target-pgdata=/opt/pgsql/data \
   --source-server="host=<WINNER_HOSTNAME> port=5432 user=repmgr dbname=repmgr"
 ```
 

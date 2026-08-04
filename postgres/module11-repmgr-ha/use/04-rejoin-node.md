@@ -89,7 +89,7 @@ On NODE1 (still as postgres user):
 NOTICE: using provided configuration file "/etc/repmgr/16/repmgr.conf"
 NOTICE: pg_rewind execution required for this node to attach to rejoin target node 2
 DETAIL: pg_rewind: servers diverged at WAL location 0/XXXXXXXX on timeline 1
-INFO: 2 files copied to /var/lib/pgsql/16/data
+INFO: 2 files copied to /opt/pgsql/data
 NOTICE: setting node 1's upstream to node 2
 NOTICE: starting server using "sudo systemctl start postgresql-16"
 NOTICE: NODE REJOIN successful
@@ -196,7 +196,7 @@ sudo -iu postgres
 ```
 
 ```bash
-tail -5 /var/lib/pgsql/16/data/log/repmgr.log
+tail -5 /opt/pgsql/data/log/repmgr.log
 ```
 
 **Expected:** repmgrd is running and monitoring the primary.

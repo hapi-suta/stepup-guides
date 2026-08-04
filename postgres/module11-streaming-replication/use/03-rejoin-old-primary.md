@@ -26,7 +26,7 @@ Use `pg_rewind` to rejoin NODE1 as a standby streaming from NODE2. This restores
 On **NODE1** (it is stopped, so check the config file):
 
 ```bash
-grep wal_log_hints /var/lib/pgsql/16/data/postgresql.conf
+grep wal_log_hints /opt/pgsql/data/postgresql.conf
 ```
 
 **Expected:** `wal_log_hints = on`
@@ -34,7 +34,7 @@ grep wal_log_hints /var/lib/pgsql/16/data/postgresql.conf
 ### Option B - Data checksums enabled
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata -D /var/lib/pgsql/16/data | grep "Data page checksum"
+/usr/pgsql-16/bin/pg_controldata -D /opt/pgsql/data | grep "Data page checksum"
 ```
 
 **Expected:** `Data page checksum version: 1` (if checksums were enabled at initdb)
@@ -50,7 +50,7 @@ Either one is sufficient. If neither is true, `pg_rewind` will refuse to run and
 On **NODE1**:
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata -D /var/lib/pgsql/16/data | grep "Database cluster state"
+/usr/pgsql-16/bin/pg_controldata -D /opt/pgsql/data | grep "Database cluster state"
 ```
 
 **Expected:**
@@ -79,7 +79,7 @@ sudo -iu postgres
 Verify `pg_hba.conf` allows replication connections from NODE1:
 
 ```bash
-grep replication /var/lib/pgsql/16/data/pg_hba.conf
+grep replication /opt/pgsql/data/pg_hba.conf
 ```
 
 **Expected:** A line like:
@@ -90,7 +90,7 @@ host    replication     replicator      [NODE1_IP]/32       scram-sha-256
 If this line does not exist, add it:
 
 ```bash
-vi /var/lib/pgsql/16/data/pg_hba.conf
+vi /opt/pgsql/data/pg_hba.conf
 ```
 
 Add at the end:
@@ -148,7 +148,7 @@ sudo -iu postgres
 
 ```bash
 /usr/pgsql-16/bin/pg_rewind \
-  --target-pgdata=/var/lib/pgsql/16/data \
+  --target-pgdata=/opt/pgsql/data \
   --source-server="host=[NODE2_IP] port=5432 user=replicator dbname=postgres" \
   --progress
 ```
@@ -191,13 +191,13 @@ sudo -iu postgres
 ```
 
 ```bash
-touch /var/lib/pgsql/16/data/standby.signal
+touch /opt/pgsql/data/standby.signal
 ```
 
 ### Update postgresql.conf for standby mode
 
 ```bash
-cat >> /var/lib/pgsql/16/data/postgresql.conf << 'EOF'
+cat >> /opt/pgsql/data/postgresql.conf << 'EOF'
 
 # Standby configuration (after pg_rewind)
 primary_conninfo = 'host=[NODE2_IP] port=5432 user=replicator password=replicator_pass_2026 application_name=walreceiver'
@@ -229,7 +229,7 @@ sudo -iu postgres
 ```
 
 ```bash
-tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
+tail -20 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 **Expected log lines (yours will differ):**

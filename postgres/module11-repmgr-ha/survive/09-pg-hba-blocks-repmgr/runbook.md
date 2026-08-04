@@ -20,7 +20,7 @@ sudo -iu postgres
 Monitor the repmgr log on the standbys:
 
 ```bash
-tail -f /var/lib/pgsql/16/data/log/repmgrd.log
+tail -f /opt/pgsql/data/log/repmgrd.log
 ```
 
 A standby should be promoted within 60-90 seconds. If repmgrd is not running
@@ -58,7 +58,7 @@ Expected: EMPTY or no streaming entries. Standbys cannot connect.
 Check the PostgreSQL log on a standby for connection errors:
 
 ```bash
-tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
+tail -20 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for messages like:
@@ -76,7 +76,7 @@ FATAL: no pg_hba.conf entry for replication connection from host "..."
 On the new primary:
 
 ```bash
-cat /var/lib/pgsql/16/data/pg_hba.conf
+cat /opt/pgsql/data/pg_hba.conf
 ```
 
 Notice the missing entries for `repmgr` user and `replication` database.
@@ -86,13 +86,13 @@ Notice the missing entries for `repmgr` user and `replication` database.
 On the new primary:
 
 ```bash
-cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf
+cp /opt/pgsql/data/pg_hba.conf.backup /opt/pgsql/data/pg_hba.conf
 ```
 
 If no backup exists, add the required entries manually:
 
 ```bash
-cat >> /var/lib/pgsql/16/data/pg_hba.conf <<'HBAEOF'
+cat >> /opt/pgsql/data/pg_hba.conf <<'HBAEOF'
 # repmgr connections
 host    repmgr       repmgr    0.0.0.0/0    md5
 host    replication   repmgr    0.0.0.0/0    md5
@@ -110,15 +110,15 @@ exit
 ```
 
 ```bash
-ssh root@pg-repmgr-1 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
+ssh root@pg-repmgr-1 "cp /opt/pgsql/data/pg_hba.conf.backup /opt/pgsql/data/pg_hba.conf"
 ```
 
 ```bash
-ssh root@pg-repmgr-2 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
+ssh root@pg-repmgr-2 "cp /opt/pgsql/data/pg_hba.conf.backup /opt/pgsql/data/pg_hba.conf"
 ```
 
 ```bash
-ssh root@pg-repmgr-3 "cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf"
+ssh root@pg-repmgr-3 "cp /opt/pgsql/data/pg_hba.conf.backup /opt/pgsql/data/pg_hba.conf"
 ```
 
 ### Step 7: Reload PostgreSQL on the new primary and standbys
@@ -164,7 +164,7 @@ sudo systemctl restart postgresql-16
 On the old primary, restore pg_hba.conf first:
 
 ```bash
-sudo cp /var/lib/pgsql/16/data/pg_hba.conf.backup /var/lib/pgsql/16/data/pg_hba.conf
+sudo cp /opt/pgsql/data/pg_hba.conf.backup /opt/pgsql/data/pg_hba.conf
 ```
 
 Then rejoin:

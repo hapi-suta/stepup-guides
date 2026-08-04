@@ -26,7 +26,7 @@ You will likely see the service fail to start, or it starts as a primary (no sta
 On [NODE2], inspect the log:
 
 ```bash
-sudo tail -50 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -50 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for errors related to:
@@ -47,7 +47,7 @@ sudo -iu postgres
 ```
 
 ```bash
-touch /var/lib/pgsql/16/data/standby.signal
+touch /opt/pgsql/data/standby.signal
 ```
 
 ```bash
@@ -65,7 +65,7 @@ sudo -iu postgres
 ```
 
 ```bash
-cat /var/lib/pgsql/16/data/postgresql.auto.conf
+cat /opt/pgsql/data/postgresql.auto.conf
 ```
 
 The `primary_conninfo` line will have incorrect connection details. Fix it:
@@ -79,7 +79,7 @@ psql -c "
 Or edit the file directly:
 
 ```bash
-vi /var/lib/pgsql/16/data/postgresql.auto.conf
+vi /opt/pgsql/data/postgresql.auto.conf
 ```
 
 ```bash
@@ -99,7 +99,7 @@ sudo systemctl restart postgresql-16
 Check the log again for successful startup:
 
 ```bash
-sudo tail -20 /var/lib/pgsql/16/data/log/postgresql-*.log
+sudo tail -20 /opt/pgsql/data/log/postgresql-*.log
 ```
 
 Look for: "started streaming WAL from primary" or "redo starts at".
