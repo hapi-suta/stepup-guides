@@ -253,11 +253,11 @@ psql -p 5432 -c "SHOW jit;"
 ```
  jit
 -----
- off
+ on
 (1 row)
 ```
 
-The RPM install has JIT enabled by default (because it was compiled with `--with-llvm`). The source build does not support JIT at all because you compiled without that flag.
+Both servers report `jit = on` - it is a normal GUC that defaults to `on`. The real difference is underneath: the RPM was compiled `--with-llvm`, so it can actually JIT-compile expressions, while your source build was compiled without LLVM, so JIT is a silent no-op even though the setting says `on`. The setting alone does not tell you whether JIT works - the build does. Confirm it with `pg_config --configure` (the RPM lists `--with-llvm`; your source build does not).
 
 Compare compression support. Check if `wal_compression` options differ:
 

@@ -1,0 +1,166 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Questions - sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Questions - psql -c \"SELECT version();\""
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Questions - exit"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Questions - /usr/pgsql-16/bin/postgres --version"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Questions - rpm -q postgresql16-server"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Questions - dnf list installed | grep postgres"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Questions - SHOW config_file; -- /opt/pgsql/data/postgresql.conf SHOW hba_file; --"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Questions - sudo systemctl stop postgresql-15"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Questions - pg_isready -p 5433 # Expected: /var/run/postgresql:5433 - no response"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Questions - /usr/pgsql-16/bin/pg_config --configure # Returns many flags: --with-l"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Questions - /opt/pg-src/bin/pg_config --configure # Returns only: '--prefix=/opt/p"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Questions - /usr/pgsql-16/bin/pg_config --configure | tr ' ' '\\n' | grep ssl # Out"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Questions - psql -c \"SHOW ssl;\" # Output: off"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Questions - # PG16 package (already installed): sudo dnf install -y pg_trgm_16 # P"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Questions - sudo dnf install -y postgresql15-contrib"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Questions - -- Check current threshold: SHOW pg_trgm.similarity_threshold; -- Lowe"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Questions - CREATE INDEX idx_catalog_trgm ON catalog USING gin (product_name gin_t"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Questions - INSERT INTO app_users (username, password_hash) VALUES ('alice', crypt"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Questions - SELECT username, (password_hash = crypt('s3cur3P@ss', password_hash)) "
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Questions - SELECT substring(query, 1, 60) AS query_preview, calls, round(total_ex"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Questions - SELECT substring(query, 1, 60) AS query_preview, calls, rows, round(me"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Questions - SELECT pg_stat_statements_reset();"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Questions - SELECT lp AS line_pointer, t_xmin AS created_by_txn, t_xmax AS deleted"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Questions - sudo systemctl restart postgresql-16 # Fails with: Active: failed"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Questions - sudo journalctl -u postgresql-16 --no-pager -n 20 # FATAL: data direct"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Questions - sudo chmod 0700 /opt/pgsql/data"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Questions - sudo chown postgres:postgres /opt/pgsql/data"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Questions - sudo systemctl start postgresql-16"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Questions - shared_preload_libraries = 'pg_stat_statements'"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Questions - sudo -iu postgres"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Questions - psql -c \"SELECT pg_reload_conf();\""
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Questions - exit"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "Questions - sudo systemctl reload postgresql-16"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Questions - # Search for the package: dnf search ip4r # Install it: sudo dnf insta"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "Questions - CREATE EXTENSION ip4r;"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "Questions - -- What is installed in this database: SELECT extname, extversion FROM"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "Questions - sudo -iu postgres"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "Questions - psql -c \"SELECT pg_reload_conf();\""
+  },
+  "39": {
+    "type": "manual",
+    "hint": "Questions - psql -c \"SELECT line_number, type, database, user_name, address, auth_"
+  },
+  "40": {
+    "type": "manual",
+    "hint": "Questions - exit"
+  },
+  "41": {
+    "type": "manual",
+    "hint": "Questions - /usr/pgsql-16/bin/pg_config --configure | tr ' ' '\\n' | grep -E 'lz4|z"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Step 1 - Determine the Running PostgreSQL Version - sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Step 1 - Determine the Running PostgreSQL Version - psql -c \"SELECT version();\""
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Step 1 - Determine the Running PostgreSQL Version - /usr/pgsql-16/bin/postgres --version"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Step 1 - Determine the Running PostgreSQL Version - exit"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Step 2 - Determine How PostgreSQL Was Installed - rpm -q postgresql16-server"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Step 2 - Determine How PostgreSQL Was Installed - dnf list installed | grep postgres"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Step 2 - Determine How PostgreSQL Was Installed - ls /opt/pg-src/bin/postgres"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Step 2 - Determine How PostgreSQL Was Installed - /opt/pg-src/bin/postgres --version"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - rpm -ql postgresql16-server | grep bin"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - rpm -ql postgresql16 | grep bin"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - sudo -iu postgres"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - psql -c \"SHOW config_file;\""
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - psql -c \"SHOW hba_file;\""
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - psql -c \"SHOW data_directory;\""
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Step 3 - Map All Binaries, Config Files, and Data Directories - exit"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Step 4 - Check the PGDG Repository Configuration - sudo su -"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Step 4 - Check the PGDG Repository Configuration - dnf repolist | grep pgdg"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Step 4 - Check the PGDG Repository Configuration - dnf list available | grep postgresql | grep server"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Step 4 - Check the PGDG Repository Configuration - exit"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Step 5 - Verify the Systemd Service Configuration - sudo systemctl status postgresql-16"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Step 5 - Verify the Systemd Service Configuration - sudo systemctl is-enabled postgresql-16"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Step 5 - Verify the Systemd Service Configuration - sudo systemctl cat postgresql-16"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Step 5 - Verify the Systemd Service Configuration - ls /etc/systemd/system/postgresql-16.service.d/ 2>/dev/null"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Step 5 - Verify the Systemd Service Configuration - override.conf"
+  }
+}

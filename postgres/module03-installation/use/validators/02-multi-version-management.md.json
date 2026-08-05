@@ -1,0 +1,158 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Step 1 - Connect to Both Versions and Compare - pg_isready -p 5432"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Step 1 - Connect to Both Versions and Compare - pg_isready -p 5433"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Step 1 - Connect to Both Versions and Compare - sudo -iu postgres"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Step 1 - Connect to Both Versions and Compare - psql -p 5432 -c \"SELECT version();\""
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Step 1 - Connect to Both Versions and Compare - psql -p 5433 -c \"SELECT version();\""
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Step 2 - Create a Test Database on PG15 - createdb -p 5433 devtest"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Step 2 - Create a Test Database on PG15 - CREATE TABLE employees ( id serial PRIMARY KEY, name text NOT NULL, de"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Step 2 - Create a Test Database on PG15 - INSERT INTO employees (name, department, salary) VALUES ('Alice Chen',"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Step 2 - Create a Test Database on PG15 - SELECT department, count(*), avg(salary)::numeric(10,2) FROM employees"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Step 2 - Create a Test Database on PG15 - \\q"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Step 3 - Run the Same Queries on PG16 - psql -p 5432 -d labdb"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Step 3 - Run the Same Queries on PG16 - CREATE TABLE employees ( id serial PRIMARY KEY, name text NOT NULL, de"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Step 3 - Run the Same Queries on PG16 - INSERT INTO employees (name, department, salary) VALUES ('Alice Chen',"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Step 3 - Run the Same Queries on PG16 - SELECT department, count(*), avg(salary)::numeric(10,2) FROM employees"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - psql -p 5432 -d labdb"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - SELECT column_name FROM information_schema.columns WHERE table_name = "
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - \\q"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - vi /opt/pgsql/data15/postgresql.conf"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - shared_preload_libraries = 'pg_stat_statements'"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - exit"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - sudo systemctl restart postgresql-15"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - pg_isready -p 5433"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - sudo -iu postgres"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - psql -p 5433 -d devtest"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - CREATE EXTENSION pg_stat_statements;"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - SELECT column_name FROM information_schema.columns WHERE table_name = "
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Step 4 - Compare Version-Specific Features - \\q"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - exit"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - sudo systemctl list-units --type=service --state=running | grep postgr"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - sudo systemctl stop postgresql-15"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - pg_isready -p 5433"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - pg_isready -p 5432"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - sudo systemctl start postgresql-15"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - pg_isready -p 5433"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - sudo systemctl is-enabled postgresql-15"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "Step 5 - Manage Both Services - sudo systemctl is-enabled postgresql-16"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "Step 6 - Clean Up the Test Database - sudo -iu postgres"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "Step 6 - Clean Up the Test Database - dropdb -p 5433 devtest"
+  },
+  "39": {
+    "type": "manual",
+    "hint": "Step 6 - Clean Up the Test Database - exit"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - psql -d labdb"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - CREATE TABLE catalog ( id serial PRIMARY KEY, product_name text NOT NU"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - INSERT INTO catalog (product_name, category, price) VALUES ('PostgreSQ"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - SELECT product_name, similarity(product_name, 'Postgre Administration'"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - SHOW pg_trgm.similarity_threshold;"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - SET pg_trgm.similarity_threshold = 0.15;"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - SELECT product_name, similarity(product_name, 'Postgrss') AS score FRO"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - CREATE INDEX idx_catalog_trgm ON catalog USING gin (product_name gin_t"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - EXPLAIN SELECT * FROM catalog WHERE product_name % 'PostgreSQL';"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Step 1 - Fuzzy Text Search with pg_trgm - RESET pg_trgm.similarity_threshold;"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - CREATE TABLE app_users ( user_id uuid DEFAULT gen_random_uuid() PRIMAR"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - INSERT INTO app_users (username, password_hash) VALUES ('alice', crypt"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - SELECT user_id, username, password_hash, api_key FROM app_users;"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - SELECT username, (password_hash = crypt('s3cur3P@ss', password_hash)) "
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - SELECT username, (password_hash = crypt('wrongpassword', password_hash"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Step 2 - Password Hashing and UUIDs with pgcrypto - SELECT encode(digest('important document content', 'sha256'), 'hex') A"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - SELECT count(*) FROM catalog WHERE product_name LIKE '%SQL%';"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - SELECT * FROM app_users WHERE username = 'alice';"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - SELECT category, avg(price) FROM catalog GROUP BY category;"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - SELECT substring(query, 1, 60) AS query_preview, calls, round(total_ex"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - query_preview | calls | total_ms | avg_ms | rows ---------------------"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Step 3 - Find Slow Queries with pg_stat_statements - SELECT substring(query, 1, 60) AS query_preview, calls, rows, round(me"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Step 4 - Examine Physical Page Layout with pageinspect - SELECT * FROM page_header(get_raw_page('catalog', 0));"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Step 4 - Examine Physical Page Layout with pageinspect - SELECT lower, upper, upper - lower AS free_space_bytes, round(100.0 * "
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Step 4 - Examine Physical Page Layout with pageinspect - SELECT lp AS line_pointer, lp_off AS offset, lp_len AS length, t_xmin "
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Step 4 - Examine Physical Page Layout with pageinspect - UPDATE catalog SET price = 59.99 WHERE id = 1;"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Step 4 - Examine Physical Page Layout with pageinspect - SELECT lp AS line_pointer, lp_off AS offset, lp_len AS length, t_xmin "
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Step 5 - Clean Up - DROP TABLE catalog;"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Step 5 - Clean Up - DROP TABLE app_users;"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Step 5 - Clean Up - \\q"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Step 5 - Clean Up - exit"
+  }
+}

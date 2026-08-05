@@ -1,0 +1,138 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - vi /opt/pgsql/data/postgresql.conf"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - shared_preload_libraries = 'pg_stat_statements'"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - #shared_preload_libraries = 'pg_stat_statements'"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - exit"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - sudo systemctl restart postgresql-16"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - sudo -iu postgres"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - psql -d labdb -c \"SELECT count(*) FROM pg_stat_statements;\""
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - ERROR: pg_stat_statements must be loaded via shared_preload_libraries"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - grep shared_preload_libraries /opt/pgsql/data/postgresql.conf | grep -"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Problem 1 - Missing shared_preload_libraries Entry - psql -d labdb -c \"SELECT count(*) FROM pg_stat_statements;\""
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Problem 2 - Wrong PGDATA Permissions - sudo chmod 750 /opt/pgsql/data"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Problem 2 - Wrong PGDATA Permissions - sudo systemctl restart postgresql-16"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Problem 2 - Wrong PGDATA Permissions - sudo systemctl status postgresql-16"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Problem 2 - Wrong PGDATA Permissions - sudo ls /opt/pgsql/log/"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Problem 2 - Wrong PGDATA Permissions - sudo systemctl status postgresql-16"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - sudo -iu postgres"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - psql -d labdb"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - CREATE EXTENSION IF NOT EXISTS ip4r;"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - ERROR: could not open extension control file \"/usr/pgsql-16/share/exte"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - SELECT name, default_version, installed_version FROM pg_available_exte"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - exit"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - dnf search ip4r 2>/dev/null"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - sudo -iu postgres"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - psql -d labdb -c \"SELECT extname, extversion FROM pg_extension ORDER B"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Problem 3 - Extension Dependencies Not Met - exit"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - sudo -iu postgres"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - grep -v '^#' /opt/pgsql/data/pg_hba.conf | grep -v '^$'"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - psql -h 127.0.0.1 -U postgres -d labdb -c \"SELECT 1;\""
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - psql -c \"ALTER USER postgres PASSWORD 'labpassword123';\""
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - PGPASSWORD=labpassword123 psql -h 127.0.0.1 -U postgres -d labdb -c \"S"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - host labdb appuser 10.0.1.50/32 scram-sha-256"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - psql -c \"SELECT pg_reload_conf();\""
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Problem 4 - pg_hba.conf Blocking Connections - psql -c \"SELECT * FROM pg_hba_file_rules ORDER BY line_number LIMIT 10"
+  }
+}

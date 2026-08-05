@@ -1,0 +1,102 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Step 1 - Compare Build Flags with pg_config - /usr/pgsql-16/bin/pg_config --configure"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Step 1 - Compare Build Flags with pg_config - '--enable-rpath' '--prefix=/usr/pgsql-16' '--includedir=/usr/pgsql-16/"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Step 1 - Compare Build Flags with pg_config - /opt/pg-src/bin/pg_config --configure"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Step 2 - Verify SSL Support - /usr/pgsql-16/bin/pg_config --configure | tr ' ' '\\n' | grep ssl"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Step 2 - Verify SSL Support - /opt/pg-src/bin/pg_config --configure | tr ' ' '\\n' | grep ssl"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Step 2 - Verify SSL Support - sudo -iu postgres"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Step 2 - Verify SSL Support - psql -p 5432 -c \"SHOW ssl;\""
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Step 2 - Verify SSL Support - exit"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Step 3 - Compare Shared Library Locations - ls /usr/pgsql-16/lib/ | head -15"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Step 3 - Compare Shared Library Locations - ls /opt/pg-src/lib/ | head -15"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Step 3 - Compare Shared Library Locations - ls /usr/pgsql-16/share/extension/*.control | wc -l"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - sudo -iu postgres"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - /opt/pg-src/bin/initdb -D /tmp/pg-src-exercise"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - Success. You can now start the database server using: /opt/pg-src/bin/"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - /opt/pg-src/bin/pg_ctl -D /tmp/pg-src-exercise -l /tmp/pg-src-exercise"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - /opt/pg-src/bin/psql -p 5434 -c \"SELECT version();\""
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - psql -p 5432 -c \"SHOW jit;\""
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - /opt/pg-src/bin/psql -p 5434 -c \"SHOW jit;\""
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - psql -p 5432 -c \"SELECT name, enumvals FROM pg_settings WHERE name = '"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Step 4 - Quick-Start the Source Build - /opt/pg-src/bin/psql -p 5434 -c \"SELECT name, enumvals FROM pg_setting"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Step 5 - Stop and Clean Up - /opt/pg-src/bin/pg_ctl -D /tmp/pg-src-exercise stop"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Step 5 - Stop and Clean Up - rm -rf /tmp/pg-src-exercise"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Step 5 - Stop and Clean Up - rm -f /tmp/pg-src-exercise.log"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Step 5 - Stop and Clean Up - ls /tmp/pg-src-exercise"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Step 5 - Stop and Clean Up - ss -tlnp | grep 5434"
+  }
+}

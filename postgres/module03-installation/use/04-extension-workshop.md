@@ -78,13 +78,13 @@ LIMIT 5;
 ```
               product_name               | similarity
 -----------------------------------------+------------
- PostgreSQL Administration Cookbook       |   0.489796
- PostgreSQL High Availability            |   0.222222
- Mastering PostgreSQL 16                 |       0.16
+ PostgreSQL Administration Cookbook       | 0.62857145
+ PostgreSQL High Availability            | 0.18181819
+ Mastering PostgreSQL 16                 |      0.175
  ...
 ```
 
-The top result matches despite the typo ("Postgre" instead of "PostgreSQL"). The similarity score tells you how close the match is.
+The top result matches despite the typo ("Postgre" instead of "PostgreSQL"). The similarity score tells you how close the match is. Exact scores depend on your `pg_trgm` version, so your numbers may differ by a little - what matters is the ranking: the best match rises to the top.
 
 Now use the `%` operator (the trigram similarity operator) in a WHERE clause with a threshold. First, check the current similarity threshold:
 
@@ -125,14 +125,16 @@ ORDER BY score DESC;
 **Expected:**
 
 ```
-              product_name               |  score
------------------------------------------+----------
- PostgreSQL Administration Cookbook       | 0.176471
- PostgreSQL High Availability            | 0.176471
- Mastering PostgreSQL 16                 | 0.166667
- PostgreSQL 16 Server Side Programming   |     0.16
- Postgres Vacuum Handbook                | 0.153846
+              product_name               |   score
+-----------------------------------------+-----------
+ Mastering PostgreSQL 16                 | 0.22222222
+ Postgres Vacuum Handbook                | 0.21428572
+ PostgreSQL High Availability            |    0.1875
+ PostgreSQL Administration Cookbook       | 0.16216215
+ PostgreSQL 16 Server Side Programming   | 0.15384616
 ```
+
+(Exact scores and ordering depend on your `pg_trgm` version - yours may differ slightly. The point is that lowering the threshold surfaces more fuzzy matches.)
 
 The `%` operator found all PostgreSQL-related products despite the typo "Postgrss".
 
