@@ -1,0 +1,164 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "command -v gcc >/dev/null 2>&1 && command -v make >/dev/null 2>&1",
+    "hint": "Install the build tools: `sudo dnf install -y gcc make`.",
+    "done": "the compiler and make are installed"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "install the -devel header packages (incl libicu-devel)."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "curl -O the 16.8 source tarball."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ls -lh the tarball."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "tar xzf to extract."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "cd into the source dir."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "ls the source tree."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "test -f $HOME/postgresql-16.8/src/Makefile.global",
+    "hint": "Run ./configure in ~/postgresql-16.8 (see the guide's configure line).",
+    "done": "configure has generated the Makefiles"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "read the configure tail - it should end cleanly."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "make -j2 - compile (10-25 min, longer if CPU credits throttle)."
+  },
+  "11": {
+    "type": "ssh",
+    "check": "test -x /opt/pg-src/bin/postgres && /opt/pg-src/bin/postgres --version 2>/dev/null | grep -q '16.8'",
+    "hint": "Compile and install: `make -j2` then `sudo make install` (this takes a while - let it finish).",
+    "done": "PostgreSQL 16.8 is built and installed under /opt/pg-src"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "ls -F /opt/pg-src/ - bin lib share include."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "ls /opt/pg-src/bin/ - the built binaries."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "expected binary list."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "ls /opt/pg-src/lib/."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "expected lib list."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "ls /opt/pg-src/share/postgresql/."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "expected share list."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo chmod 755 /opt/pg-src so postgres can read it."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "initdb a throwaway cluster in /tmp/pg-src-test."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "expected initdb output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "pg_ctl start on port 5434."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "psql -p 5434 SELECT version() - source-compiled 16.8."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pg_ctl stop."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "rm -rf the test cluster."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "rm the test log."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "exit back to ec2-user."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "ls the source-built postgres binary."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "ls the RPM systemd unit (exists)."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "ls a src systemd unit (does not exist)."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "alternatives --display pgsql-psql."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "expected alternatives output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "ls the RPM logrotate config."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "cd ~."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "rm -rf the extracted source tree."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "rm the tarball."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "ls /tmp/pg-src-test - should be gone."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "ss | grep 5434 - nothing listening."
+  }
+}

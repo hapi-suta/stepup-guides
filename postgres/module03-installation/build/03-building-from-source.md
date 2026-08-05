@@ -176,7 +176,10 @@ a t3.small instance (2 vCPUs):
 make -j2
 ```
 
-This takes 3-5 minutes on a t3.small. You will see hundreds of lines of compiler
+This takes roughly 10-25 minutes on a t3.small. It can run longer: `t3` instances
+are *burstable*, so a sustained compile eventually exhausts the CPU credit balance
+and the instance throttles to its baseline speed. That is expected - let it run to
+completion. You will see hundreds of lines of compiler
 output scrolling by. Each line shows a `.c` file being compiled into a `.o`
 object file.
 
