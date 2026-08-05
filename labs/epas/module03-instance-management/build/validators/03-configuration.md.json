@@ -1,0 +1,70 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "SHOW work_mem; - the starting value."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo grep -q \"work_mem = '16MB'\" /var/lib/edb/as16/data/postgresql.auto.conf",
+    "hint": "ALTER SYSTEM SET work_mem = '16MB'; (writes postgresql.auto.conf)."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "exit the client."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo systemctl reload edb-as-16 - work_mem is sighup, a reload is enough."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "/usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SHOW work_mem\" | grep -qx 16MB",
+    "hint": "SHOW work_mem; - now 16MB after the reload."
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo grep -q \"shared_buffers = '256MB'\" /var/lib/edb/as16/data/postgresql.auto.conf",
+    "hint": "ALTER SYSTEM SET shared_buffers = '256MB';."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "exit the client."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sudo systemctl reload edb-as-16 - but shared_buffers needs a restart..."
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (SELECT pending_restart FROM pg_settings WHERE name='shared_buffers')\" | grep -qx t",
+    "hint": "pg_settings.pending_restart is true for shared_buffers - a reload was not enough."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT name, context - shared_buffers is 'postmaster' (restart-only)."
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (SELECT NOT pending_restart FROM pg_settings WHERE name='shared_buffers')\" | grep -qx t",
+    "hint": "sudo systemctl restart edb-as-16 - now shared_buffers takes effect."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "! sudo grep -q work_mem /var/lib/edb/as16/data/postgresql.auto.conf",
+    "hint": "ALTER SYSTEM RESET work_mem;."
+  },
+  "13": {
+    "type": "ssh",
+    "check": "! sudo grep -q shared_buffers /var/lib/edb/as16/data/postgresql.auto.conf",
+    "hint": "ALTER SYSTEM RESET shared_buffers;."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "exit the client."
+  },
+  "15": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT (SELECT NOT pending_restart FROM pg_settings WHERE name='shared_buffers')\" | grep -qx t",
+    "hint": "sudo systemctl restart edb-as-16 - back to defaults, nothing pending."
+  }
+}

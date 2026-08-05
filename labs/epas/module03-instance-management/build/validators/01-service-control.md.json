@@ -1,0 +1,37 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo systemctl status edb-as-16 - observe the running service."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "systemctl is-active edb-as-16 | grep -qxv active",
+    "hint": "sudo systemctl stop edb-as-16."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo systemctl is-active edb-as-16 - shows inactive."
+  },
+  "4": {
+    "type": "ssh",
+    "check": "systemctl is-active edb-as-16 | grep -qx active",
+    "hint": "sudo systemctl start edb-as-16."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo systemctl is-active edb-as-16 - shows active."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo systemctl reload edb-as-16 - re-reads config, no downtime."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo systemctl is-enabled edb-as-16 - boot-start status."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "systemctl is-enabled edb-as-16 | grep -qx enabled",
+    "hint": "sudo systemctl enable edb-as-16 - start on boot."
+  }
+}

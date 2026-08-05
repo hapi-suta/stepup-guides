@@ -1,0 +1,69 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT true\" | grep -qx t",
+    "hint": "sudo -iu enterprisedb - become the database owner."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo -u enterprisedb /usr/edb/as16/bin/edb-psql -p 5444 -d edb -Atc \"SELECT true\" | grep -qx t",
+    "hint": "edb-psql -p 5444 -d edb."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "\\conninfo - who and where you are connected."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "\\l - list databases."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "\\q."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "ALTER USER enterprisedb ... set a password for TCP logins."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "exit."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sudo vi pg_hba.conf - open the auth rules."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "find the local 127.0.0.1 ident rule."
+  },
+  "10": {
+    "type": "ssh",
+    "check": "sudo grep -Eq '^host[[:space:]]+all[[:space:]]+all[[:space:]]+127\\.0\\.0\\.1/32[[:space:]]+scram-sha-256' /var/lib/edb/as16/data/pg_hba.conf",
+    "hint": "change the 127.0.0.1 rule to scram-sha-256 (edbplus is TCP)."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo systemctl reload edb-as-16 - apply the pg_hba change."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo -iu enterprisedb."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "edbplus login - the Oracle SQL*Plus-compatible client."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT dummy FROM dual; in edbplus."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "EXIT; from edbplus."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit."
+  }
+}

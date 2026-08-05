@@ -1,0 +1,90 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "true",
+    "hint": "SSH into your lab server."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Check the OS: cat /etc/centos-release."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo dnf repolist 2>/dev/null | grep -qi edb || ls /etc/yum.repos.d/ | grep -qi edb",
+    "hint": "Add the EDB repo with the curl setup script (uses your repo token)."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo dnf repolist - confirm the EDB repo is listed."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "rpm -q edb-as16-server",
+    "hint": "sudo dnf install -y edb-as16-server edb-as16-server-contrib."
+  },
+  "6": {
+    "type": "ssh",
+    "check": "rpm -q edb-as16-server",
+    "hint": "rpm -qa | grep edb-as16 - confirm the packages installed."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "id enterprisedb",
+    "hint": "id enterprisedb - the install created the enterprisedb OS user."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo test -f /var/lib/edb/as16/data/PG_VERSION",
+    "hint": "sudo /usr/edb/as16/bin/edb-as-16-setup initdb."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo ls /var/lib/edb/as16/data - confirm the data directory is populated."
+  },
+  "10": {
+    "type": "ssh",
+    "check": "systemctl is-active edb-as-16 | grep -qx active",
+    "hint": "sudo systemctl enable --now edb-as-16."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo systemctl status edb-as-16 - confirm active (running)."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "ss -tln | grep -q ':5444'",
+    "hint": "ss -tlnp | grep 5444 - confirm it is listening on 5444."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo su - enterprisedb - switch to the database owner."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT version(); - confirm EPAS 16."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT * FROM dual; - the Oracle-compatible dual table."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT sysdate FROM dual; - Oracle-style sysdate."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "EXEC dbms_output.put_line(...) - Oracle-style PL/SQL."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "nvl()/decode() - Oracle-compatible functions."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "\\q - leave the client."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - back to ec2-user."
+  }
+}
