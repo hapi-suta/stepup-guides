@@ -1,0 +1,244 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -tAc \"SELECT 1 FROM pg_database WHERE datname='labdb'\" | grep -qx 1",
+    "hint": "Create the database: `createdb labdb` (as the postgres user).",
+    "done": "the labdb database exists"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "psql -d labdb."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "query pg_available_extensions."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "query pg_extension (only plpgsql at first)."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "\\q."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "exit."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "rpm -q postgresql16-contrib."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "install contrib if missing."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "rpm -q to confirm contrib."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "vi postgresql.conf."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "search shared_preload_libraries."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "set it to 'pg_stat_statements'."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "grep to confirm the setting."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit."
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc 'SHOW shared_preload_libraries' | grep -q pg_stat_statements",
+    "hint": "Set `shared_preload_libraries = 'pg_stat_statements'` in postgresql.conf, then `sudo systemctl restart postgresql-16`.",
+    "done": "pg_stat_statements is preloaded (restart done)"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "systemctl status - active after restart."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "psql -d labdb."
+  },
+  "21": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc \"SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements'\" | grep -qx 1",
+    "hint": "Run `CREATE EXTENSION pg_stat_statements;` in labdb.",
+    "done": "pg_stat_statements is installed in labdb"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM pg_class."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM pg_attribute."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "SELECT 1+1."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "query pg_stat_statements top queries."
+  },
+  "26": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc \"SELECT 1 FROM pg_extension WHERE extname='pgcrypto'\" | grep -qx 1",
+    "hint": "Run `CREATE EXTENSION pgcrypto;` in labdb.",
+    "done": "pgcrypto is installed"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "gen_random_uuid()."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "digest sha256."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "pgp_sym_encrypt."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "pgp roundtrip decrypt."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "wrong passphrase -> error."
+  },
+  "32": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc \"SELECT 1 FROM pg_extension WHERE extname='pg_trgm'\" | grep -qx 1",
+    "hint": "Run `CREATE EXTENSION pg_trgm;` in labdb.",
+    "done": "pg_trgm is installed"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "similarity (case-insensitive -> 1)."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "similarity of two different strings."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "show_trgm('hello')."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "create products table."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "insert rows."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "create GIN trigram index."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "EXPLAIN the LIKE query."
+  },
+  "40": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc \"SELECT 1 FROM pg_extension WHERE extname='pageinspect'\" | grep -qx 1",
+    "hint": "Run `CREATE EXTENSION pageinspect;` in labdb.",
+    "done": "pageinspect is installed"
+  },
+  "41": {
+    "type": "manual",
+    "hint": "page_header via pageinspect."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "heap_page_items - see xmin/xmax."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "\\q."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "exit."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "psql -d labdb."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "list installed extensions + versions."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "check for available updates."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "ALTER EXTENSION pgcrypto UPDATE."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "check extension dependencies."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "DROP EXTENSION pageinspect."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "DROP EXTENSION pg_trgm CASCADE (drops the index)."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "recreate pg_trgm."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "recreate pageinspect."
+  },
+  "55": {
+    "type": "ssh",
+    "check": "sudo -u postgres psql -p 5432 -d labdb -tAc \"SELECT count(*)=4 FROM pg_extension WHERE extname IN ('pg_stat_statements','pgcrypto','pg_trgm','pageinspect')\" | grep -qx t",
+    "hint": "Recreate pg_trgm and pageinspect after the DROP demo so all four extensions are present.",
+    "done": "all four extensions are installed"
+  },
+  "56": {
+    "type": "manual",
+    "hint": "\\q."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "exit."
+  }
+}

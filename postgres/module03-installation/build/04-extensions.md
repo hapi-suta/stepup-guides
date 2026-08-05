@@ -10,8 +10,7 @@ In this lab you will explore PostgreSQL's extension system - how to discover wha
 
 - PostgreSQL 16 installed and running on port 5432
 - Data directory at `/opt/pgsql/data`
-- Database `labdb` exists
-- Logged in as `ec2-user`
+- Logged in as `ec2-user` (you will create the `labdb` database in this guide)
 
 ---
 
@@ -29,6 +28,14 @@ sudo -iu postgres
 ```
 
 **You are now the postgres user.**
+
+Create the `labdb` database you will use for the rest of this module. The `createdb` wrapper is a thin shortcut around `CREATE DATABASE`:
+
+```bash
+createdb labdb
+```
+
+There is no output on success. If you see `database "labdb" already exists`, that is fine - it means you created it on an earlier run.
 
 Connect to the `labdb` database. The `-d` flag specifies which database to connect to.
 
@@ -425,8 +432,10 @@ Expected output:
 ```
  similarity
 ------------
-        0.7
+          1
 ```
+
+These two strings differ only in case (`g` vs `G`), and `pg_trgm` is case-insensitive - it lowercases the input before extracting trigrams. So they are identical as far as `similarity()` is concerned, giving a score of `1`. Try two strings that genuinely differ to see a fractional score.
 
 ```sql
 SELECT similarity('PostgreSQL', 'MySQL');
