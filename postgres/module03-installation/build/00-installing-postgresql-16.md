@@ -22,16 +22,16 @@ ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]
 Once connected, you will see a prompt that looks like this:
 
 ```
-[ec2-user@pg-lab ~]$
+[ec2-user@pg-suta-lab-1 ~]$
 ```
 
-This means you are logged in as the `ec2-user` on a server named `pg-lab`.
+This means you are logged in as the `ec2-user` on a server named `pg-suta-lab-1`.
 
 ---
 
 ## 2. Check Your Operating System
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Before installing anything, confirm you are on the right operating system. This command shows which Linux distribution and version you are running:
 
@@ -63,7 +63,7 @@ x86_64
 
 ## 3. Check That PostgreSQL Is NOT Installed
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Let's confirm there is no PostgreSQL on this server yet. This command searches installed packages for anything with "postgres" in the name:
 
@@ -85,7 +85,7 @@ If you see nothing, that is correct. Your server is clean and ready.
 
 ## 4. Install the PGDG Repository
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Before you can install PostgreSQL, you need to tell your server where to download it from. The PostgreSQL Global Development Group (PGDG) maintains an official package repository with the latest versions.
 
@@ -113,7 +113,7 @@ The `-y` flag means "answer yes to all prompts automatically." Without it, `dnf`
 
 ## 5. Disable the Built-in PostgreSQL Module
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 CentOS has a built-in PostgreSQL module that can conflict with the PGDG packages. You need to disable it so your system uses the PGDG versions instead:
 
@@ -141,7 +141,7 @@ The `-q` flag means "quiet" (less output) and `-y` means "yes to all prompts."
 
 ## 6. Install PostgreSQL 16 Packages
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Now install the four core PostgreSQL 16 packages. This is the main installation command:
 
@@ -192,7 +192,7 @@ Four packages - all installed from the `@pgdg16` repository.
 
 ## 7. Check What the Installation Created
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 The installation automatically created a `postgres` OS user. This is the user that will own and run the database. Verify it exists:
 
@@ -205,6 +205,8 @@ Expected output (yours will differ):
 ```
 uid=26(postgres) gid=26(postgres) groups=26(postgres)
 ```
+
+> **Your numbers may differ.** On a bare install the PGDG package creates the `postgres` user with uid/gid `26`. On some lab servers the `postgres` user already exists (created during server setup) and will show a different uid/gid - that is fine. What matters is that the `postgres` user exists.
 
 Check where PostgreSQL binaries were installed. The `ls` command lists the contents of the binary directory:
 
@@ -245,7 +247,7 @@ postgres (PostgreSQL) 16.14
 
 ## 8. Initialize the Database
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Installing the packages gives you the software, but it does NOT create a database yet. You need to run `initdb` to create the initial database cluster (the data directory with system catalogs, configuration files, and the default databases).
 
@@ -285,9 +287,61 @@ log           pg_ident.conf pg_notify     pg_snapshots  pg_subtrans  PG_VERSION 
 
 ---
 
-## 9. Start PostgreSQL
+## 9. Point the Service at Your Data Directory
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
+
+You initialized your cluster at `/opt/pgsql/data`, but the PostgreSQL service ships pointing at a different default location, `/var/lib/pgsql/16/data`. If you start it now, systemd would look in that empty default directory and the service would fail. Tell systemd where your data actually lives with a drop-in override.
+
+First, create the override directory. The `-p` flag creates parent directories as needed and does not error if the directory already exists:
+
+```bash
+sudo mkdir -p /etc/systemd/system/postgresql-16.service.d
+```
+
+Now open a new override file with vi:
+
+```bash
+sudo vi /etc/systemd/system/postgresql-16.service.d/override.conf
+```
+
+vi opens an empty file. Press `i` to enter insert mode, then type these two lines exactly:
+
+```
+[Service]
+Environment=PGDATA=/opt/pgsql/data
+```
+
+Press `Esc` to leave insert mode, then type `:wq` and press `Enter` to save and quit.
+
+Confirm the file has the right contents:
+
+```bash
+cat /etc/systemd/system/postgresql-16.service.d/override.conf
+```
+
+Expected output:
+
+```
+[Service]
+Environment=PGDATA=/opt/pgsql/data
+```
+
+Reload systemd so it picks up the override. You must do this whenever you change a unit file or one of its drop-ins:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+No output means success.
+
+> **Why a drop-in instead of editing the unit file?** The main unit at `/usr/lib/systemd/system/postgresql-16.service` is owned by the package - a future `dnf update` would overwrite your edits. A drop-in under `/etc/systemd/system/postgresql-16.service.d/` is yours: it survives upgrades and cleanly layers on top of the shipped unit.
+
+---
+
+## 10. Start PostgreSQL
+
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Now start the PostgreSQL service. The `systemctl start` command tells systemd to launch the database server:
 
@@ -331,11 +385,11 @@ Created symlink /etc/systemd/system/multi-user.target.wants/postgresql-16.servic
 
 ---
 
-## 10. Connect to PostgreSQL
+## 11. Connect to PostgreSQL
 
 Your database is running. Let's connect to it.
 
-On **pg-lab**, as **ec2-user**:
+On **pg-suta-lab-1**, as **ec2-user**:
 
 Switch to the `postgres` OS user. This user was created during installation and is the database superuser:
 
