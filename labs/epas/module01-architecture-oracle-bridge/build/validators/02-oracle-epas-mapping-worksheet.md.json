@@ -1,0 +1,258 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT sid, serial#, username, sql_id, event, wait_class, se"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT pid, usename, client_addr, state, wait_event_type, wa"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT blocked.pid AS blocked_pid, blocked.query AS blocked_"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - -- Find the session SELECT sid, serial#, username, status, l"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT pid, usename, state, query, now() - xact_start AS tra"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - -- Option A: Cancel the current query (gentle) SELECT pg_can"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - ALTER SYSTEM SET idle_in_transaction_session_timeout = '30mi"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - -- Check if parameter is dynamic SELECT name, issys_modifiab"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT name, context FROM pg_settings WHERE name IN ('shared"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - -- Database size SELECT sum(bytes)/1024/1024/1024 AS size_gb"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT datname, pg_size_pretty(pg_database_size(datname)) AS"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT schemaname, relname AS table_name, pg_size_pretty(pg_"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - SELECT schemaname, relname AS table_name, pg_size_pretty(pg_"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - -- Get the plan for a specific SQL_ID from cursor cache SELE"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - EXPLAIN PLAN FOR SELECT * FROM merchant_transactions WHERE m"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - EXPLAIN SELECT * FROM merchant_transactions WHERE merchant_i"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT * FROM mercha"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - CREATE INDEX idx_merch_txn_date ON merchant_transactions (me"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Daily Operations (Scenarios 1-5) - BEGIN; EXPLAIN (ANALYZE, BUFFERS) UPDATE merchant_transactio"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - RMAN> RESTORE DATABASE; RMAN> RECOVER DATABASE UNTIL TIME \"T"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - FLASHBACK TABLE card_profiles TO TIMESTAMP (SYSTIMESTAMP - I"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - # On the recovery server, restore the backup and recover to "
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - # On the recovery server /usr/edb/as16/bin/pg_ctl start -D /"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - /usr/edb/as16/bin/pg_dump -h localhost -p 5555 -U enterprise"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - # First, rename or truncate the (now empty) table in product"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - barman check cardauth-primary"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - barman verify-backup cardauth-primary latest"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - /usr/edb/as16/bin/pg_ctl start -D /var/lib/edb/as16/data_ver"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - # If amcheck extension is installed /usr/edb/as16/bin/edb-ps"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - /usr/edb/as16/bin/pg_ctl stop -D /var/lib/edb/as16/data_veri"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - SELECT dest_id, status, error FROM v$archive_dest WHERE stat"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - SELECT archived_count, failed_count, last_archived_wal, last"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - SHOW archive_command;"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - # Check the EPAS log files tail -100 /var/lib/edb/as16/data/"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "Backup and Recovery (Scenarios 6-8) - ALTER SYSTEM SET archive_command = 'cp %p /var/lib/edb/archi"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - SELECT database_role, open_mode, switchover_status FROM v$da"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - SELECT pg_is_in_recovery();"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - -- On Data Guard primary SELECT name, value, time_computed F"
+  },
+  "39": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - SELECT client_addr, application_name, state, sent_lsn, write"
+  },
+  "40": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - SELECT now() - pg_last_xact_replay_timestamp() AS replay_lag"
+  },
+  "41": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - -- Check readiness DGMGRL> VALIDATE DATABASE 'cardauth_stand"
+  },
+  "42": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - -- On primary SELECT client_addr, replay_lag FROM pg_stat_re"
+  },
+  "43": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - /usr/edb/efm-4.8/bin/efm cluster-status cardauth"
+  },
+  "44": {
+    "type": "manual",
+    "hint": "High Availability (Scenarios 9-11) - # Run from any EFM node (primary, standby, or witness) /usr/"
+  },
+  "45": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - ALTER TABLE audit_events ENABLE ROW MOVEMENT; ALTER TABLE au"
+  },
+  "46": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - VACUUM FULL audit_events;"
+  },
+  "47": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - pg_repack -d cardauth -t audit_events"
+  },
+  "48": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - CREATE TABLE audit_events ( event_id bigint, event_time time"
+  },
+  "49": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - DROP TABLE audit_events_2026_03;"
+  },
+  "50": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - -- Oracle autogathers stats, but after bulk loads: EXEC DBMS"
+  },
+  "51": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - ANALYZE merchant_profiles;"
+  },
+  "52": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - ANALYZE VERBOSE merchant_profiles;"
+  },
+  "53": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - -- Check that stats are current SELECT schemaname, relname, "
+  },
+  "54": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - EXPLAIN SELECT * FROM merchant_profiles WHERE region_code = "
+  },
+  "55": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - -- Find the blocking tree SELECT level, sid, serial#, blocki"
+  },
+  "56": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT blocked.pid AS blocked_pid, blocked.usename AS blocke"
+  },
+  "57": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - WITH RECURSIVE lock_chain AS ( -- Base case: sessions that a"
+  },
+  "58": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT pg_terminate_backend(<root_blocker_pid>);"
+  },
+  "59": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - -- Kill idle-in-transaction sessions after 5 minutes ALTER S"
+  },
+  "60": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT pid, usename, state, now() - xact_start AS txn_age, q"
+  },
+  "61": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - -- Increase maintenance_work_mem for this session to speed u"
+  },
+  "62": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT relname, pg_size_pretty(pg_total_relation_size(oid)) "
+  },
+  "63": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT relname, age(relfrozenxid) AS xid_age, pg_size_pretty"
+  },
+  "64": {
+    "type": "manual",
+    "hint": "Performance and Troubleshooting (Scenarios 12-15) - SELECT datname, age(datfrozenxid) AS db_xid_age FROM pg_data"
+  }
+}

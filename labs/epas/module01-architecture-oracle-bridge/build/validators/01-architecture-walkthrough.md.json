@@ -1,0 +1,38 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Step 1: Process Model Analysis - $ ps auxf | grep edb enterprisedb 1201 0.0 0.1 postmaster -D"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Step 2: Memory Budget Calculation - SET work_mem = '512MB'; -- just for this session"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Step 3: Storage Forensics - $ du -sh /var/lib/edb/as16/data/*/ 48G /var/lib/edb/as16/dat"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Step 3: Storage Forensics - $ /usr/edb/as16/bin/pg_controldata /var/lib/edb/as16/data pg"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Step 3: Storage Forensics - SELECT pg_drop_replication_slot('the_stuck_slot_name');"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Step 4: WAL Lifecycle Walkthrough - UPDATE card_balances SET available_balance = available_balan"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Step 4: WAL Lifecycle Walkthrough - CLIENT (CardAuth app on 10.0.4.21) | | 1. TCP packet: \"UPDAT"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Step 5: EPAS vs Community PostgreSQL - Is this feature Oracle-compatibility related? | YES --> Sear"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Summary: Printable Reference Card - +==========================================================="
+  }
+}
