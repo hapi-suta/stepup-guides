@@ -1,0 +1,110 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Connect to your lab server over SSH as ec2-user."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo su - - become root to inspect system files."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "ls /etc/yum.repos.d/ - see the configured repos."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "cat the pgdg-redhat-all.repo file - the PGDG repo definition."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "dnf repolist -v | grep -i pgdg - the enabled PGDG repos."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "dnf list installed | grep postgres - the 4 installed packages."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "dnf info postgresql16-server - package detail."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "rpm -ql postgresql16-server | head -30 - files the package installed."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "rpm -ql postgresql16-server | grep bin - the server binaries."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "rpm -ql postgresql16 | grep bin - the client binaries."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-16/bin/ - all binaries together."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-16/lib/ - shared libraries."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-16/share/extension/ - available extensions."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "count the .control files - number of extensions."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "systemctl cat postgresql-16 - the service unit + your override."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ls the drop-in dir - the override directory."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "cat override.conf - your PGDATA override."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "systemctl status postgresql-16 - enabled + running."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "alternatives --display pgsql-psql - how psql is managed."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "which psql - the resolved path."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "ls -la /usr/bin/psql - the alternatives symlink."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "ls -la /etc/alternatives/pgsql-psql - the next link in the chain."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "postgres --version - server version."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "psql --version - client version."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pg_config --configure - the build flags."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "pg_config - all paths and settings."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "exit - leave the root session."
+  }
+}

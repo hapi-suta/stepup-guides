@@ -276,7 +276,7 @@ After=network-online.target
 Type=notify
 User=postgres
 Group=postgres
-Environment=PGDATA=/opt/pgsql/data/
+Environment=PGDATA=/var/lib/pgsql/16/data/
 OOMScoreAdjust=-1000
 ExecStartPre=/usr/pgsql-16/bin/postgresql-16-check-db-dir ${PGDATA}
 ExecStart=/usr/pgsql-16/bin/postgres -D ${PGDATA}
@@ -287,7 +287,13 @@ TimeoutSec=infinity
 
 [Install]
 WantedBy=multi-user.target
+
+# /etc/systemd/system/postgresql-16.service.d/override.conf
+[Service]
+Environment=PGDATA=/opt/pgsql/data
 ```
+
+`systemctl cat` prints the shipped unit first, then any drop-in overrides beneath it. The shipped unit's `PGDATA` is the PGDG default `/var/lib/pgsql/16/data/`; the `override.conf` you created in Guide 00 changes it to `/opt/pgsql/data`. The last value wins, so this server runs from `/opt/pgsql/data`.
 
 Key lines explained:
 
@@ -376,6 +382,8 @@ Expected output:
 /usr/bin/psql
 ```
 
+> On CentOS Stream, `/bin` is itself a symlink to `/usr/bin`, so `which` may print `/bin/psql` instead. That is the same file - do not worry about the `/bin` vs `/usr/bin` difference.
+
 Now check what `/usr/bin/psql` actually points to. The `ls -la` shows the symlink target:
 
 ```bash
@@ -385,19 +393,19 @@ ls -la /usr/bin/psql
 Expected output:
 
 ```
-lrwxrwxrwx. 1 root root 30 ... /usr/bin/psql -> /etc/alternatives/pgsql-psql-psql
+lrwxrwxrwx. 1 root root 28 ... /usr/bin/psql -> /etc/alternatives/pgsql-psql
 ```
 
 Follow the chain one more level:
 
 ```bash
-ls -la /etc/alternatives/pgsql-psql-psql
+ls -la /etc/alternatives/pgsql-psql
 ```
 
 Expected output:
 
 ```
-lrwxrwxrwx. 1 root root 25 ... /etc/alternatives/pgsql-psql-psql -> /usr/pgsql-16/bin/psql
+lrwxrwxrwx. 1 root root 22 ... /etc/alternatives/pgsql-psql -> /usr/pgsql-16/bin/psql
 ```
 
 > **Concept: Why alternatives matter for multi-version setups**
