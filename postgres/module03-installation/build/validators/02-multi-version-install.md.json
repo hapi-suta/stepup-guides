@@ -1,0 +1,142 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "rpm -q postgresql15-server >/dev/null 2>&1",
+    "hint": "Install PG15: `sudo dnf install -y postgresql15-server postgresql15`.",
+    "done": "PG15 packages are installed"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "rpm -q - confirm both PG15 packages."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "ls the PG15 server binary."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo mkdir -p /opt/pgsql/data15."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "chown postgres:postgres the dir."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "chmod 700 the dir."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "ls -ld - confirm 700 + postgres owner."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo test -f /opt/pgsql/data15/PG_VERSION",
+    "hint": "Create /opt/pgsql/data15 (postgres:postgres, 700) then `sudo -u postgres /usr/pgsql-15/bin/initdb -D /opt/pgsql/data15`.",
+    "done": "the PG15 cluster is initialized"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "exit back to ec2-user."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "vi the PG15 postgresql.conf."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "find the #port = 5432 line."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "set it to port = 5433."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "find #listen_addresses."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "set listen_addresses = 'localhost'."
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo grep -q '^port = 5433' /opt/pgsql/data15/postgresql.conf",
+    "hint": "Set `port = 5433` in /opt/pgsql/data15/postgresql.conf.",
+    "done": "PG15 is configured for port 5433"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "sudo systemctl edit --full postgresql-15."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "the shipped PGDATA line (default /var/lib/pgsql/15/data/)."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "change PGDATA to /opt/pgsql/data15/."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "update the Description line."
+  },
+  "22": {
+    "type": "ssh",
+    "check": "systemctl show postgresql-15 -p Environment 2>/dev/null | grep -q '/opt/pgsql/data15'",
+    "hint": "Edit the postgresql-15 unit so `Environment=PGDATA=/opt/pgsql/data15/`, then `sudo systemctl daemon-reload`.",
+    "done": "systemd points PG15 at /opt/pgsql/data15"
+  },
+  "23": {
+    "type": "ssh",
+    "check": "systemctl is-active --quiet postgresql-15",
+    "hint": "Start it: `sudo systemctl start postgresql-15`.",
+    "done": "PG15 is running on port 5433"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "systemctl status postgresql-15 - active (running)."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pg_isready -p 5432 - PG16 up."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "pg_isready -p 5433 - PG15 up."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "sudo -iu postgres."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "psql -p 5432 SELECT version() - PG16."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "psql -p 5433 SELECT version() - PG15."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "exit."
+  },
+  "31": {
+    "type": "ssh",
+    "check": "systemctl is-enabled --quiet postgresql-15",
+    "hint": "Enable at boot: `sudo systemctl enable postgresql-15`.",
+    "done": "PG15 will start on boot"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "list running postgresql services - both listed."
+  }
+}

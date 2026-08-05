@@ -240,13 +240,13 @@ sudo systemctl edit --full postgresql-15
 
 The `--full` flag opens the complete unit file for editing rather than creating a drop-in override. This gives you full control over every setting.
 
-Find the line that sets the `Environment` variable for PGDATA. It will look something like:
+Find the line that sets the `Environment` variable for PGDATA. It ships pointing at the PG15 default directory:
 
 ```
-Environment=PGDATA=/opt/pgsql/data15/
+Environment=PGDATA=/var/lib/pgsql/15/data/
 ```
 
-Change it to:
+Change it to point at the data directory you initialized:
 
 ```
 Environment=PGDATA=/opt/pgsql/data15/
