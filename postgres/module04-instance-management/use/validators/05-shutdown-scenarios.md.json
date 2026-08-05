@@ -1,0 +1,109 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Switch to the postgres user."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Create the throwaway data directory: mkdir -p /opt/pgsql/data-shutdown."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo test -f /opt/pgsql/data-shutdown/PG_VERSION",
+    "hint": "Run `/usr/pgsql-16/bin/initdb -D /opt/pgsql/data-shutdown --data-checksums` to create the test cluster with checksums enabled."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Open postgresql.conf with vi to change the port."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Search for the commented #port = 5432 line."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Change it to port = 5436 and save."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/pg_isready -p 5436 >/dev/null 2>&1",
+    "hint": "Start the test cluster: /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgsql/data-shutdown/server.log"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Verify with pg_isready -p 5436 - should be accepting connections."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Start a long-running query in the background: psql -p 5436 -c \"SELECT pg_sleep(300);\" &"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Try a smart shutdown: pg_ctl stop -D /opt/pgsql/data-shutdown -m smart - it will hang, waiting on the pg_sleep client."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Press Ctrl+C to stop watching the smart shutdown, then check pg_isready -p 5436 - it should show 'rejecting connections', not 'accepting'."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Try a new connection - it should fail with 'FATAL: the database system is shutting down'."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Escalate out of the stuck smart shutdown: pg_ctl stop -D /opt/pgsql/data-shutdown -m fast - this terminates the pg_sleep session and completes the shutdown."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "You will see the killed psql session print its own connection-lost error and the shell's job-done notification."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Verify with pg_isready -p 5436 - should show 'no response'."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Start the cluster again: pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgsql/data-shutdown/server.log"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Write some data so there is something to replay after the crash: psql -p 5436 -c \"CREATE TABLE test_write (id int); INSERT INTO test_write SELECT generate_series(1,1000);\""
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Open a new background session: psql -p 5436 -c \"SELECT pg_sleep(300);\" &"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Perform an immediate shutdown: pg_ctl stop -D /opt/pgsql/data-shutdown -m immediate - almost instant, unlike smart or fast."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Start the cluster again to trigger crash recovery: pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgsql/data-shutdown/server.log"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Check the recovery messages in log/postgresql-*.log (not server.log - logging_collector redirects there after startup)."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Clean up: pg_ctl stop -D /opt/pgsql/data-shutdown -m fast"
+  },
+  "23": {
+    "type": "ssh",
+    "check": "! sudo test -e /opt/pgsql/data-shutdown",
+    "hint": "Remove the throwaway data directory: rm -rf /opt/pgsql/data-shutdown"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Confirm it is gone with ls /opt/pgsql/data-shutdown - should error 'No such file or directory'."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Confirm your main PG16 cluster on port 5432 was never affected by any of this."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Exit back to ec2-user."
+  }
+}

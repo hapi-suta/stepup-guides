@@ -62,7 +62,7 @@ Expected output (yours will differ):
 ```
  count
 -------
-    36
+    57
 (1 row)
 ```
 
@@ -70,7 +70,7 @@ Stay in psql for the next task.
 
 ### Answer
 
-There are roughly 35-40 postmaster-context settings (the exact number varies by PG version and installed extensions). These include critical settings like `shared_buffers`, `max_connections`, `max_worker_processes`, and `wal_level`. In production, changing any of these means a brief outage - plan accordingly.
+On PostgreSQL 16 with no extensions loaded, there are 57 postmaster-context settings. The exact number varies by PG version (older versions have fewer; PG16 added several `recovery_target_*` settings and others) and grows further if you load extensions with `shared_preload_libraries`, since those can register their own postmaster-context GUCs. Either way, these are the highest-friction settings to change - they include `shared_buffers`, `max_connections`, `max_worker_processes`, and `wal_level`. In production, changing any of these means a brief outage - plan accordingly.
 
 ---
 
@@ -90,13 +90,18 @@ ORDER BY source, name;
 Expected output (yours will differ):
 
 ```
-          name           |      setting       |       source       |              sourcefile
--------------------------+--------------------+--------------------+--------------------------------------
- archive_mode            | off                | configuration file | /opt/pgsql/data/postgresql.conf
- DateStyle               | ISO, MDY           | configuration file | /opt/pgsql/data/postgresql.conf
+              name              |             setting             |       source       |               sourcefile
+--------------------------------+---------------------------------+--------------------+-----------------------------------------
+ application_name               | psql                            | client             |
+ DateStyle                      | ISO, MDY                        | configuration file | /opt/pgsql/data/postgresql.conf
  ...
- lc_messages             | en_US.UTF-8        | override           |
- listen_addresses        | *                  | configuration file | /opt/pgsql/data/conf.d/network.conf
+ log_destination                | stderr                          | configuration file | /opt/pgsql/data/conf.d/logging.conf
+ logging_collector              | on                              | configuration file | /opt/pgsql/data/conf.d/logging.conf
+ max_connections                | 50                              | configuration file | /opt/pgsql/data/conf.d/connections.conf
+ shared_buffers                 | 16384                           | configuration file | /opt/pgsql/data/conf.d/tuning.conf
+ ...
+ config_file                    | /opt/pgsql/data/postgresql.conf | override           |
+ data_directory                 | /opt/pgsql/data                 | override           |
  ...
 ```
 
@@ -162,20 +167,20 @@ The `~ '^\d+$'` filter keeps only settings whose values are purely numeric. The 
 Expected output (yours will differ):
 
 ```
-           name           |   setting    | unit
----------------------------+--------------+------
- max_function_args         | 100          |
- wal_segment_size          | 16777216     | B
- segment_size              | 131072       | 8kB
- wal_block_size            | 8192         |
- block_size                | 8192         |
+                name                 |  setting   | unit
+--------------------------------------+------------+------
+ vacuum_multixact_failsafe_age        | 1600000000 |
+ vacuum_failsafe_age                  | 1600000000 |
+ autovacuum_multixact_freeze_max_age  | 400000000  |
+ autovacuum_freeze_max_age            | 200000000  |
+ vacuum_freeze_table_age              | 150000000  |
 ```
 
 Stay in psql for the next task.
 
 ### Answer
 
-The largest values are typically internal constants like `wal_segment_size` (16 MB in bytes), `segment_size` (1 GB in 8kB pages), and `block_size` (8192 bytes). These are set at compile time and cannot be changed. They show up in `pg_settings` for informational purposes.
+The largest values on PG16 are the vacuum and multixact "age" thresholds - `vacuum_multixact_failsafe_age` and `vacuum_failsafe_age` are both 1.6 billion, followed by the `autovacuum_*_freeze_max_age` and `vacuum_freeze_table_age` settings in the hundreds of millions. These are transaction-ID (XID) counters, not byte sizes: they tell autovacuum (and, as a last resort, the failsafe mechanism) how old a table's unfrozen rows are allowed to get before PostgreSQL forces aggressive vacuuming to avoid XID wraparound. If you filter the LIMIT down further you will also see genuinely fixed, compile-time constants like `wal_segment_size` (16 MB, in bytes), `segment_size` (1 GB, in 8 kB pages), and `block_size` (8192 bytes) - those cannot be changed and exist in `pg_settings` for informational purposes, but they are smaller than the vacuum age thresholds and so do not make the top 5.
 
 ---
 
@@ -228,15 +233,24 @@ WHERE sourcefile LIKE '%conf.d%'
 ORDER BY sourcefile, name;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ - this shows the three files BUILD Guide 02 has you create: `tuning.conf`, `logging.conf`, and `connections.conf`):
 
 ```
-      name       | setting |               sourcefile
------------------+---------+----------------------------------------
- listen_addresses | *      | /opt/pgsql/data/conf.d/network.conf
- logging_collector| on     | /opt/pgsql/data/conf.d/logging.conf
- log_directory   | /opt/pgsql/log | /opt/pgsql/data/conf.d/logging.conf
- ...
+              name              |         setting         |               sourcefile
+--------------------------------+-------------------------+-----------------------------------------
+ max_connections                | 50                      | /opt/pgsql/data/conf.d/connections.conf
+ superuser_reserved_connections | 3                       | /opt/pgsql/data/conf.d/connections.conf
+ log_destination                | stderr                  | /opt/pgsql/data/conf.d/logging.conf
+ log_directory                  | /opt/pgsql/log          | /opt/pgsql/data/conf.d/logging.conf
+ log_filename                   | postgresql-%Y-%m-%d.log | /opt/pgsql/data/conf.d/logging.conf
+ logging_collector              | on                      | /opt/pgsql/data/conf.d/logging.conf
+ log_line_prefix                | %m [%p] %u@%d           | /opt/pgsql/data/conf.d/logging.conf
+ log_min_duration_statement     | 1000                    | /opt/pgsql/data/conf.d/logging.conf
+ effective_cache_size           | 65536                   | /opt/pgsql/data/conf.d/tuning.conf
+ maintenance_work_mem           | 65536                   | /opt/pgsql/data/conf.d/tuning.conf
+ shared_buffers                 | 16384                   | /opt/pgsql/data/conf.d/tuning.conf
+ work_mem                       | 4096                    | /opt/pgsql/data/conf.d/tuning.conf
+(12 rows)
 ```
 
 Stay in psql for the next task.
@@ -267,10 +281,11 @@ ORDER BY name;
 Expected output (yours will differ):
 
 ```
-          name          | setting |              enumvals
-------------------------+---------+-------------------------------------
- backslash_quote        | safe_encoding | {safe_encoding,on,off}
- bytea_output           | hex     | {escape,hex}
+        name         |    setting    |                           enumvals
+---------------------+---------------+---------------------------------------------------------------
+ archive_mode         | off           | {always,on,off}
+ backslash_quote      | safe_encoding | {safe_encoding,on,off}
+ bytea_output          | hex           | {escape,hex}
  ...
 ```
 
@@ -319,12 +334,13 @@ ORDER BY line_number;
 Expected output (yours will differ):
 
 ```
- line_number | type  | database  |  user_name  |  address   | auth_method
--------------+-------+-----------+-------------+------------+-------------
-           1 | local | {all}     | {all}       |            | peer
-           2 | host  | {all}     | {all}       | 127.0.0.1  | scram-sha-256
-           3 | host  | {all}     | {all}       | ::1        | scram-sha-256
-           ...
+ line_number | type  |   database    | user_name | address   | auth_method
+-------------+-------+---------------+-----------+-----------+-------------
+           1 | local | {all}         | {all}     |           | trust
+           2 | host  | {all}         | {all}     | 127.0.0.1 | trust
+           3 | host  | {all}         | {all}     | ::1       | trust
+           4 | local | {replication} | {all}     |           | trust
+           5 | host  | {replication} | {all}     | 127.0.0.1 | trust
 ```
 
 Exit psql.
@@ -341,7 +357,9 @@ exit
 
 ### Answer
 
-The key rule for the postgres user is typically line 1: `local / all / all / peer`. The `peer` authentication method means the OS username must match the PostgreSQL username. This is why `sudo -iu postgres` followed by `psql` works without a password - the OS user `postgres` matches the database user `postgres`.
+Every rule here uses `trust`, not `peer` or `scram-sha-256`. This is because BUILD Guide 00 ran `initdb -D /opt/pgsql/data` with no `-A`/`--auth` flag - `initdb` falls back to `trust` for both local and host connections when you do not specify an authentication method, and prints a warning to that effect (`initdb: warning: enabling "trust" authentication for local connections`) at creation time. `trust` means PostgreSQL asks for **no password at all** - anyone who can reach the socket (local) or the listed address (host) connects as whatever user they claim to be. This is why `sudo -iu postgres` followed by `psql` works without a password: not because of a `peer` OS-username check, but because there is no authentication check happening whatsoever.
+
+`trust` is fine for a single-node teaching lab with no exposed network access, but it is a serious misconfiguration in production. The standard hardening is `peer` for local Unix-socket connections (checks the OS username matches) and `scram-sha-256` for host/TCP connections (requires a password, hashed with SCRAM). If you ever inherit a server and see `trust` on a `host` line reachable from outside `127.0.0.1`/`::1`, treat it as a live incident, not a config quirk.
 
 HBA rules are evaluated top-to-bottom, first match wins. Order matters. If you put a `reject` rule above a `trust` rule, the connection will be rejected even though a more permissive rule exists below.
 

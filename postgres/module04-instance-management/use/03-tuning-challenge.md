@@ -3,7 +3,7 @@
 **Duration:** 30 minutes
 **Objective:** Calculate optimal PostgreSQL settings for the lab server's hardware, apply them via `conf.d/`, and verify each one takes effect. Understand the difference between reload-safe and restart-required settings.
 
-**Prerequisites:** PG16 running on port 5432 (`/opt/pgsql/data`) with `conf.d/` configured (from BUILD Guide 02). Single node. Server is a t3.small (1 CPU, 1 GB RAM, 25 GB SSD).
+**Prerequisites:** PG16 running on port 5432 (`/opt/pgsql/data`) with `conf.d/` configured (from BUILD Guide 02). Single node. Server is a t3.small (2 vCPU, 2 GiB RAM, 10 GB root volume).
 
 ---
 
@@ -35,8 +35,8 @@ Expected output (yours will differ):
 
 ```
               total        used        free      shared  buff/cache   available
-Mem:            958         312         124          12         521         476
-Swap:             0           0           0
+Mem:           1669         369         142          41        1351        1299
+Swap:           1023           0        1023
 ```
 
 Exit back to ec2-user.
@@ -45,7 +45,7 @@ Exit back to ec2-user.
 exit
 ```
 
-The `total` column shows roughly 958 MB (a t3.small has 1 GB, but the OS reserves some). We will round to 1 GB for calculations.
+The `total` column shows roughly 1.6 GB (a t3.small advertises 2 GiB, but virtualization overhead means less is visible to the OS). To stay safely conservative and leave headroom for the OS, autovacuum, and per-connection overhead, we will size the settings below for 1 GB of usable RAM rather than the full total.
 
 ---
 
@@ -179,7 +179,7 @@ vi /opt/pgsql/data/conf.d/tuning.conf
 Press `i` to enter insert mode and type the following content:
 
 ```
-# Tuning for t3.small (1 CPU, 1 GB RAM, 25 GB SSD)
+# Tuning for t3.small (2 vCPU, 2 GiB RAM), sized conservatively for 1 GB usable
 # Created during Module 04 Exercise 03
 
 # Memory
@@ -203,7 +203,7 @@ cat /opt/pgsql/data/conf.d/tuning.conf
 Expected output (yours will differ):
 
 ```
-# Tuning for t3.small (1 CPU, 1 GB RAM, 25 GB SSD)
+# Tuning for t3.small (2 vCPU, 2 GiB RAM), sized conservatively for 1 GB usable
 # Created during Module 04 Exercise 03
 
 # Memory
@@ -272,9 +272,11 @@ Expected output (yours will differ):
 ```
       name      | setting | unit | pending_restart
 ----------------+---------+------+-----------------
- shared_buffers | 16384   | 8kB  | t
+ shared_buffers | 16384   | 8kB  | f
 (1 row)
 ```
+
+Your result may show `pending_restart` as `f` (false) here instead of `t`. That happens when `shared_buffers` was already 128 MB before you wrote `tuning.conf` (for example, if BUILD Guide 02 already set it to 128 MB) - there is no delta between the running value and the new file, so PostgreSQL has nothing pending. A `t` instead means the reload was not enough and a restart is required.
 
 Exit back to ec2-user.
 
@@ -282,7 +284,7 @@ Exit back to ec2-user.
 exit
 ```
 
-If `pending_restart` shows `t`, the reload was not enough. We need a full restart.
+Either way, restart to be certain the file's value is the one actually in effect - `pending_restart = f` only tells you nothing changed just now, not that `postgresql.conf`/`conf.d/` and the running server agree from before this exercise. `shared_buffers` is `context = postmaster`, so a reload alone can never apply a real change to it - only a restart can.
 
 ```bash
 sudo systemctl restart postgresql-16

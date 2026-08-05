@@ -34,7 +34,7 @@ The `-p` flag specifies which port to check.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Check PG15 on port 5433.
@@ -46,7 +46,7 @@ Check PG15 on port 5433.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 Check the exit code of the last command.
@@ -118,7 +118,7 @@ sudo -iu postgres
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Verify PG15 is not responding.
@@ -130,7 +130,7 @@ Verify PG15 is not responding.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5433 - no response
+/run/postgresql:5433 - no response
 ```
 
 Exit back to ec2-user.
@@ -164,7 +164,7 @@ sudo -iu postgres
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 ```bash
@@ -174,7 +174,7 @@ Expected output (yours will differ):
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5433 - accepting connections
+/run/postgresql:5433 - accepting connections
 ```
 
 Stay as the postgres user for the next step.
@@ -371,15 +371,15 @@ Expected output (yours will differ):
 ● postgresql-16.service - PostgreSQL 16 database server
      Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled; preset: disabled)
      Active: active (running) since Sat 2026-04-19 10:30:00 UTC; 2h ago
-   Main PID: 1234 (postmaster)
+   Main PID: 1234 (postgres)
       Tasks: 7 (limit: 4421)
      Memory: 28.5M
         CPU: 1.234s
      CGroup: /system.slice/postgresql-16.service
-             ├─1234 /usr/pgsql-16/bin/postmaster -D /opt/pgsql/data
-             ├─1235 postgres: logger
-             ├─1236 postgres: checkpointer
-             ├─1237 postgres: background writer
+             ├─1234 /usr/pgsql-16/bin/postgres -D /opt/pgsql/data
+             ├─1235 "postgres: logger "
+             ├─1236 "postgres: checkpointer "
+             ├─1237 "postgres: background writer "
              ...
 ```
 

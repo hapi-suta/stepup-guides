@@ -102,7 +102,7 @@ Verify it is running.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5436 - accepting connections
+/run/postgresql:5436 - accepting connections
 ```
 
 Stay as the postgres user for all remaining steps.
@@ -137,7 +137,7 @@ waiting for server to shut down...........
 
 The server is waiting for the `pg_sleep` query to finish. It will keep printing dots.
 
-Press `Ctrl+C` to cancel the shutdown attempt.
+Press `Ctrl+C` to stop watching.
 
 Expected output (yours will differ):
 
@@ -145,9 +145,9 @@ Expected output (yours will differ):
 ^C
 ```
 
-The server is still running. The smart shutdown was canceled.
+**This is a common misunderstanding: Ctrl+C does not cancel the shutdown.** It only kills the `pg_ctl` foreground process that was polling and printing dots. The smart-shutdown request was already delivered to the postmaster, and the postmaster does not forget it. The server process is still running, but it is no longer accepting new connections - it is waiting for the `pg_sleep` client to disconnect before it can finish shutting down.
 
-Verify the server is still up.
+Verify this - the server should now be rejecting connections, not accepting them.
 
 ```bash
 /usr/pgsql-16/bin/pg_isready -p 5436
@@ -156,14 +156,28 @@ Verify the server is still up.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5436 - accepting connections
+/run/postgresql:5436 - rejecting connections
 ```
+
+Try to open a new connection to prove it.
+
+```bash
+psql -p 5436 -c "SELECT 1;"
+```
+
+Expected output (yours will differ):
+
+```
+psql: error: connection to server on socket "/run/postgresql/.s.PGSQL.5436" failed: FATAL:  the database system is shutting down
+```
+
+There is no PostgreSQL command that un-does a pending shutdown once it has been requested. The only way out of this state is to wait for the blocking client to disconnect on its own, or to escalate to a stronger shutdown mode - which is exactly what fast shutdown does next.
 
 ---
 
 ## Step 4: Test fast shutdown
 
-Fast shutdown disconnects all clients immediately but performs a clean shutdown. This is the safest way to stop a server that has active connections.
+Fast shutdown disconnects all clients immediately but performs a clean shutdown. This is the safest way to stop a server that has active connections. It is also how you escalate out of the stuck smart shutdown from Step 3 - the `pg_sleep` session is still connected and the postmaster is still waiting on it.
 
 ```bash
 /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-shutdown -m fast
@@ -178,9 +192,14 @@ waiting for server to shut down.... done
 server stopped
 ```
 
-You may also see background job output from the killed psql session:
+You will also see the killed `pg_sleep` session print its own connection-lost error to the terminal, followed by the shell's background job notification:
 
 ```
+FATAL:  terminating connection due to administrator command
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+connection to server was lost
 [1]+  Exit 2                  psql -p 5436 -c "SELECT pg_sleep(300);"
 ```
 
@@ -193,7 +212,7 @@ Verify the server is stopped.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5436 - no response
+/run/postgresql:5436 - no response
 ```
 
 ### Explanation
@@ -217,6 +236,19 @@ waiting for server to start.... done
 server started
 ```
 
+Write some data first, so there is something for crash recovery to replay in Step 6.
+
+```bash
+psql -p 5436 -c "CREATE TABLE test_write (id int); INSERT INTO test_write SELECT generate_series(1,1000);"
+```
+
+Expected output (yours will differ):
+
+```
+CREATE TABLE
+INSERT 0 1000
+```
+
 Open a psql session in the background.
 
 ```bash
@@ -234,7 +266,12 @@ The `-m immediate` flag kills all processes instantly without a clean shutdown.
 Expected output (yours will differ):
 
 ```
-waiting for server to shut down.... done
+waiting for server to shut down....WARNING:  terminating connection due to immediate shutdown command
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+connection to server was lost
+ done
 server stopped
 ```
 
@@ -257,24 +294,28 @@ waiting for server to start.... done
 server started
 ```
 
-Check the server log for recovery messages.
+Check the server log for recovery messages. This cluster has `logging_collector = on` (the PGDG package default), so after startup PostgreSQL stops writing to the `-l server.log` file and switches to its own rotating log inside `PGDATA/log/` - `server.log` only ever shows a one-line "redirecting log output to logging collector process" notice. The real messages are in `log/postgresql-<day>.log`.
 
 ```bash
-tail -20 /opt/pgsql/data-shutdown/server.log
+tail -20 /opt/pgsql/data-shutdown/log/postgresql-*.log
 ```
 
-The `tail -20` command shows the last 20 lines of the log file.
+The `tail -20` command shows the last 20 lines of the log file. The `*` wildcard matches today's log regardless of which day of the week it is (the filename pattern is `postgresql-%a.log`, e.g. `postgresql-Wed.log`).
 
 Expected output (yours will differ):
 
 ```
-LOG:  database system was interrupted; last known up at ...
+LOG:  database system was interrupted; last known up at 2026-08-05 18:57:01 UTC
 LOG:  database system was not properly shut down; automatic recovery in progress
-LOG:  redo starts at 0/15A2C28
-LOG:  invalid record length at 0/15A2CA0: expected at least 24, got 0
-LOG:  redo done at 0/15A2C60 system usage: ...
+LOG:  redo starts at 0/177CF10
+LOG:  invalid record length at 0/17A5E00: expected at least 24, got 0
+LOG:  redo done at 0/17A5C68 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+LOG:  checkpoint starting: end-of-recovery immediate wait
+LOG:  checkpoint complete: wrote 32 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.004 s, total=0.014 s; sync files=23, longest=0.002 s, average=0.001 s; distance=163 kB, estimate=163 kB; lsn=0/17A5E00, redo lsn=0/17A5E00
 LOG:  database system is ready to accept connections
 ```
+
+If you skipped the `CREATE TABLE`/`INSERT` above, you will most likely see `LOG:  redo is not required` instead of the `redo starts at` / `redo done at` pair - that just means there was no WAL activity since the last checkpoint for PostgreSQL to replay.
 
 ### Explanation
 
@@ -332,7 +373,7 @@ Verify your main PG16 cluster is still running and unaffected.
 Expected output (yours will differ):
 
 ```
-/var/run/postgresql:5432 - accepting connections
+/run/postgresql:5432 - accepting connections
 ```
 
 Exit back to ec2-user.

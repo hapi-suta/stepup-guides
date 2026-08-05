@@ -1,0 +1,55 @@
+{
+  "1": {"type": "manual", "hint": "Switch to the postgres user."},
+  "2": {"type": "manual", "hint": "Check PG16 with pg_isready -p 5432."},
+  "3": {"type": "manual", "hint": "Check PG15 with pg_isready -p 5433."},
+  "4": {"type": "manual", "hint": "Check the exit code with echo $?."},
+  "5": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "6": {
+    "type": "ssh",
+    "check": "! systemctl is-active --quiet postgresql-15",
+    "hint": "Run `sudo systemctl stop postgresql-15` to stop only the PG15 cluster."
+  },
+  "7": {"type": "manual", "hint": "Check systemctl status postgresql-15 --no-pager."},
+  "8": {"type": "manual", "hint": "Switch to the postgres user."},
+  "9": {"type": "manual", "hint": "Confirm PG16 is still accepting connections on 5432."},
+  "10": {"type": "manual", "hint": "Confirm PG15 is not responding on 5433."},
+  "11": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "12": {
+    "type": "ssh",
+    "check": "systemctl is-active --quiet postgresql-15",
+    "hint": "Run `sudo systemctl start postgresql-15` to bring PG15 back up."
+  },
+  "13": {"type": "manual", "hint": "Switch to the postgres user."},
+  "14": {"type": "manual", "hint": "Confirm PG16 is accepting connections."},
+  "15": {"type": "manual", "hint": "Confirm PG15 is accepting connections."},
+  "16": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAc \"SELECT to_regclass('cluster_test') IS NOT NULL\" | grep -qx t",
+    "hint": "Create the test table: psql -p 5432 -c \"CREATE TABLE cluster_test (id int, cluster_name text);\""
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAc \"SELECT count(*) FROM cluster_test\" | grep -qx 1",
+    "hint": "Insert the row: psql -p 5432 -c \"INSERT INTO cluster_test VALUES (1, 'PG16 cluster');\""
+  },
+  "18": {"type": "manual", "hint": "SELECT * FROM cluster_test on PG16 - should return the row."},
+  "19": {"type": "manual", "hint": "SELECT * FROM cluster_test on PG15 - should error, the table does not exist there."},
+  "20": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "21": {"type": "manual", "hint": "Check systemctl is-enabled postgresql-16."},
+  "22": {"type": "manual", "hint": "Check systemctl is-enabled postgresql-15."},
+  "23": {"type": "manual", "hint": "This is illustrative only - do NOT actually run `sudo systemctl disable postgresql-15` on this shared lab box; just note what it would do."},
+  "24": {"type": "manual", "hint": "Switch to the postgres user."},
+  "25": {"type": "manual", "hint": "Grep the PG16 system identifier from pg_controldata."},
+  "26": {"type": "manual", "hint": "Grep the PG15 system identifier from pg_controldata."},
+  "27": {"type": "manual", "hint": "Check pg_ctl status -D /opt/pgsql/data."},
+  "28": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "29": {"type": "manual", "hint": "Check systemctl status postgresql-16 --no-pager."},
+  "30": {"type": "manual", "hint": "Switch to the postgres user."},
+  "31": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAc \"SELECT to_regclass('cluster_test') IS NULL\" | grep -qx t",
+    "hint": "Clean up: psql -p 5432 -c \"DROP TABLE cluster_test;\""
+  },
+  "32": {"type": "manual", "hint": "SELECT * FROM cluster_test should now error - the table is gone."},
+  "33": {"type": "manual", "hint": "Exit back to ec2-user."}
+}

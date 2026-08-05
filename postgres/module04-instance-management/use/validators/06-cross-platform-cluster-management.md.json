@@ -1,0 +1,138 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "pg_lsclusters is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "CentOS equivalent: systemctl list-units to see all PG service units."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "pg_createcluster is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 1 of creating a cluster manually: mkdir -p /opt/pgsql/data-test."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 2: chown postgres:postgres /opt/pgsql/data-test."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 3: chmod 700 /opt/pgsql/data-test."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Switch to the postgres user."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 4: initdb -D /opt/pgsql/data-test (manual demonstration only - clean this up when done)."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Exit back to ec2-user."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "pg_dropcluster is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 1 of removing a cluster manually: systemctl stop."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 2: systemctl disable."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 3: rm the systemd unit file."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 4: systemctl daemon-reload."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "CentOS equivalent step 5: rm -rf the data directory (this removes the data-test cluster you created in step 8)."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "pg_ctlcluster is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "pg_ctlcluster test stop is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "pg_ctlcluster main reload is Ubuntu-only - read the expected output, do not try to run it here."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "CentOS equivalent: systemctl start postgresql-16."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "CentOS equivalent: systemctl stop postgresql-16-test."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "CentOS equivalent: systemctl reload postgresql-16."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Reference: CentOS config file layout (all files inside the data directory)."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Reference: Ubuntu config file layout (config separated from data)."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Any platform: SHOW config_file; to find the active config location."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Any platform: SHOW data_directory;."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Any platform: SHOW hba_file;."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "CentOS: systemctl status postgresql-16."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Ubuntu equivalent: systemctl status postgresql@16-main - this unit does not exist on this CentOS box, it is reference only."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "pg_lsclusters (Ubuntu shortcut) - reference only."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "CentOS: systemctl enable postgresql-16."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Ubuntu equivalent: systemctl enable postgresql@16-main - reference only."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "CentOS: tail the configured log_directory."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "CentOS/Ubuntu: journalctl -u postgresql-16 for the systemd-level log."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Ubuntu: tail /var/log/postgresql/ - reference only, this path does not exist on this CentOS box."
+  }
+}

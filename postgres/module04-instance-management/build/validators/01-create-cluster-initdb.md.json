@@ -1,0 +1,154 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "1. Examine the Existing PG16 Cluster - ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "1. Examine the Existing PG16 Cluster - sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "1. Examine the Existing PG16 Cluster - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "1. Examine the Existing PG16 Cluster - exit"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "2. Check Available Locales - locale -a | grep en_US"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - sudo su -"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - mkdir /opt/pgsql/data-test"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - chown postgres:postgres /opt/pgsql/data-test"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - chmod 700 /opt/pgsql/data-test"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - exit"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - sudo -iu postgres"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - /usr/pgsql-16/bin/initdb -D /opt/pgsql/data-test --data-checksums --lo"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - ls /opt/pgsql/data-test/"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "3. Create a Fresh Test Cluster - exit"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - sudo -iu postgres"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep \"system identi"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-test | grep \"system i"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep \"checksum\""
+  },
+  "19": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-test | grep \"checksum"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep \"Bytes per WAL"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-test | grep \"Bytes pe"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "4. Compare pg_controldata Between Clusters - exit"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - sudo -iu postgres"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - vi /opt/pgsql/data-test/postgresql.conf"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - port = 5435"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-test -l /opt/pgsql/l"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - /usr/pgsql-16/bin/pg_isready -p 5435"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - psql -p 5435 -c \"SELECT version();\""
+  },
+  "29": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - /usr/pgsql-16/bin/pg_isready -p 5432"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "5. Configure and Start the Test Cluster - exit"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - sudo -iu postgres"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-test"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - /usr/pgsql-16/bin/pg_isready -p 5435"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - exit"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - sudo su -"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - rm -rf /opt/pgsql/data-test"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - ls /opt/pgsql/data-test"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "6. Tear Down the Test Cluster - exit"
+  }
+}

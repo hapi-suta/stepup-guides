@@ -1,0 +1,238 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "1. pg_ctl Overview - ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "1. pg_ctl Overview - sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "1. pg_ctl Overview - /usr/pgsql-16/bin/pg_ctl status -D /opt/pgsql/data"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "1. pg_ctl Overview - exit"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "2. pg_ctl vs systemctl - sudo systemctl status postgresql-16"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - sudo su -"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - mkdir /opt/pgsql/data-shutdown"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - chown postgres:postgres /opt/pgsql/data-shutdown"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - chmod 700 /opt/pgsql/data-shutdown"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - exit"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - sudo -iu postgres"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/initdb -D /opt/pgsql/data-shutdown --data-checksums "
+  },
+  "13": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - vi /opt/pgsql/data-shutdown/postgresql.conf"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - port = 5436"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgs"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - psql -p 5436 -c \"CREATE TABLE shutdown_test (id serial, data text);\""
+  },
+  "17": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - psql -p 5436 -c \"INSERT INTO shutdown_test (data) SELECT 'row ' || g F"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - psql -p 5436 -c \"SELECT pg_backend_pid();\""
+  },
+  "19": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - sudo -iu postgres"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-shutdown -m smart &"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - psql -p 5436 -c \"SELECT 1;\""
+  },
+  "22": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgs"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-shutdown -m fast"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgs"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-shutdown -m immediate"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-shutdown | grep \"clus"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data-shutdown -l /opt/pgs"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - tail -10 /opt/pgsql/data-shutdown/log/postgresql-*.log"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - /usr/pgsql-16/bin/pg_controldata /opt/pgsql/data-shutdown | grep \"clus"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "3. Shutdown Modes - exit"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "4. Reload Without Restart - sudo -iu postgres"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "4. Reload Without Restart - /usr/pgsql-16/bin/pg_ctl reload -D /opt/pgsql/data"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "4. Reload Without Restart - psql -p 5432 -c \"SELECT pg_reload_conf();\""
+  },
+  "34": {
+    "type": "manual",
+    "hint": "4. Reload Without Restart - exit"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "4. Reload Without Restart - sudo systemctl reload postgresql-16"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "5. Health Checks - /usr/pgsql-16/bin/pg_isready -p 5432"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "5. Health Checks - /usr/pgsql-16/bin/pg_isready -p 5432"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "5. Health Checks - echo $?"
+  },
+  "39": {
+    "type": "manual",
+    "hint": "5. Health Checks - /usr/pgsql-16/bin/pg_isready -p 9999"
+  },
+  "40": {
+    "type": "manual",
+    "hint": "5. Health Checks - echo $?"
+  },
+  "41": {
+    "type": "manual",
+    "hint": "5. Health Checks - sudo -iu postgres"
+  },
+  "42": {
+    "type": "manual",
+    "hint": "5. Health Checks - cat /opt/pgsql/data/postmaster.pid"
+  },
+  "43": {
+    "type": "manual",
+    "hint": "5. Health Checks - head -1 /opt/pgsql/data/postmaster.pid"
+  },
+  "44": {
+    "type": "manual",
+    "hint": "5. Health Checks - ps -p <PID> -o pid,user,command"
+  },
+  "45": {
+    "type": "manual",
+    "hint": "5. Health Checks - exit"
+  },
+  "46": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - sudo -iu postgres"
+  },
+  "47": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - psql -p 5432 -c \"SELECT name, setting FROM pg_settings WHERE name IN ("
+  },
+  "48": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - ls -lt /opt/pgsql/log/"
+  },
+  "49": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - tail -10 /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log"
+  },
+  "50": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - exit"
+  },
+  "51": {
+    "type": "manual",
+    "hint": "6. Checking Server Logs - sudo journalctl -u postgresql-16 --no-pager -n 10"
+  },
+  "52": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - sudo -iu postgres"
+  },
+  "53": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - /usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data-shutdown"
+  },
+  "54": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - exit"
+  },
+  "55": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - sudo su -"
+  },
+  "56": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - rm -rf /opt/pgsql/data-shutdown"
+  },
+  "57": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - rm -f /opt/pgsql/log/pg-shutdown-test.log"
+  },
+  "58": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - exit"
+  },
+  "59": {
+    "type": "manual",
+    "hint": "7. Tear Down the Test Cluster - /usr/pgsql-16/bin/pg_isready -p 5432"
+  }
+}

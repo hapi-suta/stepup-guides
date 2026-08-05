@@ -1,0 +1,16 @@
+{
+  "1": {"type": "manual", "hint": "Switch to the postgres user."},
+  "2": {"type": "manual", "hint": "Connect with psql -p 5432."},
+  "3": {"type": "manual", "hint": "Task 1: query pg_settings for context = 'postmaster'."},
+  "4": {"type": "manual", "hint": "Task 1: count the postmaster-context settings."},
+  "5": {"type": "manual", "hint": "Task 2: query pg_settings for source != 'default'."},
+  "6": {"type": "manual", "hint": "Task 3: query pg_settings for pending_restart = true."},
+  "7": {"type": "manual", "hint": "Task 4: query pg_settings for the largest numeric setting."},
+  "8": {"type": "manual", "hint": "Task 5: query pg_settings for the Write-Ahead Log category."},
+  "9": {"type": "manual", "hint": "Task 6: query pg_settings for sourcefile LIKE '%conf.d%'."},
+  "10": {"type": "manual", "hint": "Task 7: query pg_settings for enumvals IS NOT NULL."},
+  "11": {"type": "manual", "hint": "Task 7: query wal_level specifically."},
+  "12": {"type": "manual", "hint": "Task 8: query pg_hba_file_rules ordered by line_number."},
+  "13": {"type": "manual", "hint": "Exit psql (\\q)."},
+  "14": {"type": "manual", "hint": "Exit back to ec2-user."}
+}

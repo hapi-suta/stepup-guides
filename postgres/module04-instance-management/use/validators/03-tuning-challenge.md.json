@@ -1,0 +1,47 @@
+{
+  "1": {"type": "manual", "hint": "Switch to the postgres user."},
+  "2": {"type": "manual", "hint": "Check total RAM with free -m."},
+  "3": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "4": {"type": "manual", "hint": "Switch to the postgres user."},
+  "5": {"type": "manual", "hint": "Connect with psql -p 5432."},
+  "6": {"type": "manual", "hint": "SHOW shared_buffers;"},
+  "7": {"type": "manual", "hint": "SHOW effective_cache_size;"},
+  "8": {"type": "manual", "hint": "SHOW work_mem;"},
+  "9": {"type": "manual", "hint": "SHOW maintenance_work_mem;"},
+  "10": {"type": "manual", "hint": "SHOW max_wal_size;"},
+  "11": {"type": "manual", "hint": "Exit psql (\\q)."},
+  "12": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "13": {"type": "manual", "hint": "Switch to the postgres user."},
+  "14": {"type": "manual", "hint": "Open conf.d/tuning.conf with vi."},
+  "15": {"type": "manual", "hint": "Type the tuning settings into the file."},
+  "16": {
+    "type": "ssh",
+    "check": "sudo -u postgres grep -q '^shared_buffers = 128MB' /opt/pgsql/data/conf.d/tuning.conf && sudo -u postgres grep -q '^max_wal_size = 1GB' /opt/pgsql/data/conf.d/tuning.conf",
+    "hint": "Write conf.d/tuning.conf with shared_buffers = 128MB, effective_cache_size = 768MB, work_mem = 2MB, maintenance_work_mem = 64MB, and max_wal_size = 1GB, then cat it to confirm."
+  },
+  "17": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "18": {"type": "manual", "hint": "Switch to the postgres user."},
+  "19": {"type": "manual", "hint": "Run SELECT pg_reload_conf();"},
+  "20": {"type": "manual", "hint": "Check pending_restart for shared_buffers."},
+  "21": {"type": "manual", "hint": "Exit back to ec2-user."},
+  "22": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAc \"SELECT (extract(epoch from now() - pg_postmaster_start_time()) < 120)\" | grep -qx t",
+    "hint": "Run `sudo systemctl restart postgresql-16` so the postmaster picks up the postmaster-context settings from tuning.conf."
+  },
+  "23": {"type": "manual", "hint": "Check systemctl status postgresql-16 --no-pager."},
+  "24": {"type": "manual", "hint": "Switch to the postgres user."},
+  "25": {"type": "manual", "hint": "Connect with psql -p 5432."},
+  "26": {"type": "manual", "hint": "SHOW shared_buffers;"},
+  "27": {"type": "manual", "hint": "SHOW effective_cache_size;"},
+  "28": {"type": "manual", "hint": "SHOW work_mem;"},
+  "29": {"type": "manual", "hint": "SHOW maintenance_work_mem;"},
+  "30": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAc \"SELECT count(*) FROM pg_settings WHERE sourcefile LIKE '%conf.d/tuning.conf%'\" | grep -qx 5",
+    "hint": "Confirm all 5 tuned settings show sourcefile = conf.d/tuning.conf with: SELECT name, setting, unit, sourcefile FROM pg_settings WHERE sourcefile LIKE '%tuning%';"
+  },
+  "31": {"type": "manual", "hint": "Confirm no settings are pending_restart."},
+  "32": {"type": "manual", "hint": "Exit psql (\\q)."},
+  "33": {"type": "manual", "hint": "Exit back to ec2-user."}
+}

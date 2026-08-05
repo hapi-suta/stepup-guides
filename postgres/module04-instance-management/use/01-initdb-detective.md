@@ -34,7 +34,7 @@ Run `pg_controldata` against the PG16 cluster and look for the checksum field.
 Expected output (yours will differ):
 
 ```
-Data page checksum version:           1
+Data page checksum version:           0
 ```
 
 Now check the PG15 cluster.
@@ -55,16 +55,21 @@ Exit back to ec2-user.
 exit
 ```
 
+Both clusters show `0` - checksums are **disabled** on both. That is expected: BUILD Guide 00 (module03) ran `initdb -D /opt/pgsql/data` for PG16 and `initdb -D /opt/pgsql/data15` for PG15 with no `--data-checksums` flag on either. The only cluster you have created WITH checksums enabled in this course so far was the throwaway `data-test` cluster in module04 BUILD Guide 01 - and that was deleted at the end of that guide's cleanup step, so it is not around to compare against anymore.
+
 ### Answer
 
-- A checksum version of `1` means checksums are **enabled**. This was set during `initdb --data-checksums` (or `-k`).
-- A checksum version of `0` means checksums are **disabled**. Once a cluster is created without checksums, you cannot enable them without `pg_checksums --enable` (requires the server to be stopped).
+- A checksum version of `1` means checksums are **enabled**. This is set during `initdb --data-checksums` (or `-k`) and can never be turned on for an existing cluster except offline, with `pg_checksums --enable` (requires the server to be stopped).
+- A checksum version of `0` means checksums are **disabled** - the case for both of your running clusters here, since neither was created with the flag.
+- In production, you decide this at `initdb` time, before you have any data. Most teams enable checksums by default now (the write overhead is small, roughly 1-2%) precisely so they are never stuck wanting them later on a cluster that already has data.
 
 ---
 
 ## Question 2: What locale was used?
 
-The locale determines how text is sorted and compared. It is baked in at `initdb` time and cannot be changed afterward without recreating the cluster.
+The locale determines how text is sorted and compared. It is baked in at `initdb` time, per database, and cannot be changed afterward without recreating the database (or the whole cluster).
+
+`pg_controldata` does **not** show locale information - that is a common assumption, but the locale is stored per-database in the `pg_database` catalog, not in the cluster-wide control file. To inspect it, you need a running server and a query (or `psql -l`).
 
 ### Try it
 
@@ -77,28 +82,34 @@ sudo -iu postgres
 Check the locale settings for the PG16 cluster.
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep "LC_"
+psql -p 5432 -c "SELECT datname, datcollate, datctype FROM pg_database WHERE datname = 'postgres';"
 ```
 
 Expected output (yours will differ):
 
 ```
-LC_COLLATE:                           en_US.UTF-8
-LC_CTYPE:                             en_US.UTF-8
+ datname  | datcollate  |  datctype
+----------+-------------+-------------
+ postgres | en_US.UTF-8 | en_US.UTF-8
+(1 row)
 ```
 
 Now check PG15.
 
 ```bash
-/usr/pgsql-15/bin/pg_controldata /opt/pgsql/data15 | grep "LC_"
+psql -p 5433 -c "SELECT datname, datcollate, datctype FROM pg_database WHERE datname = 'postgres';"
 ```
 
 Expected output (yours will differ):
 
 ```
-LC_COLLATE:                           en_US.UTF-8
-LC_CTYPE:                             en_US.UTF-8
+ datname  | datcollate  |  datctype
+----------+-------------+-------------
+ postgres | en_US.UTF-8 | en_US.UTF-8
+(1 row)
 ```
+
+You can also see this with `psql -l`, which shows Collate/Ctype (and, on newer versions, the Locale Provider) for every database in the cluster at once.
 
 Exit back to ec2-user.
 
@@ -108,9 +119,9 @@ exit
 
 ### Answer
 
-- `LC_COLLATE` controls string sort order (e.g., does "a" come before "B"?).
-- `LC_CTYPE` controls character classification (e.g., what counts as a letter, digit, or whitespace).
-- Both are typically `en_US.UTF-8` on US-based servers. These were set by the `--locale` flag (or system default) during `initdb`.
+- `datcollate` controls string sort order (e.g., does "a" come before "B"?).
+- `datctype` controls character classification (e.g., what counts as a letter, digit, or whitespace).
+- Both are typically `en_US.UTF-8` on US-based servers. These were set by the `--locale` flag (or system default) during `initdb`, and are recorded per-database - not in `pg_controldata`, which only reports cluster-wide metadata (checksums, WAL layout, catalog version, and similar).
 
 ---
 
@@ -256,14 +267,16 @@ sudo -iu postgres
 ```
 
 ```bash
-/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep -E "Latest checkpoint|TimeLineID"
+/usr/pgsql-16/bin/pg_controldata /opt/pgsql/data | grep -E "Latest checkpoint location|Latest checkpoint.s REDO location|TimeLineID"
 ```
+
+A plain `grep -E "Latest checkpoint|TimeLineID"` matches too much - `pg_controldata` has more than a dozen other `Latest checkpoint's ...` lines (NextXID, NextOID, full_page_writes, and several more), so that pattern would print all of them, not just the two location lines. The pattern above pins down exactly the lines we want.
 
 Expected output (yours will differ):
 
 ```
-Latest checkpoint location:           0/15A2C60
-Latest checkpoint's REDO location:    0/15A2C28
+Latest checkpoint location:           0/19794E8
+Latest checkpoint's REDO location:    0/19794B0
 Latest checkpoint's TimeLineID:       1
 Latest checkpoint's PrevTimeLineID:   1
 ```
