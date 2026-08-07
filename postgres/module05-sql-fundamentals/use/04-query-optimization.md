@@ -25,13 +25,13 @@ sudo -iu postgres
 
 ## Setup: Create a Large Orders Table
 
-The existing `orders` table may be small enough that sequential scans are actually faster. Create a larger table to make the problems visible:
+The existing `orders` table (50 rows) is far too small for a sequential scan to ever look slow. Create a larger table to make the problems visible:
 
 ```sql
 CREATE TABLE IF NOT EXISTS orders_large AS SELECT * FROM orders;
 ```
 
-Insert additional rows until you have at least 50,000 rows:
+Insert additional rows until you have well over 50,000 rows. This synthetic batch uses its own random status set (including `completed`, which does not exist in the real `orders` table) purely to get a realistic spread for the performance exercises below:
 
 ```sql
 INSERT INTO orders_large (customer_id, status, total_amount, order_date)
@@ -54,12 +54,12 @@ Verify row count:
 SELECT COUNT(*) FROM orders_large;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ slightly in the last digits if you re-run the INSERT, but should be 50 + 60000):
 
 ```
  count
 -------
- 60300
+ 60050
 (1 row)
 ```
 
@@ -75,21 +75,21 @@ Run EXPLAIN ANALYZE first:
 EXPLAIN ANALYZE SELECT * FROM orders_large WHERE status = 'pending';
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ in exact row counts and timings - `status` is assigned randomly):
 
 ```
- Seq Scan on orders_large  (cost=0.00..1820.00 rows=15000 width=60)
-                            (actual time=0.030..18.500 rows=15075 loops=1)
+ Seq Scan on orders_large  (cost=0.00..1223.62 rows=15004 width=31) (actual time=0.007..6.765 rows=15035 loops=1)
    Filter: ((status)::text = 'pending'::text)
-   Rows Removed by Filter: 45225
- Execution Time: 22.000 ms
+   Rows Removed by Filter: 45015
+ Planning Time: 0.089 ms
+ Execution Time: 7.263 ms
 ```
 
 **Your task:** Identify the problem, create the right index, and run EXPLAIN ANALYZE again to confirm improvement.
 
 ### Answer
 
-The problem is a sequential scan - 45,225 rows discarded. Create a partial index on status since we frequently filter by a specific value:
+The problem is a sequential scan - roughly 45,000 rows discarded to find roughly 15,000 matches. Create an index on `status` since we frequently filter by a specific value:
 
 ```sql
 CREATE INDEX idx_orders_large_status ON orders_large (status);
@@ -102,15 +102,16 @@ EXPLAIN ANALYZE SELECT * FROM orders_large WHERE status = 'pending';
 Expected output (yours will differ):
 
 ```
- Bitmap Heap Scan on orders_large  (cost=200..800 rows=15000 width=60)
-                                    (actual time=2.000..8.000 rows=15075 loops=1)
+ Bitmap Heap Scan on orders_large  (cost=172.57..833.12 rows=15004 width=31) (actual time=0.541..2.914 rows=15035 loops=1)
    Recheck Cond: ((status)::text = 'pending'::text)
-   ->  Bitmap Index Scan on idx_orders_large_status  (cost=0.00..196 rows=15000 width=0)
+   Heap Blocks: exact=473
+   ->  Bitmap Index Scan on idx_orders_large_status  (cost=0.00..168.82 rows=15004 width=0) (actual time=0.485..0.485 rows=15035 loops=1)
          Index Cond: ((status)::text = 'pending'::text)
- Execution Time: 9.000 ms
+ Planning Time: 0.161 ms
+ Execution Time: 3.390 ms
 ```
 
-The plan now uses the index. Execution time dropped significantly.
+The plan now uses `Bitmap Index Scan` on the new index (PostgreSQL chooses a bitmap scan rather than a plain index scan because ~25% of the table matches - a plain index scan would mean too many random heap lookups). Execution time roughly halved in this run - the gain grows with table size and with more selective filters.
 
 ---
 
@@ -125,7 +126,17 @@ FROM orders_large
 WHERE order_date >= now() - INTERVAL '7 days';
 ```
 
-Run the query. Look at whether an index scan is used.
+Expected output (yours will differ):
+
+```
+ Seq Scan on orders_large  (cost=0.00..1523.88 rows=1230 width=14) (actual time=0.011..13.758 rows=1089 loops=1)
+   Filter: (order_date >= (now() - '7 days'::interval))
+   Rows Removed by Filter: 58961
+ Planning Time: 0.069 ms
+ Execution Time: 13.802 ms
+```
+
+Run the query. Look at whether an index scan is used - it is not, because there is no index on `order_date` yet.
 
 **Your task:** Create the appropriate index and verify improvement.
 
@@ -142,6 +153,20 @@ FROM orders_large
 WHERE order_date >= now() - INTERVAL '7 days';
 ```
 
+Expected output (yours will differ):
+
+```
+ Bitmap Heap Scan on orders_large  (cost=17.83..512.35 rows=1230 width=14) (actual time=0.114..0.744 rows=1089 loops=1)
+   Recheck Cond: (order_date >= (now() - '7 days'::interval))
+   Heap Blocks: exact=426
+   ->  Bitmap Index Scan on idx_orders_large_order_date  (cost=0.00..17.52 rows=1230 width=0) (actual time=0.068..0.138 rows=1089 loops=1)
+         Index Cond: (order_date >= (now() - '7 days'::interval))
+ Planning Time: 0.221 ms
+ Execution Time: 0.813 ms
+```
+
+Execution time dropped from double digits to under a millisecond in this run, because the date-range filter matches under 2% of the table - a highly selective filter is exactly where an index pays off most.
+
 ---
 
 ## Problem 3: Missing Composite Index
@@ -154,6 +179,22 @@ SELECT order_id, total_amount
 FROM orders_large
 WHERE customer_id = 5 AND status = 'completed';
 ```
+
+Expected output (yours will differ):
+
+```
+ Bitmap Heap Scan on orders_large  (cost=170.05..870.50 rows=153 width=10) (actual time=0.611..2.777 rows=146 loops=1)
+   Recheck Cond: ((status)::text = 'completed'::text)
+   Filter: (customer_id = 5)
+   Rows Removed by Filter: 14937
+   Heap Blocks: exact=473
+   ->  Bitmap Index Scan on idx_orders_large_status  (cost=0.00..170.01 rows=15163 width=0) (actual time=0.530..0.530 rows=15083 loops=1)
+         Index Cond: ((status)::text = 'completed'::text)
+ Planning Time: 0.071 ms
+ Execution Time: 2.796 ms
+```
+
+Notice the plan reuses the single-column `status` index from Problem 1, then applies `customer_id = 5` as a plain `Filter` afterward - it still has to fetch and discard almost 15,000 rows that matched on status but not on customer.
 
 **Your task:** Determine whether separate indexes on each column or a composite index on both columns together would be better. Create the optimal index.
 
@@ -172,7 +213,19 @@ FROM orders_large
 WHERE customer_id = 5 AND status = 'completed';
 ```
 
-A well-designed composite index will show an Index Scan with very few rows returned.
+Expected output (yours will differ):
+
+```
+ Bitmap Heap Scan on orders_large  (cost=5.86..326.96 rows=153 width=10) (actual time=0.053..0.182 rows=146 loops=1)
+   Recheck Cond: ((customer_id = 5) AND ((status)::text = 'completed'::text))
+   Heap Blocks: exact=127
+   ->  Bitmap Index Scan on idx_orders_large_cust_status  (cost=0.00..5.82 rows=153 width=0) (actual time=0.037..0.037 rows=146 loops=1)
+         Index Cond: ((customer_id = 5) AND ((status)::text = 'completed'::text))
+ Planning Time: 0.157 ms
+ Execution Time: 0.223 ms
+```
+
+Both predicates are now satisfied by a single `Bitmap Index Scan` against the composite index (`Recheck Cond` shows both conditions), and the cost dropped by roughly 30x compared to Problem 3's first plan.
 
 ---
 
@@ -188,9 +241,21 @@ ORDER BY total_amount DESC
 LIMIT 20;
 ```
 
-Look at the plan. If you see `Sort Method: external merge  Disk`, the sort is spilling to disk. Even an in-memory sort on 60,000 rows can be slow if called frequently.
+Expected output (yours will differ):
 
-**Your task:** Create an index that allows PostgreSQL to read rows in sorted order without sorting at all.
+```
+ Limit  (cost=2671.41..2671.46 rows=20 width=14) (actual time=17.249..17.252 rows=20 loops=1)
+   ->  Sort  (cost=2671.41..2821.53 rows=60050 width=14) (actual time=17.248..17.249 rows=20 loops=1)
+         Sort Key: total_amount DESC
+         Sort Method: top-N heapsort  Memory: 26kB
+         ->  Seq Scan on orders_large  (cost=0.00..1073.50 rows=60050 width=14) (actual time=0.006..7.159 rows=60050 loops=1)
+ Planning Time: 0.064 ms
+ Execution Time: 17.264 ms
+```
+
+Look at the plan. `Sort Method: top-N heapsort` means PostgreSQL is smart enough to keep only the running top 20 in memory rather than sorting all 60,050 rows fully - but it still has to Seq Scan the entire table first to feed the sort. If you saw `Sort Method: external merge  Disk` instead, the sort would be spilling to disk - even worse.
+
+**Your task:** Create an index that allows PostgreSQL to read rows in sorted order without scanning and sorting the whole table.
 
 ### Answer
 
@@ -206,7 +271,16 @@ ORDER BY total_amount DESC
 LIMIT 20;
 ```
 
-Expected plan change: The sort step disappears and the planner uses the index to read the top 20 rows directly.
+Expected output (yours will differ):
+
+```
+ Limit  (cost=0.29..1.44 rows=20 width=14) (actual time=0.029..0.036 rows=20 loops=1)
+   ->  Index Scan using idx_orders_large_amount_desc on orders_large  (cost=0.29..3461.04 rows=60050 width=14) (actual time=0.028..0.033 rows=20 loops=1)
+ Planning Time: 0.194 ms
+ Execution Time: 0.046 ms
+```
+
+The `Sort` step disappears entirely. PostgreSQL walks the index in its existing sorted order and stops after 20 rows - it never scans or sorts the other 60,030. Execution time dropped from 17ms to under 0.05ms in this run - roughly 350x faster - because the query no longer touches most of the table at all.
 
 ---
 

@@ -59,19 +59,21 @@ Verify it was created:
 \d test_inventory
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-                                      Table "public.test_inventory"
-   Column    |            Type             | Nullable |             Default
--------------+-----------------------------+----------+---------------------------------
- item_id     | integer                     | not null | nextval('test_inventory_item_id_seq')
- sku         | character varying(50)       | not null |
- description | text                        |          |
- quantity    | integer                     | not null | 0
- unit_cost   | numeric(10,2)               |          |
- updated_at  | timestamp with time zone    | not null | now()
+                                          Table "public.test_inventory"
+   Column    |           Type           | Nullable |                     Default
+-------------+--------------------------+----------+--------------------------------------------------
+ item_id     | integer                  | not null | nextval('test_inventory_item_id_seq'::regclass)
+ sku         | character varying(50)    | not null |
+ description | text                     |          |
+ quantity    | integer                  | not null | 0
+ unit_cost   | numeric(10,2)            |          |
+ updated_at  | timestamp with time zone | not null | now()
 ```
+
+Note there is no `category` column on this table - it is a simple standalone inventory table, unrelated to the `products.category` column you used in earlier guides.
 
 > **Concept: SERIAL and sequences**
 > `SERIAL` is shorthand for creating an integer column with a sequence that auto-increments. PostgreSQL actually creates a sequence object named `tablename_columnname_seq` and sets the column default to `nextval('sequence_name')`. `BIGSERIAL` uses a `BIGINT` column. The modern equivalent is `GENERATED ALWAYS AS IDENTITY` which follows the SQL standard.
@@ -84,7 +86,7 @@ Insert one row into the test table. Specify column names explicitly to avoid ord
 
 ```sql
 INSERT INTO test_inventory (sku, description, quantity, unit_cost)
-VALUES ('SKU-001', 'Widget Pro replacement part', 50, 4.99);
+VALUES ('SKU-001', 'DBA Toolkit Pro spare license', 50, 4.99);
 ```
 
 Expected output:
@@ -101,12 +103,12 @@ Verify the insert:
 SELECT * FROM test_inventory;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
- item_id |   sku   |         description          | quantity | unit_cost |          updated_at
----------+---------+------------------------------+----------+-----------+----------------------------
-       1 | SKU-001 | Widget Pro replacement part  |       50 |      4.99 | 2024-01-20 15:00:00+00
+ item_id |   sku   |          description           | quantity | unit_cost |          updated_at
+---------+---------+--------------------------------+----------+-----------+-------------------------------
+       1 | SKU-001 | DBA Toolkit Pro spare license  |       50 |      4.99 | 2026-08-07 02:06:10.066289+00
 (1 row)
 ```
 
@@ -126,9 +128,9 @@ Insert several rows in a single statement. This is more efficient than multiple 
 ```sql
 INSERT INTO test_inventory (sku, description, quantity, unit_cost)
 VALUES
-  ('SKU-003', 'Gadget Plus battery', 30, 7.99),
-  ('SKU-004', 'Cable assembly kit', 200, 1.25),
-  ('SKU-005', 'Mounting bracket', 75, 3.50);
+  ('SKU-003', 'Backup Solution add-on', 30, 7.99),
+  ('SKU-004', 'Migration Tool add-on', 200, 1.25),
+  ('SKU-005', 'Monitoring Dashboard add-on', 75, 3.50);
 ```
 
 Expected output:
@@ -143,7 +145,7 @@ Verify all rows exist:
 SELECT item_id, sku, quantity FROM test_inventory ORDER BY item_id;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
  item_id |   sku   | quantity
@@ -167,19 +169,43 @@ INSERT INTO test_inventory (sku, description, quantity, unit_cost)
 SELECT
   'PROD-' || product_id,
   name,
-  stock_quantity,
+  stock,
   price * 0.4
 FROM products
-WHERE category = 'Accessories';
+WHERE category = 'Software';
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-INSERT 0 6
+INSERT 0 10
 ```
 
-The `||` operator concatenates strings in PostgreSQL. `price * 0.4` calculates a 40% cost estimate from the sale price.
+The `Software` category has 10 products, so 10 rows are inserted. Verify:
+
+```sql
+SELECT item_id, sku, description, quantity, unit_cost FROM test_inventory WHERE sku LIKE 'PROD-%' ORDER BY item_id;
+```
+
+Expected output:
+
+```
+ item_id |   sku   |     description      | quantity | unit_cost
+---------+---------+----------------------+----------+-----------
+       6 | PROD-2  | DBA Toolkit Pro      |       50 |     80.00
+       7 | PROD-3  | Database Monitor     |       75 |     36.00
+       8 | PROD-5  | Backup Solution      |       30 |     60.00
+       9 | PROD-7  | Performance Tuner    |       60 |     52.00
+      10 | PROD-8  | Migration Tool       |       40 |     72.00
+      11 | PROD-9  | Monitoring Dashboard |       80 |     40.00
+      12 | PROD-12 | Cloud DB Manager     |       25 |    100.00
+      13 | PROD-13 | Replication Toolkit  |       35 |     64.00
+      14 | PROD-14 | Security Scanner     |       45 |     88.00
+      15 | PROD-15 | Data Recovery Pro    |       20 |     76.00
+(10 rows)
+```
+
+The `||` operator concatenates strings in PostgreSQL. `stock` is copied as-is into `quantity`. `price * 0.4` calculates a 40% cost estimate from the sale price.
 
 > **Concept: INSERT ... SELECT vs COPY**
 > `INSERT ... SELECT` is flexible - you can transform, filter, and compute values during the copy. `COPY` (the bulk loader) is much faster for large datasets because it bypasses the expression evaluation path and streams raw data. For millions of rows, use `COPY`. For thousands of rows with transformation, use `INSERT ... SELECT`.
@@ -198,12 +224,12 @@ VALUES ('SKU-RETURN-TEST', 'Test item for RETURNING', 10, 1.00)
 RETURNING item_id, sku, updated_at;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ - `item_id` and the timestamp depend on how many rows you inserted above):
 
 ```
  item_id |       sku        |          updated_at
----------+------------------+----------------------------
-      12 | SKU-RETURN-TEST  | 2024-01-20 15:05:00+00
+---------+------------------+-------------------------------
+      16 | SKU-RETURN-TEST  | 2026-08-07 02:06:10.071877+00
 (1 row)
 ```
 
@@ -236,7 +262,7 @@ Update multiple columns at once for SKU-002:
 ```sql
 UPDATE test_inventory
 SET quantity = 150,
-    description = 'Gadget Plus cable - updated',
+    description = 'DBA Toolkit Pro spare license - updated',
     updated_at = now()
 WHERE sku = 'SKU-002';
 ```
@@ -247,32 +273,32 @@ Verify:
 SELECT sku, description, quantity, updated_at FROM test_inventory WHERE sku = 'SKU-002';
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   sku   |         description          | quantity |          updated_at
----------+------------------------------+----------+----------------------------
- SKU-002 | Gadget Plus cable - updated  |      150 | 2024-01-20 15:10:00+00
+   sku   |               description               | quantity |          updated_at
+---------+-----------------------------------------+----------+-------------------------------
+ SKU-002 | DBA Toolkit Pro spare license - updated |      150 | 2026-08-07 02:06:10.074277+00
 (1 row)
 ```
 
-Update with RETURNING to confirm what changed in one statement:
+Update with RETURNING to confirm what changed in one statement. Add a 10% cost increase to SKU-001 and SKU-002:
 
 ```sql
 UPDATE test_inventory
 SET unit_cost = unit_cost * 1.10
-WHERE category IS NULL
+WHERE sku IN ('SKU-001', 'SKU-002')
 RETURNING sku, unit_cost AS new_cost;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-    sku    | new_cost
------------+----------
- SKU-001   |     5.49
- SKU-002   |     2.74
-...
+   sku   | new_cost
+---------+----------
+ SKU-001 |     5.49
+ SKU-002 |     2.74
+(2 rows)
 ```
 
 > **Concept: UPDATE without WHERE is dangerous**
@@ -302,14 +328,13 @@ WHERE quantity > 150
 RETURNING sku, description, quantity;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   sku   |         description          | quantity
----------+------------------------------+----------
- SKU-004 | Cable assembly kit           |      200
- SKU-002 | Gadget Plus cable - updated  |      150
-(2 rows)
+   sku   |      description      | quantity
+---------+-----------------------+----------
+ SKU-004 | Migration Tool add-on |      200
+(1 row)
 ```
 
 > **Concept: DELETE vs TRUNCATE**
@@ -325,7 +350,7 @@ Try to insert SKU-001 which already exists. Without ON CONFLICT, this fails with
 
 ```sql
 INSERT INTO test_inventory (sku, description, quantity, unit_cost)
-VALUES ('SKU-001', 'Widget Pro replacement part', 50, 4.99)
+VALUES ('SKU-001', 'DBA Toolkit Pro spare license', 50, 4.99)
 ON CONFLICT (sku) DO NOTHING;
 ```
 
@@ -341,7 +366,7 @@ Now insert or update - if SKU-001 exists, add to its quantity:
 
 ```sql
 INSERT INTO test_inventory (sku, description, quantity, unit_cost)
-VALUES ('SKU-001', 'Widget Pro replacement part', 25, 4.99)
+VALUES ('SKU-001', 'DBA Toolkit Pro spare license', 25, 4.99)
 ON CONFLICT (sku)
 DO UPDATE SET
   quantity = test_inventory.quantity + EXCLUDED.quantity,
@@ -362,16 +387,16 @@ Verify:
 SELECT sku, quantity FROM test_inventory WHERE sku = 'SKU-001';
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
    sku   | quantity
 ---------+----------
- SKU-001 |       75
+ SKU-001 |      100
 (1 row)
 ```
 
-The quantity went from 50 to 75 (50 + 25).
+SKU-001 started at 50, gained 25 in Section 6 (`quantity = quantity + 25`), then gained another 25 here (100 total).
 
 > **Concept: UPSERT atomicity**
 > The entire INSERT ... ON CONFLICT is atomic. There is no race condition between checking for existence and inserting/updating. If two sessions run UPSERT simultaneously with the same SKU, PostgreSQL serializes them - one wins the insert, the other triggers the conflict branch. This is much safer than an application-level "check then insert" pattern.
@@ -382,7 +407,7 @@ The quantity went from 50 to 75 (50 + 25).
 
 A Common Table Expression (CTE) with `WITH` can feed data into INSERT, UPDATE, or DELETE statements. This enables multi-step operations in a single statement.
 
-Identify low-stock items (quantity below 20) and log them to a hypothetical reorder table in one step. First create the reorder_log table:
+Identify low-stock items (quantity below 40) and log them to a hypothetical reorder table in one step. First create the reorder_log table:
 
 ```sql
 CREATE TABLE IF NOT EXISTS reorder_log (
@@ -391,6 +416,25 @@ CREATE TABLE IF NOT EXISTS reorder_log (
   quantity   INTEGER,
   logged_at  TIMESTAMPTZ DEFAULT now()
 );
+```
+
+Check which items currently have quantity below 40:
+
+```sql
+SELECT sku, quantity FROM test_inventory WHERE quantity < 40 ORDER BY sku;
+```
+
+Expected output:
+
+```
+   sku   | quantity
+---------+----------
+ PROD-12 |       25
+ PROD-13 |       35
+ PROD-15 |       20
+ PROD-5  |       30
+ SKU-003 |       30
+(5 rows)
 ```
 
 Now use a CTE to find low-stock items and insert them into the log:
@@ -405,10 +449,10 @@ INSERT INTO reorder_log (sku, quantity)
 SELECT sku, quantity FROM low_stock;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-INSERT 0 3
+INSERT 0 5
 ```
 
 Verify the log:
@@ -417,17 +461,20 @@ Verify the log:
 SELECT * FROM reorder_log ORDER BY log_id;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ in the `logged_at` timestamp):
 
 ```
- log_id |   sku   | quantity |          logged_at
---------+---------+----------+----------------------------
-      1 | SKU-003 |       30 | 2024-01-20 15:20:00+00
-      2 | SKU-005 |       75 | 2024-01-20 15:20:00+00
-...
+ log_id |   sku   | quantity |           logged_at
+--------+---------+----------+-------------------------------
+      1 | SKU-003 |       30 | 2026-08-07 02:06:10.085966+00
+      2 | PROD-5  |       30 | 2026-08-07 02:06:10.085966+00
+      3 | PROD-12 |       25 | 2026-08-07 02:06:10.085966+00
+      4 | PROD-13 |       35 | 2026-08-07 02:06:10.085966+00
+      5 | PROD-15 |       20 | 2026-08-07 02:06:10.085966+00
+(5 rows)
 ```
 
-Use a CTE to update in stages - first identify items to update, then update them:
+Use a CTE to update in stages - first identify items to update, then update them. Add 100 units to every item that is still below 40:
 
 ```sql
 WITH items_to_restock AS (
@@ -439,13 +486,17 @@ WHERE item_id IN (SELECT item_id FROM items_to_restock)
 RETURNING sku, quantity AS new_quantity;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
    sku   | new_quantity
 ---------+--------------
  SKU-003 |          130
-...
+ PROD-5  |          130
+ PROD-12 |          125
+ PROD-13 |          135
+ PROD-15 |          120
+(5 rows)
 ```
 
 > **Concept: CTE visibility in data-modifying queries**

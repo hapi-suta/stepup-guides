@@ -11,6 +11,8 @@
 
 Bad data quietly accumulates in production databases. Your job is to find it and fix it safely. The golden rule: always SELECT first to see exactly what you will change, then run the modification.
 
+Reminder: `customers` has separate `first_name` and `last_name` columns, and a `joined_at` timestamp - there is no single `name` column and no `created_at` column on that table.
+
 Connect before starting:
 
 ```bash
@@ -41,6 +43,15 @@ Create a working copy of the order_items table:
 CREATE TABLE IF NOT EXISTS cleanup_order_items AS SELECT * FROM order_items;
 ```
 
+`CREATE TABLE ... AS SELECT` (CTAS) copies the data and column types, but it does **not** carry over the primary key or the auto-incrementing sequence behind `customer_id`. Add both back to `cleanup_customers` so that inserting a new row without specifying `customer_id` still works the way it does on the real `customers` table:
+
+```sql
+ALTER TABLE cleanup_customers ADD PRIMARY KEY (customer_id);
+CREATE SEQUENCE cleanup_customers_customer_id_seq OWNED BY cleanup_customers.customer_id;
+SELECT setval('cleanup_customers_customer_id_seq', (SELECT MAX(customer_id) FROM cleanup_customers));
+ALTER TABLE cleanup_customers ALTER COLUMN customer_id SET DEFAULT nextval('cleanup_customers_customer_id_seq');
+```
+
 All exercises below work on the `cleanup_*` tables.
 
 ---
@@ -49,11 +60,11 @@ All exercises below work on the `cleanup_*` tables.
 
 A batch import ran twice and created duplicate customer records with the same email address.
 
-First, inject some duplicates so you have something to find:
+First, inject some duplicates so you have something to find. Because `customer_id` now has a working default (from the setup step above), this INSERT does not need to specify it - PostgreSQL assigns the next sequence value automatically, just like a fresh signup:
 
 ```sql
-INSERT INTO cleanup_customers (name, email, created_at)
-SELECT name, email, now()
+INSERT INTO cleanup_customers (first_name, last_name, email, city, state, joined_at)
+SELECT first_name, last_name, email, city, state, now()
 FROM cleanup_customers
 WHERE customer_id IN (1, 2, 3);
 ```
@@ -80,15 +91,40 @@ HAVING COUNT(*) > 1
 ORDER BY email;
 ```
 
+Expected output:
+
+```
+       email       | occurrences
+-------------------+-------------
+ alice@example.com |           2
+ bob@example.com   |           2
+ carol@example.com |           2
+(3 rows)
+```
+
 **Step 2 - See the duplicate rows:**
 
 ```sql
-SELECT customer_id, name, email, created_at
+SELECT customer_id, first_name, last_name, email, joined_at
 FROM cleanup_customers
 WHERE email IN (
   SELECT email FROM cleanup_customers GROUP BY email HAVING COUNT(*) > 1
 )
 ORDER BY email, customer_id;
+```
+
+Expected output (yours will differ in the exact new customer_id values and the `joined_at` timestamp on the copies):
+
+```
+ customer_id | first_name | last_name |       email       |         joined_at
+-------------+------------+-----------+--------------------+----------------------------
+           1 | Alice      | Chen      | alice@example.com | 2026-08-07 01:54:36.120311
+          11 | Alice      | Chen      | alice@example.com | 2026-08-07 02:12:38.995272
+           2 | Bob        | Smith     | bob@example.com   | 2026-08-07 01:54:36.120311
+          12 | Bob        | Smith     | bob@example.com   | 2026-08-07 02:12:38.995272
+           3 | Carol      | Davis     | carol@example.com | 2026-08-07 01:54:36.120311
+          13 | Carol      | Davis     | carol@example.com | 2026-08-07 02:12:38.995272
+(6 rows)
 ```
 
 **Step 3 - Delete duplicates, keep lowest customer_id:**
@@ -100,11 +136,28 @@ WHERE customer_id NOT IN (
 );
 ```
 
+Expected output:
+
+```
+DELETE 3
+```
+
 Verify no duplicates remain:
 
 ```sql
 SELECT email, COUNT(*) FROM cleanup_customers GROUP BY email HAVING COUNT(*) > 1;
 ```
+
+Expected output:
+
+```
+ email | count
+-------+-------
+(0 rows)
+```
+
+> **Concept: NOT IN and NULL**
+> `NOT IN` compares against every value the subquery returns. If any customer in the table had a NULL `customer_id`, `customer_id NOT IN (...)` would evaluate to NULL (not TRUE) for that row, and DELETE would silently skip it - a classic and dangerous gotcha. This is one reason the setup step above gives `cleanup_customers.customer_id` a real, non-null default: every row here has a genuine integer ID, so `NOT IN` behaves as expected.
 
 ---
 
@@ -135,6 +188,15 @@ FROM cleanup_orders
 WHERE customer_id IS NULL;
 ```
 
+Expected output:
+
+```
+ orders_without_customer
+-------------------------
+                       4
+(1 row)
+```
+
 **Step 2 - Check which have items:**
 
 ```sql
@@ -146,20 +208,47 @@ GROUP BY o.order_id
 ORDER BY item_count DESC;
 ```
 
+Expected output (yours will differ - depends on which orders happened to get order_items when your lab was seeded):
+
+```
+ order_id | item_count
+----------+------------
+       15 |          1
+       10 |          1
+        5 |          1
+       20 |          1
+(4 rows)
+```
+
 **Step 3 - Delete empty orphaned orders:**
 
 ```sql
 DELETE FROM cleanup_orders
 WHERE customer_id IS NULL
-  AND order_id NOT IN (SELECT DISTINCT order_id FROM cleanup_order_items);
+  AND order_id NOT IN (SELECT DISTINCT order_id FROM cleanup_order_items WHERE order_id IS NOT NULL);
+```
+
+Expected output (yours will differ - `0` if, like in Step 2 above, every NULL-customer order turned out to have at least one item):
+
+```
+DELETE 0
 ```
 
 **Step 4 - Create placeholder and assign:**
 
 ```sql
-INSERT INTO cleanup_customers (name, email)
-VALUES ('Unknown Customer', 'unknown@placeholder.invalid')
+INSERT INTO cleanup_customers (first_name, last_name, email)
+VALUES ('Unknown', 'Customer', 'unknown@placeholder.invalid')
 RETURNING customer_id;
+```
+
+Expected output (yours will differ - the ID depends on how many rows you inserted in Problem 1):
+
+```
+ customer_id
+-------------
+          14
+(1 row)
 ```
 
 ```sql
@@ -170,10 +259,25 @@ SET customer_id = (
 WHERE customer_id IS NULL;
 ```
 
+Expected output:
+
+```
+UPDATE 4
+```
+
 Verify:
 
 ```sql
 SELECT COUNT(*) FROM cleanup_orders WHERE customer_id IS NULL;
+```
+
+Expected output:
+
+```
+ count
+-------
+     0
+(1 row)
 ```
 
 ---
@@ -200,10 +304,20 @@ VALUES (99999, 1, 2, 9.99), (99998, 2, 1, 29.99);
 **Step 1 - Find orphans:**
 
 ```sql
-SELECT oi.*
+SELECT oi.order_id, oi.product_id, oi.quantity, oi.unit_price
 FROM cleanup_order_items oi
 LEFT JOIN cleanup_orders o ON oi.order_id = o.order_id
 WHERE o.order_id IS NULL;
+```
+
+Expected output:
+
+```
+ order_id | product_id | quantity | unit_price
+----------+------------+----------+------------
+    99999 |          1 |        2 |       9.99
+    99998 |          2 |        1 |      29.99
+(2 rows)
 ```
 
 **Step 2 - Calculate orphaned revenue:**
@@ -216,11 +330,26 @@ WHERE NOT EXISTS (
 );
 ```
 
+Expected output:
+
+```
+ orphaned_revenue
+------------------
+            49.97
+(1 row)
+```
+
 **Step 3 - Delete orphans:**
 
 ```sql
 DELETE FROM cleanup_order_items
 WHERE order_id NOT IN (SELECT order_id FROM cleanup_orders);
+```
+
+Expected output:
+
+```
+DELETE 2
 ```
 
 Verify:
@@ -230,6 +359,15 @@ SELECT COUNT(*)
 FROM cleanup_order_items oi
 LEFT JOIN cleanup_orders o ON oi.order_id = o.order_id
 WHERE o.order_id IS NULL;
+```
+
+Expected output:
+
+```
+ count
+-------
+     0
+(1 row)
 ```
 
 ---

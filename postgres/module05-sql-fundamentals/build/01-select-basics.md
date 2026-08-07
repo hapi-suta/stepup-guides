@@ -53,18 +53,17 @@ Before writing queries, learn what tables and columns exist. The `\dt` command l
 \dt
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-           List of relations
+            List of relations
  Schema |    Name     | Type  |  Owner
 --------+-------------+-------+----------
- public | audit_log   | table | postgres
  public | customers   | table | postgres
  public | order_items | table | postgres
  public | orders      | table | postgres
  public | products    | table | postgres
-(5 rows)
+(4 rows)
 ```
 
 Describe the `products` table to see its columns and data types. The `\d` command shows the structure of any table:
@@ -73,19 +72,18 @@ Describe the `products` table to see its columns and data types. The `\d` comman
 \d products
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-                                        Table "public.products"
-    Column     |          Type          | Nullable |            Default
----------------+------------------------+----------+-------------------------------
- product_id     | integer                | not null | nextval('products_product_id_seq')
- name           | character varying(100) | not null |
- price          | numeric(10,2)          | not null |
- stock          | integer                |          |
- category       | character varying(50)  |          |
- stock_quantity | integer                |          | 0
- created_at     | timestamp with time zone | not null | now()
+                                    Table "public.products"
+   Column   |          Type          | Nullable |                   Default
+------------+------------------------+----------+-----------------------------------------------
+ product_id | integer                | not null | nextval('products_product_id_seq'::regclass)
+ name       | character varying(100) | not null |
+ category   | character varying(50)  |          |
+ price      | numeric(10,2)          | not null |
+ stock      | integer                |          | 0
+ created_at | timestamp without time zone |     | now()
 ```
 
 Describe the `orders` table the same way:
@@ -94,20 +92,17 @@ Describe the `orders` table the same way:
 \d orders
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-                                     Table "public.orders"
-    Column    |            Type             | Nullable |         Default
---------------+-----------------------------+----------+-------------------------
- order_id     | integer                     | not null | nextval(...)
+                                   Table "public.orders"
+    Column    |            Type             | Nullable |                 Default
+--------------+-----------------------------+----------+------------------------------------------
+ order_id     | integer                     | not null | nextval('orders_order_id_seq'::regclass)
  customer_id  | integer                     |          |
- product_id   | integer                     |          |
- quantity     | integer                     |          |
+ order_date   | timestamp without time zone |          | now()
+ status       | character varying(20)       |          | 'pending'::character varying
  total_amount | numeric(10,2)               |          |
- order_date   | timestamp with time zone    | not null | now()
- status       | character varying(20)       |          | 'completed'
- tenant_id    | integer                     |          |
 ```
 
 > **Concept: Why does column order matter in queries?**
@@ -123,16 +118,16 @@ Fetch all rows from the `products` table. The asterisk `*` is shorthand for "all
 SELECT * FROM products;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
- product_id |       name        |   category    | price  | stock_quantity |          created_at
-------------+-------------------+---------------+--------+----------------+----------------------------
-          1 | Widget Pro        | Electronics   |  29.99 |            150 | 2024-01-15 10:00:00+00
-          2 | Gadget Plus       | Electronics   |  49.99 |             75 | 2024-01-15 10:00:00+00
-          3 | Super Cable       | Accessories   |   9.99 |            500 | 2024-01-15 10:00:00+00
+ product_id |         name         | category | price  | stock |         created_at
+------------+----------------------+----------+--------+-------+----------------------------
+          1 | PostgreSQL Handbook  | Books    |  49.99 |   100 | 2026-08-07 01:54:36.119072
+          2 | DBA Toolkit Pro      | Software | 199.99 |    50 | 2026-08-07 01:54:36.119072
+          3 | Database Monitor     | Software |  89.99 |    75 | 2026-08-07 01:54:36.119072
 ...
-(55 rows)
+(15 rows)
 ```
 
 Select only specific columns. Listing column names explicitly is clearer and faster than `SELECT *`:
@@ -141,32 +136,35 @@ Select only specific columns. Listing column names explicitly is clearer and fas
 SELECT name, category, price FROM products;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-       name        |   category    | price
--------------------+---------------+--------
- Widget Pro        | Electronics   |  29.99
- Gadget Plus       | Electronics   |  49.99
- Super Cable       | Accessories   |   9.99
+         name         | category | price
+----------------------+----------+--------
+ PostgreSQL Handbook  | Books    |  49.99
+ DBA Toolkit Pro      | Software | 199.99
+ Database Monitor     | Software |  89.99
 ...
-(55 rows)
+(15 rows)
 ```
 
 Use column aliases to rename output columns. The `AS` keyword assigns a display name:
 
 ```sql
-SELECT name AS product_name, price AS unit_price FROM products;
+SELECT name AS product_name, price AS unit_price FROM products LIMIT 5;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   product_name    | unit_price
--------------------+------------
- Widget Pro        |      29.99
- Gadget Plus       |      49.99
-...
+    product_name     | unit_price
+---------------------+------------
+ PostgreSQL Handbook  |      49.99
+ DBA Toolkit Pro      |     199.99
+ Database Monitor     |      89.99
+ SQL Mastery Course   |     299.99
+ Backup Solution      |     149.99
+(5 rows)
 ```
 
 ---
@@ -175,62 +173,86 @@ Expected output (yours will differ):
 
 The `WHERE` clause filters rows. Only rows where the condition is true are returned.
 
-Show only products in the Electronics category:
+Show only products in the Software category:
 
 ```sql
-SELECT name, price FROM products WHERE category = 'Electronics';
+SELECT name, price FROM products WHERE category = 'Software';
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-    name     | price
--------------+--------
- Widget Pro  |  29.99
- Gadget Plus |  49.99
-...
+         name         | price
+----------------------+--------
+ DBA Toolkit Pro      | 199.99
+ Database Monitor     |  89.99
+ Backup Solution      | 149.99
+ Performance Tuner    | 129.99
+ Migration Tool       | 179.99
+ Monitoring Dashboard |  99.99
+ Cloud DB Manager     | 249.99
+ Replication Toolkit  | 159.99
+ Security Scanner     | 219.99
+ Data Recovery Pro    | 189.99
+(10 rows)
 ```
 
-Find products priced above $25. The `>` operator compares numeric values:
+Find products priced above $200. The `>` operator compares numeric values:
 
 ```sql
-SELECT name, price FROM products WHERE price > 25.00;
+SELECT name, price FROM products WHERE price > 200.00 ORDER BY price DESC;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-    name     | price
--------------+--------
- Widget Pro  |  29.99
- Gadget Plus |  49.99
-...
+        name        | price
+---------------------+--------
+ HA Cluster Kit      | 599.99
+ DBA Certification   | 499.99
+ SQL Mastery Course  | 299.99
+ Cloud DB Manager    | 249.99
+ Security Scanner    | 219.99
+(5 rows)
 ```
 
 Combine conditions with `AND`. Both conditions must be true for a row to appear:
 
 ```sql
-SELECT name, price FROM products WHERE category = 'Electronics' AND price < 40.00;
+SELECT name, price FROM products WHERE category = 'Software' AND price < 100.00;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-    name    | price
-------------+-------
- Widget Pro | 29.99
+         name         | price
+----------------------+-------
+ Database Monitor     | 89.99
+ Monitoring Dashboard | 99.99
+(2 rows)
 ```
 
 Use `OR` to match rows where either condition is true:
 
 ```sql
-SELECT name, category, price FROM products WHERE category = 'Electronics' OR category = 'Accessories';
+SELECT name, category, price FROM products WHERE category = 'Books' OR category = 'Hardware' ORDER BY category, price;
+```
+
+Expected output:
+
+```
+        name         | category | price
+---------------------+----------+--------
+ Linux Admin Guide   | Books    |  39.99
+ PostgreSQL Handbook | Books    |  49.99
+ HA Cluster Kit      | Hardware | 599.99
+(3 rows)
 ```
 
 Use `IN` as a cleaner way to match any value in a list:
 
 ```sql
-SELECT name, category, price FROM products WHERE category IN ('Electronics', 'Accessories');
+SELECT name, category, price FROM products WHERE category IN ('Books', 'Hardware') ORDER BY category, price;
 ```
 
 Both queries return the same result. `IN` is easier to read when comparing one column against several values.
@@ -238,17 +260,20 @@ Both queries return the same result. `IN` is easier to read when comparing one c
 Use `BETWEEN` to filter within a range (inclusive on both ends):
 
 ```sql
-SELECT name, price FROM products WHERE price BETWEEN 10.00 AND 30.00;
+SELECT name, price FROM products WHERE price BETWEEN 40.00 AND 150.00 ORDER BY price;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-      name      | price
-----------------+-------
- Widget Pro     | 29.99
- Standard Cable | 12.99
-...
+         name         | price
+----------------------+--------
+ PostgreSQL Handbook  |  49.99
+ Database Monitor     |  89.99
+ Monitoring Dashboard |  99.99
+ Performance Tuner    | 129.99
+ Backup Solution      | 149.99
+(5 rows)
 ```
 
 Use `LIKE` to match text patterns. The `%` wildcard matches any sequence of characters:
@@ -257,18 +282,18 @@ Use `LIKE` to match text patterns. The `%` wildcard matches any sequence of char
 SELECT name FROM products WHERE name LIKE '%Pro%';
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-     name
----------------
- Widget Pro
- DevKit Pro
-...
+      name
+------------------
+ DBA Toolkit Pro
+ Data Recovery Pro
+(2 rows)
 ```
 
 > **Concept: Case sensitivity in LIKE**
-> `LIKE` is case-sensitive in PostgreSQL. `'%pro%'` will not match `'Widget Pro'`. Use `ILIKE` for case-insensitive pattern matching. This is a PostgreSQL extension - it does not exist in standard SQL.
+> `LIKE` is case-sensitive in PostgreSQL. `'%pro%'` will not match `'DBA Toolkit Pro'`. Use `ILIKE` for case-insensitive pattern matching. This is a PostgreSQL extension - it does not exist in standard SQL.
 
 Filter for NULL values using `IS NULL`. Standard equality (`= NULL`) does not work because NULL is not equal to anything, including itself:
 
@@ -276,13 +301,15 @@ Filter for NULL values using `IS NULL`. Standard equality (`= NULL`) does not wo
 SELECT name, category FROM products WHERE category IS NULL;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
  name | category
 ------+----------
 (0 rows)
 ```
+
+Every seeded product has a category, so this returns no rows - that itself is useful information about data completeness.
 
 ---
 
@@ -294,20 +321,34 @@ Sort products by price from lowest to highest. `ASC` (ascending) is the default:
 SELECT name, price FROM products ORDER BY price ASC;
 ```
 
+Expected output (truncated):
+
+```
+         name         | price
+----------------------+--------
+ Linux Admin Guide    |  39.99
+ PostgreSQL Handbook  |  49.99
+ Database Monitor     |  89.99
+...
+(15 rows)
+```
+
 Sort from highest to lowest using `DESC` (descending):
 
 ```sql
 SELECT name, price FROM products ORDER BY price DESC;
 ```
 
-Expected output (yours will differ):
+Expected output (truncated):
 
 ```
-     name      | price
----------------+--------
- Gadget Plus   |  49.99
- Widget Pro    |  29.99
+        name        | price
+---------------------+--------
+ HA Cluster Kit      | 599.99
+ DBA Certification   | 499.99
+ SQL Mastery Course  | 299.99
 ...
+(15 rows)
 ```
 
 Sort by multiple columns. PostgreSQL first sorts by `category`, then by `price` within each category:
@@ -316,16 +357,17 @@ Sort by multiple columns. PostgreSQL first sorts by `category`, then by `price` 
 SELECT name, category, price FROM products ORDER BY category ASC, price DESC;
 ```
 
-Expected output (yours will differ):
+Expected output (truncated):
 
 ```
-      name      |   category   | price
-----------------+--------------+--------
- Laptop Stand   | Accessories  |  24.99
- Super Cable    | Accessories  |   9.99
- Gadget Plus    | Electronics  |  49.99
- Widget Pro     | Electronics  |  29.99
+         name         | category | price
+----------------------+----------+--------
+ PostgreSQL Handbook  | Books    |  49.99
+ Linux Admin Guide    | Books    |  39.99
+ HA Cluster Kit       | Hardware | 599.99
+ Cloud DB Manager     | Software | 249.99
 ...
+(15 rows)
 ```
 
 ---
@@ -338,14 +380,16 @@ Return only the first 5 rows. `LIMIT` caps the number of rows returned:
 SELECT name, price FROM products ORDER BY price DESC LIMIT 5;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-     name      | price
----------------+--------
- Gadget Plus   |  49.99
- Widget Pro    |  29.99
-...
+        name        | price
+---------------------+--------
+ HA Cluster Kit      | 599.99
+ DBA Certification   | 499.99
+ SQL Mastery Course  | 299.99
+ Cloud DB Manager    | 249.99
+ Security Scanner    | 219.99
 (5 rows)
 ```
 
@@ -353,6 +397,19 @@ Skip the first 5 rows and return the next 5. `OFFSET` tells PostgreSQL where to 
 
 ```sql
 SELECT name, price FROM products ORDER BY price DESC LIMIT 5 OFFSET 5;
+```
+
+Expected output:
+
+```
+        name         | price
+---------------------+--------
+ DBA Toolkit Pro     | 199.99
+ Data Recovery Pro   | 189.99
+ Migration Tool      | 179.99
+ Replication Toolkit | 159.99
+ Backup Solution     | 149.99
+(5 rows)
 ```
 
 `LIMIT` with `OFFSET` is the classic pattern for pagination in web applications. Without `ORDER BY`, the "first" and "next" rows are undefined - always combine them.
@@ -375,7 +432,7 @@ Expected output:
 ```
  count
 -------
-    55
+    15
 (1 row)
 ```
 
@@ -385,12 +442,12 @@ Find the total value of all orders. `SUM` adds up all values in a column:
 SELECT SUM(total_amount) FROM orders;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ - order data is randomly generated when your lab is provisioned):
 
 ```
-    sum
------------
- 45823.40
+   sum
+----------
+ 31798.41
 (1 row)
 ```
 
@@ -400,12 +457,12 @@ Find the highest and lowest product prices:
 SELECT MAX(price) AS highest, MIN(price) AS lowest FROM products;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
  highest | lowest
----------+-------
-   49.99 |   4.99
+---------+--------
+  599.99 |  39.99
 (1 row)
 ```
 
@@ -419,8 +476,8 @@ Expected output (yours will differ):
 
 ```
     average_order
----------------------
- 152.7446666666666667
+----------------------
+ 635.9682000000000000
 (1 row)
 ```
 
@@ -435,7 +492,7 @@ Expected output (yours will differ):
 ```
  average_order
 ---------------
-        152.74
+        635.97
 (1 row)
 ```
 
@@ -452,15 +509,15 @@ Expected output (yours will differ):
 SELECT category, COUNT(*) AS product_count FROM products GROUP BY category;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   category   | product_count
---------------+---------------
- Accessories  |             6
- Electronics  |             8
- Software     |             4
- Clothing     |             2
+ category | product_count
+----------+---------------
+ Books    |             2
+ Hardware |             1
+ Software |            10
+ Training |             2
 (4 rows)
 ```
 
@@ -470,15 +527,15 @@ Find the average price per category:
 SELECT category, ROUND(AVG(price), 2) AS avg_price FROM products GROUP BY category ORDER BY avg_price DESC;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   category   | avg_price
---------------+-----------
- Electronics  |     35.49
- Software     |     24.99
- Accessories  |     14.66
- Clothing     |      9.99
+ category | avg_price
+----------+-----------
+ Hardware |    599.99
+ Training |    399.99
+ Software |    166.99
+ Books    |     44.99
 (4 rows)
 ```
 
@@ -488,17 +545,19 @@ Count orders by status. This shows how many orders are in each pipeline state:
 SELECT status, COUNT(*) AS order_count FROM orders GROUP BY status ORDER BY order_count DESC;
 ```
 
-Expected output (yours will differ):
+Expected output (yours will differ - order status is assigned randomly at provisioning):
 
 ```
   status   | order_count
 -----------+-------------
- completed |         180
- pending   |          75
- shipped   |          35
- cancelled |          10
+ pending   |          15
+ delivered |          15
+ cancelled |          11
+ shipped   |           9
 (4 rows)
 ```
+
+Note there is no `completed` status in this schema - the four possible values are `pending`, `shipped`, `delivered`, and `cancelled`.
 
 > **Concept: GROUP BY rule**
 > Every column in your SELECT list must either appear in GROUP BY or be wrapped in an aggregate function. This is because `GROUP BY` collapses multiple rows into one - PostgreSQL does not know which value to show for columns that are not part of the grouping key and not aggregated. This rule is enforced at parse time and will cause an error if violated.
@@ -518,33 +577,32 @@ GROUP BY category
 HAVING COUNT(*) > 5;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   category   | product_count
---------------+---------------
- Electronics  |             8
- Accessories  |             6
-(2 rows)
+ category | product_count
+----------+---------------
+ Software |            10
+(1 row)
 ```
 
-Show categories where the average price exceeds $20:
+Show categories where the average price exceeds $200:
 
 ```sql
 SELECT category, ROUND(AVG(price), 2) AS avg_price
 FROM products
 GROUP BY category
-HAVING AVG(price) > 20
+HAVING AVG(price) > 200
 ORDER BY avg_price DESC;
 ```
 
-Expected output (yours will differ):
+Expected output:
 
 ```
-   category  | avg_price
--------------+-----------
- Electronics |     35.49
- Software    |     24.99
+ category | avg_price
+----------+-----------
+ Hardware |    599.99
+ Training |    399.99
 (2 rows)
 ```
 
@@ -558,6 +616,17 @@ GROUP BY category
 HAVING COUNT(*) > 3
 ORDER BY product_count DESC;
 ```
+
+Expected output:
+
+```
+ category | product_count | avg_price
+----------+---------------+-----------
+ Software |            10 |    166.99
+(1 row)
+```
+
+Every product in this dataset costs more than $5, so the `WHERE` clause here does not remove any rows in this case - but it still demonstrates that `WHERE` runs before `GROUP BY`.
 
 > **Concept: SQL execution order**
 > SQL statements execute in this logical order: FROM -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY -> LIMIT. This is why you cannot use a SELECT alias in a WHERE clause - WHERE runs before SELECT. You can use a SELECT alias in ORDER BY because ORDER BY runs after SELECT. Understanding this order prevents many confusing errors.
