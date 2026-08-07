@@ -1,0 +1,143 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='test_inventory'\" | grep -qx 1",
+    "hint": "Run `sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"\\d test_inventory\"` - the CREATE TABLE from the guide creates test_inventory."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "\\d test_inventory - verify the new table's structure"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-001'\" | grep -qx 50",
+    "hint": "Run the INSERT for SKU-001 (quantity 50, unit_cost 4.99) shown in the guide."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT * FROM test_inventory; - verify the SKU-001 insert"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-002'\" | grep -qx 100",
+    "hint": "Run the INSERT for SKU-002 (quantity 100, unit_cost 2.49, no description)."
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from test_inventory where sku in ('SKU-003','SKU-004','SKU-005')\" | grep -qx 3",
+    "hint": "Run the multi-row INSERT for SKU-003, SKU-004, SKU-005."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT item_id, sku, quantity ...; - verify all 5 rows exist"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from test_inventory where sku like 'PROD-%'\" | grep -qx 10",
+    "hint": "Run the INSERT ... SELECT that copies every Software product into test_inventory with a PROD- prefixed sku."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE sku LIKE 'PROD-%'; - verify the 10 Software rows copied in"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-RETURN-TEST'\" | grep -qx 10",
+    "hint": "Run the INSERT for SKU-RETURN-TEST with RETURNING."
+  },
+  "14": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-001'\" | grep -qx 75",
+    "hint": "Run the UPDATE that adds 25 to SKU-001's quantity."
+  },
+  "15": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-002'\" | grep -qx 150",
+    "hint": "Run the multi-column UPDATE on SKU-002 (quantity=150, description updated)."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT sku, description, quantity, updated_at WHERE sku='SKU-002'; - verify the multi-column update"
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select unit_cost from test_inventory where sku='SKU-001'\" | grep -qx 5.49",
+    "hint": "Run the UPDATE that bumps unit_cost by 10% for SKU-001 and SKU-002."
+  },
+  "18": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from test_inventory where sku='SKU-RETURN-TEST'\" | grep -qx 0",
+    "hint": "Run the DELETE that removes SKU-RETURN-TEST."
+  },
+  "19": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from test_inventory where sku='SKU-004'\" | grep -qx 0",
+    "hint": "Run the DELETE ... WHERE quantity > 150 (removes SKU-004)."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "INSERT ... ON CONFLICT (sku) DO NOTHING; - conflict on SKU-001, no-op (existing row untouched)"
+  },
+  "21": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select quantity from test_inventory where sku='SKU-001'\" | grep -qx 100",
+    "hint": "Run the ON CONFLICT DO UPDATE upsert - it should add 25 more to SKU-001's quantity (75 -> 100)."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT sku, quantity WHERE sku='SKU-001'; - verify the upsert added 25 to the existing 75"
+  },
+  "23": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='reorder_log'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for reorder_log."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "SELECT sku, quantity WHERE quantity < 40; - see which items are low-stock before logging"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from reorder_log\" | grep -qx 5",
+    "hint": "Run the WITH ... INSERT that logs every item with quantity < 40 into reorder_log."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "SELECT * FROM reorder_log; - verify the 5 logged rows"
+  },
+  "27": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from test_inventory where quantity < 40\" | grep -qx 0",
+    "hint": "Run the WITH ... UPDATE that restocks every item with quantity < 40 by adding 100."
+  },
+  "28": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='reorder_log'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS reorder_log;` to clean up."
+  },
+  "29": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='test_inventory'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS test_inventory;` to clean up."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_customers\" | grep -qx 10",
+    "hint": "Run `CREATE TABLE IF NOT EXISTS cleanup_customers AS SELECT * FROM customers;`"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_orders\" | grep -qx 50",
+    "hint": "Run `CREATE TABLE IF NOT EXISTS cleanup_orders AS SELECT * FROM orders;`"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_order_items\" | grep -qx 50",
+    "hint": "Run `CREATE TABLE IF NOT EXISTS cleanup_order_items AS SELECT * FROM order_items;`"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from information_schema.columns where table_name='cleanup_customers' and column_name='customer_id' and column_default is not null\" | grep -qx 1",
+    "hint": "Run the ALTER TABLE / CREATE SEQUENCE setup that gives cleanup_customers.customer_id a working default again."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_customers\" | grep -qx 13",
+    "hint": "Run the INSERT that duplicates customers 1, 2, 3 (same email, new customer_id) to inject test duplicates."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT email, COUNT(*) ... HAVING COUNT(*) > 1 - find duplicate emails"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE email IN (...) - see the duplicate rows side by side"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_customers\" | grep -qx 10",
+    "hint": "Run the DELETE that keeps only the lowest customer_id per duplicate email."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT ... HAVING COUNT(*) > 1 - verify no duplicates remain (0 rows)"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_orders where customer_id is null\" | grep -qx 4",
+    "hint": "Run `UPDATE cleanup_orders SET customer_id = NULL WHERE order_id IN (5, 10, 15, 20);`"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT COUNT(*) WHERE customer_id IS NULL - count orphan orders"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "LEFT JOIN cleanup_order_items - check which orphan orders have items"
+  },
+  "15": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_orders where customer_id is null and order_id not in (select distinct order_id from cleanup_order_items where order_id is not null)\" | grep -qx 0",
+    "hint": "Run the DELETE that removes NULL-customer orders that have no order_items."
+  },
+  "16": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_customers where email='unknown@placeholder.invalid'\" | grep -qx 1",
+    "hint": "Run the INSERT that creates the 'Unknown Customer' placeholder row."
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_orders where customer_id is null\" | grep -qx 0",
+    "hint": "Run the UPDATE that reassigns remaining NULL-customer orders to the Unknown Customer placeholder."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SELECT COUNT(*) WHERE customer_id IS NULL - verify 0 remain"
+  },
+  "19": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_order_items where order_id in (99999,99998)\" | grep -qx 2",
+    "hint": "Run the INSERT that injects two orphaned order_items rows (order_id 99999 and 99998)."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "LEFT JOIN cleanup_orders WHERE o.order_id IS NULL - find orphaned order_items"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "SUM(quantity * unit_price) - orphaned revenue"
+  },
+  "22": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from cleanup_order_items oi left join cleanup_orders o on oi.order_id=o.order_id where o.order_id is null\" | grep -qx 0",
+    "hint": "Run the DELETE that removes order_items whose order_id no longer exists in cleanup_orders."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "LEFT JOIN ... verify 0 orphaned order_items remain"
+  },
+  "24": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='cleanup_customers'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS cleanup_customers;`"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='cleanup_orders'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS cleanup_orders;`"
+  },
+  "26": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='cleanup_order_items'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS cleanup_order_items;`"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

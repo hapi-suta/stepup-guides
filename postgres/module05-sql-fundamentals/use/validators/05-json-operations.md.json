@@ -1,0 +1,83 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='audit_log'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for audit_log."
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from audit_log where operation='INSERT'\" | grep -qx 8",
+    "hint": "Run the INSERT that seeds the 8 order-creation (INSERT) events."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from audit_log where operation='UPDATE'\" | grep -qx 7",
+    "hint": "Run the INSERT that seeds the 7 status-change (UPDATE) events."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT operation, new_data FROM audit_log ORDER BY log_id LIMIT 10;"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Task 1: extract order_id/total_amount from INSERT events"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Task 2: status changes for order_id=201"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Task 3: revenue by customer from the log"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Task 4a: WHERE new_data @> '{\"status\": \"cancelled\"}'"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Task 4b: EXPLAIN before the GIN index (Seq Scan)"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_audit_new_data_gin'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_audit_new_data_gin ON audit_log USING GIN (new_data);`"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Task 4c: EXPLAIN after the GIN index (still Seq Scan - small table)"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Task 5a: COUNT(*) GROUP BY operation"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Task 5b: pivot by hour_of_day and operation"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Stretch: find INSERT events missing total_amount (order 208)"
+  },
+  "17": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='audit_log'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS audit_log;` to clean up."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

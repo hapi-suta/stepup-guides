@@ -1,0 +1,94 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from orders_large\" | grep -qx 50",
+    "hint": "Run `CREATE TABLE IF NOT EXISTS orders_large AS SELECT * FROM orders;`"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from orders_large\" | grep -qx 60050",
+    "hint": "Run the INSERT ... generate_series(1, 60000) that bulk-loads 60,000 synthetic rows."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_stat_user_tables where relname='orders_large' and (last_analyze is not null or last_autoanalyze is not null)\" | grep -qx 1",
+    "hint": "Run `ANALYZE orders_large;` to refresh planner statistics."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT COUNT(*) FROM orders_large; - verify 60050 rows"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE ... WHERE status = 'pending' (before the index - Seq Scan)"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_orders_large_status'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_orders_large_status ON orders_large (status);`"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE ... WHERE status = 'pending' (after the index - Bitmap Heap Scan)"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE ... WHERE order_date >= now() - INTERVAL '7 days' (before the index)"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_orders_large_order_date'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_orders_large_order_date ON orders_large (order_date);`"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE (same query, after the order_date index)"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE ... WHERE customer_id=5 AND status='completed' (before the composite index)"
+  },
+  "14": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_orders_large_cust_status'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_orders_large_cust_status ON orders_large (customer_id, status);`"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE (same query, after the composite index)"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE ... ORDER BY total_amount DESC LIMIT 20 (before the index - Sort)"
+  },
+  "17": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_orders_large_amount_desc'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_orders_large_amount_desc ON orders_large (total_amount DESC);`"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE (same query, after the amount_desc index - Sort disappears)"
+  },
+  "19": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='orders_large'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS orders_large;` to clean up."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

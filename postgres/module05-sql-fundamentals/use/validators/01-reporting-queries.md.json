@@ -1,0 +1,38 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Query 1: top 5 customers by lifetime spend (status='delivered')"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Query 2: daily revenue trend last 30 days"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Query 3: product performance report (top 10 by revenue)"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Query 4: category revenue breakdown with percentage"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Query 5: order velocity by hour of day"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

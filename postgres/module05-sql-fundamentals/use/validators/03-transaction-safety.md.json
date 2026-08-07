@@ -1,0 +1,148 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='wallets'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for wallets."
+  },
+  "4": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from wallets\" | grep -qx 4",
+    "hint": "Run the INSERT that seeds Alice/Bob/Charlie/Dana into wallets."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "BEGIN;"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "UPDATE Alice -150 RETURNING"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "UPDATE Bob +150 RETURNING"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT Alice/Bob - 850.00 / 650.00"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Alice'\" | grep -qx 850.00 && sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Bob'\" | grep -qx 650.00",
+    "hint": "Run Task 1's full transaction: BEGIN, debit Alice $150, credit Bob $150, COMMIT."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "BEGIN;"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "UPDATE Bob -2000 - hits the CHECK (balance >= 0) constraint and errors"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Bob'\" | grep -qx 650.00",
+    "hint": "Run Task 2: try to overdraw Bob by $2000 - it should hit the CHECK constraint, then ROLLBACK."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT Bob - unchanged at 650.00 after ROLLBACK"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "BEGIN;"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "UPDATE Charlie -200"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "UPDATE Alice +200"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SAVEPOINT after_alice_transfer;"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SELECT balance + 300 WHERE owner='Dana' - check the business rule (1050.00, does not exceed 2500)"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "UPDATE Charlie -300 (the Dana transfer proceeds since would_be did not exceed 2500)"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "UPDATE Dana +300"
+  },
+  "21": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Alice'\" | grep -qx 1050.00 && sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Charlie'\" | grep -qx 1500.00 && sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select balance from wallets where owner='Dana'\" | grep -qx 1050.00",
+    "hint": "Run Task 3's full transaction: transfer $200 Charlie->Alice, savepoint, then (since Dana's would-be balance of 1050 does not exceed 2500) transfer $300 Charlie->Dana, COMMIT."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT all balances - Alice 1050, Bob 650, Charlie 1500, Dana 1050"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Terminal A: BEGIN;"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Terminal A: UPDATE Alice -10"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Terminal B: BEGIN;"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Terminal B: UPDATE Bob -10"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Terminal A: UPDATE Bob +10 (hangs, waiting on Terminal B's lock)"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Terminal B: UPDATE Alice +10 (creates the deadlock - one session errors)"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "The session that got the deadlock error: ROLLBACK;"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "The other session: ROLLBACK; (or COMMIT;)"
+  },
+  "31": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='wallets'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS wallets;` to clean up."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "\\q - exit psql (Terminal A)"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "exit - exit postgres user (Terminal A)"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "\\q - exit psql (Terminal B)"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "exit - exit postgres user (Terminal B)"
+  }
+}

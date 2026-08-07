@@ -1,0 +1,161 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC)"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "RANK() and DENSE_RANK() side by side"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "LAG() - order amount vs previous order for customers 1,2"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SUM() OVER (... ORDER BY ...) - running total for customer 1"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "PERCENT_RANK() - percentile of each order"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "NTILE(4) - quartiles"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT ... WHERE category = 'Software'"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE (same query, with real timings)"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "EXPLAIN (ANALYZE, BUFFERS) - orders JOIN customers WHERE total_amount > 200"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='audit_log_demo'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for audit_log_demo."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "\\d audit_log_demo - verify structure"
+  },
+  "15": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from audit_log_demo\" | grep -qx 7",
+    "hint": "Run the three INSERT statements that seed audit_log_demo (3 orders inserts, 3 status updates, 1 product update)."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT log_id, table_name, operation, new_data ... LIMIT 5"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "-> operator: extract order_id"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "->> operator: extract customer_id/total_amount as text"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "SUM((new_data ->> 'total_amount')::NUMERIC)"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "WHERE new_data ->> 'order_id' = '101'"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "WHERE new_data @> '{\"order_id\": 101}'"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "WHERE new_data ? 'total_amount'"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Nested JSON: new_data -> 'metadata' ->> 'source'"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "EXPLAIN before the GIN index (Seq Scan)"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from pg_indexes where indexname='idx_audit_log_demo_new_data'\" | grep -qx 1",
+    "hint": "Run `CREATE INDEX idx_audit_log_demo_new_data ON audit_log_demo USING GIN (new_data);`"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "EXPLAIN after the GIN index (still Seq Scan on this small table - the lesson)"
+  },
+  "27": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='audit_log_demo'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS audit_log_demo;` to clean up."
+  },
+  "28": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='product_tags'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for product_tags."
+  },
+  "29": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from product_tags\" | grep -qx 3",
+    "hint": "Run the INSERT that seeds 3 rows into product_tags."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "SELECT name, tags FROM product_tags"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "SELECT name, tags[1] AS first_tag"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "WHERE tags @> ARRAY['sale']"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "WHERE tags && ARRAY['sale','new']"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "WHERE 'featured' = ANY(tags)"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "unnest(tags) AS tag"
+  },
+  "36": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='product_tags'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS product_tags;` to clean up."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Problem 1: DENSE_RANK products by price within category"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Problem 2: top product per category (CTE + price_rank=1)"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Problem 3: running total of orders for customer_id=1"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Problem 4: LAG - order amount change vs previous order"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "Problem 5a: NTILE(4) quartiles"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Problem 5b: quartile summary CTE"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "Problem 6: pct of customer's total per order"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Stretch: 7-day moving average of daily revenue (status='delivered')"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

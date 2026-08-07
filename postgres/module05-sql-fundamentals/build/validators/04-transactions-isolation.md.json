@@ -1,0 +1,217 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Terminal A: ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "Terminal A: sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "Terminal A: /usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Terminal B: ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Terminal B: sudo -iu postgres"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Terminal B: /usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='tx_accounts'\" | grep -qx 1",
+    "hint": "Run the CREATE TABLE for tx_accounts shown in the guide."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select count(*) from tx_accounts\" | grep -qx 3",
+    "hint": "Run the INSERT that seeds Alice/Bob/Carol into tx_accounts."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT * FROM tx_accounts; - verify the 3 seed rows"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN;"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "Session 1: UPDATE Alice -200"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Session 1: UPDATE Bob +200"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "Session 1: SELECT - see 800/700/2500 inside the open transaction"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "Session 2: SELECT - still sees 1000/500/2500 (not committed yet)"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Session 1: COMMIT;"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "Session 2: SELECT - now sees 800/700/2500"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN;"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "Session 1: UPDATE Carol balance=0"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Carol - see 0.00"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "Session 1: ROLLBACK;"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Carol - back to 2500.00"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN;"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "Session 1: UPDATE Alice +100"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "Session 1: SAVEPOINT after_alice;"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "Session 1: UPDATE Carol -500"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "Session 1: ROLLBACK TO SAVEPOINT after_alice;"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "Session 1: SELECT - Alice 900, Bob 700, Carol 2500 unchanged"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "Session 1: COMMIT;"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "Session 1: RELEASE SAVEPOINT after_alice;"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN;"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Alice balance (900.00)"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "Session 2: UPDATE Alice +500, autocommits"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Alice again in the SAME transaction (non-repeatable read: 1400.00)"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "Session 1: ROLLBACK;"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Alice balance (1400.00)"
+  },
+  "37": {
+    "type": "manual",
+    "hint": "Session 2: UPDATE Alice to 9999.00, autocommits"
+  },
+  "38": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Alice again - still 1400.00 (repeatable read snapshot)"
+  },
+  "39": {
+    "type": "manual",
+    "hint": "Session 1: COMMIT;"
+  },
+  "40": {
+    "type": "manual",
+    "hint": "Session 1: SELECT Alice again outside the transaction - now 9999.00"
+  },
+  "41": {
+    "type": "manual",
+    "hint": "Session 1: BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
+  },
+  "42": {
+    "type": "manual",
+    "hint": "Session 1: SELECT SUM(balance)"
+  },
+  "43": {
+    "type": "manual",
+    "hint": "Session 2: BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;"
+  },
+  "44": {
+    "type": "manual",
+    "hint": "Session 2: INSERT Dave 100.00"
+  },
+  "45": {
+    "type": "manual",
+    "hint": "Session 2: COMMIT;"
+  },
+  "46": {
+    "type": "manual",
+    "hint": "Session 1: SELECT SUM(balance) again"
+  },
+  "47": {
+    "type": "manual",
+    "hint": "Session 1: COMMIT; (may or may not abort with a serialization error)"
+  },
+  "48": {
+    "type": "manual",
+    "hint": "SET SESSION default_transaction_isolation = 'repeatable read';"
+  },
+  "49": {
+    "type": "manual",
+    "hint": "SHOW default_transaction_isolation;"
+  },
+  "50": {
+    "type": "manual",
+    "hint": "SET SESSION default_transaction_isolation = 'read committed';"
+  },
+  "51": {
+    "type": "ssh",
+    "check": "! (sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAc \"select 1 from information_schema.tables where table_name='tx_accounts'\" | grep -qx 1)",
+    "hint": "Run `DROP TABLE IF EXISTS tx_accounts;` to clean up."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "53": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

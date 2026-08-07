@@ -1,0 +1,78 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "\\d order_items"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "INNER JOIN orders+customers"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "INNER JOIN orders+customers+order_items+products (3-way)"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "LEFT JOIN customers+orders"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "LEFT JOIN + WHERE order_id IS NULL (never ordered)"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "RIGHT JOIN order_items+products"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "CROSS JOIN products+orders (categories x statuses)"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "self join products p1/p2 same category"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "scalar subquery WHERE price > (SELECT AVG(price)...)"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "scalar subquery in SELECT list (store_avg)"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "correlated subquery MAX(total_amount) per customer"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "EXISTS - customers who have ordered"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "NOT EXISTS - customers who never ordered"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "EXISTS - orders containing a Software product"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@[YOUR_SERVER_IP]"
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "\\dt - list tables"
+  },
+  "5": {
+    "type": "manual",
+    "hint": "\\d products - describe products"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "\\d orders - describe orders"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT * FROM products"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT name, category, price FROM products"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT name AS product_name, price AS unit_price ... LIMIT 5"
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE category = 'Software'"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE price > 200.00"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE category = 'Software' AND price < 100.00"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE category = 'Books' OR category = 'Hardware'"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE category IN ('Books','Hardware')"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE price BETWEEN 40.00 AND 150.00"
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE name LIKE '%Pro%'"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT ... WHERE category IS NULL"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SELECT ... ORDER BY price ASC"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "SELECT ... ORDER BY price DESC"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "SELECT ... ORDER BY category ASC, price DESC"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "SELECT ... ORDER BY price DESC LIMIT 5"
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT ... ORDER BY price DESC LIMIT 5 OFFSET 5"
+  },
+  "23": {
+    "type": "manual",
+    "hint": "SELECT COUNT(*) FROM products"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "SELECT SUM(total_amount) FROM orders"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "SELECT MAX(price), MIN(price) FROM products"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "SELECT AVG(total_amount) FROM orders"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "SELECT ROUND(AVG(total_amount),2) FROM orders"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "SELECT category, COUNT(*) ... GROUP BY category"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "SELECT category, AVG(price) ... GROUP BY category"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "SELECT status, COUNT(*) ... GROUP BY status"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "GROUP BY category HAVING COUNT(*) > 5"
+  },
+  "32": {
+    "type": "manual",
+    "hint": "GROUP BY category HAVING AVG(price) > 200"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "WHERE price > 5 GROUP BY category HAVING COUNT(*) > 3"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "\\q - exit psql"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "exit - exit postgres user"
+  }
+}
