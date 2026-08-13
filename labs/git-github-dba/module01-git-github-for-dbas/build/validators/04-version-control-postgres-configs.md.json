@@ -169,121 +169,125 @@
  },
  "38": {
   "type": "manual",
-  "hint": "11. Put the config repo on GitHub - cat ~/.ssh/id_ed25519.pub"
+  "hint": "11. Put the config repo on GitHub - ssh-keygen -t ed25519 -C \"you@example.com\""
  },
  "39": {
   "type": "manual",
-  "hint": "11. Put the config repo on GitHub - ssh -T git@github.com"
+  "hint": "11. Put the config repo on GitHub - cat ~/.ssh/id_ed25519.pub"
  },
  "40": {
   "type": "manual",
-  "hint": "11. Put the config repo on GitHub - cd $PGDATA"
+  "hint": "11. Put the config repo on GitHub - ssh -T git@github.com"
  },
  "41": {
+  "type": "manual",
+  "hint": "11. Put the config repo on GitHub - cd $PGDATA"
+ },
+ "42": {
   "type": "ssh",
   "check": "sudo -u postgres git -C /opt/pgsql/data remote get-url origin 2>/dev/null | grep -q github.com",
   "hint": "As postgres: `git remote add origin git@github.com:YOUR_USERNAME/pg-single-config.git`.",
   "done": "the config repo has its GitHub remote"
  },
- "42": {
+ "43": {
   "type": "ssh",
   "check": "sudo -u postgres git -C /opt/pgsql/data rev-parse --verify -q origin/main >/dev/null 2>&1",
   "hint": "Push: `git push -u origin main`.",
   "done": "the config history is on GitHub"
  },
- "43": {
+ "44": {
   "type": "ssh",
   "check": "sudo -H -u postgres git -C /opt/pgsql/data ls-remote --tags origin 2>/dev/null | grep -q baseline-v1",
   "hint": "Push tags: `git push origin --tags`.",
   "done": "your tags are on GitHub"
  },
- "44": {
+ "45": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - max_connections = banana\t\t\t# (change requires restart)"
  },
- "45": {
+ "46": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git add postgresql.conf"
  },
- "46": {
+ "47": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git commit -m \"increase max_connections for the new app\""
  },
- "47": {
+ "48": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git push"
  },
- "48": {
+ "49": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - exit"
  },
- "49": {
+ "50": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - sudo systemctl restart postgresql-16"
  },
- "50": {
+ "51": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - sudo journalctl -u postgresql-16 --no-pager -n 20 | grep -iE \"fatal|in"
  },
- "51": {
+ "52": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - sudo su - postgres"
  },
- "52": {
+ "53": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - cd $PGDATA"
  },
- "53": {
+ "54": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git log --oneline | head -3"
  },
- "54": {
+ "55": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git show HEAD"
  },
- "55": {
+ "56": {
   "type": "ssh",
   "check": "sudo -u postgres git -C /opt/pgsql/data log --pretty=%s -3 2>/dev/null | grep -q '^Revert'",
   "hint": "Find the culprit (git log / git show), then `git revert --no-edit HEAD`.",
   "done": "the bad commit is reverted"
  },
- "56": {
+ "57": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - grep \"^max_connections\" postgresql.conf"
  },
- "57": {
+ "58": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - exit"
  },
- "58": {
+ "59": {
   "type": "ssh",
   "check": "systemctl is-active --quiet postgresql-16",
   "hint": "Start the server: `sudo systemctl start postgresql-16`.",
   "done": "PostgreSQL is back up"
  },
- "59": {
+ "60": {
   "type": "ssh",
   "check": "sudo -u postgres psql -tAc 'SHOW max_connections;' 2>/dev/null | grep -qx 100",
   "hint": "Verify with `sudo -u postgres psql -c \"SHOW max_connections;\"`.",
   "done": "max_connections is back to 100"
  },
- "60": {
+ "61": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - sudo su - postgres"
  },
- "61": {
+ "62": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - cd $PGDATA"
  },
- "62": {
+ "63": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git push"
  },
- "63": {
+ "64": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - git log --oneline | head -5"
  },
- "64": {
+ "65": {
   "type": "manual",
   "hint": "12. The finale: break it, then recover with git - exit"
  }

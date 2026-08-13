@@ -341,11 +341,19 @@ Expected output (yours will differ):
 
 In your **browser**: create a second repository on GitHub named `pg-single-config`, **Private**, completely empty (no README) - same procedure as guide 03 step 2.
 
-The postgres user needs its own SSH key on your GitHub account. SUTA lab servers already have one from provisioning - check. On **pg-single**, as **ec2-user**:
+The postgres user needs its own SSH key on your GitHub account - remember, keys belong to the OS user, and the key you made in guide 03 belongs to ec2-user. On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres
 ```
+
+Generate a key for the postgres user, exactly like guide 03 (press Enter at every prompt; if it says the key already exists, answer `n` and just continue):
+
+```bash
+ssh-keygen -t ed25519 -C "you@example.com"
+```
+
+Print the public key:
 
 ```bash
 cat ~/.ssh/id_ed25519.pub
@@ -356,8 +364,6 @@ Expected output (yours will differ):
 ```
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRdjyI88w6thZyFp5eswWdEjnC2x4CJlf4oVe3HX8uW you@example.com
 ```
-
-(If that file does not exist, generate it exactly as in guide 03 step 3, then continue.)
 
 In your **browser**: GitHub Settings -> SSH and GPG keys -> New SSH key, title `pg-single postgres`, paste, add. Then, back as **postgres** on **pg-single**, test (type `yes` at the first-time host prompt):
 
