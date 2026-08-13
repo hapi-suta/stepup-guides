@@ -5,7 +5,7 @@
 **Time:** 50-60 minutes
 **Prerequisites:**
 - Guides 01-03 completed (git installed, your GitHub account working)
-- PostgreSQL 16 running on **pg-single** with data directory `/opt/pgsql/data`
+- PostgreSQL 16 running on **pg-git-1** with data directory `/opt/pgsql/data`
 
 ---
 
@@ -21,7 +21,7 @@ Everything else in the data directory (your actual data!) will be explicitly ign
 
 ## 2. Switch to the postgres user
 
-The config files are owned by the `postgres` OS user, so ALL git work on this repo happens as `postgres`. On **pg-single**, as **ec2-user**:
+The config files are owned by the `postgres` OS user, so ALL git work on this repo happens as `postgres`. On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres
@@ -66,7 +66,7 @@ git config --global core.editor vi
 
 ## 4. Create the repository in the data directory
 
-Still as **postgres** on **pg-single**:
+Still as **postgres** on **pg-git-1**:
 
 ```bash
 cd $PGDATA
@@ -160,7 +160,7 @@ Exit to `ec2-user` for a moment:
 exit
 ```
 
-On **pg-single**, as **ec2-user**, try to read the repo's status through sudo (which runs git as root):
+On **pg-git-1**, as **ec2-user**, try to read the repo's status through sudo (which runs git as root):
 
 ```bash
 sudo git -C /opt/pgsql/data status
@@ -316,7 +316,7 @@ Run the `pending_restart` query after every config deployment. Now do the restar
 exit
 ```
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo systemctl restart postgresql-16
@@ -339,7 +339,7 @@ Expected output (yours will differ):
 
 ## 11. Put the config repo on GitHub
 
-In your **browser**: create a second repository on GitHub named `pg-single-config`, **Private**, completely empty (no README) - same procedure as guide 03 step 2.
+In your **browser**: create a second repository on GitHub named `pg-git-1-config`, **Private**, completely empty (no README) - same procedure as guide 03 step 2.
 
 The postgres user needs its own SSH key on your GitHub account - remember, keys belong to the OS user, and the key you made in guide 03 belongs to ec2-user. On **pg-git-1**, as **ec2-user**:
 
@@ -365,7 +365,7 @@ Expected output (yours will differ):
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMRdjyI88w6thZyFp5eswWdEjnC2x4CJlf4oVe3HX8uW you@example.com
 ```
 
-In your **browser**: GitHub Settings -> SSH and GPG keys -> New SSH key, title `pg-single postgres`, paste, add. Then, back as **postgres** on **pg-single**, test (type `yes` at the first-time host prompt):
+In your **browser**: GitHub Settings -> SSH and GPG keys -> New SSH key, title `pg-git-1 postgres`, paste, add. Then, back as **postgres** on **pg-git-1**, test (type `yes` at the first-time host prompt):
 
 ```bash
 ssh -T git@github.com
@@ -384,7 +384,7 @@ cd $PGDATA
 ```
 
 ```bash
-git remote add origin git@github.com:YOUR_USERNAME/pg-single-config.git
+git remote add origin git@github.com:YOUR_USERNAME/pg-git-1-config.git
 ```
 
 ```bash
@@ -394,7 +394,7 @@ git push -u origin main
 Expected output (yours will differ):
 
 ```
-To github.com:YOUR_USERNAME/pg-single-config.git
+To github.com:YOUR_USERNAME/pg-git-1-config.git
  * [new branch]      main -> main
 branch 'main' set up to track 'origin/main'.
 ```
@@ -406,7 +406,7 @@ git push origin --tags
 Expected output (yours will differ):
 
 ```
-To github.com:YOUR_USERNAME/pg-single-config.git
+To github.com:YOUR_USERNAME/pg-git-1-config.git
  * [new tag]         baseline-v1 -> baseline-v1
 ```
 
@@ -583,7 +583,7 @@ exit
 ## 13. Checkpoint
 
 - `/opt/pgsql/data` is a git repository tracking exactly 5 files (never data)
-- Baseline tagged `baseline-v1`, everything pushed to your private `pg-single-config` repo
+- Baseline tagged `baseline-v1`, everything pushed to your private `pg-git-1-config` repo
 - You changed a setting via branch + merge, verified with `pending_restart`
 - You broke the server, diagnosed it from the journal, found the culprit with `git log`/`git show`, recovered with `git revert`, and pushed the audit trail
 

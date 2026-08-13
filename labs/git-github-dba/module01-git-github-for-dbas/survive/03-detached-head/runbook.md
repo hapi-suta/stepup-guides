@@ -2,13 +2,13 @@
 
 **Severity:** MEDIUM
 **Expected Recovery Time:** 10-20 minutes
-**Single Node:** pg-single only
+**Single Node:** pg-git-1 only
 
 ## Alert
 
 ```
 A teammate was 'just looking at an old version' of the config repo on
-pg-single and left. Now every git command in /opt/pgsql/data warns about a
+pg-git-1 and left. Now every git command in /opt/pgsql/data warns about a
 'detached HEAD', and the config files on disk may NOT match what the team
 believes is deployed.
 ```
@@ -28,7 +28,7 @@ believes is deployed.
 
 ### 1. Diagnose
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres

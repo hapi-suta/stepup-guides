@@ -67,7 +67,7 @@
  },
  "16": {
   "type": "manual",
-  "hint": "6. Create a file to track - # Server Notes - pg-single ;  ; PostgreSQL 16 data directory: /opt/pgs"
+  "hint": "6. Create a file to track - # Server Notes - pg-git-1 ;  ; PostgreSQL 16 data directory: /opt/pgs"
  },
  "17": {
   "type": "ssh",
@@ -86,7 +86,7 @@
  "20": {
   "type": "ssh",
   "check": "[ \"$(git -C /home/ec2-user/git-practice rev-list --count HEAD 2>/dev/null || echo 0)\" -ge 1 ]",
-  "hint": "Stage with `git add server-notes.md`, then `git commit -m \"add server notes for pg-single\"`.",
+  "hint": "Stage with `git add server-notes.md`, then `git commit -m \"add server notes for pg-git-1\"`.",
   "done": "your first commit exists"
  },
  "21": {

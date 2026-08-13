@@ -2,12 +2,12 @@
 
 **Severity:** CRITICAL
 **Expected Recovery Time:** 15-30 minutes
-**Single Node:** pg-single only
+**Single Node:** pg-git-1 only
 
 ## Alert
 
 ```
-PostgreSQL is DOWN on pg-single after last night's 'performance tuning for
+PostgreSQL is DOWN on pg-git-1 after last night's 'performance tuning for
 app launch' deploy - the service refuses to start.
 ```
 
@@ -26,7 +26,7 @@ Journal -> culprit commit -> revert as postgres -> start service -> verify.
 
 ### 1. Confirm the failure
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo systemctl status postgresql-16 --no-pager | head -8

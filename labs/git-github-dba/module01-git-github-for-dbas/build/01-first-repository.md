@@ -4,14 +4,14 @@
 **Objective:** Install git, create your first repository, and learn the everyday commands: status, add, commit, log, diff, show, and blame.
 **Time:** 30-35 minutes
 **Prerequisites:**
-- You can SSH into your server **pg-single** as `ec2-user`
+- You can SSH into your server **pg-git-1** as `ec2-user`
 - You read Concepts 01 and 02 (the three areas: working directory, staging, repository)
 
 ---
 
 ## 1. Log in to your server
 
-On your laptop, SSH into **pg-single** as **ec2-user**:
+On your laptop, SSH into **pg-git-1** as **ec2-user**:
 
 ```bash
 ssh -i your-key.pem ec2-user@YOUR_SERVER_IP
@@ -21,7 +21,7 @@ All of this guide happens as `ec2-user`. We will not touch PostgreSQL yet - firs
 
 ## 2. Install git
 
-On **pg-single**, as **ec2-user**, check whether git is installed:
+On **pg-git-1**, as **ec2-user**, check whether git is installed:
 
 ```bash
 git --version
@@ -102,7 +102,7 @@ core.editor=vi
 
 ## 4. Create your first repository
 
-Still as **ec2-user** on **pg-single**, make a practice directory and enter it:
+Still as **ec2-user** on **pg-git-1**, make a practice directory and enter it:
 
 ```bash
 mkdir ~/git-practice
@@ -169,7 +169,7 @@ vi server-notes.md
 In vi: press `i` to enter insert mode, type the four lines below, then press `Esc` and type `:wq` to save and quit.
 
 ```
-# Server Notes - pg-single
+# Server Notes - pg-git-1
 
 PostgreSQL 16 data directory: /opt/pgsql/data
 Port: 5432
@@ -224,13 +224,13 @@ Changes to be committed:
 "Changes to be committed" = staged. Now take the snapshot. `-m` supplies the commit message on the command line (without `-m`, git opens vi and waits for you to type one - we will do that in a later guide):
 
 ```bash
-git commit -m "add server notes for pg-single"
+git commit -m "add server notes for pg-git-1"
 ```
 
 Expected output (yours will differ):
 
 ```
-[main (root-commit) e22dad2] add server notes for pg-single
+[main (root-commit) e22dad2] add server notes for pg-git-1
  1 file changed, 4 insertions(+)
  create mode 100644 server-notes.md
 ```
@@ -263,7 +263,7 @@ commit e22dad22043a5f6ad7c5044bd52a6124ab83d63e
 Author: Felicite Nji <felicite.suta@gmail.com>
 Date:   Thu Aug 13 00:59:20 2026 +0000
 
-    add server notes for pg-single
+    add server notes for pg-git-1
 ```
 
 There is your audit trail: who, when, what, and the full 40-character commit ID. For day-to-day use the compact form is easier to read - one line per commit:
@@ -275,7 +275,7 @@ git log --oneline
 Expected output (yours will differ):
 
 ```
-e22dad2 add server notes for pg-single
+e22dad2 add server notes for pg-git-1
 ```
 
 Tip: if the log is long, git shows it in a pager. Press `q` to quit the pager.
@@ -395,7 +395,7 @@ git blame server-notes.md
 Expected output (yours will differ):
 
 ```
-^e22dad2 (Felicite Nji 2026-08-13 00:59:20 +0000 1) # Server Notes - pg-single
+^e22dad2 (Felicite Nji 2026-08-13 00:59:20 +0000 1) # Server Notes - pg-git-1
 ^e22dad2 (Felicite Nji 2026-08-13 00:59:20 +0000 2)
 ^e22dad2 (Felicite Nji 2026-08-13 00:59:20 +0000 3) PostgreSQL 16 data directory: /opt/pgsql/data
 ^e22dad2 (Felicite Nji 2026-08-13 00:59:20 +0000 4) Port: 5432
@@ -417,7 +417,7 @@ Expected output (yours will differ):
 
 ```
 3d889bf note that backups are not configured yet
-e22dad2 add server notes for pg-single
+e22dad2 add server notes for pg-git-1
 ```
 
 **You now know:** install git, set your identity, `git init`, the status/add/commit cycle, `log`, `diff` vs `diff --staged`, `show`, and `blame`.

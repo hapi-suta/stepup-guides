@@ -19,7 +19,7 @@ In your **browser**, go to https://github.com/signup and create a free account:
 
 Everywhere this guide says `YOUR_USERNAME`, type the username you just chose.
 
-When your account is ready, confirm on the server so we move on together. On **pg-single**, as **ec2-user** (type your real username into the message):
+When your account is ready, confirm on the server so we move on together. On **pg-git-1**, as **ec2-user** (type your real username into the message):
 
 ```bash
 echo "GitHub account created: YOUR_USERNAME"
@@ -47,7 +47,7 @@ echo "Private repo git-practice created, empty, no README"
 
 GitHub does not accept passwords from git; the server proves its identity with an SSH key. The key must belong to the OS user who runs git - our practice repo belongs to `ec2-user`.
 
-On **pg-single**, as **ec2-user**, generate a modern ed25519 key pair. `-C` attaches your email as a label so you can recognize the key later:
+On **pg-git-1**, as **ec2-user**, generate a modern ed25519 key pair. `-C` attaches your email as a label so you can recognize the key later:
 
 ```bash
 ssh-keygen -t ed25519 -C "you@example.com"
@@ -87,14 +87,14 @@ In your **browser**, on github.com:
 1. Click your profile picture (top-right) -> **Settings**
 2. In the left sidebar: **SSH and GPG keys**
 3. Click **New SSH key**
-4. Title: `pg-single ec2-user` (name keys after the server and user they live on - future you will thank you)
+4. Title: `pg-git-1 ec2-user` (name keys after the server and user they live on - future you will thank you)
 5. Key type: leave as **Authentication Key**
 6. Paste the public key into the Key field
 7. Click **Add SSH key**
 
 ## 5. Test the connection
 
-Back on **pg-single**, as **ec2-user**:
+Back on **pg-git-1**, as **ec2-user**:
 
 ```bash
 ssh -T git@github.com
@@ -187,7 +187,7 @@ To github.com:YOUR_USERNAME/git-practice.git
 
 This is how config changes work on real teams: propose on a branch, review, merge. Run the whole cycle once.
 
-On **pg-single**, as **ec2-user**, create a branch and a new file:
+On **pg-git-1**, as **ec2-user**, create a branch and a new file:
 
 ```bash
 git switch -c add-backup-runbook
@@ -200,7 +200,7 @@ vi backup-runbook.md
 Type this content (in vi: `i` to insert, `Esc` then `:wq` to save):
 
 ```
-# Backup Runbook - pg-single
+# Backup Runbook - pg-git-1
 
 1. Check latest base backup
 2. Verify WAL archiving
@@ -252,7 +252,7 @@ echo "PR merged on GitHub"
 
 ## 11. Pull the merge back to the server
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 git switch main

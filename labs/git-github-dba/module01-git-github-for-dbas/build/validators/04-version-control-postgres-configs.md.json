@@ -133,7 +133,7 @@
  },
  "30": {
   "type": "ssh",
-  "check": "sudo grep -q '^shared_buffers = 256MB' /opt/pgsql/data/postgresql.conf",
+  "check": "sudo -u postgres git -C /opt/pgsql/data log main --pretty=%s 2>/dev/null | grep -qi 'raise shared_buffers'",
   "hint": "On main, `git merge tune-shared-buffers`.",
   "done": "the tuning change is merged into main"
  },
@@ -186,7 +186,7 @@
  "42": {
   "type": "ssh",
   "check": "sudo -u postgres git -C /opt/pgsql/data remote get-url origin 2>/dev/null | grep -q github.com",
-  "hint": "As postgres: `git remote add origin git@github.com:YOUR_USERNAME/pg-single-config.git`.",
+  "hint": "As postgres: `git remote add origin git@github.com:YOUR_USERNAME/pg-git-1-config.git`.",
   "done": "the config repo has its GitHub remote"
  },
  "43": {

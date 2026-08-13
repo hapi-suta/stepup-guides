@@ -2,13 +2,13 @@
 
 **Duration:** 15 minutes
 **Objective:** "Destroy" committed work with reset --hard, then recover it from the reflog - unassisted this time.
-**Prerequisites:** BUILD guide 02 completed (`~/git-practice` exists). Single node. Work as **ec2-user** on **pg-single**.
+**Prerequisites:** BUILD guide 02 completed (`~/git-practice` exists). Single node. Work as **ec2-user** on **pg-git-1**.
 
 ## Background
 
 Someday you (or a teammate) will run `git reset --hard` at the wrong moment. This exercise builds the muscle memory - and the calm - to fix it. We use the PRACTICE repo, not the config repo.
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 cd ~/git-practice

@@ -47,7 +47,7 @@
  },
  "12": {
   "type": "ssh",
-  "check": "grep -q 'Tuning ideas' /home/ec2-user/git-practice/server-notes.md 2>/dev/null",
+  "check": "git -C /home/ec2-user/git-practice log main --pretty=%s 2>/dev/null | grep -q 'start a tuning ideas section'",
   "hint": "On main, run `git merge tuning-notes` (fast-forward).",
   "done": "the tuning section is merged into main"
  },
@@ -69,7 +69,7 @@
  },
  "17": {
   "type": "ssh",
-  "check": "test -f /home/ec2-user/git-practice/settings-notes.md",
+  "check": "git -C /home/ec2-user/git-practice log main --pretty=%s 2>/dev/null | grep -q 'record current work_mem'",
   "hint": "Create settings-notes.md (work_mem = 4MB) and commit it.",
   "done": "settings-notes.md is committed"
  },
@@ -105,7 +105,7 @@
  },
  "25": {
   "type": "ssh",
-  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -q 'propose work_mem 16MB'",
+  "check": "git -C /home/ec2-user/git-practice log main --pretty=%s 2>/dev/null | grep -q 'propose work_mem 16MB'",
   "hint": "Back on main, change the same line to 16MB and commit.",
   "done": "the 16MB proposal is committed - conflict is armed"
  },
@@ -135,7 +135,7 @@
  },
  "32": {
   "type": "ssh",
-  "check": "git -C /home/ec2-user/git-practice log --merges --oneline 2>/dev/null | grep -q .",
+  "check": "git -C /home/ec2-user/git-practice log main --merges --oneline 2>/dev/null | grep -q .",
   "hint": "Resolve the conflict: edit the file to one value, `git add`, then plain `git commit` (`:wq` in vi).",
   "done": "the merge commit exists - conflict resolved"
  },
@@ -177,7 +177,7 @@
  },
  "42": {
   "type": "ssh",
-  "check": "! test -f /home/ec2-user/git-practice/.git/MERGE_HEAD",
+  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -q 'propose work_mem 32MB'",
   "hint": "Run `git merge --abort` to back out of the conflicted merge.",
   "done": "the merge was aborted cleanly"
  },

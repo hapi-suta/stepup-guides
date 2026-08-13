@@ -2,7 +2,7 @@
 
 **Duration:** 15 minutes
 **Objective:** Answer "who changed this setting, when, and what else changed with it" using only git.
-**Prerequisites:** BUILD guide 04 completed. Single node. All work as **postgres** on **pg-single**.
+**Prerequisites:** BUILD guide 04 completed. Single node. All work as **postgres** on **pg-git-1**.
 
 ## Background
 

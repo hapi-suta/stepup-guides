@@ -2,7 +2,7 @@
 
 **Duration:** 15 minutes
 **Objective:** Use annotated tags as named restore points around a maintenance window, and compare "now" against a tag.
-**Prerequisites:** BUILD guide 04 completed. Single node. Work as **postgres** on **pg-single**.
+**Prerequisites:** BUILD guide 04 completed. Single node. Work as **postgres** on **pg-git-1**.
 
 ## Background
 
@@ -95,7 +95,7 @@ git push origin pre-maintenance-2026-08
 Expected output (yours will differ):
 
 ```
-To github.com:YOUR_USERNAME/pg-single-config.git
+To github.com:YOUR_USERNAME/pg-git-1-config.git
  * [new tag]         pre-maintenance-2026-08 -> pre-maintenance-2026-08
 ```
 

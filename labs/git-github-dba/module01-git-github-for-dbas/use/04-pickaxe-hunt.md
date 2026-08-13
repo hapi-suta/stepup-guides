@@ -2,7 +2,7 @@
 
 **Duration:** 15 minutes
 **Objective:** Search HISTORY (not files) for every change that ever touched a setting, using git log -S and per-file patch history.
-**Prerequisites:** Exercises 01-03 completed. Single node. Work as **postgres** on **pg-single**.
+**Prerequisites:** Exercises 01-03 completed. Single node. Work as **postgres** on **pg-git-1**.
 
 ## Background
 

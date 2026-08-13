@@ -2,13 +2,13 @@
 
 **Severity:** HIGH
 **Expected Recovery Time:** 15-25 minutes
-**Single Node:** pg-single only
+**Single Node:** pg-git-1 only
 
 ## Alert
 
 ```
 A plaintext password file (app-password.txt) was just committed to the
-pg-single config repo - FORCE-added past your .gitignore - and pushed to
+pg-git-1 config repo - FORCE-added past your .gitignore - and pushed to
 GitHub. Treat it as a real leak.
 ```
 
@@ -32,7 +32,7 @@ In this lab the password is fictional - but say it out loud: **"in production I 
 
 ### 2. Confirm what happened
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres

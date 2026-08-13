@@ -36,3 +36,11 @@ You are ready for SURVIVE when you can answer, from memory, in one sentence each
 3. How do you reload pg_hba.conf when psql is locked out?
 4. Why does `git push` not send your tags?
 5. Where does a "destroyed" commit live, and for how long?
+
+## Confirm completion
+
+When every box above is checked and you can answer all five questions, confirm on **pg-git-1**, as **ec2-user**:
+
+```bash
+echo "USE phase complete: I am ready for SURVIVE"
+```

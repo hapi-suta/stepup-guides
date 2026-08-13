@@ -2,13 +2,13 @@
 
 **Severity:** HIGH
 **Expected Recovery Time:** 20-35 minutes
-**Single Node:** pg-single only
+**Single Node:** pg-git-1 only
 
 ## Alert
 
 ```
 During a disk-space hunt, someone deleted the 'hidden junk folder'
-/opt/pgsql/data/.git on pg-single. PostgreSQL is fine, your config FILES are
+/opt/pgsql/data/.git on pg-git-1. PostgreSQL is fine, your config FILES are
 fine - but every commit, tag, and piece of history is gone from this server.
 ```
 
@@ -27,7 +27,7 @@ Clone `--no-checkout` to /tmp -> move its `.git` into $PGDATA -> `git reset` -> 
 
 ### 1. Confirm the damage
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres
@@ -52,7 +52,7 @@ cd /tmp
 ```
 
 ```bash
-git clone --no-checkout git@github.com:YOUR_USERNAME/pg-single-config.git repo-rescue
+git clone --no-checkout git@github.com:YOUR_USERNAME/pg-git-1-config.git repo-rescue
 ```
 
 ### 3. Transplant the .git folder back

@@ -2,12 +2,12 @@
 
 **Severity:** HIGH
 **Expected Recovery Time:** 10-25 minutes
-**Single Node:** pg-single only
+**Single Node:** pg-git-1 only
 
 ## Alert
 
 ```
-psql on pg-single suddenly demands a password that nobody has - local
+psql on pg-git-1 suddenly demands a password that nobody has - local
 connections are locked out after a 'tighten local authentication' change.
 PostgreSQL itself is still running.
 ```
@@ -27,7 +27,7 @@ Reproduce the error -> `git diff HEAD~1 HEAD` -> revert as postgres -> `pg_ctl r
 
 ### 1. See the lockout for yourself
 
-On **pg-single**, as **ec2-user**:
+On **pg-git-1**, as **ec2-user**:
 
 ```bash
 sudo su - postgres

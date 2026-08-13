@@ -2,7 +2,7 @@
 
 **Duration:** 20 minutes
 **Objective:** Diagnose and recover from a bad pg_hba.conf change using git - while locked out of SQL.
-**Prerequisites:** BUILD guide 04 completed. Single node. Work as **postgres** on **pg-single**.
+**Prerequisites:** BUILD guide 04 completed. Single node. Work as **postgres** on **pg-git-1**.
 
 ## Background
 
@@ -10,7 +10,7 @@ A well-meaning "auth cleanup" changes local connections from `trust` to `md5`. S
 
 ## Setup: be the colleague
 
-As **postgres** on **pg-single**:
+As **postgres** on **pg-git-1**:
 
 ```bash
 sudo su - postgres

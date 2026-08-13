@@ -11,7 +11,7 @@
 
 ## 1. Where you are
 
-On **pg-single**, as **ec2-user**, go to your practice repository:
+On **pg-git-1**, as **ec2-user**, go to your practice repository:
 
 ```bash
 cd ~/git-practice
@@ -94,7 +94,7 @@ Expected output (yours will differ):
 ```
 * b67f374 start a tuning ideas section
 * 3d889bf note that backups are not configured yet
-* e22dad2 add server notes for pg-single
+* e22dad2 add server notes for pg-git-1
 ```
 
 ## 3. Switch back: main is untouched
@@ -625,7 +625,7 @@ a14fa13 Merge branch 'raise-work-mem'
 0235137 record current work_mem
 b67f374 start a tuning ideas section
 3d889bf note that backups are not configured yet
-e22dad2 add server notes for pg-single
+e22dad2 add server notes for pg-git-1
 ```
 
 Nine commits telling the full story, including one merge and one revert - plus a `v1.0` tag.
