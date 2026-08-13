@@ -1,0 +1,98 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "1. Create your GitHub account (browser) - echo \"GitHub account created: YOUR_USERNAME\""
+ },
+ "2": {
+  "type": "manual",
+  "hint": "2. Create a private repository (browser) - echo \"Private repo git-practice created, empty, no README\""
+ },
+ "3": {
+  "type": "ssh",
+  "check": "test -f /home/ec2-user/.ssh/id_ed25519.pub",
+  "hint": "Generate the key: `ssh-keygen -t ed25519 -C \"you@example.com\"`, Enter at every prompt.",
+  "done": "your ed25519 key pair exists"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "3. Generate an SSH key on your server - cat ~/.ssh/id_ed25519.pub"
+ },
+ "5": {
+  "type": "ssh",
+  "check": "ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new git@github.com 2>&1 | grep -q 'successfully authenticated'",
+  "hint": "Add the PUBLIC key to GitHub (Settings -> SSH and GPG keys), then `ssh -T git@github.com`.",
+  "done": "GitHub accepts your key"
+ },
+ "6": {
+  "type": "manual",
+  "hint": "6. Connect your repo to GitHub - cd ~/git-practice"
+ },
+ "7": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice remote get-url origin 2>/dev/null | grep -q github.com",
+  "hint": "Connect the repo: `git remote add origin git@github.com:YOUR_USERNAME/git-practice.git`.",
+  "done": "origin points at your GitHub repo"
+ },
+ "8": {
+  "type": "manual",
+  "hint": "6. Connect your repo to GitHub - git remote -v"
+ },
+ "9": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice rev-parse --verify -q origin/main >/dev/null 2>&1",
+  "hint": "Push with `git push -u origin main`.",
+  "done": "main is on GitHub"
+ },
+ "10": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice ls-remote --tags origin 2>/dev/null | grep -q v1.0",
+  "hint": "Push the tag: `git push origin v1.0`.",
+  "done": "tag v1.0 is on GitHub"
+ },
+ "11": {
+  "type": "manual",
+  "hint": "9. The pull request cycle - change control for DBAs - git switch -c add-backup-runbook"
+ },
+ "12": {
+  "type": "manual",
+  "hint": "9. The pull request cycle - change control for DBAs - vi backup-runbook.md"
+ },
+ "13": {
+  "type": "manual",
+  "hint": "9. The pull request cycle - change control for DBAs - # Backup Runbook - pg-single ;  ; 1. Check latest base backup ; 2. Ver"
+ },
+ "14": {
+  "type": "manual",
+  "hint": "9. The pull request cycle - change control for DBAs - git add backup-runbook.md"
+ },
+ "15": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -qi 'backup runbook'",
+  "hint": "On branch add-backup-runbook, create backup-runbook.md and commit it.",
+  "done": "the runbook commit exists"
+ },
+ "16": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice rev-parse --verify -q origin/add-backup-runbook >/dev/null 2>&1",
+  "hint": "Push the branch: `git push -u origin add-backup-runbook`.",
+  "done": "the branch is on GitHub - open the PR in your browser"
+ },
+ "17": {
+  "type": "manual",
+  "hint": "10. Open and merge the pull request (browser) - echo \"PR merged on GitHub\""
+ },
+ "18": {
+  "type": "manual",
+  "hint": "11. Pull the merge back to the server - git switch main"
+ },
+ "19": {
+  "type": "ssh",
+  "check": "test -f /home/ec2-user/git-practice/backup-runbook.md && git -C /home/ec2-user/git-practice log --oneline -3 2>/dev/null | grep -qi 'merge pull request'",
+  "hint": "After merging the PR on GitHub: `git switch main` then `git pull`.",
+  "done": "the PR merge is on your server"
+ },
+ "20": {
+  "type": "manual",
+  "hint": "11. Pull the merge back to the server - git log --oneline | head -3"
+ }
+}

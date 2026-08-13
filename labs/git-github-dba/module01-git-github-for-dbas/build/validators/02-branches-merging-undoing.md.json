@@ -1,0 +1,280 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "1. Where you are - cd ~/git-practice"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "1. Where you are - git branch"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - git switch -c tuning-notes"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - git branch"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - vi server-notes.md"
+ },
+ "6": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - ## Tuning ideas ;  ; - shared_buffers: default 128MB is low for this b"
+ },
+ "7": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - git add server-notes.md"
+ },
+ "8": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -q 'start a tuning ideas section'",
+  "hint": "On branch tuning-notes, edit server-notes.md and commit \"start a tuning ideas section\".",
+  "done": "the tuning-notes branch has its commit"
+ },
+ "9": {
+  "type": "manual",
+  "hint": "2. Create a branch and work on it - git log --oneline --all --graph"
+ },
+ "10": {
+  "type": "manual",
+  "hint": "3. Switch back: main is untouched - git switch main"
+ },
+ "11": {
+  "type": "manual",
+  "hint": "3. Switch back: main is untouched - tail -4 server-notes.md"
+ },
+ "12": {
+  "type": "ssh",
+  "check": "grep -q 'Tuning ideas' /home/ec2-user/git-practice/server-notes.md 2>/dev/null",
+  "hint": "On main, run `git merge tuning-notes` (fast-forward).",
+  "done": "the tuning section is merged into main"
+ },
+ "13": {
+  "type": "manual",
+  "hint": "4. Merge: the fast-forward case - git branch -d tuning-notes"
+ },
+ "14": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - vi settings-notes.md"
+ },
+ "15": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - work_mem = 4MB"
+ },
+ "16": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - git add settings-notes.md"
+ },
+ "17": {
+  "type": "ssh",
+  "check": "test -f /home/ec2-user/git-practice/settings-notes.md",
+  "hint": "Create settings-notes.md (work_mem = 4MB) and commit it.",
+  "done": "settings-notes.md is committed"
+ },
+ "18": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - git switch -c raise-work-mem"
+ },
+ "19": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - vi settings-notes.md"
+ },
+ "20": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - git add settings-notes.md"
+ },
+ "21": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -q 'propose work_mem 8MB'",
+  "hint": "On branch raise-work-mem, change the value to 8MB and commit.",
+  "done": "the 8MB proposal is committed"
+ },
+ "22": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - git switch main"
+ },
+ "23": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - vi settings-notes.md"
+ },
+ "24": {
+  "type": "manual",
+  "hint": "5. Set up a real conflict - git add settings-notes.md"
+ },
+ "25": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --all --pretty=%s 2>/dev/null | grep -q 'propose work_mem 16MB'",
+  "hint": "Back on main, change the same line to 16MB and commit.",
+  "done": "the 16MB proposal is committed - conflict is armed"
+ },
+ "26": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - git merge raise-work-mem"
+ },
+ "27": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - git status"
+ },
+ "28": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - cat settings-notes.md"
+ },
+ "29": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - vi settings-notes.md"
+ },
+ "30": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - work_mem = 8MB"
+ },
+ "31": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - git add settings-notes.md"
+ },
+ "32": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --merges --oneline 2>/dev/null | grep -q .",
+  "hint": "Resolve the conflict: edit the file to one value, `git add`, then plain `git commit` (`:wq` in vi).",
+  "done": "the merge commit exists - conflict resolved"
+ },
+ "33": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - git log --oneline --graph"
+ },
+ "34": {
+  "type": "manual",
+  "hint": "6. The conflict, and how to resolve it calmly - git branch -d raise-work-mem"
+ },
+ "35": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git switch -c lower-work-mem"
+ },
+ "36": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git add settings-notes.md"
+ },
+ "37": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git commit -m \"propose work_mem 2MB\""
+ },
+ "38": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git switch main"
+ },
+ "39": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git add settings-notes.md"
+ },
+ "40": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git commit -m \"propose work_mem 32MB\""
+ },
+ "41": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git merge lower-work-mem"
+ },
+ "42": {
+  "type": "ssh",
+  "check": "! test -f /home/ec2-user/git-practice/.git/MERGE_HEAD",
+  "hint": "Run `git merge --abort` to back out of the conflicted merge.",
+  "done": "the merge was aborted cleanly"
+ },
+ "43": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git status"
+ },
+ "44": {
+  "type": "manual",
+  "hint": "7. The escape hatch: merge --abort - git branch -D lower-work-mem"
+ },
+ "45": {
+  "type": "manual",
+  "hint": "8. git stash: shelve work you are not ready to commit - git stash"
+ },
+ "46": {
+  "type": "manual",
+  "hint": "8. git stash: shelve work you are not ready to commit - git status"
+ },
+ "47": {
+  "type": "manual",
+  "hint": "8. git stash: shelve work you are not ready to commit - git stash list"
+ },
+ "48": {
+  "type": "manual",
+  "hint": "8. git stash: shelve work you are not ready to commit - git stash pop"
+ },
+ "49": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git restore server-notes.md"
+ },
+ "50": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git status"
+ },
+ "51": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice log --pretty=%s -5 2>/dev/null | grep -q '^Revert'",
+  "hint": "Undo the 32MB commit with `git revert --no-edit HEAD`.",
+  "done": "the revert commit exists"
+ },
+ "52": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git log --oneline | head -4"
+ },
+ "53": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - vi temp.txt"
+ },
+ "54": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git add temp.txt"
+ },
+ "55": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git commit -m \"add a temporary note\""
+ },
+ "56": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - git reset --hard HEAD~1"
+ },
+ "57": {
+  "type": "manual",
+  "hint": "9. The undo ladder, rung by rung - ls"
+ },
+ "58": {
+  "type": "manual",
+  "hint": "10. The safety net under the ladder: git reflog - git reflog | head -5"
+ },
+ "59": {
+  "type": "manual",
+  "hint": "10. The safety net under the ladder: git reflog - git reset --hard 'HEAD@{1}'"
+ },
+ "60": {
+  "type": "manual",
+  "hint": "10. The safety net under the ladder: git reflog - ls"
+ },
+ "61": {
+  "type": "manual",
+  "hint": "10. The safety net under the ladder: git reflog - git reset --hard 'HEAD@{1}'"
+ },
+ "62": {
+  "type": "ssh",
+  "check": "git -C /home/ec2-user/git-practice tag 2>/dev/null | grep -qx v1.0",
+  "hint": "Create the tag: `git tag -a v1.0 -m \"known good practice repo\"`.",
+  "done": "tag v1.0 exists"
+ },
+ "63": {
+  "type": "manual",
+  "hint": "11. Tags: name the states you trust - git tag"
+ },
+ "64": {
+  "type": "manual",
+  "hint": "11. Tags: name the states you trust - git show v1.0 | head -8"
+ },
+ "65": {
+  "type": "manual",
+  "hint": "12. Checkpoint - git log --oneline"
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "Background - sudo su - postgres"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "Background - cd $PGDATA"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "Question 1: Which commit last touched the shared_buffers line? - git blame postgresql.conf | grep shared_buffers"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "Question 2: What exactly did that commit change - and ONLY that commit? - git show c6c84d4"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "Question 3: List every commit that ever touched postgresql.conf - git log --oneline -- postgresql.conf"
+ }
+}

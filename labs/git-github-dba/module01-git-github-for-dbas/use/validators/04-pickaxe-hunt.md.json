@@ -1,0 +1,22 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "Background - sudo su - postgres"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "Background - cd $PGDATA"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "Question 1: Every commit that ever touched work_mem - git log -S'work_mem' --oneline"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "Question 2: The full patch history of one file - git log -p --oneline -- postgresql.auto.conf"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "Question 3: Narrow the pickaxe - git log -S\"work_mem = '8MB'\" --oneline"
+ }
+}

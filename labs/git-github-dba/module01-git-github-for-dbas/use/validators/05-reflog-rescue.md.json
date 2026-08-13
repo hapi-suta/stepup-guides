@@ -1,0 +1,34 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "Background - cd ~/git-practice"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "Question 1: Create something worth losing - git add server-notes.md"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "Question 1: Create something worth losing - git commit -m \"add connection pool sizing formula\""
+ },
+ "4": {
+  "type": "manual",
+  "hint": "Question 1: Create something worth losing - git log --oneline | head -2"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "Question 2: The accident - git reset --hard HEAD~1"
+ },
+ "6": {
+  "type": "manual",
+  "hint": "Question 2: The accident - git log --oneline | head -2"
+ },
+ "7": {
+  "type": "manual",
+  "hint": "Question 3: The rescue - git reset --hard 'HEAD@{1}'"
+ },
+ "8": {
+  "type": "manual",
+  "hint": "Question 3: The rescue - git log --oneline | head -2"
+ }
+}

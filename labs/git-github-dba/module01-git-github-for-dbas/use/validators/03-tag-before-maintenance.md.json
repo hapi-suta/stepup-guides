@@ -1,0 +1,42 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "Background - sudo su - postgres"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "Background - cd $PGDATA"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "Question 1: Tag the pre-maintenance state - git tag -a pre-maintenance-2026-08 -m \"state before august maintenance"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "Question 1: Tag the pre-maintenance state - git tag"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "Question 2: Do the maintenance change - psql -c \"ALTER SYSTEM SET maintenance_work_mem = '128MB';\""
+ },
+ "6": {
+  "type": "manual",
+  "hint": "Question 2: Do the maintenance change - git add postgresql.auto.conf"
+ },
+ "7": {
+  "type": "manual",
+  "hint": "Question 2: Do the maintenance change - git commit -m \"raise maintenance_work_mem for reindex window\""
+ },
+ "8": {
+  "type": "manual",
+  "hint": "Question 3: What changed since the window began? - git diff pre-maintenance-2026-08"
+ },
+ "9": {
+  "type": "manual",
+  "hint": "Question 4: Get it all off the server - git push"
+ },
+ "10": {
+  "type": "manual",
+  "hint": "Question 4: Get it all off the server - git push origin pre-maintenance-2026-08"
+ }
+}

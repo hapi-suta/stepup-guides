@@ -1,0 +1,144 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "1. Log in to your server - ssh -i your-key.pem ec2-user@YOUR_SERVER_IP"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "2. Install git - git --version"
+ },
+ "3": {
+  "type": "ssh",
+  "check": "rpm -q git >/dev/null 2>&1",
+  "hint": "Install git with `sudo dnf install -y git`.",
+  "done": "git is installed on your server"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "2. Install git - git --version"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "3. Tell git who you are - git config --global user.name \"Your Name\""
+ },
+ "6": {
+  "type": "manual",
+  "hint": "3. Tell git who you are - git config --global user.email \"you@example.com\""
+ },
+ "7": {
+  "type": "manual",
+  "hint": "3. Tell git who you are - git config --global init.defaultBranch main"
+ },
+ "8": {
+  "type": "manual",
+  "hint": "3. Tell git who you are - git config --global core.editor vi"
+ },
+ "9": {
+  "type": "ssh",
+  "check": "git config --global user.name >/dev/null 2>&1 && git config --global init.defaultBranch 2>/dev/null | grep -qi main",
+  "hint": "Set your identity: `git config --global user.name/user.email`, plus init.defaultBranch main and core.editor vi.",
+  "done": "your git identity and defaults are configured"
+ },
+ "10": {
+  "type": "manual",
+  "hint": "4. Create your first repository - mkdir ~/git-practice"
+ },
+ "11": {
+  "type": "manual",
+  "hint": "4. Create your first repository - cd ~/git-practice"
+ },
+ "12": {
+  "type": "ssh",
+  "check": "test -d /home/ec2-user/git-practice/.git",
+  "hint": "Create the repo: `mkdir ~/git-practice`, `cd ~/git-practice`, `git init`.",
+  "done": "~/git-practice is a git repository"
+ },
+ "13": {
+  "type": "manual",
+  "hint": "4. Create your first repository - ls -a"
+ },
+ "14": {
+  "type": "manual",
+  "hint": "5. git status - your orientation command - git status"
+ },
+ "15": {
+  "type": "manual",
+  "hint": "6. Create a file to track - vi server-notes.md"
+ },
+ "16": {
+  "type": "manual",
+  "hint": "6. Create a file to track - # Server Notes - pg-single ;  ; PostgreSQL 16 data directory: /opt/pgs"
+ },
+ "17": {
+  "type": "ssh",
+  "check": "test -f /home/ec2-user/git-practice/server-notes.md",
+  "hint": "Create server-notes.md with vi (the 4 lines from the guide).",
+  "done": "server-notes.md exists and git sees it"
+ },
+ "18": {
+  "type": "manual",
+  "hint": "7. Stage it, then commit it - git add server-notes.md"
+ },
+ "19": {
+  "type": "manual",
+  "hint": "7. Stage it, then commit it - git status"
+ },
+ "20": {
+  "type": "ssh",
+  "check": "[ \"$(git -C /home/ec2-user/git-practice rev-list --count HEAD 2>/dev/null || echo 0)\" -ge 1 ]",
+  "hint": "Stage with `git add server-notes.md`, then `git commit -m \"add server notes for pg-single\"`.",
+  "done": "your first commit exists"
+ },
+ "21": {
+  "type": "manual",
+  "hint": "7. Stage it, then commit it - git status"
+ },
+ "22": {
+  "type": "manual",
+  "hint": "8. Read the history - git log"
+ },
+ "23": {
+  "type": "manual",
+  "hint": "8. Read the history - git log --oneline"
+ },
+ "24": {
+  "type": "manual",
+  "hint": "9. Change the file and see the difference - vi server-notes.md"
+ },
+ "25": {
+  "type": "manual",
+  "hint": "9. Change the file and see the difference - Backups: not configured yet"
+ },
+ "26": {
+  "type": "manual",
+  "hint": "9. Change the file and see the difference - git diff"
+ },
+ "27": {
+  "type": "manual",
+  "hint": "9. Change the file and see the difference - git add server-notes.md"
+ },
+ "28": {
+  "type": "manual",
+  "hint": "9. Change the file and see the difference - git diff"
+ },
+ "29": {
+  "type": "ssh",
+  "check": "[ \"$(git -C /home/ec2-user/git-practice rev-list --count HEAD 2>/dev/null || echo 0)\" -ge 2 ]",
+  "hint": "Commit the edit: `git add server-notes.md` then `git commit -m \"note that backups are not configured yet\"`.",
+  "done": "your second commit exists"
+ },
+ "30": {
+  "type": "manual",
+  "hint": "10. Inspect one commit: git show - git show HEAD"
+ },
+ "31": {
+  "type": "manual",
+  "hint": "11. Who wrote each line: git blame - git blame server-notes.md"
+ },
+ "32": {
+  "type": "ssh",
+  "check": "[ \"$(git -C /home/ec2-user/git-practice rev-list --count HEAD 2>/dev/null || echo 0)\" -ge 2 ]",
+  "hint": "You should have two commits - check `git log --oneline`.",
+  "done": "guide 01 complete: two commits in the practice repo"
+ }
+}

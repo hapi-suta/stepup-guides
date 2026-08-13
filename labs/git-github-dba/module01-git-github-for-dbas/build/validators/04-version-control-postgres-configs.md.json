@@ -1,0 +1,290 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "2. Switch to the postgres user - sudo su - postgres"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "2. Switch to the postgres user - echo $PGDATA"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "3. Git identity for the postgres user - git config --global user.name \"Your Name\""
+ },
+ "4": {
+  "type": "manual",
+  "hint": "3. Git identity for the postgres user - git config --global user.email \"you@example.com\""
+ },
+ "5": {
+  "type": "manual",
+  "hint": "3. Git identity for the postgres user - git config --global init.defaultBranch main"
+ },
+ "6": {
+  "type": "ssh",
+  "check": "sudo -u postgres git config --global user.name >/dev/null 2>&1",
+  "hint": "As postgres, set the four git config values (identity, defaultBranch, editor).",
+  "done": "the postgres user has a git identity"
+ },
+ "7": {
+  "type": "manual",
+  "hint": "4. Create the repository in the data directory - cd $PGDATA"
+ },
+ "8": {
+  "type": "ssh",
+  "check": "sudo test -d /opt/pgsql/data/.git",
+  "hint": "As postgres: `cd $PGDATA` then `git init`.",
+  "done": "the config repo exists in the data directory"
+ },
+ "9": {
+  "type": "manual",
+  "hint": "5. The whitelist .gitignore - the most important file in this repo - vi .gitignore"
+ },
+ "10": {
+  "type": "manual",
+  "hint": "5. The whitelist .gitignore - the most important file in this repo - * ; !postgresql.conf ; !pg_hba.conf ; !pg_ident.conf ; !postgresql.aut"
+ },
+ "11": {
+  "type": "ssh",
+  "check": "sudo test -f /opt/pgsql/data/.gitignore && sudo grep -qx '!postgresql.conf' /opt/pgsql/data/.gitignore",
+  "hint": "Create the whitelist .gitignore exactly as shown (starts with `*`).",
+  "done": "the whitelist .gitignore is in place"
+ },
+ "12": {
+  "type": "manual",
+  "hint": "6. The baseline commit and tag - git add ."
+ },
+ "13": {
+  "type": "ssh",
+  "check": "[ \"$(sudo -u postgres git -C /opt/pgsql/data rev-list --count HEAD 2>/dev/null || echo 0)\" -ge 1 ]",
+  "hint": "Stage and commit: `git add .` then the baseline commit.",
+  "done": "the baseline commit exists"
+ },
+ "14": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data tag 2>/dev/null | grep -qx baseline-v1",
+  "hint": "Tag it: `git tag -a baseline-v1 -m \"known good: as provisioned\"`.",
+  "done": "baseline-v1 tag exists"
+ },
+ "15": {
+  "type": "manual",
+  "hint": "7. Why you must work as postgres (a deliberate error) - exit"
+ },
+ "16": {
+  "type": "manual",
+  "hint": "7. Why you must work as postgres (a deliberate error) - sudo git -C /opt/pgsql/data status"
+ },
+ "17": {
+  "type": "manual",
+  "hint": "7. Why you must work as postgres (a deliberate error) - sudo su - postgres"
+ },
+ "18": {
+  "type": "manual",
+  "hint": "7. Why you must work as postgres (a deliberate error) - cd $PGDATA"
+ },
+ "19": {
+  "type": "ssh",
+  "check": "sudo grep -q work_mem /opt/pgsql/data/postgresql.auto.conf",
+  "hint": "Run the ALTER SYSTEM from psql as postgres.",
+  "done": "postgres wrote work_mem into postgresql.auto.conf"
+ },
+ "20": {
+  "type": "manual",
+  "hint": "8. Watch postgres write to its own config - ALTER SYSTEM - git status"
+ },
+ "21": {
+  "type": "manual",
+  "hint": "8. Watch postgres write to its own config - ALTER SYSTEM - git diff"
+ },
+ "22": {
+  "type": "manual",
+  "hint": "8. Watch postgres write to its own config - ALTER SYSTEM - git add postgresql.auto.conf"
+ },
+ "23": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data log --pretty=%s 2>/dev/null | grep -qi 'work_mem'",
+  "hint": "Commit the auto.conf change.",
+  "done": "the ALTER SYSTEM change is committed"
+ },
+ "24": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - git switch -c tune-shared-buffers"
+ },
+ "25": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - vi postgresql.conf"
+ },
+ "26": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - git diff"
+ },
+ "27": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - git add postgresql.conf"
+ },
+ "28": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data log --all --pretty=%s 2>/dev/null | grep -qi 'shared_buffers'",
+  "hint": "On branch tune-shared-buffers, edit the value to 256MB and commit.",
+  "done": "the tuning commit exists"
+ },
+ "29": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - git switch main"
+ },
+ "30": {
+  "type": "ssh",
+  "check": "sudo grep -q '^shared_buffers = 256MB' /opt/pgsql/data/postgresql.conf",
+  "hint": "On main, `git merge tune-shared-buffers`.",
+  "done": "the tuning change is merged into main"
+ },
+ "31": {
+  "type": "manual",
+  "hint": "9. A real tuning change, the professional way - git branch -d tune-shared-buffers"
+ },
+ "32": {
+  "type": "manual",
+  "hint": "10. Reload vs restart - and how to know which you need - psql -c \"SELECT pg_reload_conf();\""
+ },
+ "33": {
+  "type": "manual",
+  "hint": "10. Reload vs restart - and how to know which you need - psql -c \"SELECT name, setting, unit, pending_restart FROM pg_settings "
+ },
+ "34": {
+  "type": "manual",
+  "hint": "10. Reload vs restart - and how to know which you need - exit"
+ },
+ "35": {
+  "type": "ssh",
+  "check": "systemctl is-active --quiet postgresql-16 && sudo -u postgres psql -tAc 'SHOW shared_buffers;' 2>/dev/null | grep -q 256MB",
+  "hint": "Restart with `sudo systemctl restart postgresql-16` (as ec2-user).",
+  "done": "shared_buffers is live at 256MB"
+ },
+ "36": {
+  "type": "manual",
+  "hint": "10. Reload vs restart - and how to know which you need - sudo -u postgres psql -c \"SELECT name, setting, unit, pending_restart "
+ },
+ "37": {
+  "type": "manual",
+  "hint": "11. Put the config repo on GitHub - sudo su - postgres"
+ },
+ "38": {
+  "type": "manual",
+  "hint": "11. Put the config repo on GitHub - cat ~/.ssh/id_ed25519.pub"
+ },
+ "39": {
+  "type": "manual",
+  "hint": "11. Put the config repo on GitHub - ssh -T git@github.com"
+ },
+ "40": {
+  "type": "manual",
+  "hint": "11. Put the config repo on GitHub - cd $PGDATA"
+ },
+ "41": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data remote get-url origin 2>/dev/null | grep -q github.com",
+  "hint": "As postgres: `git remote add origin git@github.com:YOUR_USERNAME/pg-single-config.git`.",
+  "done": "the config repo has its GitHub remote"
+ },
+ "42": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data rev-parse --verify -q origin/main >/dev/null 2>&1",
+  "hint": "Push: `git push -u origin main`.",
+  "done": "the config history is on GitHub"
+ },
+ "43": {
+  "type": "ssh",
+  "check": "sudo -H -u postgres git -C /opt/pgsql/data ls-remote --tags origin 2>/dev/null | grep -q baseline-v1",
+  "hint": "Push tags: `git push origin --tags`.",
+  "done": "your tags are on GitHub"
+ },
+ "44": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - max_connections = banana\t\t\t# (change requires restart)"
+ },
+ "45": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git add postgresql.conf"
+ },
+ "46": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git commit -m \"increase max_connections for the new app\""
+ },
+ "47": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git push"
+ },
+ "48": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - exit"
+ },
+ "49": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - sudo systemctl restart postgresql-16"
+ },
+ "50": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - sudo journalctl -u postgresql-16 --no-pager -n 20 | grep -iE \"fatal|in"
+ },
+ "51": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - sudo su - postgres"
+ },
+ "52": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - cd $PGDATA"
+ },
+ "53": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git log --oneline | head -3"
+ },
+ "54": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git show HEAD"
+ },
+ "55": {
+  "type": "ssh",
+  "check": "sudo -u postgres git -C /opt/pgsql/data log --pretty=%s -3 2>/dev/null | grep -q '^Revert'",
+  "hint": "Find the culprit (git log / git show), then `git revert --no-edit HEAD`.",
+  "done": "the bad commit is reverted"
+ },
+ "56": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - grep \"^max_connections\" postgresql.conf"
+ },
+ "57": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - exit"
+ },
+ "58": {
+  "type": "ssh",
+  "check": "systemctl is-active --quiet postgresql-16",
+  "hint": "Start the server: `sudo systemctl start postgresql-16`.",
+  "done": "PostgreSQL is back up"
+ },
+ "59": {
+  "type": "ssh",
+  "check": "sudo -u postgres psql -tAc 'SHOW max_connections;' 2>/dev/null | grep -qx 100",
+  "hint": "Verify with `sudo -u postgres psql -c \"SHOW max_connections;\"`.",
+  "done": "max_connections is back to 100"
+ },
+ "60": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - sudo su - postgres"
+ },
+ "61": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - cd $PGDATA"
+ },
+ "62": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git push"
+ },
+ "63": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - git log --oneline | head -5"
+ },
+ "64": {
+  "type": "manual",
+  "hint": "12. The finale: break it, then recover with git - exit"
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "1": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - sudo su - postgres"
+ },
+ "2": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - cd $PGDATA"
+ },
+ "3": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - local   all       all                 trust"
+ },
+ "4": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - git add pg_hba.conf"
+ },
+ "5": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - git commit -m \"auth cleanup\""
+ },
+ "6": {
+  "type": "manual",
+  "hint": "Setup: be the colleague - pg_ctl reload -D $PGDATA"
+ },
+ "7": {
+  "type": "manual",
+  "hint": "Question 1: How does the lockout actually look? - psql -c \"SELECT 1;\""
+ },
+ "8": {
+  "type": "manual",
+  "hint": "Question 2: Prove which change did it - without psql - git log --oneline | head -3"
+ },
+ "9": {
+  "type": "manual",
+  "hint": "Question 2: Prove which change did it - without psql - git diff HEAD~1 HEAD"
+ },
+ "10": {
+  "type": "manual",
+  "hint": "Question 3: Recover - revert and reload without SQL - git revert --no-edit HEAD"
+ },
+ "11": {
+  "type": "manual",
+  "hint": "Question 3: Recover - revert and reload without SQL - pg_ctl reload -D $PGDATA"
+ },
+ "12": {
+  "type": "manual",
+  "hint": "Question 3: Recover - revert and reload without SQL - psql -tc \"SELECT 'access restored';\""
+ }
+}
