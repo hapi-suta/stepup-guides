@@ -1,0 +1,11 @@
+# Every file requires review before merging (security review H-1, 2026-08-16).
+#
+# Lab content in this repo is executed with real student AWS credentials via
+# the SUTA Labs control plane's validate-step.sh, and is served directly to
+# students - an unreviewed change here is equivalent to code execution on the
+# box holding every student's credentials. See jd repo docs/08-security-review.md.
+#
+# @hafopezi10 is Happy's separate GitHub account (this repo is owned by
+# hapi-suta) - required because GitHub never lets a PR's author approve their
+# own PR, so a solo maintainer needs a second identity to get a real review.
+* @hafopezi10
