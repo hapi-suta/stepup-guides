@@ -453,20 +453,47 @@ sudo -iu postgres
 
 **You are now the postgres user.**
 
+First, get NODE2's **private IP** - not its public IP. Both servers sit in
+the same AWS network, so node-to-node traffic should stay on the private
+one: it's free, it's faster, and - the reason it matters here - **a
+private IP never changes**, even when a server is stopped and restarted.
+NODE2's public IP does change on every restart, so an entry keyed to it
+goes stale the next time the lab server reboots.
+
+**Run on NODE2 (pg-backup)**, in your other terminal:
+
+```bash
+hostname -I | awk '{print $1}'
+```
+
+**Expected output (yours will differ):**
+```
+172.31.24.72
+```
+
+That's NODE2's private IP - it will start with `10.`, `172.16.`-`172.31.`,
+or `192.168.`. Copy it - you'll use it below and again in Build 05.
+
 Open the client authentication file:
 
 ```bash
 vim /opt/pgsql/data/pg_hba.conf
 ```
 
-Add this line at the end. **Replace [NODE2_IP] with NODE2's actual IP address (e.g., 34.207.152.179).**
+Add these two lines at the end. **Replace [NODE2_PRIVATE_IP] with the
+private IP you just copied from NODE2 (e.g., 172.31.24.72).**
 
 ```
-# Allow backup server to connect
-host    all             postgres        [NODE2_IP]/32       scram-sha-256
+# Allow backup server to connect - private IP, so this survives a restart
+host    all             postgres        [NODE2_PRIVATE_IP]/32       scram-sha-256
+# pg_basebackup (Build 05) needs its own entry - it speaks PostgreSQL's
+# replication protocol, which the "all" line above does not cover
+host    replication     postgres        [NODE2_PRIVATE_IP]/32       scram-sha-256
 ```
 
-(`host` = TCP connection, `all` = any database, `postgres` = the user, `/32` = exact IP match, `scram-sha-256` = password authentication method)
+(`host` = TCP connection, `all`/`replication` = which connection types this
+covers, `postgres` = the user, `/32` = exact IP match, `scram-sha-256` =
+password authentication method)
 
 Save and exit vim (press `Esc`, then type `:wq` and press `Enter`).
 
@@ -496,10 +523,13 @@ Exit back to ec2-user:
 exit
 ```
 
-Restart PostgreSQL so the pg_hba.conf changes take effect:
+Reload PostgreSQL so the pg_hba.conf changes take effect - a reload
+re-reads the authentication config without dropping any existing
+connections, which is all a pg_hba.conf change needs; save a restart for
+changes that actually require one (like `listen_addresses`):
 
 ```bash
-sudo systemctl restart postgresql-16
+sudo systemctl reload postgresql-16
 ```
 
 ## 9. Verify NODE2 can connect to NODE1

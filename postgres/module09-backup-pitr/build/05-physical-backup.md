@@ -224,7 +224,67 @@ exit
 > A growing `failed_count` means your archive_command is broken - WAL will
 > accumulate on the primary until the disk fills.
 
-## 5. Take a base backup with pg_basebackup - plain format
+## 5. Verify the replication pg_hba.conf entry exists
+
+**Run on NODE1 (pg-primary):**
+
+`pg_basebackup` (next step) doesn't use a normal database connection - it
+speaks PostgreSQL's replication protocol, which pg_hba.conf's `all`
+database keyword does **not** cover. If Build 02's setup only has the
+`all` line, `pg_basebackup` will fail with this error:
+
+```
+pg_basebackup: error: connection to server at "pg-primary" ... failed: FATAL:  no pg_hba.conf entry for replication connection from host "...", user "postgres", no encryption
+```
+
+Check for the `replication` entry:
+
+```bash
+sudo grep replication /opt/pgsql/data/pg_hba.conf
+```
+
+**Expected output (yours will differ):**
+```
+host    replication     postgres        172.31.24.72/32       scram-sha-256
+```
+
+If you see a line like that, you're set - skip to the next step.
+
+If nothing prints, add it now. Switch to the postgres user:
+
+```bash
+sudo -iu postgres
+```
+
+**You are now the postgres user.**
+
+```bash
+vim /opt/pgsql/data/pg_hba.conf
+```
+
+Add this line at the end (use NODE2's private IP from Build 02 §8 - the
+same one already in your `all` line):
+
+```
+host    replication     postgres        [NODE2_PRIVATE_IP]/32       scram-sha-256
+```
+
+Save and exit vim (`Esc`, then `:wq`, `Enter`). Exit back to ec2-user:
+
+```bash
+exit
+```
+
+Reload PostgreSQL so the change takes effect - a reload re-reads the
+authentication config without dropping any existing connections, which is
+all a pg_hba.conf change needs; save a restart for changes that actually
+require one (like `listen_addresses`):
+
+```bash
+sudo systemctl reload postgresql-16
+```
+
+## 6. Take a base backup with pg_basebackup - plain format
 
 **Run on NODE2 (pg-backup):**
 
@@ -301,7 +361,7 @@ exit
 > an immediate checkpoint. This starts the backup faster but causes a brief I/O
 > spike. In production during business hours, consider omitting this flag.
 
-## 6. Take a base backup - TAR compressed format
+## 7. Take a base backup - TAR compressed format
 
 **Run on NODE2 (pg-backup):**
 
@@ -367,7 +427,7 @@ exit
 > tar backup; you must extract it first. Plain format backups can be started
 > in-place (useful for fast PITR).
 
-## 7. Verify the base backup (plain format)
+## 8. Verify the base backup (plain format)
 
 **Run on NODE2 (pg-backup):**
 
@@ -409,7 +469,7 @@ exit
 > you need WAL archiving - the base backup is your starting point, and WAL replay
 > brings it to any point in time after the backup.
 
-## 8. Understand the PITR equation
+## 9. Understand the PITR equation
 
 **Run on NODE2 (pg-backup):**
 
@@ -467,7 +527,7 @@ exit
 > database at backup time. WAL alone is useless without a starting point.
 > Together, they give you any point in time.
 
-## 9. Create additional WAL activity for PITR testing
+## 10. Create additional WAL activity for PITR testing
 
 **Run on NODE1 (pg-primary):**
 
