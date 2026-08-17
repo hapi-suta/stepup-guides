@@ -1,0 +1,20 @@
+=== SCENARIO 04: Docker Container Crash - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PARTIAL PASS (4/5)
+  - Check 5 FAILS: psql_docker requires password (script bug - no PGPASSWORD)
+STEP 2 - Inject: PASS (docker kill voleon-pg, container exited, port 5433 down)
+STEP 3 - Validate after inject: CORRECT FAIL (3/5 fail)
+  - Check 2 FAIL: Container exited
+  - Check 4 FAIL: Port 5433 not responding
+  - Check 5 FAIL: Connection timed out
+STEP 4 - Restore: PASS (docker start voleon-pg)
+STEP 5 - Final validate: PARTIAL PASS (3/5, 2 known bugs)
+  - Check 3 FAIL: macOS date parsing bug (negative uptime)
+  - Check 5 FAIL: psql_docker password bug
+
+KNOWN BUGS:
+  1. validate.sh Check 3: macOS date -d incompatibility (docker timestamp format)
+  2. validate.sh Check 5: psql_docker() missing PGPASSWORD for external connection
+
+VERDICT: INJECT/VALIDATE CYCLE WORKS (core checks 2+4 correctly detect injection and recovery)

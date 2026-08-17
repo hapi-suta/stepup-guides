@@ -1,0 +1,15 @@
+[0;36m[INFO][0m  08:25:06 Validating Scenario 01: Primary Failover recovery
+
+[0;36m[INFO][0m  08:25:06 Check 1: PostgreSQL accepting connections (on replica or primary)...
+[0;32m[OK][0m    08:25:06 PostgreSQL is responding on 100.26.54.122
+[0;36m[INFO][0m  08:25:06 Check 2: Confirming the responding node is NOT in recovery mode...
+[0;32m[OK][0m    08:25:07 Node 100.26.54.122 is in read-write mode (pg_is_in_recovery = f)
+[0;36m[INFO][0m  08:25:07 Check 3: PgBouncer accepting connections on port 6432...
+[0;32m[OK][0m    08:25:07 PgBouncer on 100.26.54.122:6432 is accepting connections
+[0;36m[INFO][0m  08:25:07 Check 4: Test INSERT into quant.signals via PgBouncer...
+[0;32m[OK][0m    08:25:07 INSERT into quant.signals succeeded
+DELETE 1
+
+  Results: [0;32mPASS: 4[0m  [0;31mFAIL: 0[0m
+
+[0;32m[OK][0m    08:25:08 Scenario 01 PASSED - Full failover recovery confirmed

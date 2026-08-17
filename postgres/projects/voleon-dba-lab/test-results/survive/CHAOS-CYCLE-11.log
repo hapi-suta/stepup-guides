@@ -1,0 +1,21 @@
+=== SCENARIO 11: Monitoring Incident - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (5/5, 8/8 targets, 11 rules)
+STEP 2 - Inject: PASS (wrong port 9999, node_exporter stopped, invalid alert rule)
+STEP 3 - Validate after inject: CORRECT FAIL (4/5 fail)
+  - Check 1 FAIL: :9999 found in prometheus.yml
+  - Check 2 FAIL: chaos invalid rule found
+  - Check 3 FAIL: node_exporter inactive
+  - Check 4 FAIL: 7/8 UP, 1 DOWN
+  - Check 5 PASS: 11 rules still loaded (prometheus didn't reload bad config)
+STEP 4 - Restore: PASS (configs from .chaos_backup, node_exporter started, prometheus restarted)
+STEP 5 - Final validate: PASS (5/5) after 30s wait for Prometheus scrape cycle
+  NOTE: First attempt showed 6/6 targets (< 7 threshold) - needed wait for all targets to register
+
+KNOWN ISSUES:
+  - Prometheus lifecycle API returns 403 (--web.enable-lifecycle not set)
+  - validate.sh check 4 requires >= 7 targets; right after restart only 6 may be discovered
+  - Need ~30s after Prometheus restart for all targets to be scraped
+
+VERDICT: FULL CYCLE PASS

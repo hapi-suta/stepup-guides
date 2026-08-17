@@ -1,0 +1,16 @@
+=== SCENARIO 10: Automation Failure - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (4/4)
+STEP 2 - Inject: PASS (inventory corrupted, pg_hba.conf reject rule added)
+STEP 3 - Validate after inject: CORRECT FAIL (1/4 fail - check 2 pg_hba reject detected)
+  NOTE: Check 1 showed 3/4 Ansible pings (pg-primary unreachable) but still counted as PASS (threshold >= 2)
+  NOTE: Check 3 still showed streaming - existing replication connection hadn't timed out yet
+STEP 4 - Restore: PASS (inventory + pg_hba.conf restored from .chaos_backup, PG reloaded)
+STEP 5 - Final validate: PASS (4/4)
+
+KNOWN ISSUES:
+  - validate.sh check 1 threshold too low (>= 2 nodes = pass, but should require all 4)
+  - Replication check may not detect breakage until existing connection times out
+
+VERDICT: FULL CYCLE PASS

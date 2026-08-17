@@ -1,0 +1,47 @@
+[0;36m[INFO][0m  08:09:57 Scenario 07: Slow Query Blocks Partition Maintenance
+[0;36m[INFO][0m  08:09:57 Target: quant.market_data partition on 100.26.54.122
+
+[0;36m[INFO][0m  08:09:57 Checking SSH and PostgreSQL connectivity...
+[0;32m[OK][0m    08:09:57 Primary is reachable
+[0;36m[INFO][0m  08:09:57 Finding oldest market_data partition to lock...
+[0;36m[INFO][0m  08:09:58 Will lock partition: quant.market_data_2025_07
+
+[1;33m[WARN][0m  08:09:58 Starting a long-running query that holds AccessShareLock on quant.market_data_2025_07...
+[1;33m[WARN][0m  08:09:58 Lock will hold for 300s unless manually killed.
+
+Blocker started with PID: 41382
+
+[0;32m[OK][0m    08:10:03 AccessShareLock is active on quant.market_data_2025_07 (1 lock entry/entries)
+
+  A long-running transaction is holding AccessShareLock on quant.market_data_2025_07.
+  Any attempt to VACUUM FULL, DETACH, or DROP that partition will be blocked.
+
+  Your tasks:
+    1. Identify the blocking query:
+       SELECT pid, state, wait_event_type, wait_event, query_start,
+              left(query, 80) AS query
+       FROM pg_stat_activity
+       WHERE state != 'idle'
+       ORDER BY query_start;
+
+    2. Find what it is blocking:
+       SELECT blocking_locks.pid, blocked_locks.pid AS blocked_pid,
+              blocked_activity.query AS blocked_query
+       FROM pg_catalog.pg_locks blocked_locks
+       JOIN pg_catalog.pg_locks blocking_locks
+         ON blocking_locks.locktype = blocked_locks.locktype
+       JOIN pg_catalog.pg_stat_activity blocked_activity
+         ON blocked_activity.pid = blocked_locks.pid
+       WHERE NOT blocked_locks.granted;
+
+    3. To simulate a blocked maintenance job, open another session and run:
+       ALTER TABLE quant.market_data_2025_07 SET (autovacuum_enabled = false);
+       (This requires an AccessExclusiveLock and will block)
+
+    4. Kill the blocker: SELECT pg_terminate_backend(<pid>);
+
+    5. Verify the maintenance job can now proceed
+
+  Lock will auto-release after 300s if not killed manually.
+
+  When done: ./chaos.sh validate 07-slow-query-blocks-partitions

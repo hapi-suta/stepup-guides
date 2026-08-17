@@ -1,0 +1,30 @@
+===========================================
+ VALIDATION: Monitoring Incident
+===========================================
+
+[1/5] Checking prometheus.yml on pg-ops (34.228.32.17)...
+  [PASS] prometheus.yml has correct postgres_exporter port
+         No :9999 references found
+
+[2/5] Checking alert_rules.yml on pg-ops (34.228.32.17)...
+  [PASS] alert_rules.yml has no invalid chaos rules
+         No chaos rules found
+
+[3/5] Checking node_exporter on pg-primary (100.26.54.122)...
+  [PASS] node_exporter is running on pg-primary
+         Service status: active
+
+[4/5] Checking Prometheus targets on pg-ops (34.228.32.17)...
+  [PASS] All Prometheus targets are UP
+         8/8 targets healthy
+
+[5/5] Checking Prometheus rules on pg-ops (34.228.32.17)...
+  [PASS] Prometheus rules loaded without errors
+         11 rules loaded
+
+===========================================
+ RESULTS: 5/5 checks passed
+===========================================
+
+ ALL CHECKS PASSED - Monitoring incident resolved!
+

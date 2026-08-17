@@ -1,0 +1,21 @@
+=== SCENARIO 02: PgBouncer Connection Pool Exhaustion - Inject/Validate Cycle ===
+Date: 2026-06-19
+
+STEP 1 - Baseline validate: PASS (3/3 effective, check 3 skipped - pgbouncer admin auth)
+STEP 2 - Inject: PARTIAL
+  - 60 pg_sleep connections launched, 51 confirmed active in pg_stat_activity
+  - Pool was NOT actually saturated (connections still went through)
+  - inject.sh test connection succeeded (pool_size > flood count)
+STEP 3 - Validate after inject: PASS (should have FAILED)
+  - Flood didn't exhaust the pool - PgBouncer pool_size appears > 60
+  - Check 3 skipped (pgbouncer admin auth required)
+STEP 4 - Restore: PASS (terminated pg_sleep sessions, restarted pgbouncer)
+  NOTE: pkill -f 'pg_sleep' killed SSH session - had to reconnect
+STEP 5 - Final validate: PASS (3/3)
+
+KNOWN BUGS:
+  1. inject.sh: Flood of 60 connections insufficient to exhaust pool (pool_size appears > 60)
+  2. validate.sh Check 3: Cannot connect to pgbouncer admin (auth issue) - always skipped
+  3. inject.sh: Uses PGPASSWORD=quant_app_2026 hardcoded
+
+VERDICT: PARTIAL CYCLE PASS - inject runs without error, validate passes, but pool not actually saturated

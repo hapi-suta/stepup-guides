@@ -1,0 +1,26 @@
+[0;36m[INFO][0m  08:25:16 Scenario 01: Primary Failover
+[0;36m[INFO][0m  08:25:16 Target: 100.26.54.122 (pg-primary)
+
+[0;36m[INFO][0m  08:25:16 Checking SSH connectivity to primary...
+[0;32m[OK][0m    08:25:17 Primary is reachable via SSH
+[0;36m[INFO][0m  08:25:17 Confirming PostgreSQL is currently UP on primary...
+[0;32m[OK][0m    08:25:17 PostgreSQL is running on primary - proceeding with injection
+
+[1;33m[WARN][0m  08:25:17 Stopping postgresql-17 on 100.26.54.122...
+
+[0;32m[OK][0m    08:25:24 PostgreSQL is DOWN on 100.26.54.122
+
+  The primary (100.26.54.122) is no longer accepting connections.
+  PgBouncer on port 6432 will start returning errors.
+  The replica (54.144.241.128) is healthy but read-only.
+
+  Your tasks:
+    1. Confirm the primary is truly down (not just slow)
+    2. Check the replica is healthy
+    3. Promote the replica using pg_promote() or pg_ctl promote
+    4. Update PgBouncer to point to the new primary
+    5. Verify writes succeed through PgBouncer
+
+  Runbook: cbus/survive/01-primary-failover/runbook.md
+
+  When done: ./chaos.sh validate 01-primary-failover

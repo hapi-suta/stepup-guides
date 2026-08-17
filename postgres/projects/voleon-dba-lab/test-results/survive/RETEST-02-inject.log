@@ -1,0 +1,10 @@
+[0;36m[INFO][0m  08:14:30 Scenario 02: PgBouncer Connection Pool Exhaustion
+[0;36m[INFO][0m  08:14:30 Flooding 100.26.54.122:6432 with 200 connections
+
+[0;36m[INFO][0m  08:14:30 Checking PgBouncer is currently reachable...
+[0;32m[OK][0m    08:14:30 PgBouncer is reachable - proceeding with injection
+
+[1;33m[WARN][0m  08:14:30 Opening 200 idle connections that will hold for 120s...
+[1;33m[WARN][0m  08:14:30 This will exhaust the default PgBouncer pool size.
+
+Launched 200 background connections. PIDs in background.

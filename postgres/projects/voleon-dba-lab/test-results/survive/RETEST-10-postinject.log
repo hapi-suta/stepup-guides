@@ -1,0 +1,27 @@
+===========================================
+ VALIDATION: Automation Failure
+===========================================
+
+[1/4] Checking Ansible connectivity from pg-ops (34.228.32.17)...
+  [FAIL] Ansible can ping all PG nodes
+         Only 3/4 node(s) responding - check inventory IPs
+
+[2/4] Checking pg_hba.conf on pg-primary (100.26.54.122)...
+  [FAIL] pg_hba.conf has no reject rules for replicator
+         Found 1 reject rule(s) for replicator - remove them and reload PG
+
+[3/4] Checking replication status on pg-primary (100.26.54.122)...
+  [PASS] Replication is streaming with acceptable lag
+         State: streaming, Lag: -1s
+
+[4/4] Checking PostgreSQL connectivity on pg-primary (100.26.54.122)...
+  [PASS] PostgreSQL is accepting connections
+         quantdb responds to queries
+
+===========================================
+ RESULTS: 2/4 checks passed
+===========================================
+
+ 2 check(s) failed - issues remain.
+ Review the failures above and re-run this script.
+

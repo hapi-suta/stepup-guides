@@ -1,0 +1,39 @@
+[0;36m[INFO][0m  08:19:24 Scenario 08: Monitoring Blackout
+[0;36m[INFO][0m  08:19:24 Targets: Prometheus on 34.228.32.17, replica lag on 54.144.241.128
+
+[0;36m[INFO][0m  08:19:24 Checking SSH connectivity to ops and replica nodes...
+[0;32m[OK][0m    08:19:25 Both nodes are reachable
+[0;36m[INFO][0m  08:19:25 Stopping Prometheus on 34.228.32.17...
+[0;32m[OK][0m    08:19:34 Prometheus stopped successfully
+[0;36m[INFO][0m  08:19:34 Pausing WAL replay on replica to build lag...
+ pg_wal_replay_pause 
+---------------------
+ 
+(1 row)
+
+[0;36m[INFO][0m  08:19:35 Generating WAL activity on primary to build replica lag...
+[1;33m[WARN][0m  08:19:36 Could not generate WAL activity on primary
+[0;36m[INFO][0m  08:19:36 Waiting 15s to let lag accumulate...
+[0;36m[INFO][0m  08:19:52 Current replica lag: 43s
+
+[0;32m[OK][0m    08:19:52 Monitoring blackout injected:
+[0;32m[OK][0m    08:19:52   - Prometheus stopped on 34.228.32.17
+[0;32m[OK][0m    08:19:52   - Replica WAL replay paused (lag: 43s)
+
+  The monitoring stack is blind. Replica lag is growing.
+  No alerts will fire because Prometheus is down.
+
+  Your tasks:
+    1. Notice the monitoring gap (Grafana shows stale data or N/A)
+    2. Restart Prometheus: sudo systemctl start prometheus
+    3. Resume WAL replay on the replica:
+       sudo -u postgres /usr/pgsql-17/bin/psql -c "SELECT pg_wal_replay_resume();"
+    4. Verify Prometheus targets are all UP:
+       curl http://34.228.32.17:9090/api/v1/targets
+    5. Verify replica lag drops back to normal (< 5s)
+    6. Confirm lag alert rule would fire correctly
+
+  Key question: How long was the monitoring blind?
+  Check Prometheus TSDB: was there a gap in the metrics?
+
+  When done: ./chaos.sh validate 08-monitoring-blackout

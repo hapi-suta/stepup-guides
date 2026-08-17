@@ -1,0 +1,17 @@
+[0;36m[INFO][0m  08:10:45 Validating Scenario 07: Slow Query Blocks Partition Maintenance recovery
+
+[0;36m[INFO][0m  08:10:45 Check 1: PostgreSQL is accepting connections...
+[0;32m[OK][0m    08:10:45 PostgreSQL is responding on 100.26.54.122
+[0;36m[INFO][0m  08:10:45 Check 2: No active queries older than 60s blocking market_data...
+[0;32m[OK][0m    08:10:46 No long-running AccessShareLock queries on market_data
+[0;36m[INFO][0m  08:10:46 Check 3: No lock waits (blocked processes) on quant schema tables...
+[0;32m[OK][0m    08:10:47 No blocked lock waits on quant schema tables
+[0;36m[INFO][0m  08:10:47 Check 4: Partition DDL (ALTER TABLE) completes within 8s...
+[0;32m[OK][0m    08:10:48 Partition DDL on quant.market_data_2025_07 completed without blocking
+ALTER TABLE
+[0;36m[INFO][0m  08:10:49 Check 5: Chaos blocker process is no longer running...
+[0;32m[OK][0m    08:10:50 No chaos blocker PID file found (already cleaned up)
+
+  Results: [0;32mPASS: 5[0m  [0;31mFAIL: 0[0m
+
+[0;32m[OK][0m    08:10:50 Scenario 07 PASSED - No blocking queries, partition maintenance can run

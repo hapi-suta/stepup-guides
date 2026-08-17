@@ -1,0 +1,31 @@
+===========================================
+ CHAOS INJECTION: Linux System Crisis
+===========================================
+
+[1/3] Filling /tmp to ~95% on pg-primary (100.26.54.122)...
+  [DONE] Wrote 2048 MB to /tmp/.chaos_tmpfill
+  [OK] /tmp fill complete.
+
+[2/3] Setting vm.swappiness=100 on pg-primary (100.26.54.122)...
+  [INFO] Original value already saved: 1
+  [DONE] vm.swappiness set to 100 (was 1)
+  [OK] Swappiness change complete.
+
+[3/3] Adding iptables rule to drop 50% of packets to replica (172.31.22.69)...
+  [DONE] 50% packet drop rule added for traffic to 172.31.22.69
+  [OK] Network degradation injected.
+
+===========================================
+ CHAOS INJECTED SUCCESSFULLY
+===========================================
+
+ Injected on pg-primary (100.26.54.122):
+   1. /tmp filled to ~95% (/tmp/.chaos_tmpfill)
+   2. vm.swappiness set to 100
+   3. 50% packet drop to replica (172.31.22.69)
+
+ Symptoms to expect:
+   - Large sort/hash queries may fail (no temp space)
+   - Increasing swap usage, degraded PG response times
+   - Replication lag climbing, possible WAL sender timeouts
+

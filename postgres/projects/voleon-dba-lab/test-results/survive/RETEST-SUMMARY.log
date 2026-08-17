@@ -1,0 +1,70 @@
+================================================================================
+VOLEON DBA LAB - CHAOS INJECT/VALIDATE RETEST SUMMARY
+Date: 2026-06-20
+Tester: Automated (Claude Agent)
+================================================================================
+
+Order tested: 04, 07, 09, 10, 11, 02, 06, 08, 05, 01 (easy to hard)
+Skipped: 03-accidental-signal-delete (per instructions)
+
+RESULTS TABLE
+================================================================================
+Scenario                        | Baseline | Inject | Detects Failure | Restore       | Final Validate | VERDICT
+--------------------------------|----------|--------|-----------------|---------------|----------------|--------
+01-primary-failover             | PASS     | OK     | YES (1 FAIL)    | systemctl start postgresql-17 | PASS | PASS
+02-pgbouncer-exhaustion         | PASS     | OK     | PARTIAL*        | pg_terminate_backend + restart pgbouncer | PASS | PARTIAL
+04-docker-container-crash       | PASS     | OK     | YES (3 FAIL)    | docker start voleon-pg | PASS | PASS
+05-wal-disk-full                | PASS     | OK     | YES (2 FAIL)    | sudo find pg_wal -name 'chaos05*' -delete | PASS | PASS
+06-ansible-config-drift         | PASS     | OK     | YES (3 FAIL)    | cp pg_hba.conf.chaos06_backup + reload | PASS | PASS
+07-slow-query-blocks-partitions | PASS     | OK     | YES (1 FAIL)    | pg_terminate_backend + rm PID file | PASS | PASS
+08-monitoring-blackout          | PASS     | OK     | YES (5 FAIL)    | start prometheus + pg_wal_replay_resume | PASS | PASS
+09-linux-system-crisis          | PASS     | OK     | YES (3 FAIL)    | rm tmpfill + sysctl swappiness + iptables -D | PASS | PASS
+10-automation-failure           | PASS     | OK     | YES (2 FAIL)    | restore inventory + pg_hba backup + reload | PASS | PASS
+11-monitoring-incident          | PASS     | OK     | YES (4 FAIL)    | restore prometheus.yml + alert_rules + start node_exporter | PASS | PASS
+
+================================================================================
+TOTALS: 9/10 PASS, 1/10 PARTIAL
+================================================================================
+
+NOTES:
+------
+
+* Scenario 02 (PARTIAL): The validate script could not query PgBouncer admin
+  (pgbouncer user auth issue) so the pool saturation check was skipped. Regular
+  queries still succeeded through PgBouncer even with 200 flood connections
+  active, likely because pool_size is large enough or connections were queuing
+  successfully. The validate does not detect the injected state as a failure.
+  RECOMMENDATION: Fix PgBouncer admin auth in validate.sh, or add a check that
+  measures query latency through PgBouncer (should be >3s when pool is saturated).
+
+* Scenario 01: The post-inject validate timed out on the PgBouncer check (trying
+  to connect to the down primary's PgBouncer). However, Check 2 correctly detected
+  the failure (replica still in recovery mode = promotion not done). The validate
+  script works correctly but can hang on Check 3 when PgBouncer is unreachable.
+  RECOMMENDATION: Add a timeout to the PgBouncer connection attempt in validate.sh.
+
+* Scenario 07: The lock hold query had not been running for 60s when validate ran,
+  so Check 2 (>60s queries) passed. But Check 5 (blocker PID still alive) correctly
+  caught the injected state. Detection works via PID check rather than query age.
+
+* Scenario 05: Used find -delete for cleanup (glob expansion would fail with 245
+  files). PostgreSQL stayed up during inject (50MB free was enough to keep running).
+  Detection worked via dummy file count and low disk space checks.
+
+* Scenario 08: Baseline initially failed due to 460s replica lag (stale replay
+  timestamp from inactivity). Fixed by generating WAL writes before baseline.
+
+* Scenario 06: pg_hba.conf uses 0.0.0.0/0 for replication (not 172.31.0.0/16).
+  The inject script's sed handles both formats correctly.
+
+INDIVIDUAL LOG FILES:
+  RETEST-01-baseline.log, RETEST-01-inject.log, RETEST-01-postinject.log, RETEST-01.log
+  RETEST-02-baseline.log, RETEST-02-inject.log, RETEST-02-postinject.log, RETEST-02.log
+  RETEST-04-baseline.log, RETEST-04-inject.log, RETEST-04-postinject.log, RETEST-04.log
+  RETEST-05-baseline.log, RETEST-05-inject.log, RETEST-05-postinject.log, RETEST-05.log
+  RETEST-06-baseline.log, RETEST-06-inject.log, RETEST-06-postinject.log, RETEST-06.log
+  RETEST-07-baseline.log, RETEST-07-inject.log, RETEST-07-postinject.log, RETEST-07.log
+  RETEST-08-baseline.log, RETEST-08-inject.log, RETEST-08-postinject.log, RETEST-08.log
+  RETEST-09-baseline.log, RETEST-09-inject.log, RETEST-09-postinject.log, RETEST-09.log
+  RETEST-10-baseline.log, RETEST-10-inject.log, RETEST-10-postinject.log, RETEST-10.log
+  RETEST-11-baseline.log, RETEST-11-inject.log, RETEST-11-postinject.log, RETEST-11.log
