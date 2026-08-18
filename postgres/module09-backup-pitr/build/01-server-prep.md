@@ -264,19 +264,19 @@ If either test asks for a password instead of connecting, contact your instructo
 The PostgreSQL processes run as the `postgres` user. Archive commands and
 pgBackRest also run as `postgres`, so this user needs SSH access too.
 
-The postgres user and its SSH keys have been pre-configured. Let's verify.
+The postgres user and its SSH keys were wired up for you during server setup. Let's verify - you should not need to create anything.
 
 ### On NODE1
 
 **Run on NODE1 (pg-primary):**
 
-Create the postgres user (if it already exists, you'll see an error - that's OK, move on):
+Confirm the postgres user exists and note its home directory - SSH looks for keys under that home, so this is the value that matters:
 
 ```bash
-sudo useradd -m -d /home/postgres -s /bin/bash postgres
+getent passwd postgres
 ```
 
-(`-m` creates the home directory, `-d` sets it to `/home/postgres`, `-s` sets the login shell to bash.)
+You should see its home is `/var/lib/pgsql` (the seventh field, after the last colon). Do NOT run `useradd` - the PostgreSQL package already created this user during setup. Creating it again with a different home (like `/home/postgres`) is exactly what breaks the SSH key lookups.
 
 Switch to the postgres user:
 
@@ -309,11 +309,13 @@ exit
 
 **Run on NODE2 (pg-backup):**
 
-Create the postgres user:
+Confirm the postgres user exists here too:
 
 ```bash
-sudo useradd -m -d /home/postgres -s /bin/bash postgres
+getent passwd postgres
 ```
+
+Same as NODE1 - its home should be `/var/lib/pgsql`. Do NOT run `useradd`.
 
 Switch to the postgres user:
 
