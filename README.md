@@ -55,3 +55,5 @@ Each lab follows the **BUS methodology** (BUILD - USE - SURVIVE):
 ## Questions?
 
 Contact your instructor for help with any step.
+
+<!-- branch-protection end-to-end test, 2026-08-17 -->
