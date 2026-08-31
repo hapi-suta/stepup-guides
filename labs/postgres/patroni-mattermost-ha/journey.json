@@ -4877,6 +4877,20 @@
   "survive": {
     "delivery": "separate-chaos-flow",
     "guide": "01-failure-scenarios.md",
+    "landing": {
+      "id": "operations-ready",
+      "title": "Operate and recover the completed cluster",
+      "phase": "survive",
+      "delivery": "operations",
+      "role": "pg-ha-1",
+      "why": "The guided build is complete; use the live role terminals to inspect, operate and recover the system.",
+      "command": "sudo -u postgres /usr/local/bin/patronictl -c /etc/patroni/patroni.yml list",
+      "expected": "One leader and two streaming replicas are visible before a bounded failure drill begins.",
+      "validator": {
+        "source": "server-observer",
+        "code": "FINAL_PATRONI_PROOF"
+      }
+    },
     "readiness_requires": [
       "build_complete",
       "use_complete",
