@@ -21,7 +21,7 @@
           "id": "why-high-availability",
           "title": "Why high availability exists",
           "why": "A business application should not lose its database service because one database server stops.",
-          "scenario": "Mattermost is used during a workday when its database server suddenly fails.",
+          "scenario": "Mattermost stores its messages in PostgreSQL. During a workday, the PostgreSQL server accepting writes suddenly fails.",
           "definition": "High availability is a system's ability to keep providing its required service when an expected component fails.",
           "plain_parts": [
             "The required service here is safe database reads and writes.",
@@ -39,7 +39,8 @@
             "type": "before-after",
             "alt": "Mattermost first depends on one database, then continues through a replacement writer after that database fails."
           },
-          "checkpoint": "In one sentence, what service must remain available when a database server fails?",
+      "checkpoint": "pg-ha-1 is the current writer and suddenly fails. Mattermost users can post again after a brief failover. What continued working, and which prepared component made that possible?",
+      "applied_check": "pg-ha-1 is the current writer and suddenly fails. Mattermost users can post again after a brief failover. What continued working, and which prepared component made that possible?",
           "knowledge_check": {
             "type": "required-term-groups",
             "groups": [

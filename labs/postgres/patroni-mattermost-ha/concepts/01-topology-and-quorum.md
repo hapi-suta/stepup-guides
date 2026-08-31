@@ -1,7 +1,8 @@
 # Concepts: understand the Patroni system
 
-You are the database engineer for a company that uses Mattermost. People must be
-able to post messages even when an expected database server fails. Before touching
+You are the database engineer for a company that uses Mattermost. Mattermost stores
+its messages in PostgreSQL, and people must be able to post again when an expected
+database server fails. Before touching
 a server, build the mental model you will use to construct and troubleshoot the
 system.
 
