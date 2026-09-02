@@ -52,6 +52,100 @@ The eight stable roles describe responsibility, not current health:
 Addresses can change when infrastructure is replaced. Stable role names keep the
 same instruction and validator tied to the intended job.
 
+## Highly available: surviving a lost machine
+
+"Available" means a person can use the service right now. A single database server is
+one power cut, disk failure, or bad reboot away from an outage - a **single point of
+failure** (SPOF): one part whose loss stops everything.
+
+High availability does not mean nothing ever breaks. It means the service keeps
+working when one machine is lost, because another is ready to take over. We measure
+this with uptime (the fraction of time the service is usable) and two promises:
+
+- **RPO** (recovery point): how much recent data you can afford to lose.
+- **RTO** (recovery time): how long recovery may take.
+
+Every design choice in this lab trades against those two numbers. The job is not to
+keep every box alive; it is to keep a safe writer available and prove it.
+
+## Why a database has exactly one writer
+
+Reading data can happen on many copies at once - copies don't disagree. **Writing**
+is different. If two machines both accept changes to the same row, you now have two
+different truths and no way to say which is correct. That is **split-brain**, and it
+silently corrupts data.
+
+```text
+one writer   → every change has one home → always reconcilable
+two writers  → two histories of the same row → unrecoverable conflict
+```
+
+So the whole system is built around one rule: at any instant, **exactly one** node
+may accept writes (the primary). The others stay read-only copies, ready to be
+promoted - but never writing at the same time. Almost everything that follows exists
+to enforce that single rule safely.
+
+## Keeping a copy current: the change-log idea
+
+To keep a second machine ready to take over, you don't recopy the whole database
+constantly - that would be huge and always out of date. Instead the primary keeps an
+ordered **change-log**: every change, in the exact order it happened. A standby
+receives that log and replays it in order, becoming a faithful copy a moment behind.
+
+```text
+primary: change #1, #2, #3 ... ── log ──►  standby replays #1, #2, #3 ...
+```
+
+Two ideas matter from the very start:
+
+- **Lag:** the standby is always slightly behind. How far behind decides whether it
+  is safe to promote.
+- **A copy is not a backup:** a mistaken "delete everything" is a change too, so it
+  replays onto the copy perfectly. Backups solve a different problem.
+
+PostgreSQL's version of this change-log is the write-ahead log (WAL), covered below.
+
+## Agreeing with no boss: consensus and quorum
+
+If the primary disappears, who decides which copy becomes the new primary? There is
+no human in the loop, and no single machine can be trusted to decide alone - the
+machine that looks "down" to you might just be unreachable, not actually dead.
+
+The answer is a **vote**. A group of coordinators accepts a shared decision only when
+a **majority** (more than half) agree - that is **quorum**. Majority voting has one
+powerful property: two different majorities cannot exist at once, so the group can
+never split into two camps that each elect their own leader.
+
+```text
+3 coordinators, majority = 2
+3 up → decide      2 up → still decide      1 up → must refuse to decide
+```
+
+This is why coordinators come in **odd** numbers (3, 5): three tolerates losing one
+and still holds a majority, and a tie is impossible. A lone survivor must *refuse* to
+act rather than risk creating a second leader - refusing is safer than guessing.
+
+## When the writer dies: failover and fencing
+
+Put those ideas together and automatic recovery has three parts:
+
+1. **Detect** - the primary stops renewing its short "I'm in charge" lease, so the
+   group concludes it is gone.
+2. **Promote** - a current-enough copy is chosen (by quorum) and becomes the new
+   primary.
+3. **Fence** - the old primary is blocked from accepting writes, in case it was only
+   briefly unreachable and returns still believing it is in charge.
+
+```text
+"a new leader exists"  AND  "the old leader can no longer write"
+are TWO separate facts - both must be true, or you risk split-brain
+```
+
+Fencing is the step beginners forget. Promoting a new writer without fencing the old
+one is exactly how you end up with two writers - the disaster the one-writer rule
+forbids. A planned move while both are healthy is a **switchover**; an unplanned one
+after a failure is a **failover**.
+
 ## etcd: agreement before leadership
 
 Patroni nodes need one shared answer to a critical question: **which member holds
@@ -132,6 +226,25 @@ Bootstrap DCS values seed the cluster during initialization. Editing them after 
 cluster exists does not automatically change live dynamic configuration. Daily
 changes use Patroni's supported dynamic-configuration path and must be observed on
 the members.
+
+## One address that never moves: what a proxy does
+
+After a failover the writer lives on a different machine with a different address. If
+every application had to discover "who is the writer now?" on each connection, a
+failover would mean reconfiguring every application.
+
+A **proxy** removes that problem. It is one fixed address sitting in front of the
+nodes that forwards each connection to the right one. The application always connects
+to the proxy; the proxy tracks which node is currently the writer and sends writes
+there.
+
+```text
+app ──► proxy (one fixed address) ──► whichever node is the writer right now
+```
+
+The proxy must truly *know* which node is the writer - not merely "is the port open,"
+but "are you actually the primary right now?" That health question is what keeps
+routing correct across a failover.
 
 ## HAProxy: one stable writer address
 
