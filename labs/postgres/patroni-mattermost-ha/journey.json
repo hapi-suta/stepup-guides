@@ -108,14 +108,50 @@
           }
         },
         {
+          "id": "copy-etcd-server-1",
+          "title": "Copy the etcd server program into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcd now exists.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-server-1",
-          "title": "Install the etcd server program",
+          "title": "Make the etcd server program runnable",
           "role": "dcs-1",
           "user": "ec2-user",
           "why": "The etcd program runs one voting member of the distributed configuration store.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd",
-          "command_explanation": "sudo grants installation permission; install copies the verified server program and sets executable mode 0755.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcd",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
           "expected": "The command returns to the prompt without an error and /usr/local/bin/etcd is executable.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_SERVER_INSTALLED passed.",
@@ -133,30 +169,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          }
+        },
+        {
+          "id": "copy-etcdctl-client-1",
+          "title": "Copy the etcdctl client program into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl now exists.",
+          "hint": "The source and destination names are both etcdctl.",
           "hints": {
-            "question": "Which program runs the voting member service?",
-            "hint": "Its filename is simply etcd.",
-            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
-            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDCTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdctl-client-1",
+          "title": "Make the etcdctl client program runnable",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdctl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+          "hint": "The source and destination names are both etcdctl.",
+          "hints": {
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_SERVER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdctl-client-1",
-          "title": "Install the etcdctl client program",
-          "role": "dcs-1",
-          "user": "ec2-user",
-          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
-          "command_explanation": "install copies the separately staged client program and makes it executable without starting a service.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+            "code": "ETCDCTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDCTL_INSTALLED passed.",
@@ -174,30 +233,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source and destination names are both etcdctl.",
+          }
+        },
+        {
+          "id": "copy-etcdutl-recovery-1",
+          "title": "Copy the etcdutl recovery program into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl now exists.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
           "hints": {
-            "question": "Which program will you use to ask the cluster for health?",
-            "hint": "The client name ends in ctl, meaning control.",
-            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDUTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdutl-recovery-1",
+          "title": "Make the etcdutl recovery program runnable",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdutl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
+          "hints": {
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCDCTL_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdutl-recovery-1",
-          "title": "Install the etcdutl recovery program",
-          "role": "dcs-1",
-          "user": "ec2-user",
-          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
-          "command_explanation": "install copies the offline recovery utility and gives it executable permissions.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+            "code": "ETCDUTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDUTL_INSTALLED passed.",
@@ -215,19 +297,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
-          "hints": {
-            "question": "Which utility will inspect an offline snapshot later?",
-            "hint": "Its name ends in utl, meaning utility.",
-            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCDUTL_INSTALLED"
           }
         },
         {
@@ -313,14 +382,50 @@
           }
         },
         {
+          "id": "copy-etcd-member-cert-1",
+          "title": "Copy the role-bound TLS public certificate into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.crt now exists.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-member-cert-1",
-          "title": "Install the role-bound TLS public certificate",
+          "title": "Set permissions on the role-bound TLS public certificate",
           "role": "dcs-1",
           "user": "ec2-user",
           "why": "Peers need this signed public certificate to authenticate the member name and private address.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
-          "command_explanation": "This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.",
+          "command": "sudo chmod 0644 /etc/etcd/member.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
           "expected": "The certificate is installed without printing its contents.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_CERT_INSTALLED passed.",
@@ -338,30 +443,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A public certificate may be readable; its matching private key may not.",
+          }
+        },
+        {
+          "id": "copy-etcd-ca-1",
+          "title": "Copy the etcd trust anchor into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/ca.crt now exists.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
           "hints": {
-            "question": "Why can this file be 0644?",
-            "hint": "It contains identity claims and a public key, not the private key.",
-            "stronger_hint": "Install member.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CA_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-ca-1",
+          "title": "Set permissions on the etcd trust anchor",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
+          "command": "sudo chmod 0644 /etc/etcd/ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The CA certificate is installed without exposing any private key.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          "hints": {
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_MEMBER_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-ca-1",
-          "title": "Install the etcd trust anchor",
-          "role": "dcs-1",
-          "user": "ec2-user",
-          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
-          "command_explanation": "This installs the public CA certificate used as the mutual-TLS trust anchor.",
-          "expected": "The CA certificate is installed without exposing any private key.",
+            "code": "ETCD_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CA_INSTALLED passed.",
@@ -379,30 +507,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          }
+        },
+        {
+          "id": "copy-etcd-identity-1",
+          "title": "Copy the role-bound TLS private key into place",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.key now exists.",
+          "hint": "Never use cat on the private key.",
           "hints": {
-            "question": "Which CA material belongs here?",
-            "hint": "Only the certificate used for verification.",
-            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_KEY_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-identity-1",
+          "title": "Set permissions on the role-bound TLS private key",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Mutual TLS must identify this member without exposing its private key.",
+          "command": "sudo chmod 0600 /etc/etcd/member.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The command returns without displaying key material.",
+          "hint": "Never use cat on the private key.",
+          "hints": {
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-identity-1",
-          "title": "Install the role-bound TLS private key",
-          "role": "dcs-1",
-          "user": "ec2-user",
-          "why": "Mutual TLS must identify this member without exposing its private key.",
-          "command": "sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
-          "command_explanation": "The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.",
-          "expected": "The command returns without displaying key material.",
+            "code": "ETCD_MEMBER_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_KEY_INSTALLED passed.",
@@ -420,19 +571,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Never use cat on the private key.",
-          "hints": {
-            "question": "Which permission prevents other users from reading the key?",
-            "hint": "The owner needs read and write; everyone else needs no access.",
-            "stronger_hint": "That numeric mode is 0600.",
-            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_MEMBER_KEY_INSTALLED"
           }
         },
         {
@@ -481,14 +619,50 @@
           }
         },
         {
+          "id": "copy-etcd-server-2",
+          "title": "Copy the etcd server program into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcd now exists.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-server-2",
-          "title": "Install the etcd server program",
+          "title": "Make the etcd server program runnable",
           "role": "dcs-2",
           "user": "ec2-user",
           "why": "The etcd program runs one voting member of the distributed configuration store.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd",
-          "command_explanation": "sudo grants installation permission; install copies the verified server program and sets executable mode 0755.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcd",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
           "expected": "The command returns to the prompt without an error and /usr/local/bin/etcd is executable.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_SERVER_INSTALLED passed.",
@@ -506,30 +680,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          }
+        },
+        {
+          "id": "copy-etcdctl-client-2",
+          "title": "Copy the etcdctl client program into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl now exists.",
+          "hint": "The source and destination names are both etcdctl.",
           "hints": {
-            "question": "Which program runs the voting member service?",
-            "hint": "Its filename is simply etcd.",
-            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
-            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDCTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdctl-client-2",
+          "title": "Make the etcdctl client program runnable",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdctl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+          "hint": "The source and destination names are both etcdctl.",
+          "hints": {
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_SERVER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdctl-client-2",
-          "title": "Install the etcdctl client program",
-          "role": "dcs-2",
-          "user": "ec2-user",
-          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
-          "command_explanation": "install copies the separately staged client program and makes it executable without starting a service.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+            "code": "ETCDCTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDCTL_INSTALLED passed.",
@@ -547,30 +744,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source and destination names are both etcdctl.",
+          }
+        },
+        {
+          "id": "copy-etcdutl-recovery-2",
+          "title": "Copy the etcdutl recovery program into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl now exists.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
           "hints": {
-            "question": "Which program will you use to ask the cluster for health?",
-            "hint": "The client name ends in ctl, meaning control.",
-            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDUTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdutl-recovery-2",
+          "title": "Make the etcdutl recovery program runnable",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdutl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
+          "hints": {
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCDCTL_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdutl-recovery-2",
-          "title": "Install the etcdutl recovery program",
-          "role": "dcs-2",
-          "user": "ec2-user",
-          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
-          "command_explanation": "install copies the offline recovery utility and gives it executable permissions.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+            "code": "ETCDUTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDUTL_INSTALLED passed.",
@@ -588,19 +808,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
-          "hints": {
-            "question": "Which utility will inspect an offline snapshot later?",
-            "hint": "Its name ends in utl, meaning utility.",
-            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCDUTL_INSTALLED"
           }
         },
         {
@@ -686,14 +893,50 @@
           }
         },
         {
+          "id": "copy-etcd-member-cert-2",
+          "title": "Copy the role-bound TLS public certificate into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.crt now exists.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-member-cert-2",
-          "title": "Install the role-bound TLS public certificate",
+          "title": "Set permissions on the role-bound TLS public certificate",
           "role": "dcs-2",
           "user": "ec2-user",
           "why": "Peers need this signed public certificate to authenticate the member name and private address.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
-          "command_explanation": "This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.",
+          "command": "sudo chmod 0644 /etc/etcd/member.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
           "expected": "The certificate is installed without printing its contents.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_CERT_INSTALLED passed.",
@@ -711,30 +954,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A public certificate may be readable; its matching private key may not.",
+          }
+        },
+        {
+          "id": "copy-etcd-ca-2",
+          "title": "Copy the etcd trust anchor into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/ca.crt now exists.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
           "hints": {
-            "question": "Why can this file be 0644?",
-            "hint": "It contains identity claims and a public key, not the private key.",
-            "stronger_hint": "Install member.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CA_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-ca-2",
+          "title": "Set permissions on the etcd trust anchor",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
+          "command": "sudo chmod 0644 /etc/etcd/ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The CA certificate is installed without exposing any private key.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          "hints": {
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_MEMBER_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-ca-2",
-          "title": "Install the etcd trust anchor",
-          "role": "dcs-2",
-          "user": "ec2-user",
-          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
-          "command_explanation": "This installs the public CA certificate used as the mutual-TLS trust anchor.",
-          "expected": "The CA certificate is installed without exposing any private key.",
+            "code": "ETCD_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CA_INSTALLED passed.",
@@ -752,30 +1018,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          }
+        },
+        {
+          "id": "copy-etcd-identity-2",
+          "title": "Copy the role-bound TLS private key into place",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.key now exists.",
+          "hint": "Never use cat on the private key.",
           "hints": {
-            "question": "Which CA material belongs here?",
-            "hint": "Only the certificate used for verification.",
-            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_KEY_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-identity-2",
+          "title": "Set permissions on the role-bound TLS private key",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Mutual TLS must identify this member without exposing its private key.",
+          "command": "sudo chmod 0600 /etc/etcd/member.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The command returns without displaying key material.",
+          "hint": "Never use cat on the private key.",
+          "hints": {
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-identity-2",
-          "title": "Install the role-bound TLS private key",
-          "role": "dcs-2",
-          "user": "ec2-user",
-          "why": "Mutual TLS must identify this member without exposing its private key.",
-          "command": "sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
-          "command_explanation": "The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.",
-          "expected": "The command returns without displaying key material.",
+            "code": "ETCD_MEMBER_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_KEY_INSTALLED passed.",
@@ -793,19 +1082,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Never use cat on the private key.",
-          "hints": {
-            "question": "Which permission prevents other users from reading the key?",
-            "hint": "The owner needs read and write; everyone else needs no access.",
-            "stronger_hint": "That numeric mode is 0600.",
-            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_MEMBER_KEY_INSTALLED"
           }
         },
         {
@@ -854,14 +1130,50 @@
           }
         },
         {
+          "id": "copy-etcd-server-3",
+          "title": "Copy the etcd server program into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcd now exists.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-server-3",
-          "title": "Install the etcd server program",
+          "title": "Make the etcd server program runnable",
           "role": "dcs-3",
           "user": "ec2-user",
           "why": "The etcd program runs one voting member of the distributed configuration store.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd",
-          "command_explanation": "sudo grants installation permission; install copies the verified server program and sets executable mode 0755.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcd",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
           "expected": "The command returns to the prompt without an error and /usr/local/bin/etcd is executable.",
+          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          "hints": {
+            "question": "Which program runs the voting member service?",
+            "hint": "Its filename is simply etcd.",
+            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
+            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_SERVER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_SERVER_INSTALLED passed.",
@@ -879,30 +1191,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source is staged read-only; the destination is the normal local executable path.",
+          }
+        },
+        {
+          "id": "copy-etcdctl-client-3",
+          "title": "Copy the etcdctl client program into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl now exists.",
+          "hint": "The source and destination names are both etcdctl.",
           "hints": {
-            "question": "Which program runs the voting member service?",
-            "hint": "Its filename is simply etcd.",
-            "stronger_hint": "Use mode 0755 and destination /usr/local/bin/etcd.",
-            "solution": "Run the displayed install command, then wait for ETCD_SERVER_INSTALLED."
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDCTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdctl-client-3",
+          "title": "Make the etcdctl client program runnable",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdctl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+          "hint": "The source and destination names are both etcdctl.",
+          "hints": {
+            "question": "Which program will you use to ask the cluster for health?",
+            "hint": "The client name ends in ctl, meaning control.",
+            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_SERVER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdctl-client-3",
-          "title": "Install the etcdctl client program",
-          "role": "dcs-3",
-          "user": "ec2-user",
-          "why": "etcdctl sends authenticated health, membership and snapshot requests to etcd.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl",
-          "command_explanation": "install copies the separately staged client program and makes it executable without starting a service.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdctl is executable.",
+            "code": "ETCDCTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDCTL_INSTALLED passed.",
@@ -920,30 +1255,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The source and destination names are both etcdctl.",
+          }
+        },
+        {
+          "id": "copy-etcdutl-recovery-3",
+          "title": "Copy the etcdutl recovery program into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl now exists.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
           "hints": {
-            "question": "Which program will you use to ask the cluster for health?",
-            "hint": "The client name ends in ctl, meaning control.",
-            "stronger_hint": "Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDCTL_INSTALLED."
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCDUTL_COPIED"
+          }
+        },
+        {
+          "id": "install-etcdutl-recovery-3",
+          "title": "Make the etcdutl recovery program runnable",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
+          "command": "sudo chmod 0755 /usr/local/bin/etcdutl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
+          "hints": {
+            "question": "Which utility will inspect an offline snapshot later?",
+            "hint": "Its name ends in utl, meaning utility.",
+            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
+            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCDCTL_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcdutl-recovery-3",
-          "title": "Install the etcdutl recovery program",
-          "role": "dcs-3",
-          "user": "ec2-user",
-          "why": "etcdutl inspects and restores offline etcd data such as snapshots.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl",
-          "command_explanation": "install copies the offline recovery utility and gives it executable permissions.",
-          "expected": "The command returns to the prompt and /usr/local/bin/etcdutl is executable.",
+            "code": "ETCDUTL_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCDUTL_INSTALLED passed.",
@@ -961,19 +1319,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This utility is not the running server and does not contact the cluster for normal health checks.",
-          "hints": {
-            "question": "Which utility will inspect an offline snapshot later?",
-            "hint": "Its name ends in utl, meaning utility.",
-            "stronger_hint": "Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.",
-            "solution": "Run the displayed command and wait for ETCDUTL_INSTALLED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCDUTL_INSTALLED"
           }
         },
         {
@@ -1059,14 +1404,50 @@
           }
         },
         {
+          "id": "copy-etcd-member-cert-3",
+          "title": "Copy the role-bound TLS public certificate into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.crt now exists.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_COPIED"
+          }
+        },
+        {
           "id": "install-etcd-member-cert-3",
-          "title": "Install the role-bound TLS public certificate",
+          "title": "Set permissions on the role-bound TLS public certificate",
           "role": "dcs-3",
           "user": "ec2-user",
           "why": "Peers need this signed public certificate to authenticate the member name and private address.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt",
-          "command_explanation": "This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.",
+          "command": "sudo chmod 0644 /etc/etcd/member.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
           "expected": "The certificate is installed without printing its contents.",
+          "hint": "A public certificate may be readable; its matching private key may not.",
+          "hints": {
+            "question": "Why can this file be 0644?",
+            "hint": "It contains identity claims and a public key, not the private key.",
+            "stronger_hint": "Install member.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_CERT_INSTALLED passed.",
@@ -1084,30 +1465,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A public certificate may be readable; its matching private key may not.",
+          }
+        },
+        {
+          "id": "copy-etcd-ca-3",
+          "title": "Copy the etcd trust anchor into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/ca.crt now exists.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
           "hints": {
-            "question": "Why can this file be 0644?",
-            "hint": "It contains identity claims and a public key, not the private key.",
-            "stronger_hint": "Install member.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED."
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CA_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-ca-3",
+          "title": "Set permissions on the etcd trust anchor",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
+          "command": "sudo chmod 0644 /etc/etcd/ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The CA certificate is installed without exposing any private key.",
+          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          "hints": {
+            "question": "Which CA material belongs here?",
+            "hint": "Only the certificate used for verification.",
+            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
+            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_MEMBER_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-ca-3",
-          "title": "Install the etcd trust anchor",
-          "role": "dcs-3",
-          "user": "ec2-user",
-          "why": "The member needs the lab CA certificate to verify certificates presented by clients and peers.",
-          "command": "sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt",
-          "command_explanation": "This installs the public CA certificate used as the mutual-TLS trust anchor.",
-          "expected": "The CA certificate is installed without exposing any private key.",
+            "code": "ETCD_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CA_INSTALLED passed.",
@@ -1125,30 +1529,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The CA certificate is public; the CA signing key is never placed on a learner server.",
+          }
+        },
+        {
+          "id": "copy-etcd-identity-3",
+          "title": "Copy the role-bound TLS private key into place",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/etcd/member.key now exists.",
+          "hint": "Never use cat on the private key.",
           "hints": {
-            "question": "Which CA material belongs here?",
-            "hint": "Only the certificate used for verification.",
-            "stronger_hint": "Install ca.crt as root:root with mode 0644.",
-            "solution": "Run the registered install command and require ETCD_CA_INSTALLED."
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_MEMBER_KEY_COPIED"
+          }
+        },
+        {
+          "id": "install-etcd-identity-3",
+          "title": "Set permissions on the role-bound TLS private key",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Mutual TLS must identify this member without exposing its private key.",
+          "command": "sudo chmod 0600 /etc/etcd/member.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The command returns without displaying key material.",
+          "hint": "Never use cat on the private key.",
+          "hints": {
+            "question": "Which permission prevents other users from reading the key?",
+            "hint": "The owner needs read and write; everyone else needs no access.",
+            "stronger_hint": "That numeric mode is 0600.",
+            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-etcd-identity-3",
-          "title": "Install the role-bound TLS private key",
-          "role": "dcs-3",
-          "user": "ec2-user",
-          "why": "Mutual TLS must identify this member without exposing its private key.",
-          "command": "sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key",
-          "command_explanation": "The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.",
-          "expected": "The command returns without displaying key material.",
+            "code": "ETCD_MEMBER_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_MEMBER_KEY_INSTALLED passed.",
@@ -1166,19 +1593,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Never use cat on the private key.",
-          "hints": {
-            "question": "Which permission prevents other users from reading the key?",
-            "hint": "The owner needs read and write; everyone else needs no access.",
-            "stronger_hint": "That numeric mode is 0600.",
-            "solution": "Install the key with mode 0600, then install the CA and member certificate in their separately guided steps."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_MEMBER_KEY_INSTALLED"
           }
         },
         {
@@ -1883,14 +2297,73 @@
           }
         },
         {
+          "id": "copy-patroni-ca-1",
+          "title": "Copy the etcd CA certificate on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-ca-1",
+          "title": "Set permissions on the etcd CA certificate on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-ca.crt now has mode 644.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_MODE_SET"
+          }
+        },
+        {
           "id": "install-patroni-ca-1",
-          "title": "Install the etcd CA certificate on pg-ha-1",
+          "title": "Give postgres ownership of the etcd CA certificate on pg-ha-1",
           "role": "pg-ha-1",
           "user": "ec2-user",
           "why": "Patroni must verify that it is talking to the assigned etcd cluster.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
-          "command_explanation": "Install the public certificate-authority file using the filename referenced by Patroni YAML.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
           "expected": "The CA certificate is readable by Patroni and contains no private key.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CA_INSTALLED passed.",
@@ -1908,30 +2381,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A .crt file is public verification material.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-cert-1",
+          "title": "Copy Patroni's etcd client certificate on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.",
+          "hint": "Patroni is the client of etcd.",
           "hints": {
-            "question": "Does a CA certificate contain the CA private key?",
-            "hint": "A .crt file is public verification material.",
-            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
-            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-cert-1",
+          "title": "Set permissions on Patroni's etcd client certificate on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-client.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.crt now has mode 644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-cert-1",
+          "title": "Give postgres ownership of Patroni's etcd client certificate on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "etcd mutual TLS also verifies Patroni's client identity.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-cert-1",
-          "title": "Install Patroni's etcd client certificate on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "etcd mutual TLS also verifies Patroni's client identity.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
-          "command_explanation": "Install the signed public client certificate under the name used in Patroni YAML.",
-          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+            "code": "PATRONI_CLIENT_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_CERT_INSTALLED passed.",
@@ -1949,30 +2468,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni is the client of etcd.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-key-1",
+          "title": "Copy Patroni's protected etcd client key on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.key now exists.",
+          "hint": "Anyone holding the private key can impersonate the client.",
           "hints": {
-            "question": "Which side presents this certificate?",
-            "hint": "Patroni is the client of etcd.",
-            "stronger_hint": "This is public identity material; the private key is handled next.",
-            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-key-1",
+          "title": "Set permissions on Patroni's protected etcd client key on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0600 /etc/patroni/etcd-client.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.key now has mode 600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-key-1",
+          "title": "Give postgres ownership of Patroni's protected etcd client key on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The private key proves possession of the client identity and must not be exposed.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.key",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The command shows no key material and the destination mode is 0600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-key-1",
-          "title": "Install Patroni's protected etcd client key on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "The private key proves possession of the client identity and must not be exposed.",
-          "command": "sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
-          "command_explanation": "Install the private key with postgres ownership and owner-only mode 0600.",
-          "expected": "The command shows no key material and the destination mode is 0600.",
+            "code": "PATRONI_CLIENT_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_KEY_INSTALLED passed.",
@@ -1990,30 +2555,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Anyone holding the private key can impersonate the client.",
+          }
+        },
+        {
+          "id": "copy-patroni-wrapper-1",
+          "title": "Copy the Patroni launcher on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patroni now exists.",
+          "hint": "It binds systemd to the pinned runtime path.",
           "hints": {
-            "question": "Why is this file more restricted than the certificate?",
-            "hint": "Anyone holding the private key can impersonate the client.",
-            "stronger_hint": "Use mode 0600 and never run cat on it.",
-            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patroni-wrapper-1",
+          "title": "Make the Patroni launcher on pg-ha-1 runnable",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The pinned Python runtime needs one stable command path for systemd.",
+          "command": "sudo chmod 0755 /usr/local/bin/patroni",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+          "hint": "It binds systemd to the pinned runtime path.",
+          "hints": {
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_KEY_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-wrapper-1",
-          "title": "Install the Patroni launcher on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "The pinned Python runtime needs one stable command path for systemd.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
-          "command_explanation": "Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.",
-          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+            "code": "PATRONI_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_WRAPPER_INSTALLED passed.",
@@ -2031,30 +2619,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It binds systemd to the pinned runtime path.",
+          }
+        },
+        {
+          "id": "copy-patronictl-wrapper-1",
+          "title": "Copy the patronictl launcher on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patronictl now exists.",
+          "hint": "patroni runs; patronictl controls and inspects.",
           "hints": {
-            "question": "Why use a wrapper instead of a floating pip command?",
-            "hint": "It binds systemd to the pinned runtime path.",
-            "stronger_hint": "The destination is /usr/local/bin/patroni.",
-            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONICTL_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patronictl-wrapper-1",
+          "title": "Make the patronictl launcher on pg-ha-1 runnable",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
+          "command": "sudo chmod 0755 /usr/local/bin/patronictl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patronictl is executable.",
+          "hint": "patroni runs; patronictl controls and inspects.",
+          "hints": {
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patronictl-wrapper-1",
-          "title": "Install the patronictl launcher on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
-          "command_explanation": "Install the reviewed patronictl launcher against the same pinned Python runtime.",
-          "expected": "/usr/local/bin/patronictl is executable.",
+            "code": "PATRONICTL_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONICTL_WRAPPER_INSTALLED passed.",
@@ -2072,30 +2683,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "patroni runs; patronictl controls and inspects.",
+          }
+        },
+        {
+          "id": "copy-patroni-unit-1",
+          "title": "Copy the Patroni systemd unit on pg-ha-1 into place",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/systemd/system/patroni.service now exists.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
-            "question": "Which tool runs the service and which tool operates the cluster?",
-            "hint": "patroni runs; patronictl controls and inspects.",
-            "stronger_hint": "The operator command ends in ctl.",
-            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_UNIT_COPIED"
+          }
+        },
+        {
+          "id": "create-patroni-unit-1",
+          "title": "Set permissions on the Patroni systemd unit on pg-ha-1",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
+          "hints": {
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONICTL_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "create-patroni-unit-1",
-          "title": "Install the Patroni systemd unit on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
-          "command": "sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
-          "command_explanation": "Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+            "code": "PATRONI_UNIT_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_UNIT_CREATED passed.",
@@ -2113,19 +2747,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni owns PostgreSQL startup in this cluster.",
-          "hints": {
-            "question": "Which process should systemd start?",
-            "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
-            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_UNIT_CREATED"
           }
         },
         {
@@ -2338,14 +2959,73 @@
           }
         },
         {
+          "id": "copy-patroni-ca-2",
+          "title": "Copy the etcd CA certificate on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-ca-2",
+          "title": "Set permissions on the etcd CA certificate on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-ca.crt now has mode 644.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_MODE_SET"
+          }
+        },
+        {
           "id": "install-patroni-ca-2",
-          "title": "Install the etcd CA certificate on pg-ha-2",
+          "title": "Give postgres ownership of the etcd CA certificate on pg-ha-2",
           "role": "pg-ha-2",
           "user": "ec2-user",
           "why": "Patroni must verify that it is talking to the assigned etcd cluster.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
-          "command_explanation": "Install the public certificate-authority file using the filename referenced by Patroni YAML.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
           "expected": "The CA certificate is readable by Patroni and contains no private key.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CA_INSTALLED passed.",
@@ -2363,30 +3043,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A .crt file is public verification material.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-cert-2",
+          "title": "Copy Patroni's etcd client certificate on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.",
+          "hint": "Patroni is the client of etcd.",
           "hints": {
-            "question": "Does a CA certificate contain the CA private key?",
-            "hint": "A .crt file is public verification material.",
-            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
-            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-cert-2",
+          "title": "Set permissions on Patroni's etcd client certificate on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-client.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.crt now has mode 644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-cert-2",
+          "title": "Give postgres ownership of Patroni's etcd client certificate on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "etcd mutual TLS also verifies Patroni's client identity.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-cert-2",
-          "title": "Install Patroni's etcd client certificate on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "etcd mutual TLS also verifies Patroni's client identity.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
-          "command_explanation": "Install the signed public client certificate under the name used in Patroni YAML.",
-          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+            "code": "PATRONI_CLIENT_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_CERT_INSTALLED passed.",
@@ -2404,30 +3130,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni is the client of etcd.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-key-2",
+          "title": "Copy Patroni's protected etcd client key on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.key now exists.",
+          "hint": "Anyone holding the private key can impersonate the client.",
           "hints": {
-            "question": "Which side presents this certificate?",
-            "hint": "Patroni is the client of etcd.",
-            "stronger_hint": "This is public identity material; the private key is handled next.",
-            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-key-2",
+          "title": "Set permissions on Patroni's protected etcd client key on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0600 /etc/patroni/etcd-client.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.key now has mode 600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-key-2",
+          "title": "Give postgres ownership of Patroni's protected etcd client key on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The private key proves possession of the client identity and must not be exposed.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.key",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The command shows no key material and the destination mode is 0600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-key-2",
-          "title": "Install Patroni's protected etcd client key on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "The private key proves possession of the client identity and must not be exposed.",
-          "command": "sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
-          "command_explanation": "Install the private key with postgres ownership and owner-only mode 0600.",
-          "expected": "The command shows no key material and the destination mode is 0600.",
+            "code": "PATRONI_CLIENT_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_KEY_INSTALLED passed.",
@@ -2445,30 +3217,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Anyone holding the private key can impersonate the client.",
+          }
+        },
+        {
+          "id": "copy-patroni-wrapper-2",
+          "title": "Copy the Patroni launcher on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patroni now exists.",
+          "hint": "It binds systemd to the pinned runtime path.",
           "hints": {
-            "question": "Why is this file more restricted than the certificate?",
-            "hint": "Anyone holding the private key can impersonate the client.",
-            "stronger_hint": "Use mode 0600 and never run cat on it.",
-            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patroni-wrapper-2",
+          "title": "Make the Patroni launcher on pg-ha-2 runnable",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The pinned Python runtime needs one stable command path for systemd.",
+          "command": "sudo chmod 0755 /usr/local/bin/patroni",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+          "hint": "It binds systemd to the pinned runtime path.",
+          "hints": {
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_KEY_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-wrapper-2",
-          "title": "Install the Patroni launcher on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "The pinned Python runtime needs one stable command path for systemd.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
-          "command_explanation": "Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.",
-          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+            "code": "PATRONI_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_WRAPPER_INSTALLED passed.",
@@ -2486,30 +3281,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It binds systemd to the pinned runtime path.",
+          }
+        },
+        {
+          "id": "copy-patronictl-wrapper-2",
+          "title": "Copy the patronictl launcher on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patronictl now exists.",
+          "hint": "patroni runs; patronictl controls and inspects.",
           "hints": {
-            "question": "Why use a wrapper instead of a floating pip command?",
-            "hint": "It binds systemd to the pinned runtime path.",
-            "stronger_hint": "The destination is /usr/local/bin/patroni.",
-            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONICTL_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patronictl-wrapper-2",
+          "title": "Make the patronictl launcher on pg-ha-2 runnable",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
+          "command": "sudo chmod 0755 /usr/local/bin/patronictl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patronictl is executable.",
+          "hint": "patroni runs; patronictl controls and inspects.",
+          "hints": {
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patronictl-wrapper-2",
-          "title": "Install the patronictl launcher on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
-          "command_explanation": "Install the reviewed patronictl launcher against the same pinned Python runtime.",
-          "expected": "/usr/local/bin/patronictl is executable.",
+            "code": "PATRONICTL_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONICTL_WRAPPER_INSTALLED passed.",
@@ -2527,30 +3345,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "patroni runs; patronictl controls and inspects.",
+          }
+        },
+        {
+          "id": "copy-patroni-unit-2",
+          "title": "Copy the Patroni systemd unit on pg-ha-2 into place",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/systemd/system/patroni.service now exists.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
-            "question": "Which tool runs the service and which tool operates the cluster?",
-            "hint": "patroni runs; patronictl controls and inspects.",
-            "stronger_hint": "The operator command ends in ctl.",
-            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_UNIT_COPIED"
+          }
+        },
+        {
+          "id": "create-patroni-unit-2",
+          "title": "Set permissions on the Patroni systemd unit on pg-ha-2",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
+          "hints": {
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONICTL_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "create-patroni-unit-2",
-          "title": "Install the Patroni systemd unit on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
-          "command": "sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
-          "command_explanation": "Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+            "code": "PATRONI_UNIT_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_UNIT_CREATED passed.",
@@ -2568,19 +3409,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni owns PostgreSQL startup in this cluster.",
-          "hints": {
-            "question": "Which process should systemd start?",
-            "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
-            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_UNIT_CREATED"
           }
         },
         {
@@ -2793,14 +3621,73 @@
           }
         },
         {
+          "id": "copy-patroni-ca-3",
+          "title": "Copy the etcd CA certificate on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-ca-3",
+          "title": "Set permissions on the etcd CA certificate on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-ca.crt now has mode 644.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_MODE_SET"
+          }
+        },
+        {
           "id": "install-patroni-ca-3",
-          "title": "Install the etcd CA certificate on pg-ha-3",
+          "title": "Give postgres ownership of the etcd CA certificate on pg-ha-3",
           "role": "pg-ha-3",
           "user": "ec2-user",
           "why": "Patroni must verify that it is talking to the assigned etcd cluster.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt",
-          "command_explanation": "Install the public certificate-authority file using the filename referenced by Patroni YAML.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
           "expected": "The CA certificate is readable by Patroni and contains no private key.",
+          "hint": "A .crt file is public verification material.",
+          "hints": {
+            "question": "Does a CA certificate contain the CA private key?",
+            "hint": "A .crt file is public verification material.",
+            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
+            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CA_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CA_INSTALLED passed.",
@@ -2818,30 +3705,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "A .crt file is public verification material.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-cert-3",
+          "title": "Copy Patroni's etcd client certificate on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.",
+          "hint": "Patroni is the client of etcd.",
           "hints": {
-            "question": "Does a CA certificate contain the CA private key?",
-            "hint": "A .crt file is public verification material.",
-            "stronger_hint": "The destination is /etc/patroni/etcd-ca.crt.",
-            "solution": "Install the CA certificate and require PATRONI_CA_INSTALLED."
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-cert-3",
+          "title": "Set permissions on Patroni's etcd client certificate on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0644 /etc/patroni/etcd-client.crt",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.crt now has mode 644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_CERT_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-cert-3",
+          "title": "Give postgres ownership of Patroni's etcd client certificate on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "etcd mutual TLS also verifies Patroni's client identity.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+          "hint": "Patroni is the client of etcd.",
+          "hints": {
+            "question": "Which side presents this certificate?",
+            "hint": "Patroni is the client of etcd.",
+            "stronger_hint": "This is public identity material; the private key is handled next.",
+            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CA_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-cert-3",
-          "title": "Install Patroni's etcd client certificate on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "etcd mutual TLS also verifies Patroni's client identity.",
-          "command": "sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt",
-          "command_explanation": "Install the signed public client certificate under the name used in Patroni YAML.",
-          "expected": "The signed client certificate is postgres-owned and mode 0644.",
+            "code": "PATRONI_CLIENT_CERT_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_CERT_INSTALLED passed.",
@@ -2859,30 +3792,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni is the client of etcd.",
+          }
+        },
+        {
+          "id": "copy-patroni-client-key-3",
+          "title": "Copy Patroni's protected etcd client key on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/patroni/etcd-client.key now exists.",
+          "hint": "Anyone holding the private key can impersonate the client.",
           "hints": {
-            "question": "Which side presents this certificate?",
-            "hint": "Patroni is the client of etcd.",
-            "stronger_hint": "This is public identity material; the private key is handled next.",
-            "solution": "Install it and require PATRONI_CLIENT_CERT_INSTALLED."
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_COPIED"
+          }
+        },
+        {
+          "id": "setperm-patroni-client-key-3",
+          "title": "Set permissions on Patroni's protected etcd client key on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The permissions decide who may read this file before ownership is handed to postgres.",
+          "command": "sudo chmod 0600 /etc/patroni/etcd-client.key",
+          "command_explanation": "chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).",
+          "expected": "/etc/patroni/etcd-client.key now has mode 600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_CLIENT_KEY_MODE_SET"
+          }
+        },
+        {
+          "id": "install-patroni-client-key-3",
+          "title": "Give postgres ownership of Patroni's protected etcd client key on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The private key proves possession of the client identity and must not be exposed.",
+          "command": "sudo chown postgres:postgres /etc/patroni/etcd-client.key",
+          "command_explanation": "chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.",
+          "expected": "The command shows no key material and the destination mode is 0600.",
+          "hint": "Anyone holding the private key can impersonate the client.",
+          "hints": {
+            "question": "Why is this file more restricted than the certificate?",
+            "hint": "Anyone holding the private key can impersonate the client.",
+            "stronger_hint": "Use mode 0600 and never run cat on it.",
+            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_CERT_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-client-key-3",
-          "title": "Install Patroni's protected etcd client key on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "The private key proves possession of the client identity and must not be exposed.",
-          "command": "sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key",
-          "command_explanation": "Install the private key with postgres ownership and owner-only mode 0600.",
-          "expected": "The command shows no key material and the destination mode is 0600.",
+            "code": "PATRONI_CLIENT_KEY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_CLIENT_KEY_INSTALLED passed.",
@@ -2900,30 +3879,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Anyone holding the private key can impersonate the client.",
+          }
+        },
+        {
+          "id": "copy-patroni-wrapper-3",
+          "title": "Copy the Patroni launcher on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patroni now exists.",
+          "hint": "It binds systemd to the pinned runtime path.",
           "hints": {
-            "question": "Why is this file more restricted than the certificate?",
-            "hint": "Anyone holding the private key can impersonate the client.",
-            "stronger_hint": "Use mode 0600 and never run cat on it.",
-            "solution": "Install it and require PATRONI_CLIENT_KEY_INSTALLED."
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patroni-wrapper-3",
+          "title": "Make the Patroni launcher on pg-ha-3 runnable",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The pinned Python runtime needs one stable command path for systemd.",
+          "command": "sudo chmod 0755 /usr/local/bin/patroni",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+          "hint": "It binds systemd to the pinned runtime path.",
+          "hints": {
+            "question": "Why use a wrapper instead of a floating pip command?",
+            "hint": "It binds systemd to the pinned runtime path.",
+            "stronger_hint": "The destination is /usr/local/bin/patroni.",
+            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_CLIENT_KEY_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patroni-wrapper-3",
-          "title": "Install the Patroni launcher on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "The pinned Python runtime needs one stable command path for systemd.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni",
-          "command_explanation": "Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.",
-          "expected": "/usr/local/bin/patroni is executable and reports Patroni 4.1.4.",
+            "code": "PATRONI_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_WRAPPER_INSTALLED passed.",
@@ -2941,30 +3943,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It binds systemd to the pinned runtime path.",
+          }
+        },
+        {
+          "id": "copy-patronictl-wrapper-3",
+          "title": "Copy the patronictl launcher on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/bin/patronictl now exists.",
+          "hint": "patroni runs; patronictl controls and inspects.",
           "hints": {
-            "question": "Why use a wrapper instead of a floating pip command?",
-            "hint": "It binds systemd to the pinned runtime path.",
-            "stronger_hint": "The destination is /usr/local/bin/patroni.",
-            "solution": "Install the wrapper and require PATRONI_WRAPPER_INSTALLED."
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONICTL_WRAPPER_COPIED"
+          }
+        },
+        {
+          "id": "install-patronictl-wrapper-3",
+          "title": "Make the patronictl launcher on pg-ha-3 runnable",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
+          "command": "sudo chmod 0755 /usr/local/bin/patronictl",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
+          "expected": "/usr/local/bin/patronictl is executable.",
+          "hint": "patroni runs; patronictl controls and inspects.",
+          "hints": {
+            "question": "Which tool runs the service and which tool operates the cluster?",
+            "hint": "patroni runs; patronictl controls and inspects.",
+            "stronger_hint": "The operator command ends in ctl.",
+            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "install-patronictl-wrapper-3",
-          "title": "Install the patronictl launcher on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "Operators need a stable absolute path for cluster inspection and planned operations.",
-          "command": "sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl",
-          "command_explanation": "Install the reviewed patronictl launcher against the same pinned Python runtime.",
-          "expected": "/usr/local/bin/patronictl is executable.",
+            "code": "PATRONICTL_WRAPPER_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONICTL_WRAPPER_INSTALLED passed.",
@@ -2982,30 +4007,53 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "patroni runs; patronictl controls and inspects.",
+          }
+        },
+        {
+          "id": "copy-patroni-unit-3",
+          "title": "Copy the Patroni systemd unit on pg-ha-3 into place",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/systemd/system/patroni.service now exists.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
-            "question": "Which tool runs the service and which tool operates the cluster?",
-            "hint": "patroni runs; patronictl controls and inspects.",
-            "stronger_hint": "The operator command ends in ctl.",
-            "solution": "Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED."
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_UNIT_COPIED"
+          }
+        },
+        {
+          "id": "create-patroni-unit-3",
+          "title": "Set permissions on the Patroni systemd unit on pg-ha-3",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
+          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "hint": "Patroni owns PostgreSQL startup in this cluster.",
+          "hints": {
+            "question": "Which process should systemd start?",
+            "hint": "Patroni owns PostgreSQL startup in this cluster.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONICTL_WRAPPER_INSTALLED"
-          }
-        },
-        {
-          "id": "create-patroni-unit-3",
-          "title": "Install the Patroni systemd unit on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
-          "command": "sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service",
-          "command_explanation": "Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+            "code": "PATRONI_UNIT_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_UNIT_CREATED passed.",
@@ -3023,19 +4071,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Patroni owns PostgreSQL startup in this cluster.",
-          "hints": {
-            "question": "Which process should systemd start?",
-            "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
-            "solution": "Install the unit and require PATRONI_UNIT_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_UNIT_CREATED"
           }
         },
         {
@@ -3248,14 +4283,50 @@
           }
         },
         {
+          "id": "copy-haproxy",
+          "title": "Copy the pinned HAProxy binary into place",
+          "role": "db-router-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/sbin/haproxy. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /usr/local/sbin/haproxy now exists.",
+          "hint": "Its digest and version were fixed before handoff.",
+          "hints": {
+            "question": "Why use the staged binary?",
+            "hint": "Its digest and version were fixed before handoff.",
+            "stronger_hint": "Install it at /usr/local/sbin/haproxy.",
+            "solution": "Run the displayed install command and require HAPROXY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_COPIED"
+          }
+        },
+        {
           "id": "install-haproxy",
-          "title": "Install the pinned HAProxy binary",
+          "title": "Make the pinned HAProxy binary runnable",
           "role": "db-router-1",
           "user": "ec2-user",
           "why": "The writer router needs the reviewed immutable HAProxy build staged by the platform team.",
-          "command": "sudo install -m 0755 /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy",
-          "command_explanation": "Install the verified binary at the stable system path with executable mode 0755.",
+          "command": "sudo chmod 0755 /usr/local/sbin/haproxy",
+          "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
           "expected": "HAProxy reports version 3.2.22.",
+          "hint": "Its digest and version were fixed before handoff.",
+          "hints": {
+            "question": "Why use the staged binary?",
+            "hint": "Its digest and version were fixed before handoff.",
+            "stronger_hint": "Install it at /usr/local/sbin/haproxy.",
+            "solution": "Run the displayed install command and require HAPROXY_INSTALLED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_INSTALLED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator HAPROXY_INSTALLED passed.",
@@ -3273,19 +4344,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Its digest and version were fixed before handoff.",
-          "hints": {
-            "question": "Why use the staged binary?",
-            "hint": "Its digest and version were fixed before handoff.",
-            "stronger_hint": "Install it at /usr/local/sbin/haproxy.",
-            "solution": "Run the displayed install command and require HAPROXY_INSTALLED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "HAPROXY_INSTALLED"
           }
         },
         {
@@ -3330,14 +4388,50 @@
           }
         },
         {
+          "id": "copy-haproxy-unit",
+          "title": "Copy the HAProxy systemd unit into place",
+          "role": "db-router-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/haproxy.service. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/systemd/system/haproxy.service now exists.",
+          "hint": "systemd must supervise the real process.",
+          "hints": {
+            "question": "Why run HAProxy in foreground mode under systemd?",
+            "hint": "systemd must supervise the real process.",
+            "stronger_hint": "The unit uses -W -db and /etc/haproxy/haproxy.cfg.",
+            "solution": "Install the unit and require HAPROXY_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_UNIT_COPIED"
+          }
+        },
+        {
           "id": "create-haproxy-unit",
-          "title": "Install the HAProxy systemd unit",
+          "title": "Set permissions on the HAProxy systemd unit",
           "role": "db-router-1",
           "user": "ec2-user",
           "why": "A stable unit makes the writer router restartable and boot-persistent.",
-          "command": "sudo install -m 0644 /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service",
-          "command_explanation": "Install the staged unit that starts HAProxy in foreground worker mode with the learner-authored configuration.",
+          "command": "sudo chmod 0644 /etc/systemd/system/haproxy.service",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
           "expected": "systemd verifies the HAProxy unit.",
+          "hint": "systemd must supervise the real process.",
+          "hints": {
+            "question": "Why run HAProxy in foreground mode under systemd?",
+            "hint": "systemd must supervise the real process.",
+            "stronger_hint": "The unit uses -W -db and /etc/haproxy/haproxy.cfg.",
+            "solution": "Install the unit and require HAPROXY_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_UNIT_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator HAPROXY_UNIT_CREATED passed.",
@@ -3355,19 +4449,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "systemd must supervise the real process.",
-          "hints": {
-            "question": "Why run HAProxy in foreground mode under systemd?",
-            "hint": "systemd must supervise the real process.",
-            "stronger_hint": "The unit uses -W -db and /etc/haproxy/haproxy.cfg.",
-            "solution": "Install the unit and require HAPROXY_UNIT_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "HAPROXY_UNIT_CREATED"
           }
         },
         {
@@ -3785,14 +4866,50 @@
           }
         },
         {
+          "id": "copy-mattermost-unit",
+          "title": "Copy the Mattermost systemd unit into place",
+          "role": "mattermost-1",
+          "user": "ec2-user",
+          "why": "Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.",
+          "command": "sudo cp /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service",
+          "command_explanation": "sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/mattermost.service. It does not set the file's permissions - the next step does that.",
+          "expected": "The command returns to the prompt and /etc/systemd/system/mattermost.service now exists.",
+          "hint": "The dedicated application account.",
+          "hints": {
+            "question": "Which user should systemd run?",
+            "hint": "The dedicated application account.",
+            "stronger_hint": "User and Group must both be mattermost.",
+            "solution": "Install the unit and require MATTERMOST_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_UNIT_COPIED"
+          }
+        },
+        {
           "id": "create-mattermost-unit",
-          "title": "Install the Mattermost systemd unit",
+          "title": "Set permissions on the Mattermost systemd unit",
           "role": "mattermost-1",
           "user": "ec2-user",
           "why": "The workload needs a supervised, boot-persistent service definition.",
-          "command": "sudo install -m 0644 /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service",
-          "command_explanation": "Install the reviewed unit that runs the server as the mattermost account from /opt/mattermost.",
+          "command": "sudo chmod 0644 /etc/systemd/system/mattermost.service",
+          "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
           "expected": "systemd verifies the unit and its non-root identity.",
+          "hint": "The dedicated application account.",
+          "hints": {
+            "question": "Which user should systemd run?",
+            "hint": "The dedicated application account.",
+            "stronger_hint": "User and Group must both be mattermost.",
+            "solution": "Install the unit and require MATTERMOST_UNIT_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_UNIT_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator MATTERMOST_UNIT_CREATED passed.",
@@ -3810,19 +4927,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "The dedicated application account.",
-          "hints": {
-            "question": "Which user should systemd run?",
-            "hint": "The dedicated application account.",
-            "stronger_hint": "User and Group must both be mattermost.",
-            "solution": "Install the unit and require MATTERMOST_UNIT_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "MATTERMOST_UNIT_CREATED"
           }
         },
         {
