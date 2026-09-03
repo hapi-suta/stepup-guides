@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "levels": [
+    {"id":"junior","questions":[
+      {"id":"j1","prompt":"What problem does etcd solve for Patroni?","required_groups":[["shared","distributed"],["leader","lock","lease"],["config","state"]]},
+      {"id":"j2","prompt":"Why does HAProxy check Patroni /primary instead of only PostgreSQL port 5432?","required_groups":[["role","primary","leader"],["replica"],["write","writer"]]},
+      {"id":"j3","prompt":"What does streaming replication move from primary to replica?","required_groups":[["wal","write-ahead"],["primary"],["replica","standby"]]},
+      {"id":"j4","prompt":"Which parts of this lab remain single points of failure?","required_groups":[["haproxy"],["mattermost"],["single","not ha","not highly available"]]}
+    ]},
+    {"id":"mid","questions":[
+      {"id":"m1","prompt":"Walk through a safe planned switchover and its proof.","required_groups":[["candidate","replica"],["lag","streaming"],["switchover"],["haproxy","mattermost","application"]]},
+      {"id":"m2","prompt":"Why does changing bootstrap.dcs in Patroni YAML not change an initialized cluster?","required_groups":[["bootstrap"],["initial","first"],["dcs"],["edit-config","rest api","dynamic"]]},
+      {"id":"m3","prompt":"How do you decide whether a Patroni configuration change needs reload or restart?","required_groups":[["pending restart","restart"],["reload"],["patronictl","api","postgres"]]},
+      {"id":"m4","prompt":"What must a change ticket record after replica maintenance?","required_groups":[["before","precheck"],["change","action"],["validate","evidence"],["rollback"]]}
+    ]},
+    {"id":"senior","questions":[
+      {"id":"s1","prompt":"The old primary returns after failover. Explain how you prevent split brain and rejoin it.","required_groups":[["fence","stop"],["timeline","diverg"],["pg_rewind","rewind"],["replica","standby"]]},
+      {"id":"s2","prompt":"Explain the durability and latency trade-off between asynchronous and synchronous replication.","required_groups":[["async"],["data loss","rpo"],["sync"],["latency","wait"]]},
+      {"id":"s3","prompt":"One etcd member is down. What remains safe, what risk increased, and what do you do?","required_groups":[["quorum","two"],["one failure","tolerat"],["risk","no more"],["identity","rejoin","repair"]]},
+      {"id":"s4","prompt":"Mattermost is down but Patroni is healthy. Describe your diagnostic boundary.","required_groups":[["mattermost"],["haproxy"],["database","patroni"],["path","endpoint","migration","credential"]]}
+    ]},
+    {"id":"principal","questions":[
+      {"id":"p1","prompt":"Challenge this lab's HA claim and propose the next architectural boundary to improve.","required_groups":[["database","postgres"],["haproxy"],["mattermost"],["redundan","load balancer","multiple"]]},
+      {"id":"p2","prompt":"How would you place failure domains for three etcd and three PostgreSQL nodes?","required_groups":[["availability zone","failure domain","az"],["quorum"],["latency"],["correlated","independent"]]},
+      {"id":"p3","prompt":"Define the governance controls for automated failover and chaos injection.","required_groups":[["approval"],["scope","tenant"],["audit"],["rollback","recovery"],["cost","ttl"]]},
+      {"id":"p4","prompt":"What evidence would convince you that disaster recovery works rather than exists on paper?","required_groups":[["restore"],["fresh","isolated"],["rpo"],["rto"],["application","mattermost"],["repeat"]]}
+    ]}
+  ]
+}
