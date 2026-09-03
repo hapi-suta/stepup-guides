@@ -51,7 +51,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_ARCHIVE_VERIFIED` validator passes.
 
-## 2. Install the etcd server program
+## 2. Copy the etcd server program into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program runs the voting member service?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program runs the voting member service?
+2. Hint: Its filename is simply etcd.
+3. Stronger hint: Use mode 0755 and destination /usr/local/bin/etcd.
+4. Solution: Run the displayed install command, then wait for ETCD_SERVER_INSTALLED.
+
+**Done when:** the independent `ETCD_SERVER_COPIED` validator passes.
+
+## 3. Make the etcd server program runnable
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -62,10 +91,10 @@ The etcd program runs one voting member of the distributed configuration store.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd
+sudo chmod 0755 /usr/local/bin/etcd
 ```
 
-**What the command means:** sudo grants installation permission; install copies the verified server program and sets executable mode 0755.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
 
@@ -80,7 +109,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_INSTALLED` validator passes.
 
-## 3. Install the etcdctl client program
+## 4. Copy the etcdctl client program into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program will you use to ask the cluster for health?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program will you use to ask the cluster for health?
+2. Hint: The client name ends in ctl, meaning control.
+3. Stronger hint: Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDCTL_INSTALLED.
+
+**Done when:** the independent `ETCDCTL_COPIED` validator passes.
+
+## 5. Make the etcdctl client program runnable
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -91,10 +149,10 @@ etcdctl sends authenticated health, membership and snapshot requests to etcd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+sudo chmod 0755 /usr/local/bin/etcdctl
 ```
 
-**What the command means:** install copies the separately staged client program and makes it executable without starting a service.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl is executable.
 
@@ -109,7 +167,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_INSTALLED` validator passes.
 
-## 4. Install the etcdutl recovery program
+## 6. Copy the etcdutl recovery program into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which utility will inspect an offline snapshot later?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which utility will inspect an offline snapshot later?
+2. Hint: Its name ends in utl, meaning utility.
+3. Stronger hint: Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDUTL_INSTALLED.
+
+**Done when:** the independent `ETCDUTL_COPIED` validator passes.
+
+## 7. Make the etcdutl recovery program runnable
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -120,10 +207,10 @@ etcdutl inspects and restores offline etcd data such as snapshots.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+sudo chmod 0755 /usr/local/bin/etcdutl
 ```
 
-**What the command means:** install copies the offline recovery utility and gives it executable permissions.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl is executable.
 
@@ -138,7 +225,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 5. Create the protected etcd configuration directory
+## 8. Create the protected etcd configuration directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -167,7 +254,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 6. Create the protected etcd consensus-data directory
+## 9. Create the protected etcd consensus-data directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -196,7 +283,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 7. Install the role-bound TLS public certificate
+## 10. Copy the role-bound TLS public certificate into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why can this file be 0644?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why can this file be 0644?
+2. Hint: It contains identity claims and a public key, not the private key.
+3. Stronger hint: Install member.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED.
+
+**Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
+
+## 11. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -207,10 +323,10 @@ Peers need this signed public certificate to authenticate the member name and pr
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+sudo chmod 0644 /etc/etcd/member.crt
 ```
 
-**What the command means:** This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The certificate is installed without printing its contents.
 
@@ -225,7 +341,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 8. Install the etcd trust anchor
+## 12. Copy the etcd trust anchor into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which CA material belongs here?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which CA material belongs here?
+2. Hint: Only the certificate used for verification.
+3. Stronger hint: Install ca.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_CA_INSTALLED.
+
+**Done when:** the independent `ETCD_CA_COPIED` validator passes.
+
+## 13. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -236,10 +381,10 @@ The member needs the lab CA certificate to verify certificates presented by clie
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+sudo chmod 0644 /etc/etcd/ca.crt
 ```
 
-**What the command means:** This installs the public CA certificate used as the mutual-TLS trust anchor.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The CA certificate is installed without exposing any private key.
 
@@ -254,7 +399,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 9. Install the role-bound TLS private key
+## 14. Copy the role-bound TLS private key into place
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which permission prevents other users from reading the key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which permission prevents other users from reading the key?
+2. Hint: The owner needs read and write; everyone else needs no access.
+3. Stronger hint: That numeric mode is 0600.
+4. Solution: Install the key with mode 0600, then install the CA and member certificate in their separately guided steps.
+
+**Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
+
+## 15. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -265,10 +439,10 @@ Mutual TLS must identify this member without exposing its private key.
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+sudo chmod 0600 /etc/etcd/member.key
 ```
 
-**What the command means:** The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The command returns without displaying key material.
 
@@ -283,7 +457,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 10. Configure dcs-1
+## 16. Configure dcs-1
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -331,7 +505,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_1_CONFIGURED` validator passes.
 
-## 11. Install the etcd server program
+## 17. Copy the etcd server program into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program runs the voting member service?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program runs the voting member service?
+2. Hint: Its filename is simply etcd.
+3. Stronger hint: Use mode 0755 and destination /usr/local/bin/etcd.
+4. Solution: Run the displayed install command, then wait for ETCD_SERVER_INSTALLED.
+
+**Done when:** the independent `ETCD_SERVER_COPIED` validator passes.
+
+## 18. Make the etcd server program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -342,10 +545,10 @@ The etcd program runs one voting member of the distributed configuration store.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd
+sudo chmod 0755 /usr/local/bin/etcd
 ```
 
-**What the command means:** sudo grants installation permission; install copies the verified server program and sets executable mode 0755.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
 
@@ -360,7 +563,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_INSTALLED` validator passes.
 
-## 12. Install the etcdctl client program
+## 19. Copy the etcdctl client program into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program will you use to ask the cluster for health?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program will you use to ask the cluster for health?
+2. Hint: The client name ends in ctl, meaning control.
+3. Stronger hint: Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDCTL_INSTALLED.
+
+**Done when:** the independent `ETCDCTL_COPIED` validator passes.
+
+## 20. Make the etcdctl client program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -371,10 +603,10 @@ etcdctl sends authenticated health, membership and snapshot requests to etcd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+sudo chmod 0755 /usr/local/bin/etcdctl
 ```
 
-**What the command means:** install copies the separately staged client program and makes it executable without starting a service.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl is executable.
 
@@ -389,7 +621,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_INSTALLED` validator passes.
 
-## 13. Install the etcdutl recovery program
+## 21. Copy the etcdutl recovery program into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which utility will inspect an offline snapshot later?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which utility will inspect an offline snapshot later?
+2. Hint: Its name ends in utl, meaning utility.
+3. Stronger hint: Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDUTL_INSTALLED.
+
+**Done when:** the independent `ETCDUTL_COPIED` validator passes.
+
+## 22. Make the etcdutl recovery program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -400,10 +661,10 @@ etcdutl inspects and restores offline etcd data such as snapshots.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+sudo chmod 0755 /usr/local/bin/etcdutl
 ```
 
-**What the command means:** install copies the offline recovery utility and gives it executable permissions.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl is executable.
 
@@ -418,7 +679,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 14. Create the protected etcd configuration directory
+## 23. Create the protected etcd configuration directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -447,7 +708,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 15. Create the protected etcd consensus-data directory
+## 24. Create the protected etcd consensus-data directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -476,7 +737,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 16. Install the role-bound TLS public certificate
+## 25. Copy the role-bound TLS public certificate into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why can this file be 0644?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why can this file be 0644?
+2. Hint: It contains identity claims and a public key, not the private key.
+3. Stronger hint: Install member.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED.
+
+**Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
+
+## 26. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -487,10 +777,10 @@ Peers need this signed public certificate to authenticate the member name and pr
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+sudo chmod 0644 /etc/etcd/member.crt
 ```
 
-**What the command means:** This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The certificate is installed without printing its contents.
 
@@ -505,7 +795,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 17. Install the etcd trust anchor
+## 27. Copy the etcd trust anchor into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which CA material belongs here?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which CA material belongs here?
+2. Hint: Only the certificate used for verification.
+3. Stronger hint: Install ca.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_CA_INSTALLED.
+
+**Done when:** the independent `ETCD_CA_COPIED` validator passes.
+
+## 28. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -516,10 +835,10 @@ The member needs the lab CA certificate to verify certificates presented by clie
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+sudo chmod 0644 /etc/etcd/ca.crt
 ```
 
-**What the command means:** This installs the public CA certificate used as the mutual-TLS trust anchor.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The CA certificate is installed without exposing any private key.
 
@@ -534,7 +853,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 18. Install the role-bound TLS private key
+## 29. Copy the role-bound TLS private key into place
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which permission prevents other users from reading the key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which permission prevents other users from reading the key?
+2. Hint: The owner needs read and write; everyone else needs no access.
+3. Stronger hint: That numeric mode is 0600.
+4. Solution: Install the key with mode 0600, then install the CA and member certificate in their separately guided steps.
+
+**Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
+
+## 30. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -545,10 +893,10 @@ Mutual TLS must identify this member without exposing its private key.
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+sudo chmod 0600 /etc/etcd/member.key
 ```
 
-**What the command means:** The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The command returns without displaying key material.
 
@@ -563,7 +911,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 19. Configure dcs-2
+## 31. Configure dcs-2
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -611,7 +959,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_2_CONFIGURED` validator passes.
 
-## 20. Install the etcd server program
+## 32. Copy the etcd server program into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program runs the voting member service?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program runs the voting member service?
+2. Hint: Its filename is simply etcd.
+3. Stronger hint: Use mode 0755 and destination /usr/local/bin/etcd.
+4. Solution: Run the displayed install command, then wait for ETCD_SERVER_INSTALLED.
+
+**Done when:** the independent `ETCD_SERVER_COPIED` validator passes.
+
+## 33. Make the etcd server program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -622,10 +999,10 @@ The etcd program runs one voting member of the distributed configuration store.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcd /usr/local/bin/etcd
+sudo chmod 0755 /usr/local/bin/etcd
 ```
 
-**What the command means:** sudo grants installation permission; install copies the verified server program and sets executable mode 0755.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
 
@@ -640,7 +1017,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_INSTALLED` validator passes.
 
-## 21. Install the etcdctl client program
+## 34. Copy the etcdctl client program into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which program will you use to ask the cluster for health?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which program will you use to ask the cluster for health?
+2. Hint: The client name ends in ctl, meaning control.
+3. Stronger hint: Install /opt/suta/artifacts/etcdctl to /usr/local/bin/etcdctl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDCTL_INSTALLED.
+
+**Done when:** the independent `ETCDCTL_COPIED` validator passes.
+
+## 35. Make the etcdctl client program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -651,10 +1057,10 @@ etcdctl sends authenticated health, membership and snapshot requests to etcd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+sudo chmod 0755 /usr/local/bin/etcdctl
 ```
 
-**What the command means:** install copies the separately staged client program and makes it executable without starting a service.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdctl is executable.
 
@@ -669,7 +1075,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_INSTALLED` validator passes.
 
-## 22. Install the etcdutl recovery program
+## 36. Copy the etcdutl recovery program into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which utility will inspect an offline snapshot later?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which utility will inspect an offline snapshot later?
+2. Hint: Its name ends in utl, meaning utility.
+3. Stronger hint: Install the staged etcdutl file to /usr/local/bin/etcdutl with mode 0755.
+4. Solution: Run the displayed command and wait for ETCDUTL_INSTALLED.
+
+**Done when:** the independent `ETCDUTL_COPIED` validator passes.
+
+## 37. Make the etcdutl recovery program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -680,10 +1115,10 @@ etcdutl inspects and restores offline etcd data such as snapshots.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+sudo chmod 0755 /usr/local/bin/etcdutl
 ```
 
-**What the command means:** install copies the offline recovery utility and gives it executable permissions.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** The command returns to the prompt and /usr/local/bin/etcdutl is executable.
 
@@ -698,7 +1133,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 23. Create the protected etcd configuration directory
+## 38. Create the protected etcd configuration directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -727,7 +1162,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 24. Create the protected etcd consensus-data directory
+## 39. Create the protected etcd consensus-data directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -756,7 +1191,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 25. Install the role-bound TLS public certificate
+## 40. Copy the role-bound TLS public certificate into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why can this file be 0644?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why can this file be 0644?
+2. Hint: It contains identity claims and a public key, not the private key.
+3. Stronger hint: Install member.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_MEMBER_CERT_INSTALLED.
+
+**Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
+
+## 41. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -767,10 +1231,10 @@ Peers need this signed public certificate to authenticate the member name and pr
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+sudo chmod 0644 /etc/etcd/member.crt
 ```
 
-**What the command means:** This copies only the signed public member certificate; mode 0644 is safe because it contains no private key.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The certificate is installed without printing its contents.
 
@@ -785,7 +1249,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 26. Install the etcd trust anchor
+## 42. Copy the etcd trust anchor into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which CA material belongs here?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which CA material belongs here?
+2. Hint: Only the certificate used for verification.
+3. Stronger hint: Install ca.crt as root:root with mode 0644.
+4. Solution: Run the registered install command and require ETCD_CA_INSTALLED.
+
+**Done when:** the independent `ETCD_CA_COPIED` validator passes.
+
+## 43. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -796,10 +1289,10 @@ The member needs the lab CA certificate to verify certificates presented by clie
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o root -g root /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+sudo chmod 0644 /etc/etcd/ca.crt
 ```
 
-**What the command means:** This installs the public CA certificate used as the mutual-TLS trust anchor.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The CA certificate is installed without exposing any private key.
 
@@ -814,7 +1307,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 27. Install the role-bound TLS private key
+## 44. Copy the role-bound TLS private key into place
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which permission prevents other users from reading the key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/etcd/member.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which permission prevents other users from reading the key?
+2. Hint: The owner needs read and write; everyone else needs no access.
+3. Stronger hint: That numeric mode is 0600.
+4. Solution: Install the key with mode 0600, then install the CA and member certificate in their separately guided steps.
+
+**Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
+
+## 45. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -825,10 +1347,10 @@ Mutual TLS must identify this member without exposing its private key.
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o root -g root /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+sudo chmod 0600 /etc/etcd/member.key
 ```
 
-**What the command means:** The command copies the platform-issued role identity into the protected etcd directory with root-only permissions.
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The command returns without displaying key material.
 
@@ -843,7 +1365,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 28. Configure dcs-3
+## 46. Configure dcs-3
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -891,7 +1413,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_3_CONFIGURED` validator passes.
 
-## 29. Start dcs-1
+## 47. Start dcs-1
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -920,7 +1442,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_1_STARTED` validator passes.
 
-## 30. Start dcs-2
+## 48. Start dcs-2
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -949,7 +1471,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_2_STARTED` validator passes.
 
-## 31. Start dcs-3
+## 49. Start dcs-3
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -978,7 +1500,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_3_STARTED` validator passes.
 
-## 32. Prove quorum over mutual TLS
+## 50. Prove quorum over mutual TLS
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -1007,7 +1529,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_QUORUM_BUILT` validator passes.
 
-## 33. Create the postgres operating-system account on pg-ha-1
+## 51. Create the postgres operating-system account on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1036,7 +1558,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_1_CREATED` validator passes.
 
-## 34. Install PostgreSQL on pg-ha-1
+## 52. Install PostgreSQL on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1065,7 +1587,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_1_INSTALLED` validator passes.
 
-## 35. Create the PostgreSQL layout on pg-ha-1
+## 53. Create the PostgreSQL layout on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1094,7 +1616,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_1_CREATED` validator passes.
 
-## 36. Create the postgres operating-system account on pg-ha-2
+## 54. Create the postgres operating-system account on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1123,7 +1645,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_2_CREATED` validator passes.
 
-## 37. Install PostgreSQL on pg-ha-2
+## 55. Install PostgreSQL on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1152,7 +1674,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_2_INSTALLED` validator passes.
 
-## 38. Create the PostgreSQL layout on pg-ha-2
+## 56. Create the PostgreSQL layout on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1181,7 +1703,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_2_CREATED` validator passes.
 
-## 39. Create the postgres operating-system account on pg-ha-3
+## 57. Create the postgres operating-system account on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1210,7 +1732,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_3_CREATED` validator passes.
 
-## 40. Install PostgreSQL on pg-ha-3
+## 58. Install PostgreSQL on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1239,7 +1761,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_3_INSTALLED` validator passes.
 
-## 41. Create the PostgreSQL layout on pg-ha-3
+## 59. Create the PostgreSQL layout on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1268,7 +1790,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_3_CREATED` validator passes.
 
-## 42. Create Patroni directories on pg-ha-1
+## 60. Create Patroni directories on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1297,7 +1819,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 43. Create the PostgreSQL socket directory on pg-ha-1
+## 61. Create the PostgreSQL socket directory on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1326,7 +1848,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 44. Install Patroni on pg-ha-1
+## 62. Install Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1355,7 +1877,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 45. Install the etcd CA certificate on pg-ha-1
+## 63. Copy the etcd CA certificate on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+
+## 64. Set permissions on the etcd CA certificate on pg-ha-1
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+
+## 65. Give postgres ownership of the etcd CA certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1366,10 +1946,10 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** Install the public certificate-authority file using the filename referenced by Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The CA certificate is readable by Patroni and contains no private key.
 
@@ -1384,7 +1964,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 46. Install Patroni's etcd client certificate on pg-ha-1
+## 66. Copy Patroni's etcd client certificate on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+
+## 67. Set permissions on Patroni's etcd client certificate on pg-ha-1
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+
+## 68. Give postgres ownership of Patroni's etcd client certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1395,10 +2033,10 @@ etcd mutual TLS also verifies Patroni's client identity.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** Install the signed public client certificate under the name used in Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The signed client certificate is postgres-owned and mode 0644.
 
@@ -1413,7 +2051,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 47. Install Patroni's protected etcd client key on pg-ha-1
+## 69. Copy Patroni's protected etcd client key on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+
+## 70. Set permissions on Patroni's protected etcd client key on pg-ha-1
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0600 /etc/patroni/etcd-client.key
+```
+
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+
+## 71. Give postgres ownership of Patroni's protected etcd client key on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1424,10 +2120,10 @@ The private key proves possession of the client identity and must not be exposed
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** Install the private key with postgres ownership and owner-only mode 0600.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The command shows no key material and the destination mode is 0600.
 
@@ -1442,7 +2138,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 48. Install the Patroni launcher on pg-ha-1
+## 72. Copy the Patroni launcher on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why use a wrapper instead of a floating pip command?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why use a wrapper instead of a floating pip command?
+2. Hint: It binds systemd to the pinned runtime path.
+3. Stronger hint: The destination is /usr/local/bin/patroni.
+4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+
+## 73. Make the Patroni launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1453,10 +2178,10 @@ The pinned Python runtime needs one stable command path for systemd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
 
@@ -1471,7 +2196,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 49. Install the patronictl launcher on pg-ha-1
+## 74. Copy the patronictl launcher on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which tool runs the service and which tool operates the cluster?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which tool runs the service and which tool operates the cluster?
+2. Hint: patroni runs; patronictl controls and inspects.
+3. Stronger hint: The operator command ends in ctl.
+4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+
+## 75. Make the patronictl launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1482,10 +2236,10 @@ Operators need a stable absolute path for cluster inspection and planned operati
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** Install the reviewed patronictl launcher against the same pinned Python runtime.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patronictl is executable.
 
@@ -1500,7 +2254,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 50. Install the Patroni systemd unit on pg-ha-1
+## 76. Copy the Patroni systemd unit on pg-ha-1 into place
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which process should systemd start?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which process should systemd start?
+2. Hint: Patroni owns PostgreSQL startup in this cluster.
+3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
+4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+
+## 77. Set permissions on the Patroni systemd unit on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1511,10 +2294,10 @@ systemd must run Patroni—not postgres directly—as the owner of the PostgreSQ
 Run this one action:
 
 ```bash
-sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
 
@@ -1529,7 +2312,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 51. Reload systemd on pg-ha-1
+## 78. Reload systemd on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1558,7 +2341,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 52. Configure Patroni on pg-ha-1
+## 79. Configure Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1647,7 +2430,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_1_CONFIGURED` validator passes.
 
-## 53. Create Patroni directories on pg-ha-2
+## 80. Create Patroni directories on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1676,7 +2459,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 54. Create the PostgreSQL socket directory on pg-ha-2
+## 81. Create the PostgreSQL socket directory on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1705,7 +2488,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 55. Install Patroni on pg-ha-2
+## 82. Install Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1734,7 +2517,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 56. Install the etcd CA certificate on pg-ha-2
+## 83. Copy the etcd CA certificate on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+
+## 84. Set permissions on the etcd CA certificate on pg-ha-2
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+
+## 85. Give postgres ownership of the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1745,10 +2586,10 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** Install the public certificate-authority file using the filename referenced by Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The CA certificate is readable by Patroni and contains no private key.
 
@@ -1763,7 +2604,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 57. Install Patroni's etcd client certificate on pg-ha-2
+## 86. Copy Patroni's etcd client certificate on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+
+## 87. Set permissions on Patroni's etcd client certificate on pg-ha-2
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+
+## 88. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1774,10 +2673,10 @@ etcd mutual TLS also verifies Patroni's client identity.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** Install the signed public client certificate under the name used in Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The signed client certificate is postgres-owned and mode 0644.
 
@@ -1792,7 +2691,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 58. Install Patroni's protected etcd client key on pg-ha-2
+## 89. Copy Patroni's protected etcd client key on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+
+## 90. Set permissions on Patroni's protected etcd client key on pg-ha-2
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0600 /etc/patroni/etcd-client.key
+```
+
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+
+## 91. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1803,10 +2760,10 @@ The private key proves possession of the client identity and must not be exposed
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** Install the private key with postgres ownership and owner-only mode 0600.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The command shows no key material and the destination mode is 0600.
 
@@ -1821,7 +2778,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 59. Install the Patroni launcher on pg-ha-2
+## 92. Copy the Patroni launcher on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why use a wrapper instead of a floating pip command?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why use a wrapper instead of a floating pip command?
+2. Hint: It binds systemd to the pinned runtime path.
+3. Stronger hint: The destination is /usr/local/bin/patroni.
+4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+
+## 93. Make the Patroni launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1832,10 +2818,10 @@ The pinned Python runtime needs one stable command path for systemd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
 
@@ -1850,7 +2836,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 60. Install the patronictl launcher on pg-ha-2
+## 94. Copy the patronictl launcher on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which tool runs the service and which tool operates the cluster?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which tool runs the service and which tool operates the cluster?
+2. Hint: patroni runs; patronictl controls and inspects.
+3. Stronger hint: The operator command ends in ctl.
+4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+
+## 95. Make the patronictl launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1861,10 +2876,10 @@ Operators need a stable absolute path for cluster inspection and planned operati
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** Install the reviewed patronictl launcher against the same pinned Python runtime.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patronictl is executable.
 
@@ -1879,7 +2894,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 61. Install the Patroni systemd unit on pg-ha-2
+## 96. Copy the Patroni systemd unit on pg-ha-2 into place
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which process should systemd start?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which process should systemd start?
+2. Hint: Patroni owns PostgreSQL startup in this cluster.
+3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
+4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+
+## 97. Set permissions on the Patroni systemd unit on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1890,10 +2934,10 @@ systemd must run Patroni—not postgres directly—as the owner of the PostgreSQ
 Run this one action:
 
 ```bash
-sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
 
@@ -1908,7 +2952,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 62. Reload systemd on pg-ha-2
+## 98. Reload systemd on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1937,7 +2981,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 63. Configure Patroni on pg-ha-2
+## 99. Configure Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2026,7 +3070,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_2_CONFIGURED` validator passes.
 
-## 64. Create Patroni directories on pg-ha-3
+## 100. Create Patroni directories on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2055,7 +3099,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 65. Create the PostgreSQL socket directory on pg-ha-3
+## 101. Create the PostgreSQL socket directory on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2084,7 +3128,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 66. Install Patroni on pg-ha-3
+## 102. Install Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2113,7 +3157,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 67. Install the etcd CA certificate on pg-ha-3
+## 103. Copy the etcd CA certificate on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+
+## 104. Set permissions on the etcd CA certificate on pg-ha-3
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Does a CA certificate contain the CA private key?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Does a CA certificate contain the CA private key?
+2. Hint: A .crt file is public verification material.
+3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
+4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+
+## 105. Give postgres ownership of the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2124,10 +3226,10 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** Install the public certificate-authority file using the filename referenced by Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The CA certificate is readable by Patroni and contains no private key.
 
@@ -2142,7 +3244,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 68. Install Patroni's etcd client certificate on pg-ha-3
+## 106. Copy Patroni's etcd client certificate on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+
+## 107. Set permissions on Patroni's etcd client certificate on pg-ha-3
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Which side presents this certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+```
+
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which side presents this certificate?
+2. Hint: Patroni is the client of etcd.
+3. Stronger hint: This is public identity material; the private key is handled next.
+4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+
+## 108. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2153,10 +3313,10 @@ etcd mutual TLS also verifies Patroni's client identity.
 Run this one action:
 
 ```bash
-sudo install -m 0644 -o postgres -g postgres /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** Install the signed public client certificate under the name used in Patroni YAML.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The signed client certificate is postgres-owned and mode 0644.
 
@@ -2171,7 +3331,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 69. Install Patroni's protected etcd client key on pg-ha-3
+## 109. Copy Patroni's protected etcd client key on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+
+## 110. Set permissions on Patroni's protected etcd client key on pg-ha-3
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+**Predict first:** Why is this file more restricted than the certificate?
+
+Run this one action:
+
+```bash
+sudo chmod 0600 /etc/patroni/etcd-client.key
+```
+
+**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why is this file more restricted than the certificate?
+2. Hint: Anyone holding the private key can impersonate the client.
+3. Stronger hint: Use mode 0600 and never run cat on it.
+4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+
+## 111. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2182,10 +3400,10 @@ The private key proves possession of the client identity and must not be exposed
 Run this one action:
 
 ```bash
-sudo install -m 0600 -o postgres -g postgres /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** Install the private key with postgres ownership and owner-only mode 0600.
+**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
 **Expected result:** The command shows no key material and the destination mode is 0600.
 
@@ -2200,7 +3418,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 70. Install the Patroni launcher on pg-ha-3
+## 112. Copy the Patroni launcher on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why use a wrapper instead of a floating pip command?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why use a wrapper instead of a floating pip command?
+2. Hint: It binds systemd to the pinned runtime path.
+3. Stronger hint: The destination is /usr/local/bin/patroni.
+4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+
+## 113. Make the Patroni launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2211,10 +3458,10 @@ The pinned Python runtime needs one stable command path for systemd.
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** Install the reviewed launcher that sets PYTHONPATH to /opt/patroni and runs the Patroni module.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
 
@@ -2229,7 +3476,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 71. Install the patronictl launcher on pg-ha-3
+## 114. Copy the patronictl launcher on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which tool runs the service and which tool operates the cluster?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which tool runs the service and which tool operates the cluster?
+2. Hint: patroni runs; patronictl controls and inspects.
+3. Stronger hint: The operator command ends in ctl.
+4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+
+## 115. Make the patronictl launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2240,10 +3516,10 @@ Operators need a stable absolute path for cluster inspection and planned operati
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** Install the reviewed patronictl launcher against the same pinned Python runtime.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** /usr/local/bin/patronictl is executable.
 
@@ -2258,7 +3534,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 72. Install the Patroni systemd unit on pg-ha-3
+## 116. Copy the Patroni systemd unit on pg-ha-3 into place
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which process should systemd start?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which process should systemd start?
+2. Hint: Patroni owns PostgreSQL startup in this cluster.
+3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
+4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+
+## 117. Set permissions on the Patroni systemd unit on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2269,10 +3574,10 @@ systemd must run Patroni—not postgres directly—as the owner of the PostgreSQ
 Run this one action:
 
 ```bash
-sudo install -m 0644 /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** Install the reviewed unit that runs /usr/local/bin/patroni as the postgres account.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
 
@@ -2287,7 +3592,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 73. Reload systemd on pg-ha-3
+## 118. Reload systemd on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2316,7 +3621,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 74. Configure Patroni on pg-ha-3
+## 119. Configure Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2405,7 +3710,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_3_CONFIGURED` validator passes.
 
-## 75. Bootstrap the first Patroni leader
+## 120. Bootstrap the first Patroni leader
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2434,7 +3739,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_LEADER_BOOTSTRAPPED` validator passes.
 
-## 76. Join pg-ha-2 as the first replica
+## 121. Join pg-ha-2 as the first replica
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2463,7 +3768,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_REPLICA_2_JOINED` validator passes.
 
-## 77. Join pg-ha-3 as the second replica
+## 122. Join pg-ha-3 as the second replica
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -2492,7 +3797,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_REPLICA_3_JOINED` validator passes.
 
-## 78. Install the pinned HAProxy binary
+## 123. Copy the pinned HAProxy binary into place
+
+**Work on:** `db-router-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why use the staged binary?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/sbin/haproxy. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /usr/local/sbin/haproxy now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why use the staged binary?
+2. Hint: Its digest and version were fixed before handoff.
+3. Stronger hint: Install it at /usr/local/sbin/haproxy.
+4. Solution: Run the displayed install command and require HAPROXY_INSTALLED.
+
+**Done when:** the independent `HAPROXY_COPIED` validator passes.
+
+## 124. Make the pinned HAProxy binary runnable
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2503,10 +3837,10 @@ The writer router needs the reviewed immutable HAProxy build staged by the platf
 Run this one action:
 
 ```bash
-sudo install -m 0755 /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy
+sudo chmod 0755 /usr/local/sbin/haproxy
 ```
 
-**What the command means:** Install the verified binary at the stable system path with executable mode 0755.
+**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
 **Expected result:** HAProxy reports version 3.2.22.
 
@@ -2521,7 +3855,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_INSTALLED` validator passes.
 
-## 79. Create the HAProxy configuration directory
+## 125. Create the HAProxy configuration directory
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2550,7 +3884,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_CREATED` validator passes.
 
-## 80. Install the HAProxy systemd unit
+## 126. Copy the HAProxy systemd unit into place
+
+**Work on:** `db-router-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Why run HAProxy in foreground mode under systemd?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/haproxy.service. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/systemd/system/haproxy.service now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why run HAProxy in foreground mode under systemd?
+2. Hint: systemd must supervise the real process.
+3. Stronger hint: The unit uses -W -db and /etc/haproxy/haproxy.cfg.
+4. Solution: Install the unit and require HAPROXY_UNIT_CREATED.
+
+**Done when:** the independent `HAPROXY_UNIT_COPIED` validator passes.
+
+## 127. Set permissions on the HAProxy systemd unit
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2561,10 +3924,10 @@ A stable unit makes the writer router restartable and boot-persistent.
 Run this one action:
 
 ```bash
-sudo install -m 0644 /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service
+sudo chmod 0644 /etc/systemd/system/haproxy.service
 ```
 
-**What the command means:** Install the staged unit that starts HAProxy in foreground worker mode with the learner-authored configuration.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** systemd verifies the HAProxy unit.
 
@@ -2579,7 +3942,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_UNIT_CREATED` validator passes.
 
-## 81. Reload systemd for HAProxy
+## 128. Reload systemd for HAProxy
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2608,7 +3971,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_SYSTEMD_RELOADED` validator passes.
 
-## 82. Configure the HAProxy writer route
+## 129. Configure the HAProxy writer route
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2666,7 +4029,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_CONFIGURED` validator passes.
 
-## 83. Start the writer endpoint
+## 130. Start the writer endpoint
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -2695,7 +4058,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_STARTED` validator passes.
 
-## 84. Create the Mattermost database login
+## 131. Create the Mattermost database login
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2724,7 +4087,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DB_ROLE_CREATED` validator passes.
 
-## 85. Set the protected Mattermost database password
+## 132. Set the protected Mattermost database password
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2753,7 +4116,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DB_PASSWORD_SET` validator passes.
 
-## 86. Create the Mattermost database
+## 133. Create the Mattermost database
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2782,7 +4145,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CREATED` validator passes.
 
-## 87. Create the Mattermost operating-system account
+## 134. Create the Mattermost operating-system account
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2811,7 +4174,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_OS_USER_CREATED` validator passes.
 
-## 88. Install the pinned Mattermost application
+## 135. Install the pinned Mattermost application
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2840,7 +4203,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_INSTALLED` validator passes.
 
-## 89. Create the Mattermost runtime-data directory
+## 136. Create the Mattermost runtime-data directory
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2869,7 +4232,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_CREATED` validator passes.
 
-## 90. Assign the Mattermost application tree
+## 137. Assign the Mattermost application tree
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2898,7 +4261,36 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_TREE_OWNED` validator passes.
 
-## 91. Install the Mattermost systemd unit
+## 138. Copy the Mattermost systemd unit into place
+
+**Work on:** `mattermost-1` as `ec2-user`
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+**Predict first:** Which user should systemd run?
+
+Run this one action:
+
+```bash
+sudo cp /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service
+```
+
+**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/mattermost.service. It does not set the file's permissions - the next step does that.
+
+**Expected result:** The command returns to the prompt and /etc/systemd/system/mattermost.service now exists.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which user should systemd run?
+2. Hint: The dedicated application account.
+3. Stronger hint: User and Group must both be mattermost.
+4. Solution: Install the unit and require MATTERMOST_UNIT_CREATED.
+
+**Done when:** the independent `MATTERMOST_UNIT_COPIED` validator passes.
+
+## 139. Set permissions on the Mattermost systemd unit
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2909,10 +4301,10 @@ The workload needs a supervised, boot-persistent service definition.
 Run this one action:
 
 ```bash
-sudo install -m 0644 /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service
+sudo chmod 0644 /etc/systemd/system/mattermost.service
 ```
 
-**What the command means:** Install the reviewed unit that runs the server as the mattermost account from /opt/mattermost.
+**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 **Expected result:** systemd verifies the unit and its non-root identity.
 
@@ -2927,7 +4319,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_CREATED` validator passes.
 
-## 92. Reload systemd for Mattermost
+## 140. Reload systemd for Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -2956,7 +4348,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_SYSTEMD_RELOADED` validator passes.
 
-## 93. Connect Mattermost to HAProxy
+## 141. Connect Mattermost to HAProxy
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -3000,7 +4392,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CONFIGURED` validator passes.
 
-## 94. Start and prove Mattermost
+## 142. Start and prove Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
