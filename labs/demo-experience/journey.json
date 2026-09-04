@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "experience_id": "demo-cache-ha",
+  "title": "Cache HA (demo)",
+  "release": {
+    "owner_only": false,
+    "fault_scenarios_verified": true,
+    "label": "Enrolled learner release - clean baseline verified"
+  },
+  "completion": {
+    "source": "deterministic-validator",
+    "requires_contiguous_steps": true
+  },
+  "phases": [
+    {
+      "id": "concepts",
+      "title": "Concepts",
+      "steps": [
+        {
+          "id": "cache-ha-mental-model",
+          "title": "Understand the cache HA system",
+          "tutor_context": "demo",
+          "workplace_problem": "A demo service depends on a Redis cache. One cache node is a single point of failure; you need a replica plus an automatic failover coordinator.",
+          "learning_outcomes": [
+            "Why a single cache node is a SPOF",
+            "How a replica keeps a warm copy of the data",
+            "How a coordinator (sentinel) promotes the replica on failure"
+          ],
+          "architecture": "Two cache nodes (cache-1 primary, cache-2 replica) and one coordinator (coordinator-1) running sentinel that monitors both and promotes the replica if the primary dies.",
+          "boundaries": [
+            "The claim is cache-tier availability for a demo service.",
+            "The single coordinator-1 node is itself a single point of failure in this demo profile.",
+            "A healthy cache alone does not prove the demo service still reads and writes."
+          ],
+          "opening_prompt": "Ask me anything about Redis replication, the coordinator, or how a failover plays out. When it clicks, say start BUILD.",
+          "checkpoint": "Explain in one sentence what promotes the replica when the primary dies."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "Build",
+      "steps": [
+        {
+          "id": "install-redis-cache-1",
+          "title": "Install Redis on the primary cache",
+          "role": "cache-1",
+          "user": "ec2-user",
+          "why": "cache-1 is the primary cache node; it needs the Redis server package.",
+          "command": "sudo dnf install -y redis",
+          "command_explanation": "dnf install -y installs the Redis server and its dependencies without prompting.",
+          "expected": "dnf reports Redis installed (Complete!).",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_INSTALLED_CACHE_1" }
+        },
+        {
+          "id": "install-redis-cache-2",
+          "title": "Install Redis on the replica cache",
+          "role": "cache-2",
+          "user": "ec2-user",
+          "why": "cache-2 will hold a warm replica of the primary's data, so it also needs Redis.",
+          "command": "sudo dnf install -y redis",
+          "command_explanation": "The same install on cache-2; each node runs its own Redis server.",
+          "expected": "dnf reports Redis installed (Complete!).",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_INSTALLED_CACHE_2" }
+        },
+        {
+          "id": "configure-replica-cache-2",
+          "title": "Make cache-2 a replica of cache-1",
+          "role": "cache-2",
+          "user": "ec2-user",
+          "why": "The replica must follow the primary so it holds a current copy ready to promote.",
+          "command": "sudo redis-cli replicaof cache-1 6379",
+          "command_explanation": "redis-cli replicaof tells this node to replicate from cache-1 on port 6379.",
+          "expected": "redis-cli returns OK.",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_REPLICA_CONFIGURED" }
+        },
+        {
+          "id": "start-cache-tier",
+          "title": "Start and enable Redis on the primary",
+          "role": "cache-1",
+          "user": "ec2-user",
+          "why": "The Redis service must be running and set to start on boot.",
+          "command": "sudo systemctl enable --now redis",
+          "command_explanation": "systemctl enable --now starts Redis immediately and enables it at boot.",
+          "expected": "The command returns to the prompt; redis is active.",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_CACHE_STARTED" }
+        },
+        {
+          "id": "configure-sentinel-coordinator",
+          "title": "Configure the failover coordinator",
+          "role": "coordinator-1",
+          "user": "ec2-user",
+          "why": "Sentinel watches the primary and automatically promotes the replica if it fails.",
+          "command": "sudo redis-sentinel /etc/redis/sentinel.conf --daemonize yes",
+          "command_explanation": "redis-sentinel starts the coordinator using the config that monitors cache-1 and its replica.",
+          "expected": "Sentinel starts and begins monitoring the cache tier.",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_SENTINEL_CONFIGURED" }
+        },
+        {
+          "id": "verify-failover-ready",
+          "title": "Verify the cache tier is failover-ready",
+          "role": "coordinator-1",
+          "user": "ec2-user",
+          "why": "Prove sentinel sees one master and one healthy replica before trusting failover.",
+          "command": "redis-cli -p 26379 sentinel master demo-cache",
+          "command_explanation": "Asks sentinel for the master's status; it reports the master and the number of healthy replicas.",
+          "expected": "One master with num-slaves=1.",
+          "safety": "read",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_HA_VERIFIED" }
+        }
+      ]
+    },
+    {
+      "id": "use",
+      "title": "Use",
+      "steps": [
+        {
+          "id": "observe-replication",
+          "title": "Write to the primary and read from the replica",
+          "role": "cache-1",
+          "user": "ec2-user",
+          "why": "Confirm data written to the primary is visible on the replica.",
+          "command": "redis-cli set demo:key hello",
+          "command_explanation": "Writes a key on the primary; you then read it back from cache-2 to see replication.",
+          "expected": "OK, and the key is readable on cache-2.",
+          "safety": "change",
+          "release_verified": true,
+          "validator": { "source": "server-observer", "code": "REDIS_REPLICATION_OBSERVED" }
+        }
+      ]
+    }
+  ],
+  "survive": {
+    "delivery": "separate-chaos-flow",
+    "guide": "Kill the primary and watch sentinel promote the replica.",
+    "landing": {
+      "id": "operations-ready",
+      "title": "Operate and recover the cache tier",
+      "phase": "survive",
+      "delivery": "operations",
+      "role": "coordinator-1",
+      "why": "The guided build is complete; use the role terminals to inspect and recover the cache tier.",
+      "command": "redis-cli -p 26379 sentinel master demo-cache",
+      "expected": "Sentinel reports the current master and healthy replica count."
+    },
+    "readiness_requires": "all-build-and-use-verified",
+    "scenarios": [
+      {
+        "id": "primary-loss",
+        "title": "Primary cache failure",
+        "inject": "stop redis on cache-1",
+        "recover": "sentinel promotes cache-2; confirm the new master serves reads and writes"
+      }
+    ]
+  },
+  "interview": {
+    "delivery": "separate-assessment-flow",
+    "guide": "Cache HA interview review",
+    "affects_progress": false,
+    "levels": [
+      { "id": "junior", "title": "Junior review", "focus": "replication + failover basics" }
+    ]
+  }
+}
