@@ -225,7 +225,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 8. Create the protected etcd configuration directory
+## 8. Create the etcd-directories-1 directories
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /etc/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 9. Give root ownership of the etcd-directories-1 directories
+
+**Work on:** `dcs-1` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /etc/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 10. Lock down the etcd-directories-1 directory permissions
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -236,10 +294,10 @@ Configuration and consensus data need explicit protected locations.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /etc/etcd
+sudo chmod 0700 /etc/etcd
 ```
 
-**What the command means:** install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /etc/etcd is owned by root with mode 0700.
 
@@ -254,7 +312,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 9. Create the protected etcd consensus-data directory
+## 11. Create the etcd-data-directory-1 directories
+
+**Work on:** `dcs-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/lib/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 12. Give root ownership of the etcd-data-directory-1 directories
+
+**Work on:** `dcs-1` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /var/lib/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 13. Lock down the etcd-data-directory-1 directory permissions
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -265,10 +381,10 @@ etcd must persist quorum state in a root-only directory that starts empty.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /var/lib/etcd
+sudo chmod 0700 /var/lib/etcd
 ```
 
-**What the command means:** This creates the separate consensus-data directory with root-only access; it does not initialize a member.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
 
@@ -283,7 +399,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 10. Copy the role-bound TLS public certificate into place
+## 14. Copy the role-bound TLS public certificate into place
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -312,7 +428,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
 
-## 11. Set permissions on the role-bound TLS public certificate
+## 15. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -341,7 +457,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 12. Copy the etcd trust anchor into place
+## 16. Copy the etcd trust anchor into place
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -370,7 +486,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_COPIED` validator passes.
 
-## 13. Set permissions on the etcd trust anchor
+## 17. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -399,7 +515,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 14. Copy the role-bound TLS private key into place
+## 18. Copy the role-bound TLS private key into place
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -428,7 +544,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
 
-## 15. Set permissions on the role-bound TLS private key
+## 19. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -457,7 +573,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 16. Configure dcs-1
+## 20. Configure dcs-1
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -505,7 +621,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_1_CONFIGURED` validator passes.
 
-## 17. Copy the etcd server program into place
+## 21. Copy the etcd server program into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -534,7 +650,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_COPIED` validator passes.
 
-## 18. Make the etcd server program runnable
+## 22. Make the etcd server program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -563,7 +679,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_INSTALLED` validator passes.
 
-## 19. Copy the etcdctl client program into place
+## 23. Copy the etcdctl client program into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -592,7 +708,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_COPIED` validator passes.
 
-## 20. Make the etcdctl client program runnable
+## 24. Make the etcdctl client program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -621,7 +737,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_INSTALLED` validator passes.
 
-## 21. Copy the etcdutl recovery program into place
+## 25. Copy the etcdutl recovery program into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -650,7 +766,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_COPIED` validator passes.
 
-## 22. Make the etcdutl recovery program runnable
+## 26. Make the etcdutl recovery program runnable
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -679,7 +795,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 23. Create the protected etcd configuration directory
+## 27. Create the etcd-directories-2 directories
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /etc/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 28. Give root ownership of the etcd-directories-2 directories
+
+**Work on:** `dcs-2` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /etc/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 29. Lock down the etcd-directories-2 directory permissions
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -690,10 +864,10 @@ Configuration and consensus data need explicit protected locations.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /etc/etcd
+sudo chmod 0700 /etc/etcd
 ```
 
-**What the command means:** install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /etc/etcd is owned by root with mode 0700.
 
@@ -708,7 +882,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 24. Create the protected etcd consensus-data directory
+## 30. Create the etcd-data-directory-2 directories
+
+**Work on:** `dcs-2` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/lib/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 31. Give root ownership of the etcd-data-directory-2 directories
+
+**Work on:** `dcs-2` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /var/lib/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 32. Lock down the etcd-data-directory-2 directory permissions
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -719,10 +951,10 @@ etcd must persist quorum state in a root-only directory that starts empty.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /var/lib/etcd
+sudo chmod 0700 /var/lib/etcd
 ```
 
-**What the command means:** This creates the separate consensus-data directory with root-only access; it does not initialize a member.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
 
@@ -737,7 +969,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 25. Copy the role-bound TLS public certificate into place
+## 33. Copy the role-bound TLS public certificate into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -766,7 +998,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
 
-## 26. Set permissions on the role-bound TLS public certificate
+## 34. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -795,7 +1027,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 27. Copy the etcd trust anchor into place
+## 35. Copy the etcd trust anchor into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -824,7 +1056,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_COPIED` validator passes.
 
-## 28. Set permissions on the etcd trust anchor
+## 36. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -853,7 +1085,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 29. Copy the role-bound TLS private key into place
+## 37. Copy the role-bound TLS private key into place
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -882,7 +1114,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
 
-## 30. Set permissions on the role-bound TLS private key
+## 38. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -911,7 +1143,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 31. Configure dcs-2
+## 39. Configure dcs-2
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -959,7 +1191,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_2_CONFIGURED` validator passes.
 
-## 32. Copy the etcd server program into place
+## 40. Copy the etcd server program into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -988,7 +1220,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_COPIED` validator passes.
 
-## 33. Make the etcd server program runnable
+## 41. Make the etcd server program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1017,7 +1249,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_SERVER_INSTALLED` validator passes.
 
-## 34. Copy the etcdctl client program into place
+## 42. Copy the etcdctl client program into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1046,7 +1278,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_COPIED` validator passes.
 
-## 35. Make the etcdctl client program runnable
+## 43. Make the etcdctl client program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1075,7 +1307,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDCTL_INSTALLED` validator passes.
 
-## 36. Copy the etcdutl recovery program into place
+## 44. Copy the etcdutl recovery program into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1104,7 +1336,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_COPIED` validator passes.
 
-## 37. Make the etcdutl recovery program runnable
+## 45. Make the etcdutl recovery program runnable
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1133,7 +1365,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 38. Create the protected etcd configuration directory
+## 46. Create the etcd-directories-3 directories
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /etc/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 47. Give root ownership of the etcd-directories-3 directories
+
+**Work on:** `dcs-3` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Who should be able to read the future member private key?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /etc/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should be able to read the future member private key?
+2. Hint: Only root needs access in this lab.
+3. Stronger hint: Use mode 0700 for both directories.
+4. Solution: Create /etc/etcd with root ownership and mode 0700.
+
+**Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 48. Lock down the etcd-directories-3 directory permissions
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1144,10 +1434,10 @@ Configuration and consensus data need explicit protected locations.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /etc/etcd
+sudo chmod 0700 /etc/etcd
 ```
 
-**What the command means:** install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /etc/etcd is owned by root with mode 0700.
 
@@ -1162,7 +1452,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 39. Create the protected etcd consensus-data directory
+## 49. Create the etcd-data-directory-3 directories
+
+**Work on:** `dcs-3` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/lib/etcd
+```
+
+**What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
+
+## 50. Give root ownership of the etcd-data-directory-3 directories
+
+**Work on:** `dcs-3` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Why separate configuration from consensus data?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /var/lib/etcd
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Why separate configuration from consensus data?
+2. Hint: They have different lifecycle and recovery responsibilities.
+3. Stronger hint: Create /var/lib/etcd with root ownership and 0700.
+4. Solution: Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE.
+
+**Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
+
+## 51. Lock down the etcd-data-directory-3 directory permissions
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1173,10 +1521,10 @@ etcd must persist quorum state in a root-only directory that starts empty.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o root -g root /var/lib/etcd
+sudo chmod 0700 /var/lib/etcd
 ```
 
-**What the command means:** This creates the separate consensus-data directory with root-only access; it does not initialize a member.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
 
@@ -1191,7 +1539,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE` validator passes.
 
-## 40. Copy the role-bound TLS public certificate into place
+## 52. Copy the role-bound TLS public certificate into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1220,7 +1568,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_COPIED` validator passes.
 
-## 41. Set permissions on the role-bound TLS public certificate
+## 53. Set permissions on the role-bound TLS public certificate
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1249,7 +1597,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_CERT_INSTALLED` validator passes.
 
-## 42. Copy the etcd trust anchor into place
+## 54. Copy the etcd trust anchor into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1278,7 +1626,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_COPIED` validator passes.
 
-## 43. Set permissions on the etcd trust anchor
+## 55. Set permissions on the etcd trust anchor
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1307,7 +1655,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CA_INSTALLED` validator passes.
 
-## 44. Copy the role-bound TLS private key into place
+## 56. Copy the role-bound TLS private key into place
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1336,7 +1684,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_COPIED` validator passes.
 
-## 45. Set permissions on the role-bound TLS private key
+## 57. Set permissions on the role-bound TLS private key
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1365,7 +1713,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_KEY_INSTALLED` validator passes.
 
-## 46. Configure dcs-3
+## 58. Configure dcs-3
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1413,7 +1761,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_3_CONFIGURED` validator passes.
 
-## 47. Start dcs-1
+## 59. Start dcs-1
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -1442,7 +1790,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_1_STARTED` validator passes.
 
-## 48. Start dcs-2
+## 60. Start dcs-2
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -1471,7 +1819,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_2_STARTED` validator passes.
 
-## 49. Start dcs-3
+## 61. Start dcs-3
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -1500,7 +1848,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_MEMBER_3_STARTED` validator passes.
 
-## 50. Prove quorum over mutual TLS
+## 62. Prove quorum over mutual TLS
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -1529,7 +1877,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_QUORUM_BUILT` validator passes.
 
-## 51. Create the postgres operating-system account on pg-ha-1
+## 63. Create the postgres operating-system account on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1558,7 +1906,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_1_CREATED` validator passes.
 
-## 52. Install PostgreSQL on pg-ha-1
+## 64. Install PostgreSQL on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1587,7 +1935,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_1_INSTALLED` validator passes.
 
-## 53. Create the PostgreSQL layout on pg-ha-1
+## 65. Create the postgresql-layout-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Which four operational purposes need paths?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which four operational purposes need paths?
+2. Hint: Data, WAL, backups and logs.
+3. Stronger hint: Every path is under /opt/pgsql and owned by postgres.
+4. Solution: Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION.
+
+**Done when:** the independent `PG_LAYOUT_1_DIRS_MADE` validator passes.
+
+## 66. Give postgres ownership of the postgresql-layout-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Which four operational purposes need paths?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which four operational purposes need paths?
+2. Hint: Data, WAL, backups and logs.
+3. Stronger hint: Every path is under /opt/pgsql and owned by postgres.
+4. Solution: Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION.
+
+**Done when:** the independent `PG_LAYOUT_1_DIRS_OWNED` validator passes.
+
+## 67. Lock down the postgresql-layout-1 directory permissions
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1598,10 +2004,10 @@ Data, WAL, backup and log paths have different operational purposes.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
 ```
 
-**What the command means:** One install invocation creates the four related storage directories with postgres ownership and root-excluding permissions.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** All four directories exist with postgres ownership and mode 0700; PGDATA remains uninitialized.
 
@@ -1616,7 +2022,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_1_CREATED` validator passes.
 
-## 54. Create the postgres operating-system account on pg-ha-2
+## 68. Create the postgres operating-system account on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1645,7 +2051,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_2_CREATED` validator passes.
 
-## 55. Install PostgreSQL on pg-ha-2
+## 69. Install PostgreSQL on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1674,7 +2080,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_2_INSTALLED` validator passes.
 
-## 56. Create the PostgreSQL layout on pg-ha-2
+## 70. Create the postgresql-layout-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** What file would prove PGDATA was already initialized?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: What file would prove PGDATA was already initialized?
+2. Hint: Its name begins with PG and records the major version.
+3. Stronger hint: The validator requires PG_VERSION to be absent.
+4. Solution: Create the four paths and require PG_LAYOUT_2_CREATED.
+
+**Done when:** the independent `PG_LAYOUT_2_DIRS_MADE` validator passes.
+
+## 71. Give postgres ownership of the postgresql-layout-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** What file would prove PGDATA was already initialized?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: What file would prove PGDATA was already initialized?
+2. Hint: Its name begins with PG and records the major version.
+3. Stronger hint: The validator requires PG_VERSION to be absent.
+4. Solution: Create the four paths and require PG_LAYOUT_2_CREATED.
+
+**Done when:** the independent `PG_LAYOUT_2_DIRS_OWNED` validator passes.
+
+## 72. Lock down the postgresql-layout-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -1685,10 +2149,10 @@ The replica needs the same protected operational paths before it can clone.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
 ```
 
-**What the command means:** Create all four related paths with postgres ownership while leaving PGDATA empty.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** All four directories exist and /opt/pgsql/data has no PG_VERSION.
 
@@ -1703,7 +2167,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_2_CREATED` validator passes.
 
-## 57. Create the postgres operating-system account on pg-ha-3
+## 73. Create the postgres operating-system account on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1732,7 +2196,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_OS_USER_3_CREATED` validator passes.
 
-## 58. Install PostgreSQL on pg-ha-3
+## 74. Install PostgreSQL on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1761,7 +2225,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `POSTGRESQL_SOFTWARE_3_INSTALLED` validator passes.
 
-## 59. Create the PostgreSQL layout on pg-ha-3
+## 75. Create the postgresql-layout-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** What must remain absent before Patroni joins this replica?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: What must remain absent before Patroni joins this replica?
+2. Hint: The PostgreSQL version marker inside PGDATA.
+3. Stronger hint: Check /opt/pgsql/data/PG_VERSION is absent.
+4. Solution: Create the four paths and require PG_LAYOUT_3_CREATED.
+
+**Done when:** the independent `PG_LAYOUT_3_DIRS_MADE` validator passes.
+
+## 76. Give postgres ownership of the postgresql-layout-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** What must remain absent before Patroni joins this replica?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: What must remain absent before Patroni joins this replica?
+2. Hint: The PostgreSQL version marker inside PGDATA.
+3. Stronger hint: Check /opt/pgsql/data/PG_VERSION is absent.
+4. Solution: Create the four paths and require PG_LAYOUT_3_CREATED.
+
+**Done when:** the independent `PG_LAYOUT_3_DIRS_OWNED` validator passes.
+
+## 77. Lock down the postgresql-layout-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -1772,10 +2294,10 @@ The second replica needs the same protected layout and empty PGDATA.
 Run this one action:
 
 ```bash
-sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
 ```
 
-**What the command means:** Create data, WAL, backup and log directories together with consistent ownership and permissions.
+**What the command means:** chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
 
 **Expected result:** All paths exist with postgres ownership and PG_VERSION is absent.
 
@@ -1790,7 +2312,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_3_CREATED` validator passes.
 
-## 60. Create Patroni directories on pg-ha-1
+## 78. Create the patroni-directories-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/patroni /etc/patroni
+```
+
+**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+
+## 79. Give postgres ownership of the patroni-directories-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+
+## 80. Lock down the patroni-directories-1 directory permissions
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1801,10 +2381,10 @@ Patroni software and protected configuration need explicit postgres-owned locati
 Run this one action:
 
 ```bash
-sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni
+sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** install -d creates both related directories with postgres ownership and group-restricted mode 0750.
+**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
 
 **Expected result:** Both directories exist with postgres ownership and mode 0750.
 
@@ -1819,7 +2399,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 61. Create the PostgreSQL socket directory on pg-ha-1
+## 81. Create the postgresql-socket-directory-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/run/postgresql
+```
+
+**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+
+## 82. Give postgres ownership of the postgresql-socket-directory-1 directories
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /var/run/postgresql
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+
+## 83. Lock down the postgresql-socket-directory-1 directory permissions
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1830,10 +2468,10 @@ Local clients and Patroni need a writable runtime location for the Unix socket.
 Run this one action:
 
 ```bash
-sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql
+sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** Create the runtime socket directory with postgres ownership and mode 0755.
+**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
 
 **Expected result:** /var/run/postgresql exists with postgres ownership.
 
@@ -1848,7 +2486,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 62. Install Patroni on pg-ha-1
+## 84. Install Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1877,7 +2515,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 63. Copy the etcd CA certificate on pg-ha-1 into place
+## 85. Copy the etcd CA certificate on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1906,7 +2544,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_COPIED` validator passes.
 
-## 64. Set permissions on the etcd CA certificate on pg-ha-1
+## 86. Set permissions on the etcd CA certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1935,7 +2573,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
 
-## 65. Give postgres ownership of the etcd CA certificate on pg-ha-1
+## 87. Give postgres ownership of the etcd CA certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1964,7 +2602,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 66. Copy Patroni's etcd client certificate on pg-ha-1 into place
+## 88. Copy Patroni's etcd client certificate on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -1993,7 +2631,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
 
-## 67. Set permissions on Patroni's etcd client certificate on pg-ha-1
+## 89. Set permissions on Patroni's etcd client certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2022,7 +2660,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
 
-## 68. Give postgres ownership of Patroni's etcd client certificate on pg-ha-1
+## 90. Give postgres ownership of Patroni's etcd client certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2051,7 +2689,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 69. Copy Patroni's protected etcd client key on pg-ha-1 into place
+## 91. Copy Patroni's protected etcd client key on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2080,7 +2718,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
 
-## 70. Set permissions on Patroni's protected etcd client key on pg-ha-1
+## 92. Set permissions on Patroni's protected etcd client key on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2109,7 +2747,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
 
-## 71. Give postgres ownership of Patroni's protected etcd client key on pg-ha-1
+## 93. Give postgres ownership of Patroni's protected etcd client key on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2138,7 +2776,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 72. Copy the Patroni launcher on pg-ha-1 into place
+## 94. Copy the Patroni launcher on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2167,7 +2805,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
 
-## 73. Make the Patroni launcher on pg-ha-1 runnable
+## 95. Make the Patroni launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2196,7 +2834,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 74. Copy the patronictl launcher on pg-ha-1 into place
+## 96. Copy the patronictl launcher on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2225,7 +2863,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
 
-## 75. Make the patronictl launcher on pg-ha-1 runnable
+## 97. Make the patronictl launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2254,7 +2892,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 76. Copy the Patroni systemd unit on pg-ha-1 into place
+## 98. Copy the Patroni systemd unit on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2283,7 +2921,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
 
-## 77. Set permissions on the Patroni systemd unit on pg-ha-1
+## 99. Set permissions on the Patroni systemd unit on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2312,7 +2950,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 78. Reload systemd on pg-ha-1
+## 100. Reload systemd on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2341,7 +2979,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 79. Configure Patroni on pg-ha-1
+## 101. Configure Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2430,7 +3068,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_1_CONFIGURED` validator passes.
 
-## 80. Create Patroni directories on pg-ha-2
+## 102. Create the patroni-directories-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/patroni /etc/patroni
+```
+
+**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+
+## 103. Give postgres ownership of the patroni-directories-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+
+## 104. Lock down the patroni-directories-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2441,10 +3137,10 @@ Patroni software and protected configuration need explicit postgres-owned locati
 Run this one action:
 
 ```bash
-sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni
+sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** install -d creates both related directories with postgres ownership and group-restricted mode 0750.
+**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
 
 **Expected result:** Both directories exist with postgres ownership and mode 0750.
 
@@ -2459,7 +3155,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 81. Create the PostgreSQL socket directory on pg-ha-2
+## 105. Create the postgresql-socket-directory-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/run/postgresql
+```
+
+**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+
+## 106. Give postgres ownership of the postgresql-socket-directory-2 directories
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /var/run/postgresql
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+
+## 107. Lock down the postgresql-socket-directory-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2470,10 +3224,10 @@ Local clients and Patroni need a writable runtime location for the Unix socket.
 Run this one action:
 
 ```bash
-sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql
+sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** Create the runtime socket directory with postgres ownership and mode 0755.
+**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
 
 **Expected result:** /var/run/postgresql exists with postgres ownership.
 
@@ -2488,7 +3242,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 82. Install Patroni on pg-ha-2
+## 108. Install Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2517,7 +3271,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 83. Copy the etcd CA certificate on pg-ha-2 into place
+## 109. Copy the etcd CA certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2546,7 +3300,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_COPIED` validator passes.
 
-## 84. Set permissions on the etcd CA certificate on pg-ha-2
+## 110. Set permissions on the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2575,7 +3329,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
 
-## 85. Give postgres ownership of the etcd CA certificate on pg-ha-2
+## 111. Give postgres ownership of the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2604,7 +3358,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 86. Copy Patroni's etcd client certificate on pg-ha-2 into place
+## 112. Copy Patroni's etcd client certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2633,7 +3387,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
 
-## 87. Set permissions on Patroni's etcd client certificate on pg-ha-2
+## 113. Set permissions on Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2662,7 +3416,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
 
-## 88. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
+## 114. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2691,7 +3445,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 89. Copy Patroni's protected etcd client key on pg-ha-2 into place
+## 115. Copy Patroni's protected etcd client key on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2720,7 +3474,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
 
-## 90. Set permissions on Patroni's protected etcd client key on pg-ha-2
+## 116. Set permissions on Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2749,7 +3503,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
 
-## 91. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
+## 117. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2778,7 +3532,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 92. Copy the Patroni launcher on pg-ha-2 into place
+## 118. Copy the Patroni launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2807,7 +3561,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
 
-## 93. Make the Patroni launcher on pg-ha-2 runnable
+## 119. Make the Patroni launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2836,7 +3590,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 94. Copy the patronictl launcher on pg-ha-2 into place
+## 120. Copy the patronictl launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2865,7 +3619,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
 
-## 95. Make the patronictl launcher on pg-ha-2 runnable
+## 121. Make the patronictl launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2894,7 +3648,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 96. Copy the Patroni systemd unit on pg-ha-2 into place
+## 122. Copy the Patroni systemd unit on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2923,7 +3677,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
 
-## 97. Set permissions on the Patroni systemd unit on pg-ha-2
+## 123. Set permissions on the Patroni systemd unit on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2952,7 +3706,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 98. Reload systemd on pg-ha-2
+## 124. Reload systemd on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -2981,7 +3735,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 99. Configure Patroni on pg-ha-2
+## 125. Configure Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -3070,7 +3824,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_2_CONFIGURED` validator passes.
 
-## 100. Create Patroni directories on pg-ha-3
+## 126. Create the patroni-directories-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/patroni /etc/patroni
+```
+
+**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+
+## 127. Give postgres ownership of the patroni-directories-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Which account runs Patroni?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account runs Patroni?
+2. Hint: Use the same postgres OS account that owns PostgreSQL.
+3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
+4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+
+## 128. Lock down the patroni-directories-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3081,10 +3893,10 @@ Patroni software and protected configuration need explicit postgres-owned locati
 Run this one action:
 
 ```bash
-sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni
+sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** install -d creates both related directories with postgres ownership and group-restricted mode 0750.
+**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
 
 **Expected result:** Both directories exist with postgres ownership and mode 0750.
 
@@ -3099,7 +3911,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
 
-## 101. Create the PostgreSQL socket directory on pg-ha-3
+## 129. Create the postgresql-socket-directory-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /var/run/postgresql
+```
+
+**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+
+## 130. Give postgres ownership of the postgresql-socket-directory-3 directories
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+The postgres service must own these directories to write into them.
+
+**Predict first:** Is this directory permanent database storage?
+
+Run this one action:
+
+```bash
+sudo chown -R postgres:postgres /var/run/postgresql
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by postgres.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Is this directory permanent database storage?
+2. Hint: It holds runtime socket files, not table data.
+3. Stronger hint: The path is /var/run/postgresql.
+4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+
+## 131. Lock down the postgresql-socket-directory-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3110,10 +3980,10 @@ Local clients and Patroni need a writable runtime location for the Unix socket.
 Run this one action:
 
 ```bash
-sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql
+sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** Create the runtime socket directory with postgres ownership and mode 0755.
+**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
 
 **Expected result:** /var/run/postgresql exists with postgres ownership.
 
@@ -3128,7 +3998,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
 
-## 102. Install Patroni on pg-ha-3
+## 132. Install Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3157,7 +4027,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
 
-## 103. Copy the etcd CA certificate on pg-ha-3 into place
+## 133. Copy the etcd CA certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3186,7 +4056,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_COPIED` validator passes.
 
-## 104. Set permissions on the etcd CA certificate on pg-ha-3
+## 134. Set permissions on the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3215,7 +4085,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
 
-## 105. Give postgres ownership of the etcd CA certificate on pg-ha-3
+## 135. Give postgres ownership of the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3244,7 +4114,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
 
-## 106. Copy Patroni's etcd client certificate on pg-ha-3 into place
+## 136. Copy Patroni's etcd client certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3273,7 +4143,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
 
-## 107. Set permissions on Patroni's etcd client certificate on pg-ha-3
+## 137. Set permissions on Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3302,7 +4172,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
 
-## 108. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
+## 138. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3331,7 +4201,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
 
-## 109. Copy Patroni's protected etcd client key on pg-ha-3 into place
+## 139. Copy Patroni's protected etcd client key on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3360,7 +4230,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
 
-## 110. Set permissions on Patroni's protected etcd client key on pg-ha-3
+## 140. Set permissions on Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3389,7 +4259,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
 
-## 111. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
+## 141. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3418,7 +4288,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
 
-## 112. Copy the Patroni launcher on pg-ha-3 into place
+## 142. Copy the Patroni launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3447,7 +4317,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
 
-## 113. Make the Patroni launcher on pg-ha-3 runnable
+## 143. Make the Patroni launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3476,7 +4346,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
 
-## 114. Copy the patronictl launcher on pg-ha-3 into place
+## 144. Copy the patronictl launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3505,7 +4375,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
 
-## 115. Make the patronictl launcher on pg-ha-3 runnable
+## 145. Make the patronictl launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3534,7 +4404,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
 
-## 116. Copy the Patroni systemd unit on pg-ha-3 into place
+## 146. Copy the Patroni systemd unit on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3563,7 +4433,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
 
-## 117. Set permissions on the Patroni systemd unit on pg-ha-3
+## 147. Set permissions on the Patroni systemd unit on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3592,7 +4462,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
 
-## 118. Reload systemd on pg-ha-3
+## 148. Reload systemd on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3621,7 +4491,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
 
-## 119. Configure Patroni on pg-ha-3
+## 149. Configure Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3710,7 +4580,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_MEMBER_3_CONFIGURED` validator passes.
 
-## 120. Bootstrap the first Patroni leader
+## 150. Bootstrap the first Patroni leader
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -3739,7 +4609,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_LEADER_BOOTSTRAPPED` validator passes.
 
-## 121. Join pg-ha-2 as the first replica
+## 151. Join pg-ha-2 as the first replica
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -3768,7 +4638,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_REPLICA_2_JOINED` validator passes.
 
-## 122. Join pg-ha-3 as the second replica
+## 152. Join pg-ha-3 as the second replica
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -3797,7 +4667,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PATRONI_REPLICA_3_JOINED` validator passes.
 
-## 123. Copy the pinned HAProxy binary into place
+## 153. Copy the pinned HAProxy binary into place
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3826,7 +4696,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_COPIED` validator passes.
 
-## 124. Make the pinned HAProxy binary runnable
+## 154. Make the pinned HAProxy binary runnable
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3855,7 +4725,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_INSTALLED` validator passes.
 
-## 125. Create the HAProxy configuration directory
+## 155. Create the haproxy-directory directories
+
+**Work on:** `db-router-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Who should own routing policy?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /etc/haproxy
+```
+
+**What the command means:** sudo mkdir -p creates /etc/haproxy (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should own routing policy?
+2. Hint: It is system configuration, not application data.
+3. Stronger hint: Use root:root ownership.
+4. Solution: Create the directory and require HAPROXY_DIR_CREATED.
+
+**Done when:** the independent `HAPROXY_DIR_DIRS_MADE` validator passes.
+
+## 156. Give root ownership of the haproxy-directory directories
+
+**Work on:** `db-router-1` as `ec2-user`
+
+The root service must own these directories to write into them.
+
+**Predict first:** Who should own routing policy?
+
+Run this one action:
+
+```bash
+sudo chown -R root:root /etc/haproxy
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by root.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who should own routing policy?
+2. Hint: It is system configuration, not application data.
+3. Stronger hint: Use root:root ownership.
+4. Solution: Create the directory and require HAPROXY_DIR_CREATED.
+
+**Done when:** the independent `HAPROXY_DIR_DIRS_OWNED` validator passes.
+
+## 157. Lock down the haproxy-directory directory permissions
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3866,10 +4794,10 @@ The router needs a root-owned location for its reviewed writer-routing policy.
 Run this one action:
 
 ```bash
-sudo install -d -m 0755 -o root -g root /etc/haproxy
+sudo chmod 0755 /etc/haproxy
 ```
 
-**What the command means:** Create /etc/haproxy with root ownership and readable directory mode 0755.
+**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
 
 **Expected result:** The directory is root-owned with mode 0755.
 
@@ -3884,7 +4812,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_CREATED` validator passes.
 
-## 126. Copy the HAProxy systemd unit into place
+## 158. Copy the HAProxy systemd unit into place
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3913,7 +4841,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_UNIT_COPIED` validator passes.
 
-## 127. Set permissions on the HAProxy systemd unit
+## 159. Set permissions on the HAProxy systemd unit
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3942,7 +4870,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_UNIT_CREATED` validator passes.
 
-## 128. Reload systemd for HAProxy
+## 160. Reload systemd for HAProxy
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -3971,7 +4899,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_SYSTEMD_RELOADED` validator passes.
 
-## 129. Configure the HAProxy writer route
+## 161. Configure the HAProxy writer route
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -4029,7 +4957,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_CONFIGURED` validator passes.
 
-## 130. Start the writer endpoint
+## 162. Start the writer endpoint
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -4058,7 +4986,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_STARTED` validator passes.
 
-## 131. Create the Mattermost database login
+## 163. Create the Mattermost database login
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -4087,7 +5015,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DB_ROLE_CREATED` validator passes.
 
-## 132. Set the protected Mattermost database password
+## 164. Set the protected Mattermost database password
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -4116,7 +5044,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DB_PASSWORD_SET` validator passes.
 
-## 133. Create the Mattermost database
+## 165. Create the Mattermost database
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -4145,7 +5073,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CREATED` validator passes.
 
-## 134. Create the Mattermost operating-system account
+## 166. Create the Mattermost operating-system account
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4174,7 +5102,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_OS_USER_CREATED` validator passes.
 
-## 135. Install the pinned Mattermost application
+## 167. Install the pinned Mattermost application
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4203,7 +5131,65 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_INSTALLED` validator passes.
 
-## 136. Create the Mattermost runtime-data directory
+## 168. Create the mattermost-data-directory directories
+
+**Work on:** `mattermost-1` as `ec2-user`
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+**Predict first:** Which account needs write access here?
+
+Run this one action:
+
+```bash
+sudo mkdir -p /opt/mattermost/data
+```
+
+**What the command means:** sudo mkdir -p creates /opt/mattermost/data (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+**Expected result:** The command returns to the prompt and the directories exist.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account needs write access here?
+2. Hint: Only the Mattermost service account.
+3. Stronger hint: Create /opt/mattermost/data as mattermost:mattermost with mode 0750.
+4. Solution: Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED.
+
+**Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_MADE` validator passes.
+
+## 169. Give mattermost ownership of the mattermost-data-directory directories
+
+**Work on:** `mattermost-1` as `ec2-user`
+
+The mattermost service must own these directories to write into them.
+
+**Predict first:** Which account needs write access here?
+
+Run this one action:
+
+```bash
+sudo chown -R mattermost:mattermost /opt/mattermost/data
+```
+
+**What the command means:** chown -R sets the owner and group of the directories (and their contents) to mattermost, because a plain mkdir left them owned by root.
+
+**Expected result:** The directories are now owned by mattermost.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Which account needs write access here?
+2. Hint: Only the Mattermost service account.
+3. Stronger hint: Create /opt/mattermost/data as mattermost:mattermost with mode 0750.
+4. Solution: Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED.
+
+**Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_OWNED` validator passes.
+
+## 170. Lock down the mattermost-data-directory directory permissions
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4214,10 +5200,10 @@ Mattermost needs a writable runtime-data directory owned only by its service acc
 Run this one action:
 
 ```bash
-sudo install -d -m 0750 -o mattermost -g mattermost /opt/mattermost/data
+sudo chmod 0750 /opt/mattermost/data
 ```
 
-**What the command means:** Create the data directory with the dedicated service owner and restrictive 0750 mode.
+**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
 
 **Expected result:** /opt/mattermost/data exists with mattermost ownership and mode 0750.
 
@@ -4232,7 +5218,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_CREATED` validator passes.
 
-## 137. Assign the Mattermost application tree
+## 171. Assign the Mattermost application tree
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4261,7 +5247,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_TREE_OWNED` validator passes.
 
-## 138. Copy the Mattermost systemd unit into place
+## 172. Copy the Mattermost systemd unit into place
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4290,7 +5276,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_COPIED` validator passes.
 
-## 139. Set permissions on the Mattermost systemd unit
+## 173. Set permissions on the Mattermost systemd unit
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4319,7 +5305,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_CREATED` validator passes.
 
-## 140. Reload systemd for Mattermost
+## 174. Reload systemd for Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4348,7 +5334,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_SYSTEMD_RELOADED` validator passes.
 
-## 141. Connect Mattermost to HAProxy
+## 175. Connect Mattermost to HAProxy
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -4392,7 +5378,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CONFIGURED` validator passes.
 
-## 142. Start and prove Mattermost
+## 176. Start and prove Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
