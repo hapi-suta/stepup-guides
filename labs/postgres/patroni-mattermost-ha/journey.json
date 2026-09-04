@@ -300,14 +300,73 @@
           }
         },
         {
+          "id": "mkdir-etcd-directories-1",
+          "title": "Create the etcd-directories-1 directories",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /etc/etcd",
+          "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-directories-1",
+          "title": "Give root ownership of the etcd-directories-1 directories",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /etc/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-etcd-directories-1",
-          "title": "Create the protected etcd configuration directory",
+          "title": "Lock down the etcd-directories-1 directory permissions",
           "role": "dcs-1",
           "user": "ec2-user",
           "why": "Configuration and consensus data need explicit protected locations.",
-          "command": "sudo install -d -m 0700 -o root -g root /etc/etcd",
-          "command_explanation": "install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.",
+          "command": "sudo chmod 0700 /etc/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CONFIG_DIRECTORY_SECURE passed.",
@@ -325,30 +384,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          }
+        },
+        {
+          "id": "mkdir-etcd-data-directory-1",
+          "title": "Create the etcd-data-directory-1 directories",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/lib/etcd",
+          "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
-            "question": "Who should be able to read the future member private key?",
-            "hint": "Only root needs access in this lab.",
-            "stronger_hint": "Use mode 0700 for both directories.",
-            "solution": "Create /etc/etcd with root ownership and mode 0700."
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-data-directory-1",
+          "title": "Give root ownership of the etcd-data-directory-1 directories",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /var/lib/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-etcd-data-directory-1",
+          "title": "Lock down the etcd-data-directory-1 directory permissions",
+          "role": "dcs-1",
+          "user": "ec2-user",
+          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
+          "command": "sudo chmod 0700 /var/lib/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
+          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
-          }
-        },
-        {
-          "id": "create-etcd-data-directory-1",
-          "title": "Create the protected etcd consensus-data directory",
-          "role": "dcs-1",
-          "user": "ec2-user",
-          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
-          "command": "sudo install -d -m 0700 -o root -g root /var/lib/etcd",
-          "command_explanation": "This creates the separate consensus-data directory with root-only access; it does not initialize a member.",
-          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+            "code": "ETCD_DATA_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_DATA_DIRECTORY_SECURE passed.",
@@ -366,19 +471,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This is the data directory named by --data-dir in the next configuration step.",
-          "hints": {
-            "question": "Why separate configuration from consensus data?",
-            "hint": "They have different lifecycle and recovery responsibilities.",
-            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
-            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_DATA_DIRECTORY_SECURE"
           }
         },
         {
@@ -811,14 +903,73 @@
           }
         },
         {
+          "id": "mkdir-etcd-directories-2",
+          "title": "Create the etcd-directories-2 directories",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /etc/etcd",
+          "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-directories-2",
+          "title": "Give root ownership of the etcd-directories-2 directories",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /etc/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-etcd-directories-2",
-          "title": "Create the protected etcd configuration directory",
+          "title": "Lock down the etcd-directories-2 directory permissions",
           "role": "dcs-2",
           "user": "ec2-user",
           "why": "Configuration and consensus data need explicit protected locations.",
-          "command": "sudo install -d -m 0700 -o root -g root /etc/etcd",
-          "command_explanation": "install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.",
+          "command": "sudo chmod 0700 /etc/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CONFIG_DIRECTORY_SECURE passed.",
@@ -836,30 +987,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          }
+        },
+        {
+          "id": "mkdir-etcd-data-directory-2",
+          "title": "Create the etcd-data-directory-2 directories",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/lib/etcd",
+          "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
-            "question": "Who should be able to read the future member private key?",
-            "hint": "Only root needs access in this lab.",
-            "stronger_hint": "Use mode 0700 for both directories.",
-            "solution": "Create /etc/etcd with root ownership and mode 0700."
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-data-directory-2",
+          "title": "Give root ownership of the etcd-data-directory-2 directories",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /var/lib/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-etcd-data-directory-2",
+          "title": "Lock down the etcd-data-directory-2 directory permissions",
+          "role": "dcs-2",
+          "user": "ec2-user",
+          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
+          "command": "sudo chmod 0700 /var/lib/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
+          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
-          }
-        },
-        {
-          "id": "create-etcd-data-directory-2",
-          "title": "Create the protected etcd consensus-data directory",
-          "role": "dcs-2",
-          "user": "ec2-user",
-          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
-          "command": "sudo install -d -m 0700 -o root -g root /var/lib/etcd",
-          "command_explanation": "This creates the separate consensus-data directory with root-only access; it does not initialize a member.",
-          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+            "code": "ETCD_DATA_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_DATA_DIRECTORY_SECURE passed.",
@@ -877,19 +1074,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This is the data directory named by --data-dir in the next configuration step.",
-          "hints": {
-            "question": "Why separate configuration from consensus data?",
-            "hint": "They have different lifecycle and recovery responsibilities.",
-            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
-            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_DATA_DIRECTORY_SECURE"
           }
         },
         {
@@ -1322,14 +1506,73 @@
           }
         },
         {
+          "id": "mkdir-etcd-directories-3",
+          "title": "Create the etcd-directories-3 directories",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /etc/etcd",
+          "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-directories-3",
+          "title": "Give root ownership of the etcd-directories-3 directories",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /etc/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-etcd-directories-3",
-          "title": "Create the protected etcd configuration directory",
+          "title": "Lock down the etcd-directories-3 directory permissions",
           "role": "dcs-3",
           "user": "ec2-user",
           "why": "Configuration and consensus data need explicit protected locations.",
-          "command": "sudo install -d -m 0700 -o root -g root /etc/etcd",
-          "command_explanation": "install -d creates a directory; 0700 allows only root; -o and -g set its owner and group.",
+          "command": "sudo chmod 0700 /etc/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
+          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          "hints": {
+            "question": "Who should be able to read the future member private key?",
+            "hint": "Only root needs access in this lab.",
+            "stronger_hint": "Use mode 0700 for both directories.",
+            "solution": "Create /etc/etcd with root ownership and mode 0700."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_CONFIG_DIRECTORY_SECURE passed.",
@@ -1347,30 +1590,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Create only /etc/etcd in this action; the data directory is next.",
+          }
+        },
+        {
+          "id": "mkdir-etcd-data-directory-3",
+          "title": "Create the etcd-data-directory-3 directories",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/lib/etcd",
+          "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
-            "question": "Who should be able to read the future member private key?",
-            "hint": "Only root needs access in this lab.",
-            "stronger_hint": "Use mode 0700 for both directories.",
-            "solution": "Create /etc/etcd with root ownership and mode 0700."
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-etcd-data-directory-3",
+          "title": "Give root ownership of the etcd-data-directory-3 directories",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /var/lib/etcd",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-etcd-data-directory-3",
+          "title": "Lock down the etcd-data-directory-3 directory permissions",
+          "role": "dcs-3",
+          "user": "ec2-user",
+          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
+          "command": "sudo chmod 0700 /var/lib/etcd",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
+          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+          "hint": "This is the data directory named by --data-dir in the next configuration step.",
+          "hints": {
+            "question": "Why separate configuration from consensus data?",
+            "hint": "They have different lifecycle and recovery responsibilities.",
+            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
+            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "ETCD_CONFIG_DIRECTORY_SECURE"
-          }
-        },
-        {
-          "id": "create-etcd-data-directory-3",
-          "title": "Create the protected etcd consensus-data directory",
-          "role": "dcs-3",
-          "user": "ec2-user",
-          "why": "etcd must persist quorum state in a root-only directory that starts empty.",
-          "command": "sudo install -d -m 0700 -o root -g root /var/lib/etcd",
-          "command_explanation": "This creates the separate consensus-data directory with root-only access; it does not initialize a member.",
-          "expected": "The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.",
+            "code": "ETCD_DATA_DIRECTORY_SECURE"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_DATA_DIRECTORY_SECURE passed.",
@@ -1388,19 +1677,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "This is the data directory named by --data-dir in the next configuration step.",
-          "hints": {
-            "question": "Why separate configuration from consensus data?",
-            "hint": "They have different lifecycle and recovery responsibilities.",
-            "stronger_hint": "Create /var/lib/etcd with root ownership and 0700.",
-            "solution": "Run the registered install -d command and require ETCD_DATA_DIRECTORY_SECURE."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "ETCD_DATA_DIRECTORY_SECURE"
           }
         },
         {
@@ -1887,14 +2163,73 @@
           }
         },
         {
+          "id": "mkdir-postgresql-layout-1",
+          "title": "Create the postgresql-layout-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Do not run initdb manually; Patroni owns cluster initialization.",
+          "hints": {
+            "question": "Which four operational purposes need paths?",
+            "hint": "Data, WAL, backups and logs.",
+            "stronger_hint": "Every path is under /opt/pgsql and owned by postgres.",
+            "solution": "Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_1_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-layout-1",
+          "title": "Give postgres ownership of the postgresql-layout-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "Do not run initdb manually; Patroni owns cluster initialization.",
+          "hints": {
+            "question": "Which four operational purposes need paths?",
+            "hint": "Data, WAL, backups and logs.",
+            "stronger_hint": "Every path is under /opt/pgsql and owned by postgres.",
+            "solution": "Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_1_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-postgresql-layout-1",
-          "title": "Create the PostgreSQL layout on pg-ha-1",
+          "title": "Lock down the postgresql-layout-1 directory permissions",
           "role": "pg-ha-1",
           "user": "ec2-user",
           "why": "Data, WAL, backup and log paths have different operational purposes.",
-          "command": "sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
-          "command_explanation": "One install invocation creates the four related storage directories with postgres ownership and root-excluding permissions.",
+          "command": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "All four directories exist with postgres ownership and mode 0700; PGDATA remains uninitialized.",
+          "hint": "Do not run initdb manually; Patroni owns cluster initialization.",
+          "hints": {
+            "question": "Which four operational purposes need paths?",
+            "hint": "Data, WAL, backups and logs.",
+            "stronger_hint": "Every path is under /opt/pgsql and owned by postgres.",
+            "solution": "Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_1_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PG_LAYOUT_1_CREATED passed.",
@@ -1912,19 +2247,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Do not run initdb manually; Patroni owns cluster initialization.",
-          "hints": {
-            "question": "Which four operational purposes need paths?",
-            "hint": "Data, WAL, backups and logs.",
-            "stronger_hint": "Every path is under /opt/pgsql and owned by postgres.",
-            "solution": "Run the displayed command and require PG_LAYOUT_1_CREATED with no PG_VERSION."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PG_LAYOUT_1_CREATED"
           }
         },
         {
@@ -2010,14 +2332,73 @@
           }
         },
         {
+          "id": "mkdir-postgresql-layout-2",
+          "title": "Create the postgresql-layout-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "An empty PGDATA allows Patroni to choose the replica creation method.",
+          "hints": {
+            "question": "What file would prove PGDATA was already initialized?",
+            "hint": "Its name begins with PG and records the major version.",
+            "stronger_hint": "The validator requires PG_VERSION to be absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_2_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_2_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-layout-2",
+          "title": "Give postgres ownership of the postgresql-layout-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "An empty PGDATA allows Patroni to choose the replica creation method.",
+          "hints": {
+            "question": "What file would prove PGDATA was already initialized?",
+            "hint": "Its name begins with PG and records the major version.",
+            "stronger_hint": "The validator requires PG_VERSION to be absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_2_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_2_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-postgresql-layout-2",
-          "title": "Create the PostgreSQL layout on pg-ha-2",
+          "title": "Lock down the postgresql-layout-2 directory permissions",
           "role": "pg-ha-2",
           "user": "ec2-user",
           "why": "The replica needs the same protected operational paths before it can clone.",
-          "command": "sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
-          "command_explanation": "Create all four related paths with postgres ownership while leaving PGDATA empty.",
+          "command": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "All four directories exist and /opt/pgsql/data has no PG_VERSION.",
+          "hint": "An empty PGDATA allows Patroni to choose the replica creation method.",
+          "hints": {
+            "question": "What file would prove PGDATA was already initialized?",
+            "hint": "Its name begins with PG and records the major version.",
+            "stronger_hint": "The validator requires PG_VERSION to be absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_2_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_2_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PG_LAYOUT_2_CREATED passed.",
@@ -2035,19 +2416,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "An empty PGDATA allows Patroni to choose the replica creation method.",
-          "hints": {
-            "question": "What file would prove PGDATA was already initialized?",
-            "hint": "Its name begins with PG and records the major version.",
-            "stronger_hint": "The validator requires PG_VERSION to be absent.",
-            "solution": "Create the four paths and require PG_LAYOUT_2_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PG_LAYOUT_2_CREATED"
           }
         },
         {
@@ -2133,14 +2501,73 @@
           }
         },
         {
+          "id": "mkdir-postgresql-layout-3",
+          "title": "Create the postgresql-layout-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Leave every member uninitialized until Patroni controls it.",
+          "hints": {
+            "question": "What must remain absent before Patroni joins this replica?",
+            "hint": "The PostgreSQL version marker inside PGDATA.",
+            "stronger_hint": "Check /opt/pgsql/data/PG_VERSION is absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_3_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_3_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-layout-3",
+          "title": "Give postgres ownership of the postgresql-layout-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "Leave every member uninitialized until Patroni controls it.",
+          "hints": {
+            "question": "What must remain absent before Patroni joins this replica?",
+            "hint": "The PostgreSQL version marker inside PGDATA.",
+            "stronger_hint": "Check /opt/pgsql/data/PG_VERSION is absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_3_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_3_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-postgresql-layout-3",
-          "title": "Create the PostgreSQL layout on pg-ha-3",
+          "title": "Lock down the postgresql-layout-3 directory permissions",
           "role": "pg-ha-3",
           "user": "ec2-user",
           "why": "The second replica needs the same protected layout and empty PGDATA.",
-          "command": "sudo install -d -m 0700 -o postgres -g postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
-          "command_explanation": "Create data, WAL, backup and log directories together with consistent ownership and permissions.",
+          "command": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log",
+          "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "All paths exist with postgres ownership and PG_VERSION is absent.",
+          "hint": "Leave every member uninitialized until Patroni controls it.",
+          "hints": {
+            "question": "What must remain absent before Patroni joins this replica?",
+            "hint": "The PostgreSQL version marker inside PGDATA.",
+            "stronger_hint": "Check /opt/pgsql/data/PG_VERSION is absent.",
+            "solution": "Create the four paths and require PG_LAYOUT_3_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PG_LAYOUT_3_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PG_LAYOUT_3_CREATED passed.",
@@ -2158,30 +2585,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Leave every member uninitialized until Patroni controls it.",
+          }
+        },
+        {
+          "id": "mkdir-patroni-directories-1",
+          "title": "Create the patroni-directories-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/patroni /etc/patroni",
+          "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
-            "question": "What must remain absent before Patroni joins this replica?",
-            "hint": "The PostgreSQL version marker inside PGDATA.",
-            "stronger_hint": "Check /opt/pgsql/data/PG_VERSION is absent.",
-            "solution": "Create the four paths and require PG_LAYOUT_3_CREATED."
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-patroni-directories-1",
+          "title": "Give postgres ownership of the patroni-directories-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-patroni-directories-1",
+          "title": "Lock down the patroni-directories-1 directory permissions",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
+          "command": "sudo chmod 0750 /opt/patroni /etc/patroni",
+          "command_explanation": "chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.",
+          "expected": "Both directories exist with postgres ownership and mode 0750.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PG_LAYOUT_3_CREATED"
-          }
-        },
-        {
-          "id": "create-patroni-directories-1",
-          "title": "Create Patroni directories on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
-          "command": "sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni",
-          "command_explanation": "install -d creates both related directories with postgres ownership and group-restricted mode 0750.",
-          "expected": "Both directories exist with postgres ownership and mode 0750.",
+            "code": "PATRONI_DIRS_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_DIRS_CREATED passed.",
@@ -2199,30 +2672,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          }
+        },
+        {
+          "id": "mkdir-postgresql-socket-directory-1",
+          "title": "Create the postgresql-socket-directory-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/run/postgresql",
+          "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "It holds runtime socket files, not table data.",
           "hints": {
-            "question": "Which account runs Patroni?",
-            "hint": "Use the same postgres OS account that owns PostgreSQL.",
-            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
-            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-socket-directory-1",
+          "title": "Give postgres ownership of the postgresql-socket-directory-1 directories",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /var/run/postgresql",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-postgresql-socket-directory-1",
+          "title": "Lock down the postgresql-socket-directory-1 directory permissions",
+          "role": "pg-ha-1",
+          "user": "ec2-user",
+          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
+          "command": "sudo chmod 0755 /var/run/postgresql",
+          "command_explanation": "chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.",
+          "expected": "/var/run/postgresql exists with postgres ownership.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_DIRS_CREATED"
-          }
-        },
-        {
-          "id": "create-postgresql-socket-directory-1",
-          "title": "Create the PostgreSQL socket directory on pg-ha-1",
-          "role": "pg-ha-1",
-          "user": "ec2-user",
-          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
-          "command": "sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql",
-          "command_explanation": "Create the runtime socket directory with postgres ownership and mode 0755.",
-          "expected": "/var/run/postgresql exists with postgres ownership.",
+            "code": "PATRONI_SOCKET_DIR_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_SOCKET_DIR_CREATED passed.",
@@ -2240,19 +2759,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It holds runtime socket files, not table data.",
-          "hints": {
-            "question": "Is this directory permanent database storage?",
-            "hint": "It holds runtime socket files, not table data.",
-            "stronger_hint": "The path is /var/run/postgresql.",
-            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_SOCKET_DIR_CREATED"
           }
         },
         {
@@ -2836,14 +3342,73 @@
           }
         },
         {
+          "id": "mkdir-patroni-directories-2",
+          "title": "Create the patroni-directories-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/patroni /etc/patroni",
+          "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-patroni-directories-2",
+          "title": "Give postgres ownership of the patroni-directories-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-patroni-directories-2",
-          "title": "Create Patroni directories on pg-ha-2",
+          "title": "Lock down the patroni-directories-2 directory permissions",
           "role": "pg-ha-2",
           "user": "ec2-user",
           "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
-          "command": "sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni",
-          "command_explanation": "install -d creates both related directories with postgres ownership and group-restricted mode 0750.",
+          "command": "sudo chmod 0750 /opt/patroni /etc/patroni",
+          "command_explanation": "chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.",
           "expected": "Both directories exist with postgres ownership and mode 0750.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_DIRS_CREATED passed.",
@@ -2861,30 +3426,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          }
+        },
+        {
+          "id": "mkdir-postgresql-socket-directory-2",
+          "title": "Create the postgresql-socket-directory-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/run/postgresql",
+          "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "It holds runtime socket files, not table data.",
           "hints": {
-            "question": "Which account runs Patroni?",
-            "hint": "Use the same postgres OS account that owns PostgreSQL.",
-            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
-            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-socket-directory-2",
+          "title": "Give postgres ownership of the postgresql-socket-directory-2 directories",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /var/run/postgresql",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-postgresql-socket-directory-2",
+          "title": "Lock down the postgresql-socket-directory-2 directory permissions",
+          "role": "pg-ha-2",
+          "user": "ec2-user",
+          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
+          "command": "sudo chmod 0755 /var/run/postgresql",
+          "command_explanation": "chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.",
+          "expected": "/var/run/postgresql exists with postgres ownership.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_DIRS_CREATED"
-          }
-        },
-        {
-          "id": "create-postgresql-socket-directory-2",
-          "title": "Create the PostgreSQL socket directory on pg-ha-2",
-          "role": "pg-ha-2",
-          "user": "ec2-user",
-          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
-          "command": "sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql",
-          "command_explanation": "Create the runtime socket directory with postgres ownership and mode 0755.",
-          "expected": "/var/run/postgresql exists with postgres ownership.",
+            "code": "PATRONI_SOCKET_DIR_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_SOCKET_DIR_CREATED passed.",
@@ -2902,19 +3513,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It holds runtime socket files, not table data.",
-          "hints": {
-            "question": "Is this directory permanent database storage?",
-            "hint": "It holds runtime socket files, not table data.",
-            "stronger_hint": "The path is /var/run/postgresql.",
-            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_SOCKET_DIR_CREATED"
           }
         },
         {
@@ -3498,14 +4096,73 @@
           }
         },
         {
+          "id": "mkdir-patroni-directories-3",
+          "title": "Create the patroni-directories-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/patroni /etc/patroni",
+          "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-patroni-directories-3",
+          "title": "Give postgres ownership of the patroni-directories-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-patroni-directories-3",
-          "title": "Create Patroni directories on pg-ha-3",
+          "title": "Lock down the patroni-directories-3 directory permissions",
           "role": "pg-ha-3",
           "user": "ec2-user",
           "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
-          "command": "sudo install -d -m 0750 -o postgres -g postgres /opt/patroni /etc/patroni",
-          "command_explanation": "install -d creates both related directories with postgres ownership and group-restricted mode 0750.",
+          "command": "sudo chmod 0750 /opt/patroni /etc/patroni",
+          "command_explanation": "chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.",
           "expected": "Both directories exist with postgres ownership and mode 0750.",
+          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          "hints": {
+            "question": "Which account runs Patroni?",
+            "hint": "Use the same postgres OS account that owns PostgreSQL.",
+            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
+            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_DIRS_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_DIRS_CREATED passed.",
@@ -3523,30 +4180,76 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Use the same postgres OS account that owns PostgreSQL.",
+          }
+        },
+        {
+          "id": "mkdir-postgresql-socket-directory-3",
+          "title": "Create the postgresql-socket-directory-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /var/run/postgresql",
+          "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "It holds runtime socket files, not table data.",
           "hints": {
-            "question": "Which account runs Patroni?",
-            "hint": "Use the same postgres OS account that owns PostgreSQL.",
-            "stronger_hint": "Both /opt/patroni and /etc/patroni need postgres ownership.",
-            "solution": "Run the displayed command and require PATRONI_DIRS_CREATED."
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-postgresql-socket-directory-3",
+          "title": "Give postgres ownership of the postgresql-socket-directory-3 directories",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "The postgres service must own these directories to write into them.",
+          "command": "sudo chown -R postgres:postgres /var/run/postgresql",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by postgres.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "PATRONI_SOCKET_DIR_DIRS_OWNED"
+          }
+        },
+        {
+          "id": "create-postgresql-socket-directory-3",
+          "title": "Lock down the postgresql-socket-directory-3 directory permissions",
+          "role": "pg-ha-3",
+          "user": "ec2-user",
+          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
+          "command": "sudo chmod 0755 /var/run/postgresql",
+          "command_explanation": "chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.",
+          "expected": "/var/run/postgresql exists with postgres ownership.",
+          "hint": "It holds runtime socket files, not table data.",
+          "hints": {
+            "question": "Is this directory permanent database storage?",
+            "hint": "It holds runtime socket files, not table data.",
+            "stronger_hint": "The path is /var/run/postgresql.",
+            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
           },
           "safety": "change",
           "release_verified": true,
           "validator": {
             "source": "server-observer",
-            "code": "PATRONI_DIRS_CREATED"
-          }
-        },
-        {
-          "id": "create-postgresql-socket-directory-3",
-          "title": "Create the PostgreSQL socket directory on pg-ha-3",
-          "role": "pg-ha-3",
-          "user": "ec2-user",
-          "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
-          "command": "sudo install -d -m 0755 -o postgres -g postgres /var/run/postgresql",
-          "command_explanation": "Create the runtime socket directory with postgres ownership and mode 0755.",
-          "expected": "/var/run/postgresql exists with postgres ownership.",
+            "code": "PATRONI_SOCKET_DIR_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator PATRONI_SOCKET_DIR_CREATED passed.",
@@ -3564,19 +4267,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It holds runtime socket files, not table data.",
-          "hints": {
-            "question": "Is this directory permanent database storage?",
-            "hint": "It holds runtime socket files, not table data.",
-            "stronger_hint": "The path is /var/run/postgresql.",
-            "solution": "Create the directory and require PATRONI_SOCKET_DIR_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "PATRONI_SOCKET_DIR_CREATED"
           }
         },
         {
@@ -4347,14 +5037,73 @@
           }
         },
         {
+          "id": "mkdir-haproxy-directory",
+          "title": "Create the haproxy-directory directories",
+          "role": "db-router-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /etc/haproxy",
+          "command_explanation": "sudo mkdir -p creates /etc/haproxy (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "It is system configuration, not application data.",
+          "hints": {
+            "question": "Who should own routing policy?",
+            "hint": "It is system configuration, not application data.",
+            "stronger_hint": "Use root:root ownership.",
+            "solution": "Create the directory and require HAPROXY_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_DIR_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-haproxy-directory",
+          "title": "Give root ownership of the haproxy-directory directories",
+          "role": "db-router-1",
+          "user": "ec2-user",
+          "why": "The root service must own these directories to write into them.",
+          "command": "sudo chown -R root:root /etc/haproxy",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by root.",
+          "hint": "It is system configuration, not application data.",
+          "hints": {
+            "question": "Who should own routing policy?",
+            "hint": "It is system configuration, not application data.",
+            "stronger_hint": "Use root:root ownership.",
+            "solution": "Create the directory and require HAPROXY_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_DIR_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-haproxy-directory",
-          "title": "Create the HAProxy configuration directory",
+          "title": "Lock down the haproxy-directory directory permissions",
           "role": "db-router-1",
           "user": "ec2-user",
           "why": "The router needs a root-owned location for its reviewed writer-routing policy.",
-          "command": "sudo install -d -m 0755 -o root -g root /etc/haproxy",
-          "command_explanation": "Create /etc/haproxy with root ownership and readable directory mode 0755.",
+          "command": "sudo chmod 0755 /etc/haproxy",
+          "command_explanation": "chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.",
           "expected": "The directory is root-owned with mode 0755.",
+          "hint": "It is system configuration, not application data.",
+          "hints": {
+            "question": "Who should own routing policy?",
+            "hint": "It is system configuration, not application data.",
+            "stronger_hint": "Use root:root ownership.",
+            "solution": "Create the directory and require HAPROXY_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "HAPROXY_DIR_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator HAPROXY_DIR_CREATED passed.",
@@ -4372,19 +5121,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "It is system configuration, not application data.",
-          "hints": {
-            "question": "Who should own routing policy?",
-            "hint": "It is system configuration, not application data.",
-            "stronger_hint": "Use root:root ownership.",
-            "solution": "Create the directory and require HAPROXY_DIR_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "HAPROXY_DIR_CREATED"
           }
         },
         {
@@ -4784,14 +5520,73 @@
           }
         },
         {
+          "id": "mkdir-mattermost-data-directory",
+          "title": "Create the mattermost-data-directory directories",
+          "role": "mattermost-1",
+          "user": "ec2-user",
+          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "command": "sudo mkdir -p /opt/mattermost/data",
+          "command_explanation": "sudo mkdir -p creates /opt/mattermost/data (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
+          "expected": "The command returns to the prompt and the directories exist.",
+          "hint": "Only the Mattermost service account.",
+          "hints": {
+            "question": "Which account needs write access here?",
+            "hint": "Only the Mattermost service account.",
+            "stronger_hint": "Create /opt/mattermost/data as mattermost:mattermost with mode 0750.",
+            "solution": "Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_DATA_DIR_DIRS_MADE"
+          }
+        },
+        {
+          "id": "chown-mattermost-data-directory",
+          "title": "Give mattermost ownership of the mattermost-data-directory directories",
+          "role": "mattermost-1",
+          "user": "ec2-user",
+          "why": "The mattermost service must own these directories to write into them.",
+          "command": "sudo chown -R mattermost:mattermost /opt/mattermost/data",
+          "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to mattermost, because a plain mkdir left them owned by root.",
+          "expected": "The directories are now owned by mattermost.",
+          "hint": "Only the Mattermost service account.",
+          "hints": {
+            "question": "Which account needs write access here?",
+            "hint": "Only the Mattermost service account.",
+            "stronger_hint": "Create /opt/mattermost/data as mattermost:mattermost with mode 0750.",
+            "solution": "Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": false,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_DATA_DIR_DIRS_OWNED"
+          }
+        },
+        {
           "id": "create-mattermost-data-directory",
-          "title": "Create the Mattermost runtime-data directory",
+          "title": "Lock down the mattermost-data-directory directory permissions",
           "role": "mattermost-1",
           "user": "ec2-user",
           "why": "Mattermost needs a writable runtime-data directory owned only by its service account.",
-          "command": "sudo install -d -m 0750 -o mattermost -g mattermost /opt/mattermost/data",
-          "command_explanation": "Create the data directory with the dedicated service owner and restrictive 0750 mode.",
+          "command": "sudo chmod 0750 /opt/mattermost/data",
+          "command_explanation": "chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.",
           "expected": "/opt/mattermost/data exists with mattermost ownership and mode 0750.",
+          "hint": "Only the Mattermost service account.",
+          "hints": {
+            "question": "Which account needs write access here?",
+            "hint": "Only the Mattermost service account.",
+            "stronger_hint": "Create /opt/mattermost/data as mattermost:mattermost with mode 0750.",
+            "solution": "Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_DATA_DIR_CREATED"
+          },
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator MATTERMOST_DATA_DIR_CREATED passed.",
@@ -4809,19 +5604,6 @@
                 "evidence_digest": "sha256:d3cd0b0664198fbf3165c791f9fad63ca2e734c91ef658f5e271fd77b49f5bff"
               }
             ]
-          },
-          "hint": "Only the Mattermost service account.",
-          "hints": {
-            "question": "Which account needs write access here?",
-            "hint": "Only the Mattermost service account.",
-            "stronger_hint": "Create /opt/mattermost/data as mattermost:mattermost with mode 0750.",
-            "solution": "Run the registered install -d command and require MATTERMOST_DATA_DIR_CREATED."
-          },
-          "safety": "change",
-          "release_verified": true,
-          "validator": {
-            "source": "server-observer",
-            "code": "MATTERMOST_DATA_DIR_CREATED"
           }
         },
         {
