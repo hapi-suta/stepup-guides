@@ -2316,686 +2316,1690 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 1 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create separate homes for Patroni’s software and configuration.
 
 ```bash
 sudo mkdir -p /opt/patroni /etc/patroni
 ```
 
-**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and the directories exist.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: 2 lines, one per directory, each starting with d
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 79. Give postgres ownership of the patroni-directories-1 directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 2 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Give the postgres service account ownership of both locations.
 
 ```bash
 sudo chown -R postgres:postgres /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on every line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 80. Lock down the patroni-directories-1 directory permissions
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Patroni software and protected configuration need explicit postgres-owned locations.
+**Patroni setup → Prepare · 3 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Set who can enter and change Patroni’s directories.
 
 ```bash
 sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+**Think first · optional:** After chmod 0750, who can write to these directories?
 
-**Expected result:** Both directories exist with postgres ownership and mode 0750.
+- The owner
+- The owner and group
+- Everyone who can enter them
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Look for: each line reading drwxr-x---
 
-**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read the owner/group/others groups in drwxr-x---.
+
+If the listing has those bits, the owner has write permission. Group members may read and traverse, but do not receive write permission from this mode.
+
+If the bits differ, use the actual listing to identify which permission group differs. Do not infer success from the command returning.
+
+The directory’s owner and group are separate facts to inspect.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+Patroni software and protected configuration need explicit postgres-owned locations.
+
+chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected result: Both directories exist with postgres ownership and mode 0750.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
 ## 81. Create the postgresql-socket-directory-1 directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 4 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create the directory for local PostgreSQL connections.
 
 ```bash
 sudo mkdir -p /var/run/postgresql
 ```
 
-**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and the directories exist.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line starting with d
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 82. Give postgres ownership of the postgresql-socket-directory-1 directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 5 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Let postgres own the directory where it creates its local socket.
 
 ```bash
 sudo chown -R postgres:postgres /var/run/postgresql
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 83. Lock down the postgresql-socket-directory-1 directory permissions
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Local clients and Patroni need a writable runtime location for the Unix socket.
+**Patroni setup → Prepare · 6 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Allow local clients to enter the socket directory.
 
 ```bash
 sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+**Prove it worked**
 
-**Expected result:** /var/run/postgresql exists with postgres ownership.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading drwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Local clients and Patroni need a writable runtime location for the Unix socket.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
+chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /var/run/postgresql exists with postgres ownership.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes and the required learner-run check is observed.
 
 ## 84. Install Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Each PostgreSQL node needs the same pinned Patroni runtime.
+**Patroni setup → Prepare · 7 of 21**
 
-**Predict first:** Why install the same version on all members?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
 
 ```bash
 sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
 ```
 
-**What the command means:** tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+**Think first · optional:** What can the file listing establish?
 
-**Expected result:** Patroni 4.1.4 Python modules exist under /opt/patroni.
+- The entry point exists and has execute bits
+- A leader has been elected
+- Mattermost can write data
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+sudo ls -l /opt/patroni/bin/patroni
+```
 
-1. Question: Why install the same version on all members?
-2. Hint: Cluster behavior must not depend on mixed Patroni code.
-3. Stronger hint: The locked version is 4.1.4.
-4. Solution: Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
 
-**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read the path and permission bits in the ls output.
+
+If the entry point exists with execute bits, the extraction created that file.
+
+If the file is missing, inspect the extraction path before continuing.
+
+A file listing does not run Patroni or prove that its Python dependencies load.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+Each PostgreSQL node needs the same pinned Patroni runtime.
+
+tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected result: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why install the same version on all members?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Cluster behavior must not depend on mixed Patroni code.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The locked version is 4.1.4.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 85. Copy the etcd CA certificate on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 1 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the trust certificate Patroni will use to check etcd’s identity.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes and the required learner-run check is observed.
 
 ## 86. Set permissions on the etcd CA certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 2 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Allow the trust certificate to be read while restricting writes.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 87. Give postgres ownership of the etcd CA certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Patroni must verify that it is talking to the assigned etcd cluster.
+**Patroni setup → Connect securely · 3 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The CA certificate is readable by Patroni and contains no private key.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Patroni must verify that it is talking to the assigned etcd cluster.
 
-**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The CA certificate is readable by Patroni and contains no private key.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 88. Copy Patroni's etcd client certificate on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 4 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the certificate Patroni presents as its client identity.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 89. Set permissions on Patroni's etcd client certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 5 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Set read access on the public client certificate.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 90. Give postgres ownership of Patroni's etcd client certificate on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-etcd mutual TLS also verifies Patroni's client identity.
+**Patroni setup → Connect securely · 6 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The signed client certificate is postgres-owned and mode 0644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+etcd mutual TLS also verifies Patroni's client identity.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The signed client certificate is postgres-owned and mode 0644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 91. Copy Patroni's protected etcd client key on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 7 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the private key used with Patroni’s client certificate.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes and the required learner-run check is observed.
 
 ## 92. Set permissions on Patroni's protected etcd client key on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 8 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Restrict the private key to its owner.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+**Think first · optional:** Why is this file set to 0600 rather than 0644?
 
-**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+- It is a private key
+- It is an executable program
+- All TLS files need 0600
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+Look for: the first column reading -rw-------
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Inspect -rw------- in the metadata listing without displaying the key.
+
+If those bits are present, the file mode grants read/write to its owner and no access to the group or others.
+
+If the mode is different, the required key-permission state has not been established.
+
+The ownership step still matters: Patroni needs its service account to own the key.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+The permissions decide who may read this file before ownership is handed to postgres.
+
+chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.key now has mode 600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 93. Give postgres ownership of Patroni's protected etcd client key on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The private key proves possession of the client identity and must not be exposed.
+**Patroni setup → Connect securely · 9 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The command shows no key material and the destination mode is 0600.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+The private key proves possession of the client identity and must not be exposed.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The command shows no key material and the destination mode is 0600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 94. Copy the Patroni launcher on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 1 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Put the launcher for the Patroni manager in place.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 95. Make the Patroni launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The pinned Python runtime needs one stable command path for systemd.
+**Patroni setup → Configure · 2 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+The pinned Python runtime needs one stable command path for systemd.
 
-**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 96. Copy the patronictl launcher on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 3 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Install the launcher for the cluster administration tool.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 97. Make the patronictl launcher on pg-ha-1 runnable
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Operators need a stable absolute path for cluster inspection and planned operations.
+**Patroni setup → Configure · 4 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patronictl is executable.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Operators need a stable absolute path for cluster inspection and planned operations.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patronictl is executable.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 98. Copy the Patroni systemd unit on pg-ha-1 into place
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 5 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Give systemd the definition it needs to start Patroni.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 99. Set permissions on the Patroni systemd unit on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+**Patroni setup → Configure · 6 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Set read access on the service definition.
 
 ```bash
 sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+**Prove it worked**
 
-**Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
 
-**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes and the required learner-run check is observed.
 
 ## 100. Reload systemd on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-systemd does not use a newly installed unit until its manager configuration is reloaded.
+**Patroni setup → Configure · 7 of 24**
 
-**Predict first:** Does daemon-reload start Patroni?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Ask systemd to reread its service definitions.
 
 ```bash
 sudo systemctl daemon-reload
 ```
 
-**What the command means:** daemon-reload asks systemd to reread unit files without starting Patroni.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and Patroni remains inactive.
+```bash
+systemctl cat patroni --no-pager
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does daemon-reload start Patroni?
-2. Hint: It rereads definitions only.
-3. Stronger hint: The service must stay inactive until its ordered start step.
-4. Solution: Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+systemd does not use a newly installed unit until its manager configuration is reloaded.
 
-**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
+daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected result: The command returns to the prompt and Patroni remains inactive.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does daemon-reload start Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It rereads definitions only.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The service must stay inactive until its ordered start step.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes and the required learner-run check is observed.
 
 ## 101. Configure Patroni on pg-ha-1
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-The first Patroni member defines the cluster scope, DCS transport, bootstrap rules and local PostgreSQL identity.
+**Patroni setup → Configure · 8 of 24**
 
-**Predict first:** Which fields identify this cluster and this member?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Save this member’s generated identity and cluster configuration.
 
 ```bash
 sudo vi /etc/patroni/patroni.yml
 ```
 
-**What the command means:** Enter the role-resolved pg-ha-1 YAML supplied for this step. Secret tokens are inserted through the protected field and are never rendered into chat.
-
-Enter this exact yaml content after SutaBot resolves only the registered role addresses and protected secret fields:
+Use this node's generated yaml template. Protected values come from SutaBot; never paste them into Chat.
 
 ```text
 scope: {{cluster_scope}}
@@ -3055,703 +4059,1777 @@ tags:
   clonefrom: false
 ```
 
-**Expected result:** The saved configuration passes YAML, secret-permission and Patroni contract validation.
+**Think first · optional:** Which setting should identify a different member on each node?
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+- name
+- scope
+- namespace
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+**Prove it worked**
 
-1. Question: Which fields identify this cluster and this member?
-2. Hint: Find scope and name near the top.
-3. Stronger hint: Confirm HTTPS etcd endpoints, /opt/pgsql/data, checksums, slots, rewind and SCRAM rules.
-4. Solution: Enter the supplied pg-ha-1 configuration and save; the validator checks structure without exposing passwords.
+```bash
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+```
 
-**Done when:** the independent `PATRONI_MEMBER_1_CONFIGURED` validator passes.
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
+
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read name: pg-ha-1 and the assigned scope in the narrow identity check.
+
+If this member name and scope match the assigned configuration, the visible identity fields are present.
+
+If a member name belongs to another node, return to this node’s generated template and inspect that mismatch.
+
+A text match does not parse the complete YAML or validate connectivity.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+The first Patroni member defines the cluster scope, DCS transport, bootstrap rules and local PostgreSQL identity.
+
+Enter the role-resolved pg-ha-1 YAML supplied for this step. Secret tokens are inserted through the protected field and are never rendered into chat.
+
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected result: The saved configuration passes YAML, secret-permission and Patroni contract validation.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which fields identify this cluster and this member?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Find scope and name near the top.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Confirm HTTPS etcd endpoints, /opt/pgsql/data, checksums, slots, rewind and SCRAM rules.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Enter the supplied pg-ha-1 configuration and save; the validator checks structure without exposing passwords.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_MEMBER_1_CONFIGURED` validator passes and the required learner-run check is observed.
 
 ## 102. Create the patroni-directories-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 8 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create separate homes for Patroni’s software and configuration.
+
+**Your turn:** The same paths are used on this node: /opt/patroni and /etc/patroni.
 
 ```bash
 sudo mkdir -p /opt/patroni /etc/patroni
 ```
 
-**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Think first · optional:** You are on pg-ha-2 now. What should stay the same?
 
-**Expected result:** The command returns to the prompt and the directories exist.
+- The two destination paths
+- The node name in its YAML
+- Every resolved address
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Look for: 2 lines, one per directory, each starting with d
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read the selected terminal role and the two paths in the directory listing.
+
+If those directories exist on pg-ha-2, you have applied the location pattern to the second node.
+
+If a path is missing or you are on another terminal, correct that specific mismatch before relying on the result.
+
+Shared file paths do not make node names or addresses interchangeable.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 103. Give postgres ownership of the patroni-directories-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 9 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Give the postgres service account ownership of both locations.
+
+**Your turn:** Keep the same service account: postgres owns the directories on every node.
 
 ```bash
 sudo chown -R postgres:postgres /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on every line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 104. Lock down the patroni-directories-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Patroni software and protected configuration need explicit postgres-owned locations.
+**Patroni setup → Prepare · 10 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Set who can enter and change Patroni’s directories.
+
+**Your turn:** Apply mode 0750 again, then read the permission groups yourself.
 
 ```bash
 sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+**Prove it worked**
 
-**Expected result:** Both directories exist with postgres ownership and mode 0750.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: each line reading drwxr-x---
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Patroni software and protected configuration need explicit postgres-owned locations.
 
-**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
+chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected result: Both directories exist with postgres ownership and mode 0750.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
 ## 105. Create the postgresql-socket-directory-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 11 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create the directory for local PostgreSQL connections.
+
+**Your turn:** Use /var/run/postgresql again. The database files live elsewhere.
 
 ```bash
 sudo mkdir -p /var/run/postgresql
 ```
 
-**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and the directories exist.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line starting with d
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 106. Give postgres ownership of the postgresql-socket-directory-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 12 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Let postgres own the directory where it creates its local socket.
+
+**Your turn:** Apply the ownership pattern you used on the first node.
 
 ```bash
 sudo chown -R postgres:postgres /var/run/postgresql
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 107. Lock down the postgresql-socket-directory-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Local clients and Patroni need a writable runtime location for the Unix socket.
+**Patroni setup → Prepare · 13 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Allow local clients to enter the socket directory.
+
+**Your turn:** Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.
 
 ```bash
 sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+**Prove it worked**
 
-**Expected result:** /var/run/postgresql exists with postgres ownership.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading drwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Local clients and Patroni need a writable runtime location for the Unix socket.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
+chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /var/run/postgresql exists with postgres ownership.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes and the required learner-run check is observed.
 
 ## 108. Install Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Each PostgreSQL node needs the same pinned Patroni runtime.
+**Patroni setup → Prepare · 14 of 21**
 
-**Predict first:** Why install the same version on all members?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
 ```
 
-**What the command means:** tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+**Prove it worked**
 
-**Expected result:** Patroni 4.1.4 Python modules exist under /opt/patroni.
+```bash
+sudo ls -l /opt/patroni/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why install the same version on all members?
-2. Hint: Cluster behavior must not depend on mixed Patroni code.
-3. Stronger hint: The locked version is 4.1.4.
-4. Solution: Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+Each PostgreSQL node needs the same pinned Patroni runtime.
 
-**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
+tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected result: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why install the same version on all members?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Cluster behavior must not depend on mixed Patroni code.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The locked version is 4.1.4.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 109. Copy the etcd CA certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 10 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the trust certificate Patroni will use to check etcd’s identity.
+
+**Your turn:** Use the handoff file staged on this node, even though the paths look familiar.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes and the required learner-run check is observed.
 
 ## 110. Set permissions on the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 11 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Allow the trust certificate to be read while restricting writes.
+
+**Your turn:** This is public certificate material; keep its file mode at 0644.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 111. Give postgres ownership of the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Patroni must verify that it is talking to the assigned etcd cluster.
+**Patroni setup → Connect securely · 12 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The CA certificate is readable by Patroni and contains no private key.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Patroni must verify that it is talking to the assigned etcd cluster.
 
-**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The CA certificate is readable by Patroni and contains no private key.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 112. Copy Patroni's etcd client certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 13 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the certificate Patroni presents as its client identity.
+
+**Your turn:** Use this node’s staged client certificate, not a resolved file copied from another node.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 113. Set permissions on Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 14 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Set read access on the public client certificate.
+
+**Your turn:** Use the same 0644 certificate mode on this node.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 114. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-etcd mutual TLS also verifies Patroni's client identity.
+**Patroni setup → Connect securely · 15 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The signed client certificate is postgres-owned and mode 0644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+etcd mutual TLS also verifies Patroni's client identity.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The signed client certificate is postgres-owned and mode 0644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 115. Copy Patroni's protected etcd client key on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 16 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the private key used with Patroni’s client certificate.
+
+**Your turn:** Use this node’s handoff. Inspect file metadata without printing the key.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes and the required learner-run check is observed.
 
 ## 116. Set permissions on Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 17 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Restrict the private key to its owner.
+
+**Your turn:** The key uses 0600. Certificate files use a different mode.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-------
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.key now has mode 600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 117. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The private key proves possession of the client identity and must not be exposed.
+**Patroni setup → Connect securely · 18 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The command shows no key material and the destination mode is 0600.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+The private key proves possession of the client identity and must not be exposed.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The command shows no key material and the destination mode is 0600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 118. Copy the Patroni launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 9 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Put the launcher for the Patroni manager in place.
+
+**Your turn:** Use the same launcher path on this node. Copying it does not start the service.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 119. Make the Patroni launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The pinned Python runtime needs one stable command path for systemd.
+**Patroni setup → Configure · 10 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
+
+**Your turn:** Apply the executable-file pattern and check this node’s launcher permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+The pinned Python runtime needs one stable command path for systemd.
 
-**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 120. Copy the patronictl launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 11 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Install the launcher for the cluster administration tool.
+
+**Your turn:** This is patronictl, the administration tool. Patroni itself is the manager.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 121. Make the patronictl launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Operators need a stable absolute path for cluster inspection and planned operations.
+**Patroni setup → Configure · 12 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
+
+**Your turn:** Apply the executable-file pattern and check this node’s launcher permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patronictl is executable.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Operators need a stable absolute path for cluster inspection and planned operations.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patronictl is executable.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 122. Copy the Patroni systemd unit on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 13 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Give systemd the definition it needs to start Patroni.
+
+**Your turn:** Use the supplied service definition on this node; startup comes later.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 123. Set permissions on the Patroni systemd unit on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+**Patroni setup → Configure · 14 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Set read access on the service definition.
+
+**Your turn:** Check the mode here. File mode alone does not validate the startup command.
 
 ```bash
 sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+**Prove it worked**
 
-**Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
 
-**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes and the required learner-run check is observed.
 
 ## 124. Reload systemd on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-systemd does not use a newly installed unit until its manager configuration is reloaded.
+**Patroni setup → Configure · 15 of 24**
 
-**Predict first:** Does daemon-reload start Patroni?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Ask systemd to reread its service definitions.
+
+**Your turn:** Reload systemd on this node too. The file check shows the definition; it does not establish service health.
 
 ```bash
 sudo systemctl daemon-reload
 ```
 
-**What the command means:** daemon-reload asks systemd to reread unit files without starting Patroni.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and Patroni remains inactive.
+```bash
+systemctl cat patroni --no-pager
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does daemon-reload start Patroni?
-2. Hint: It rereads definitions only.
-3. Stronger hint: The service must stay inactive until its ordered start step.
-4. Solution: Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+systemd does not use a newly installed unit until its manager configuration is reloaded.
 
-**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
+daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected result: The command returns to the prompt and Patroni remains inactive.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does daemon-reload start Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It rereads definitions only.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The service must stay inactive until its ordered start step.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes and the required learner-run check is observed.
 
 ## 125. Configure Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The first replica shares the cluster contract but has its own member identity and addresses.
+**Patroni setup → Configure · 16 of 24**
 
-**Predict first:** Which values distinguish pg-ha-2?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Save this member’s generated identity and cluster configuration.
+
+**Your turn:** Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.
 
 ```bash
 sudo vi /etc/patroni/patroni.yml
 ```
 
-**What the command means:** Enter the supplied pg-ha-2 YAML. Protected secrets resolve outside chat.
-
-Enter this exact yaml content after SutaBot resolves only the registered role addresses and protected secret fields:
+Use this node's generated yaml template. Protected values come from SutaBot; never paste them into Chat.
 
 ```text
 scope: {{cluster_scope}}
@@ -3811,703 +5889,1735 @@ tags:
   clonefrom: false
 ```
 
-**Expected result:** The file names pg-ha-2 and passes the Patroni contract validator.
+**Prove it worked**
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+```bash
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+```
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
 
-1. Question: Which values distinguish pg-ha-2?
-2. Hint: Inspect name, REST address and PostgreSQL address.
-3. Stronger hint: Keep scope, etcd endpoints, credentials and recovery policy unchanged.
-4. Solution: Enter the supplied YAML and require PATRONI_MEMBER_2_CONFIGURED.
+<details>
+<summary>Full explanation</summary>
 
-**Done when:** the independent `PATRONI_MEMBER_2_CONFIGURED` validator passes.
+The first replica shares the cluster contract but has its own member identity and addresses.
+
+Enter the supplied pg-ha-2 YAML. Protected secrets resolve outside chat.
+
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected result: The file names pg-ha-2 and passes the Patroni contract validator.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which values distinguish pg-ha-2?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Inspect name, REST address and PostgreSQL address.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Keep scope, etcd endpoints, credentials and recovery policy unchanged.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Enter the supplied YAML and require PATRONI_MEMBER_2_CONFIGURED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_MEMBER_2_CONFIGURED` validator passes and the required learner-run check is observed.
 
 ## 126. Create the patroni-directories-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 15 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create separate homes for Patroni’s software and configuration.
+
+**Your turn:** The same paths are used on this node: /opt/patroni and /etc/patroni.
 
 ```bash
 sudo mkdir -p /opt/patroni /etc/patroni
 ```
 
-**What the command means:** sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and the directories exist.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: 2 lines, one per directory, each starting with d
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes.
+sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 127. Give postgres ownership of the patroni-directories-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 16 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Give the postgres service account ownership of both locations.
+
+**Your turn:** Keep the same service account: postgres owns the directories on every node.
 
 ```bash
 sudo chown -R postgres:postgres /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on every line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 128. Lock down the patroni-directories-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Patroni software and protected configuration need explicit postgres-owned locations.
+**Patroni setup → Prepare · 17 of 21**
 
-**Predict first:** Which account runs Patroni?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Set who can enter and change Patroni’s directories.
+
+**Your turn:** Apply mode 0750 again, then read the permission groups yourself.
 
 ```bash
 sudo chmod 0750 /opt/patroni /etc/patroni
 ```
 
-**What the command means:** chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+**Prove it worked**
 
-**Expected result:** Both directories exist with postgres ownership and mode 0750.
+```bash
+ls -ld /opt/patroni /etc/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: each line reading drwxr-x---
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which account runs Patroni?
-2. Hint: Use the same postgres OS account that owns PostgreSQL.
-3. Stronger hint: Both /opt/patroni and /etc/patroni need postgres ownership.
-4. Solution: Run the displayed command and require PATRONI_DIRS_CREATED.
+Patroni software and protected configuration need explicit postgres-owned locations.
 
-**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes.
+chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected result: Both directories exist with postgres ownership and mode 0750.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Use the same postgres OS account that owns PostgreSQL.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both /opt/patroni and /etc/patroni need postgres ownership.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed command and require PATRONI_DIRS_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
 ## 129. Create the postgresql-socket-directory-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+**Patroni setup → Prepare · 18 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Create the directory for local PostgreSQL connections.
+
+**Your turn:** Use /var/run/postgresql again. The database files live elsewhere.
 
 ```bash
 sudo mkdir -p /var/run/postgresql
 ```
 
-**What the command means:** sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and the directories exist.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line starting with d
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes.
+sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected result: The command returns to the prompt and the directories exist.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
 ## 130. Give postgres ownership of the postgresql-socket-directory-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The postgres service must own these directories to write into them.
+**Patroni setup → Prepare · 19 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Let postgres own the directory where it creates its local socket.
+
+**Your turn:** Apply the ownership pattern you used on the first node.
 
 ```bash
 sudo chown -R postgres:postgres /var/run/postgresql
 ```
 
-**What the command means:** chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+**Prove it worked**
 
-**Expected result:** The directories are now owned by postgres.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+The postgres service must own these directories to write into them.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes.
+chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected result: The directories are now owned by postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
 ## 131. Lock down the postgresql-socket-directory-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Local clients and Patroni need a writable runtime location for the Unix socket.
+**Patroni setup → Prepare · 20 of 21**
 
-**Predict first:** Is this directory permanent database storage?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Allow local clients to enter the socket directory.
+
+**Your turn:** Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.
 
 ```bash
 sudo chmod 0755 /var/run/postgresql
 ```
 
-**What the command means:** chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+**Prove it worked**
 
-**Expected result:** /var/run/postgresql exists with postgres ownership.
+```bash
+ls -ld /var/run/postgresql
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading drwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Is this directory permanent database storage?
-2. Hint: It holds runtime socket files, not table data.
-3. Stronger hint: The path is /var/run/postgresql.
-4. Solution: Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+Local clients and Patroni need a writable runtime location for the Unix socket.
 
-**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes.
+chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /var/run/postgresql exists with postgres ownership.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Is this directory permanent database storage?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It holds runtime socket files, not table data.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The path is /var/run/postgresql.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Create the directory and require PATRONI_SOCKET_DIR_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes and the required learner-run check is observed.
 
 ## 132. Install Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Each PostgreSQL node needs the same pinned Patroni runtime.
+**Patroni setup → Prepare · 21 of 21**
 
-**Predict first:** Why install the same version on all members?
+Get the folders and Patroni runtime ready on all three nodes.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
 ```
 
-**What the command means:** tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+**Prove it worked**
 
-**Expected result:** Patroni 4.1.4 Python modules exist under /opt/patroni.
+```bash
+sudo ls -l /opt/patroni/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why install the same version on all members?
-2. Hint: Cluster behavior must not depend on mixed Patroni code.
-3. Stronger hint: The locked version is 4.1.4.
-4. Solution: Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+Each PostgreSQL node needs the same pinned Patroni runtime.
 
-**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes.
+tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected result: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why install the same version on all members?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Cluster behavior must not depend on mixed Patroni code.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The locked version is 4.1.4.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 133. Copy the etcd CA certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 19 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the trust certificate Patroni will use to check etcd’s identity.
+
+**Your turn:** Use the handoff file staged on this node, even though the paths look familiar.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CA_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_COPIED` validator passes and the required learner-run check is observed.
 
 ## 134. Set permissions on the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 20 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Allow the trust certificate to be read while restricting writes.
+
+**Your turn:** This is public certificate material; keep its file mode at 0644.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-ca.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 135. Give postgres ownership of the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Patroni must verify that it is talking to the assigned etcd cluster.
+**Patroni setup → Connect securely · 21 of 27**
 
-**Predict first:** Does a CA certificate contain the CA private key?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The CA certificate is readable by Patroni and contains no private key.
+```bash
+sudo ls -l /etc/patroni/etcd-ca.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does a CA certificate contain the CA private key?
-2. Hint: A .crt file is public verification material.
-3. Stronger hint: The destination is /etc/patroni/etcd-ca.crt.
-4. Solution: Install the CA certificate and require PATRONI_CA_INSTALLED.
+Patroni must verify that it is talking to the assigned etcd cluster.
 
-**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The CA certificate is readable by Patroni and contains no private key.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does a CA certificate contain the CA private key?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+A .crt file is public verification material.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /etc/patroni/etcd-ca.crt.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the CA certificate and require PATRONI_CA_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CA_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 136. Copy Patroni's etcd client certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 22 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the certificate Patroni presents as its client identity.
+
+**Your turn:** Use this node’s staged client certificate, not a resolved file copied from another node.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 137. Set permissions on Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 23 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Set read access on the public client certificate.
+
+**Your turn:** Use the same 0644 certificate mode on this node.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-client.crt now has mode 644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.crt now has mode 644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 138. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-etcd mutual TLS also verifies Patroni's client identity.
+**Patroni setup → Connect securely · 24 of 27**
 
-**Predict first:** Which side presents this certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The signed client certificate is postgres-owned and mode 0644.
+```bash
+sudo ls -l /etc/patroni/etcd-client.crt
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which side presents this certificate?
-2. Hint: Patroni is the client of etcd.
-3. Stronger hint: This is public identity material; the private key is handled next.
-4. Solution: Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+etcd mutual TLS also verifies Patroni's client identity.
 
-**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The signed client certificate is postgres-owned and mode 0644.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which side presents this certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni is the client of etcd.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+This is public identity material; the private key is handled next.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_CERT_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 139. Copy Patroni's protected etcd client key on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Connect securely · 25 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Place the private key used with Patroni’s client certificate.
+
+**Your turn:** Use this node’s handoff. Inspect file metadata without printing the key.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes and the required learner-run check is observed.
 
 ## 140. Set permissions on Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The permissions decide who may read this file before ownership is handed to postgres.
+**Patroni setup → Connect securely · 26 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Restrict the private key to its owner.
+
+**Your turn:** The key uses 0600. Certificate files use a different mode.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+**Prove it worked**
 
-**Expected result:** /etc/patroni/etcd-client.key now has mode 600.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-------
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+The permissions decide who may read this file before ownership is handed to postgres.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes.
+chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected result: /etc/patroni/etcd-client.key now has mode 600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes and the required learner-run check is observed.
 
 ## 141. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The private key proves possession of the client identity and must not be exposed.
+**Patroni setup → Connect securely · 27 of 27**
 
-**Predict first:** Why is this file more restricted than the certificate?
+Prepare the trust, certificate, and private-key files for etcd.
 
-Run this one action:
+Install the pinned Patroni runtime and inspect its entry point.
+
+**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
 ```
 
-**What the command means:** chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+**Prove it worked**
 
-**Expected result:** The command shows no key material and the destination mode is 0600.
+```bash
+sudo ls -l /etc/patroni/etcd-client.key
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: owner postgres and group postgres on the line
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why is this file more restricted than the certificate?
-2. Hint: Anyone holding the private key can impersonate the client.
-3. Stronger hint: Use mode 0600 and never run cat on it.
-4. Solution: Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+The private key proves possession of the client identity and must not be exposed.
 
-**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes.
+chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected result: The command shows no key material and the destination mode is 0600.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file more restricted than the certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Anyone holding the private key can impersonate the client.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use mode 0600 and never run cat on it.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install it and require PATRONI_CLIENT_KEY_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 142. Copy the Patroni launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 17 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Put the launcher for the Patroni manager in place.
+
+**Your turn:** Use the same launcher path on this node. Copying it does not start the service.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patroni now exists.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 143. Make the Patroni launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The pinned Python runtime needs one stable command path for systemd.
+**Patroni setup → Configure · 18 of 24**
 
-**Predict first:** Why use a wrapper instead of a floating pip command?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
+
+**Your turn:** Apply the executable-file pattern and check this node’s launcher permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patroni
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+```bash
+ls -l /usr/local/bin/patroni
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Why use a wrapper instead of a floating pip command?
-2. Hint: It binds systemd to the pinned runtime path.
-3. Stronger hint: The destination is /usr/local/bin/patroni.
-4. Solution: Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+The pinned Python runtime needs one stable command path for systemd.
 
-**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why use a wrapper instead of a floating pip command?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It binds systemd to the pinned runtime path.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The destination is /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 144. Copy the patronictl launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 19 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Install the launcher for the cluster administration tool.
+
+**Your turn:** This is patronictl, the administration tool. Patroni itself is the manager.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /usr/local/bin/patronictl now exists.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
 ## 145. Make the patronictl launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Operators need a stable absolute path for cluster inspection and planned operations.
+**Patroni setup → Configure · 20 of 24**
 
-**Predict first:** Which tool runs the service and which tool operates the cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Make the launcher executable, then inspect its permissions.
+
+**Your turn:** Apply the executable-file pattern and check this node’s launcher permissions.
 
 ```bash
 sudo chmod 0755 /usr/local/bin/patronictl
 ```
 
-**What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+**Prove it worked**
 
-**Expected result:** /usr/local/bin/patronictl is executable.
+```bash
+ls -l /usr/local/bin/patronictl
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rwxr-xr-x
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which tool runs the service and which tool operates the cluster?
-2. Hint: patroni runs; patronictl controls and inspects.
-3. Stronger hint: The operator command ends in ctl.
-4. Solution: Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+Operators need a stable absolute path for cluster inspection and planned operations.
 
-**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes.
+chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected result: /usr/local/bin/patronictl is executable.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which tool runs the service and which tool operates the cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+patroni runs; patronictl controls and inspects.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The operator command ends in ctl.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
 ## 146. Copy the Patroni systemd unit on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+**Patroni setup → Configure · 21 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Give systemd the definition it needs to start Patroni.
+
+**Your turn:** Use the supplied service definition on this node; startup comes later.
 
 ```bash
 sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
 
-**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes.
+sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected result: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_COPIED` validator passes and the required learner-run check is observed.
 
 ## 147. Set permissions on the Patroni systemd unit on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+**Patroni setup → Configure · 22 of 24**
 
-**Predict first:** Which process should systemd start?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Set read access on the service definition.
+
+**Your turn:** Check the mode here. File mode alone does not validate the startup command.
 
 ```bash
 sudo chmod 0644 /etc/systemd/system/patroni.service
 ```
 
-**What the command means:** chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+**Prove it worked**
 
-**Expected result:** The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+```bash
+ls -l /etc/systemd/system/patroni.service
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: the first column reading -rw-r--r--
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which process should systemd start?
-2. Hint: Patroni owns PostgreSQL startup in this cluster.
-3. Stronger hint: ExecStart must call /usr/local/bin/patroni.
-4. Solution: Install the unit and require PATRONI_UNIT_CREATED.
+systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
 
-**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes.
+chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which process should systemd start?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+Patroni owns PostgreSQL startup in this cluster.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+ExecStart must call /usr/local/bin/patroni.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Install the unit and require PATRONI_UNIT_CREATED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_UNIT_CREATED` validator passes and the required learner-run check is observed.
 
 ## 148. Reload systemd on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-systemd does not use a newly installed unit until its manager configuration is reloaded.
+**Patroni setup → Configure · 23 of 24**
 
-**Predict first:** Does daemon-reload start Patroni?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Ask systemd to reread its service definitions.
+
+**Your turn:** Reload systemd on this node too. The file check shows the definition; it does not establish service health.
 
 ```bash
 sudo systemctl daemon-reload
 ```
 
-**What the command means:** daemon-reload asks systemd to reread unit files without starting Patroni.
+**Prove it worked**
 
-**Expected result:** The command returns to the prompt and Patroni remains inactive.
+```bash
+systemctl cat patroni --no-pager
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Does daemon-reload start Patroni?
-2. Hint: It rereads definitions only.
-3. Stronger hint: The service must stay inactive until its ordered start step.
-4. Solution: Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+systemd does not use a newly installed unit until its manager configuration is reloaded.
 
-**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes.
+daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected result: The command returns to the prompt and Patroni remains inactive.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Does daemon-reload start Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It rereads definitions only.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+The service must stay inactive until its ordered start step.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Reload systemd and require PATRONI_SYSTEMD_RELOADED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes and the required learner-run check is observed.
 
 ## 149. Configure Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The second replica completes the topology with a unique member identity.
+**Patroni setup → Configure · 24 of 24**
 
-**Predict first:** What makes these files members of one cluster?
+Set up the launchers, service definition, and identity of each member.
 
-Run this one action:
+Save this member’s generated identity and cluster configuration.
+
+**Your turn:** Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.
 
 ```bash
 sudo vi /etc/patroni/patroni.yml
 ```
 
-**What the command means:** Enter the supplied pg-ha-3 YAML using the same protected cluster credentials.
-
-Enter this exact yaml content after SutaBot resolves only the registered role addresses and protected secret fields:
+Use this node's generated yaml template. Protected values come from SutaBot; never paste them into Chat.
 
 ```text
 scope: {{cluster_scope}}
@@ -4567,105 +7677,313 @@ tags:
   clonefrom: false
 ```
 
-**Expected result:** The file names pg-ha-3 and passes the Patroni contract validator.
+**Prove it worked**
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+```bash
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+```
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
 
-1. Question: What makes these files members of one cluster?
-2. Hint: They share scope, DCS endpoints and authentication.
-3. Stronger hint: Only member identity and local addresses differ.
-4. Solution: Enter the supplied YAML and require PATRONI_MEMBER_3_CONFIGURED.
+<details>
+<summary>Full explanation</summary>
 
-**Done when:** the independent `PATRONI_MEMBER_3_CONFIGURED` validator passes.
+The second replica completes the topology with a unique member identity.
+
+Enter the supplied pg-ha-3 YAML using the same protected cluster credentials.
+
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected result: The file names pg-ha-3 and passes the Patroni contract validator.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+What makes these files members of one cluster?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+They share scope, DCS endpoints and authentication.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Only member identity and local addresses differ.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Enter the supplied YAML and require PATRONI_MEMBER_3_CONFIGURED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_MEMBER_3_CONFIGURED` validator passes and the required learner-run check is observed.
 
 ## 150. Bootstrap the first Patroni leader
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-Starting one member first prevents three empty nodes from racing to initialize one scope.
+**Patroni setup → Start · 1 of 3**
 
-**Predict first:** Why start only one node first?
+Start the leader, then bring in the two replicas one at a time.
 
-Run this one action:
+Start Patroni on pg-ha-1 and inspect the service status.
 
 ```bash
 sudo systemctl enable --now patroni
 ```
 
-**What the command means:** Enable Patroni for boot and start only pg-ha-1; Patroni initializes PostgreSQL with checksums and writes cluster state to etcd.
+**Think first · optional:** What does active (running) establish?
 
-**Expected result:** pg-ha-1 becomes one running leader before either replica starts.
+- The service process is running
+- The node is definitely the leader
+- Both replicas have replayed every transaction
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+systemctl status patroni --no-pager
+```
 
-1. Question: Why start only one node first?
-2. Hint: The cluster has no existing leader or initialized data yet.
-3. Stronger hint: Use patronictl list to confirm exactly one running leader.
-4. Solution: Start Patroni on pg-ha-1 and wait for the leader validator before continuing.
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
 
-**Done when:** the independent `PATRONI_LEADER_BOOTSTRAPPED` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read Loaded and Active in the service status.
+
+If it is enabled and active, systemd has started the service and will start it at boot.
+
+If it is failed or inactive, inspect the service error before continuing.
+
+Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+Starting one member first prevents three empty nodes from racing to initialize one scope.
+
+Enable Patroni for boot and start only pg-ha-1; Patroni initializes PostgreSQL with checksums and writes cluster state to etcd.
+
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected result: pg-ha-1 becomes one running leader before either replica starts.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why start only one node first?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+The cluster has no existing leader or initialized data yet.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Use patronictl list to confirm exactly one running leader.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Start Patroni on pg-ha-1 and wait for the leader validator before continuing.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_LEADER_BOOTSTRAPPED` validator passes and the required learner-run check is observed.
 
 ## 151. Join pg-ha-2 as the first replica
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-The member should discover the established leader and clone it instead of initializing another cluster.
+**Patroni setup → Start · 2 of 3**
 
-**Predict first:** Which role should pg-ha-2 report?
+Start the leader, then bring in the two replicas one at a time.
 
-Run this one action:
+Start pg-ha-2 and watch it join the established cluster.
 
 ```bash
 sudo systemctl enable --now patroni
 ```
 
-**What the command means:** Start Patroni on pg-ha-2 only after the leader and pg-ha-2 configuration validators pass.
+**Prove it worked**
 
-**Expected result:** pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.
+```bash
+systemctl status patroni --no-pager
+```
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+<details>
+<summary>Full explanation</summary>
 
-1. Question: Which role should pg-ha-2 report?
-2. Hint: It must not report Leader.
-3. Stronger hint: Require one leader and one streaming replica before adding pg-ha-3.
-4. Solution: Start Patroni on pg-ha-2 and require PATRONI_REPLICA_2_JOINED.
+The member should discover the established leader and clone it instead of initializing another cluster.
 
-**Done when:** the independent `PATRONI_REPLICA_2_JOINED` validator passes.
+Start Patroni on pg-ha-2 only after the leader and pg-ha-2 configuration validators pass.
+
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected result: pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which role should pg-ha-2 report?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It must not report Leader.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Require one leader and one streaming replica before adding pg-ha-3.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Start Patroni on pg-ha-2 and require PATRONI_REPLICA_2_JOINED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_REPLICA_2_JOINED` validator passes and the required learner-run check is observed.
 
 ## 152. Join pg-ha-3 as the second replica
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-The final member restores the intended two-replica redundancy.
+**Patroni setup → Start · 3 of 3**
 
-**Predict first:** What complete topology must now appear?
+Start the leader, then bring in the two replicas one at a time.
 
-Run this one action:
+Start Patroni on pg-ha-3 and inspect the service status.
 
 ```bash
 sudo systemctl enable --now patroni
 ```
 
-**What the command means:** Start Patroni on pg-ha-3 after the first replica is already streaming.
+**Think first · optional:** What does active (running) establish?
 
-**Expected result:** The cluster reports one leader and two streaming replicas on one timeline.
+- The service process is running
+- The node is definitely the leader
+- Both replicas have replayed every transaction
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+**Prove it worked**
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+```bash
+systemctl status patroni --no-pager
+```
 
-1. Question: What complete topology must now appear?
-2. Hint: One leader plus two replicas.
-3. Stronger hint: Both replicas must report streaming.
-4. Solution: Start Patroni on pg-ha-3 and require PATRONI_REPLICA_3_JOINED.
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
 
-**Done when:** the independent `PATRONI_REPLICA_3_JOINED` validator passes.
+<details>
+<summary>Compare your prediction with the check</summary>
+
+Read Loaded and Active in the service status.
+
+If it is enabled and active, systemd has started the service and will start it at boot.
+
+If it is failed or inactive, inspect the service error before continuing.
+
+Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state.
+
+This reflection does not mark the step complete.
+
+</details>
+
+<details>
+<summary>Full explanation</summary>
+
+The final member restores the intended two-replica redundancy.
+
+Start Patroni on pg-ha-3 after the first replica is already streaming.
+
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected result: The cluster reports one leader and two streaming replicas on one timeline.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+What complete topology must now appear?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+One leader plus two replicas.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Both replicas must report streaming.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Start Patroni on pg-ha-3 and require PATRONI_REPLICA_3_JOINED.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_REPLICA_3_JOINED` validator passes and the required learner-run check is observed.
 
 ## 153. Copy the pinned HAProxy binary into place
 
@@ -4988,90 +8306,193 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 ## 163. Create the Mattermost database login
 
-**Work on:** `pg-ha-1` as `ec2-user`
+On **pg-ha-1** as **ec2-user**.
 
 The application needs its own least-privilege PostgreSQL identity instead of the superuser.
 
-**Predict first:** Why not let Mattermost connect as postgres?
+Run one action at a time. Prompt examples identify where to type; do not type the prompt.
 
-Run this one action:
-
+1. Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
 ```bash
-sudo -u postgres /opt/pgsql/bin/psql -h /var/run/postgresql -d postgres -c "CREATE ROLE mattermost LOGIN"
+sudo -iu postgres
 ```
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
 
-**What the command means:** Connect locally as postgres and create only the named login role; its protected password is assigned in the next step.
+2. Connect to PostgreSQL
+Type this in the postgres Linux shell.
+```bash
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+```
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Wait for postgres=#. You are now entering SQL or psql commands.
 
-**Expected result:** PostgreSQL reports CREATE ROLE and the role has login but no superuser privileges.
+3. Create the application login
+Type this at the postgres=# database prompt. Type only the command.
+```sql
+CREATE ROLE mattermost LOGIN;
+```
+Create the PostgreSQL role that Mattermost will use. LOGIN allows it to connect; it does not grant superuser privileges.
+Look for CREATE ROLE. If the role already exists, inspect it with the next check.
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+4. Check the new role
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+```text
+\du mattermost
+```
+List the mattermost database role and its attributes.
+Find mattermost. It must not be a Superuser or show Cannot login.
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+5. Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+```text
+\q
+```
+Leave the database client and return to Linux.
+You should see the postgres shell prompt again.
 
-1. Question: Why not let Mattermost connect as postgres?
-2. Hint: Applications should not receive cluster-administrator rights.
-3. Stronger hint: Create a LOGIN role named mattermost.
-4. Solution: Create the role and require MATTERMOST_DB_ROLE_CREATED.
+6. Return to your original user
+Type this in the postgres Linux shell.
+```bash
+exit
+```
+Close the nested shell before the next lesson.
+The prompt should identify ec2-user again.
 
-**Done when:** the independent `MATTERMOST_DB_ROLE_CREATED` validator passes.
+Expected: PostgreSQL reports CREATE ROLE and the role has login but no superuser privileges.
+
+Done when the independent MATTERMOST_DB_ROLE_CREATED check and the learner-run proof pass.
 
 ## 164. Set the protected Mattermost database password
 
-**Work on:** `pg-ha-1` as `ec2-user`
+On **pg-ha-1** as **ec2-user**.
 
 SCRAM authentication requires a password while chat and logs must never contain it.
 
-**Predict first:** Where should the plaintext password appear?
+Run one action at a time. Prompt examples identify where to type; do not type the prompt.
 
-Run this one action:
-
+1. Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
 ```bash
-sudo -u postgres /opt/pgsql/bin/psql -h /var/run/postgresql -d postgres -c "\password mattermost"
+sudo -iu postgres
 ```
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
 
-**What the command means:** Open PostgreSQL's protected password prompt for the mattermost role; SutaBot supplies the session secret through the masked terminal control, never chat.
+2. Connect to PostgreSQL
+Type this in the postgres Linux shell.
+```bash
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+```
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Wait for postgres=#. You are now entering SQL or psql commands.
 
-**Expected result:** The password is stored as a SCRAM verifier and no plaintext appears.
+3. Start the password change
+Type this at the postgres=# database prompt. Type only the command.
+```text
+\password mattermost
+```
+psql securely prompts for a new password without placing it in your SQL command or shell history.
+Wait for Enter new password for user "mattermost":. The next two inputs will be hidden.
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+4. Enter the generated password
+At the first password prompt, enter the value from Load protected password. Never paste it into Chat.
+The terminal hides password input. No stars or letters appearing is normal.
+Press Enter once. Wait for Enter it again:.
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+5. Enter the same password again
+At Enter it again:, enter the same protected value.
+The terminal hides password input. No stars or letters appearing is normal.
+Press Enter. Wait for postgres=# before running the check. If it reports a mismatch, start the password action again.
 
-1. Question: Where should the plaintext password appear?
-2. Hint: Nowhere in chat, command history or logs.
-3. Stronger hint: Use the masked protected-secret terminal prompt.
-4. Solution: Complete the protected prompt and require MATTERMOST_DB_PASSWORD_SET.
+6. Check that the role has a SCRAM password
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+```sql
+select rolname, rolpassword like 'SCRAM-SHA-256%' as scram from pg_authid where rolname = 'mattermost';
+```
+Return the role name and a boolean indicating SCRAM storage. The query does not display the password or its stored hash.
+Find mattermost and t under scram. t means true.
 
-**Done when:** the independent `MATTERMOST_DB_PASSWORD_SET` validator passes.
+7. Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+```text
+\q
+```
+Leave the database client and return to Linux.
+You should see the postgres shell prompt again.
+
+8. Return to your original user
+Type this in the postgres Linux shell.
+```bash
+exit
+```
+Close the nested shell before the next lesson.
+The prompt should identify ec2-user again.
+
+Expected: The password is stored as a SCRAM verifier and no plaintext appears.
+
+Done when the independent MATTERMOST_DB_PASSWORD_SET check and the learner-run proof pass.
 
 ## 165. Create the Mattermost database
 
-**Work on:** `pg-ha-1` as `ec2-user`
+On **pg-ha-1** as **ec2-user**.
 
 Mattermost needs an isolated database owned by its application role.
 
-**Predict first:** Who should own the application database?
+Run one action at a time. Prompt examples identify where to type; do not type the prompt.
 
-Run this one action:
-
+1. Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
 ```bash
-sudo -u postgres /opt/pgsql/bin/createdb -h /var/run/postgresql -O mattermost mattermost
+sudo -iu postgres
 ```
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
 
-**What the command means:** Create database mattermost and assign ownership to role mattermost.
+2. Connect to PostgreSQL
+Type this in the postgres Linux shell.
+```bash
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+```
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Wait for postgres=#. You are now entering SQL or psql commands.
 
-**Expected result:** The database exists once with mattermost as owner.
+3. Create the application database
+Type this at the postgres=# database prompt. Type only the command.
+```sql
+CREATE DATABASE mattermost OWNER mattermost;
+```
+Create one database named mattermost and give its ownership to the application role.
+Look for CREATE DATABASE.
 
-**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+4. Check the database owner
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+```text
+\l mattermost
+```
+List the mattermost database and its ownership.
+Find mattermost in both the Name and Owner columns. If a pager opens, press q to return to postgres=#.
 
-If you are stuck, ask SutaBot for help. It will reveal help in this order:
+5. Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+```text
+\q
+```
+Leave the database client and return to Linux.
+You should see the postgres shell prompt again.
 
-1. Question: Who should own the application database?
-2. Hint: Use the dedicated application role.
-3. Stronger hint: Both role and database are named mattermost.
-4. Solution: Create the database and require MATTERMOST_DATABASE_CREATED.
+6. Return to your original user
+Type this in the postgres Linux shell.
+```bash
+exit
+```
+Close the nested shell before the next lesson.
+The prompt should identify ec2-user again.
 
-**Done when:** the independent `MATTERMOST_DATABASE_CREATED` validator passes.
+Expected: The database exists once with mattermost as owner.
+
+Done when the independent MATTERMOST_DATABASE_CREATED check and the learner-run proof pass.
 
 ## 166. Create the Mattermost operating-system account
 
