@@ -1,0 +1,2444 @@
+{
+  "schema_version": 1,
+  "scope": "HA001 owner canary; actual AWS machine replay and authenticated UI",
+  "run_id": "pgbr-c65c26ce328c4e2b9535",
+  "qualified_at": "2026-09-07T06:56:23.775008+00:00",
+  "independent_learner_validation": false,
+  "production_deployment_evidence": false,
+  "evidence_archive_sha256": "f720843c46c76c6a9c5d2d1a499cc2c12241437025c6a05be0c15cd94ed71e66",
+  "evidence_manifest_sha256": "10f3014e492d1fb90e3337a292a574bb4d371d1dadd4db6bf1224dabe6419a5b",
+  "build_use": {
+    "identify-pg-primary": {
+      "content_sha256": "29efd10a6d44bbfa48b3adf7c7befc9b90f87891965d53d84b53bc3d72383970",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:26.441886+00:00"
+    },
+    "inspect-os-pg-primary": {
+      "content_sha256": "35037c261a17f0f2c3a1bb6e62be278c2f56be6ad33201411057b05965d8e228",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:26.747665+00:00"
+    },
+    "preserve-hosts-pg-primary": {
+      "content_sha256": "ea8bdd40329cf793139be64e13c845d208947deac731d0977e4db40aebd2cf38",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:27.216276+00:00"
+    },
+    "configure-hosts-pg-primary": {
+      "content_sha256": "38166aab342317ba8aa7c9de2c98f0194ac3c724812949bb8a2b97415a804418",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:30.187206+00:00"
+    },
+    "check-hosts-pg-primary": {
+      "content_sha256": "ba36c60d2ac355a31d743e4639ed3b85d388aff1dbd60a25b1715e1d37eecb0c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:30.596192+00:00"
+    },
+    "packages-pg-primary-epel": {
+      "content_sha256": "6e05e9fb6293fc2417fa8df4a2b4bd6b305025386c393f185197db54d1470ac6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:33.395290+00:00"
+    },
+    "packages-pg-primary-crb": {
+      "content_sha256": "04b909db89b8e72558c2dd4041854b6e1d7be4c52087d38a218a8dfd70e1e34a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:34.611145+00:00"
+    },
+    "packages-pg-primary-pgdg": {
+      "content_sha256": "a4e1b118ad7a90fbc1be94f8af3cbceb9534c80deab63c0a99d0a5e62d2af104",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:37.190499+00:00"
+    },
+    "packages-pg-primary-module": {
+      "content_sha256": "070181ec24630ef330c6bcf43d5d083811c5e24af4952e43561c15d5c3566e3e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:40.298176+00:00"
+    },
+    "install-software-pg-primary": {
+      "content_sha256": "a8686f80054e2bcd2b65c16a09ea72c38224f661a94b89b65852f6c9fd8fe1a9",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:42.089106+00:00"
+    },
+    "postgres-version-pg-primary": {
+      "content_sha256": "4ecbe89f0e056905ba755e793d2ad010fb4617213bf5c9b99da6a807e2a06078",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:42.505329+00:00"
+    },
+    "postgres-account-pg-primary": {
+      "content_sha256": "0027557eaa11fd0fe546f15c37c92bf56e3bbd88a3980d3c6836aab392d9c4e2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:42.896518+00:00"
+    },
+    "identify-pg-standby": {
+      "content_sha256": "00d3492a3b90dec9b273ed0ce33d5d5ac8a9ffef65b4b0a609bb862b7554c354",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:43.485373+00:00"
+    },
+    "inspect-os-pg-standby": {
+      "content_sha256": "2e2dafacbb48d70b49e6af7e310809d91ea83015f7eb68b3321850b988f229e5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:43.793811+00:00"
+    },
+    "preserve-hosts-pg-standby": {
+      "content_sha256": "4139c5e496d75d188e4094f9cd7fcdfcffc137c2016fceb7d7ff23e1155bf014",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:44.270864+00:00"
+    },
+    "configure-hosts-pg-standby": {
+      "content_sha256": "978c06e60bbbc6e040c7e145c9dfaf8539af9234855aff397c949498c0bcf52a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:47.225634+00:00"
+    },
+    "check-hosts-pg-standby": {
+      "content_sha256": "0f67c530bb34774e9b9caf3d92b286048a798a5223205249960774ee38962d92",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:47.632916+00:00"
+    },
+    "packages-pg-standby-epel": {
+      "content_sha256": "742857cc2125ceba71162380ec98068023d11131252fd25eacd225680b924e7d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:50.283661+00:00"
+    },
+    "packages-pg-standby-crb": {
+      "content_sha256": "0c4a0a850684f835350ad9463308591d0d6af0c0aef8f7ea55b0a7a8b742c110",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:51.404135+00:00"
+    },
+    "packages-pg-standby-pgdg": {
+      "content_sha256": "456ce72f6149890bf2993fe6620d981ba8a85d276ec43dea2b341582e000f77c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:53.695814+00:00"
+    },
+    "packages-pg-standby-module": {
+      "content_sha256": "4fdec21017f9c1da2599acd033e1e6404f6c1e3315a21f529b24ca2886f017a9",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:56.623355+00:00"
+    },
+    "install-software-pg-standby": {
+      "content_sha256": "dab1abcbda94b0396c00b3b8f1b66b93ab680c7409e8f8fd02e2579a8ff328b2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:58.344222+00:00"
+    },
+    "postgres-version-pg-standby": {
+      "content_sha256": "339e080093526107ecc5f00495eead170703b8a1a48d5e760ac08e2b56fd1113",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:58.759680+00:00"
+    },
+    "postgres-account-pg-standby": {
+      "content_sha256": "945f54f1721aef232f4bb3d7b9e506bd317f97025ba07b8492d7e905ef73e1be",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:59.165535+00:00"
+    },
+    "identify-backup-1": {
+      "content_sha256": "2d14976e6cdc90c4f99d5eedb4b9f279906fdca2c6f0e1e405aa1296d89ce187",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T05:59:59.785501+00:00"
+    },
+    "inspect-os-backup-1": {
+      "content_sha256": "e7240c5155bc9b49f590f193a03056f61c794bc6c0d6b07b3b6f1bb4d73f5a40",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:00.100583+00:00"
+    },
+    "preserve-hosts-backup-1": {
+      "content_sha256": "5d560a6822f9084b2caa93f900f458316c8953a76542888866c2c7eded7872ec",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:00.678606+00:00"
+    },
+    "configure-hosts-backup-1": {
+      "content_sha256": "fdbd1f28c2612bff519f1a39d977c00a6a40a6755f8f7808b9fa89575ba62c23",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:04.899036+00:00"
+    },
+    "check-hosts-backup-1": {
+      "content_sha256": "9f212ff5ce30adfa6a056ded3debdb7163837c6e5350696c092eebe5744abd42",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:06.341783+00:00"
+    },
+    "packages-backup-1-epel": {
+      "content_sha256": "eae1cc8b965e2c72a71337a8302e1e71182c7ac7ff89f82abd5c2281e39dca6d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:11.655676+00:00"
+    },
+    "packages-backup-1-crb": {
+      "content_sha256": "d9b3105c5264f1d263d1b8a9d19816671b3b18f2fbd7849f1dfbd42b2bdcadec",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:13.116703+00:00"
+    },
+    "packages-backup-1-pgdg": {
+      "content_sha256": "ce50a1b1c83918bd19c44640ab17b67697f05e5dce0885f5a9b3f3eaca2b6d52",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:15.715806+00:00"
+    },
+    "packages-backup-1-module": {
+      "content_sha256": "b8437e8567cc366ae6f78a22f5db51b87f99a0864c06b047f80bcf03d76acd40",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:19.053062+00:00"
+    },
+    "install-software-backup-1": {
+      "content_sha256": "ed5daac302b1bef49d2a6edb71397ee28b67caace75a8da7cb2a181d61769427",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:20.916443+00:00"
+    },
+    "identify-nfs-1": {
+      "content_sha256": "82158b84abf07800d84067b43dc75adad615ce6b2b04128dd9269dbaaeff2739",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:21.773414+00:00"
+    },
+    "inspect-os-nfs-1": {
+      "content_sha256": "90ae8bd69ea0d94bcb5d466300bbf6b12df8a933f52869cf8222737ca04b708e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:22.229059+00:00"
+    },
+    "preserve-hosts-nfs-1": {
+      "content_sha256": "12341118c95ba643a01921f6e6988f026028f4e309e65340f9faf6de967bdda2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:22.870884+00:00"
+    },
+    "configure-hosts-nfs-1": {
+      "content_sha256": "d0a9cf5eefe03897dbc441d0f6b6741608888bd80b2d1181f59581dff8569565",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:25.965668+00:00"
+    },
+    "check-hosts-nfs-1": {
+      "content_sha256": "5631bf8b29b98dd8a4300e06f5127ba78fc6cf5c84e52847f39b59df092fbbb6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:26.482660+00:00"
+    },
+    "install-nfs-server": {
+      "content_sha256": "458f47ef9b0884afdf0ed116e3120f8125722b305d4f9e475a7bef8721e80852",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:27.747123+00:00"
+    },
+    "group-backup-1-pgbackrest": {
+      "content_sha256": "ed71b94568d354e96b08a84a5471bdd6ba678fc5d4db9b1d2bd7de71676e203c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:28.376071+00:00"
+    },
+    "account-backup-1-pgbackrest": {
+      "content_sha256": "a26b3804e86e47576231c9b8302e03c73df56da917f35c6984c1ee2d19db0865",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:28.928039+00:00"
+    },
+    "group-nfs-1-postgres": {
+      "content_sha256": "8b702c8d78cdae7da749f54378af2c48a9fd497e7924b09175ee84186e86216e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:29.472716+00:00"
+    },
+    "account-nfs-1-postgres": {
+      "content_sha256": "5a99b928eeb20f8a0b535c7d17f5f068d5e1765f0c75005b0379ae0f3c5ea3ed",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:30.100749+00:00"
+    },
+    "group-nfs-1-pgbackrest": {
+      "content_sha256": "2fa1a57e1636ab9b010bc1fbf8c610c17818dbf412935e244b6e82de35dedb43",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:30.729942+00:00"
+    },
+    "account-nfs-1-pgbackrest": {
+      "content_sha256": "c57cfbb2c2b13442391b62e27c7698f6027f5ce4e891d228d1e2da5d1dca0dfc",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:31.296284+00:00"
+    },
+    "backup-home-label": {
+      "content_sha256": "52476a06e2a133af58187cdacfd9a07e5914d007197aee23b563c9107c469611",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:32.025567+00:00"
+    },
+    "trust-pg-primary-directory": {
+      "content_sha256": "1dcfe7ba71dc548c242f06c9eee7263179d7b1bc13597bfa477233dc3800a869",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:32.653687+00:00"
+    },
+    "trust-pg-primary-private-key-copy": {
+      "content_sha256": "4e3526985267eefad94fac1204056ef822f9c2b7d0bde5400ab2b98a9d9adb7b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:33.260691+00:00"
+    },
+    "trust-pg-primary-private-key-owner": {
+      "content_sha256": "a96fed9797cde44a1359f15068563da1f545e17c7064eefe532b3f08578f9ec0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:33.839761+00:00"
+    },
+    "trust-pg-primary-private-key-mode": {
+      "content_sha256": "f54f4ba2b343939730c5194f0b36fbd848f55399ce6719ae0c25d1b3f6bad4ef",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:34.412619+00:00"
+    },
+    "trust-pg-primary-authorized-keys-copy": {
+      "content_sha256": "02440a77489eead7f5bb023fa31eb83a79fc12aaf5314ac20370564afeb28138",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:34.985591+00:00"
+    },
+    "trust-pg-primary-authorized-keys-owner": {
+      "content_sha256": "780e5b5a4ce611baa10fc6a0d46d1d28c419442b667b0f9ffd205bbc5a699d12",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:35.622718+00:00"
+    },
+    "trust-pg-primary-authorized-keys-mode": {
+      "content_sha256": "e3c9b26dcc8a1a23e11b8c82132dfea9dde0ac1950c03e1a903c99597de778d4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:36.263692+00:00"
+    },
+    "trust-pg-primary-known-hosts-copy": {
+      "content_sha256": "35531842c5b6bfd6197fd67a84ec6ad37ebb11ff0c88daa4844ed299a5b7962d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:36.834674+00:00"
+    },
+    "trust-pg-primary-known-hosts-owner": {
+      "content_sha256": "a92fabde6915cba9aafb94be9807fb258fe8aeabb569dde2eb0555ad7462a219",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:37.439079+00:00"
+    },
+    "trust-pg-primary-known-hosts-mode": {
+      "content_sha256": "a913749c48ed7711f8be244b547483dac5d1986e063504e2e74a64ef37a8106e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:38.103686+00:00"
+    },
+    "trust-pg-primary-ssh-config-copy": {
+      "content_sha256": "0d2880c33ccb7b041401c10d6423e680d52ca7e7999c504a990fcc0f03016d39",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:38.739302+00:00"
+    },
+    "trust-pg-primary-ssh-config-owner": {
+      "content_sha256": "4fe465235484634abb174a4b2892dc57bb81e641daf885b8d3f2b997d011e146",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:39.404564+00:00"
+    },
+    "trust-pg-primary-ssh-config-mode": {
+      "content_sha256": "476c9dd6e0ca05c8c8173d33cb8d482e062a4a33dfa31e537e3d1199875721e2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:39.972189+00:00"
+    },
+    "trust-pg-primary-selinux": {
+      "content_sha256": "1ee89955bd26794aa5cfa50686528d7af24b19b00fb772e6836e8f653af7fb97",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:40.615369+00:00"
+    },
+    "trust-pg-standby-directory": {
+      "content_sha256": "c93710ed878736a039bef63afe092306fed4846241fd6526cf3796f399bf64d4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:41.206667+00:00"
+    },
+    "trust-pg-standby-private-key-copy": {
+      "content_sha256": "9b03d739eebcf113f3671a3f2240cce46aed9631c9e6d0ba3f7c68bf41ea2efd",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:41.858536+00:00"
+    },
+    "trust-pg-standby-private-key-owner": {
+      "content_sha256": "e25f862dad10029a9ed5abf001b37576bfac6f93ad0e6299d111a1272baff378",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:42.476802+00:00"
+    },
+    "trust-pg-standby-private-key-mode": {
+      "content_sha256": "3b2efdac7fa60d1c9e9e0661a0a504af410dc8840d71b1813fda2018cd236bef",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:43.122738+00:00"
+    },
+    "trust-pg-standby-authorized-keys-copy": {
+      "content_sha256": "fc42ee56ca4ff00c9c2bac548d4448190a084edbf1ecbcf4db4e9c7314f891f5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:43.705666+00:00"
+    },
+    "trust-pg-standby-authorized-keys-owner": {
+      "content_sha256": "1df90d02869b6cc0040d6be18f1c62542a2eba0cb6f405e0d8df0e2d4d4f4494",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:44.348714+00:00"
+    },
+    "trust-pg-standby-authorized-keys-mode": {
+      "content_sha256": "fc7c475c927bcbf22f47b57979b8d2feb00ade6e7caa1ef43e4ba66a7da8b204",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:44.975719+00:00"
+    },
+    "trust-pg-standby-known-hosts-copy": {
+      "content_sha256": "f9bfa45fe5c2873a460b8f540a35c1729607f0f323d7ebe32eacb16ccb1a71a8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:45.521671+00:00"
+    },
+    "trust-pg-standby-known-hosts-owner": {
+      "content_sha256": "34fef184f5bca19b725711a789a939c5490ed77bae452070b9d8f0a584b5d881",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:46.091907+00:00"
+    },
+    "trust-pg-standby-known-hosts-mode": {
+      "content_sha256": "486130bc143bf4676dccab1b62876aeb33d673711e644ad2ef1e2b8a146cdb2c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:46.756680+00:00"
+    },
+    "trust-pg-standby-ssh-config-copy": {
+      "content_sha256": "00d5262872af3e34af03a2023ace746041966856ca037256f94ed10175eab227",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:47.461223+00:00"
+    },
+    "trust-pg-standby-ssh-config-owner": {
+      "content_sha256": "25ac6f932c0ccbf339201f64b9d496e0afb39dd4dfdf159ea2eb9a823ceeed8d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:48.074697+00:00"
+    },
+    "trust-pg-standby-ssh-config-mode": {
+      "content_sha256": "be97019f323e91ce65f928b8f64ed6a54eead6126a1d49162c32d609215e175f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:48.740952+00:00"
+    },
+    "trust-pg-standby-selinux": {
+      "content_sha256": "7a2887b699ebfe05658ac45c5f42a525b26707e0cb7879109aeac8d65f59be41",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:49.413792+00:00"
+    },
+    "trust-backup-1-directory": {
+      "content_sha256": "be6ed0255942e95465c6c3cf6c3d4362082c08728d1254e09d15033ff1fe8769",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:49.981269+00:00"
+    },
+    "trust-backup-1-private-key-copy": {
+      "content_sha256": "b4719e949008af56051f676b0224a6f1655fdf317595db4c6cefe08dbd6ccc33",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:50.640377+00:00"
+    },
+    "trust-backup-1-private-key-owner": {
+      "content_sha256": "440e28408e89c61e79bc1f575522a3a2c9e98a5eee7eb4a0a9e17c240d95c951",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:51.209918+00:00"
+    },
+    "trust-backup-1-private-key-mode": {
+      "content_sha256": "df3291eaaa5fb26dbd3f468cae5abe3418474d9633974ad4554d005a83815d1c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:51.874138+00:00"
+    },
+    "trust-backup-1-authorized-keys-copy": {
+      "content_sha256": "4f64442df8d65b8199b706cdde1172a252b03d28f8c6910b9780887d8af9cbe0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:52.507007+00:00"
+    },
+    "trust-backup-1-authorized-keys-owner": {
+      "content_sha256": "98dd03ad3810b5f76758437ecba45de502ccca91ebef5cd4ba306c96ff4a65e0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:53.121140+00:00"
+    },
+    "trust-backup-1-authorized-keys-mode": {
+      "content_sha256": "9ba53b410d944fc86c8b5431b363d0ded77fd4eb5a4bb9454d018e6628629384",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:53.673573+00:00"
+    },
+    "trust-backup-1-known-hosts-copy": {
+      "content_sha256": "37d32184616a18e13efcf05a08615c93625998bcdd254dc79e71099586954dec",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:54.276983+00:00"
+    },
+    "trust-backup-1-known-hosts-owner": {
+      "content_sha256": "d2cfee5ab67ef7b0886ed514d16f6f461115a0d7ef6f08284fc4f786f3a1408f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:54.863349+00:00"
+    },
+    "trust-backup-1-known-hosts-mode": {
+      "content_sha256": "8c8d896372870cbdfc0e144ba358fb43ed30bcadb137e8115dc5aeeafd14ca00",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:55.431667+00:00"
+    },
+    "trust-backup-1-ssh-config-copy": {
+      "content_sha256": "0d10fc862957d24bea23a2e77a7c25418a49e408e2c9c9cf8d310ebfb445c7c4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:56.017747+00:00"
+    },
+    "trust-backup-1-ssh-config-owner": {
+      "content_sha256": "d3b6715f4294a305c2d7d194157843e374fef891a334a99e7d60c6fc55876474",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:56.646945+00:00"
+    },
+    "trust-backup-1-ssh-config-mode": {
+      "content_sha256": "c9b13662ed499c70bbf6570cc27e36404c9e20f5fd52285fe3f727f705f1da5a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:57.304343+00:00"
+    },
+    "trust-backup-1-selinux": {
+      "content_sha256": "8cfd770af3d198c5896a344b368fd407fd5c3e92b63577ea75a3709a9955a229",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:57.915818+00:00"
+    },
+    "backup-work-dirs-pg-primary": {
+      "content_sha256": "cfd24d923de80089f96d77b0d8786f46284f8ffc0e240378d279c9a60f16adf4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:58.433915+00:00"
+    },
+    "backup-config-dir-pg-primary": {
+      "content_sha256": "34120d21aa9e58e5e739a6a4c301a0e639ab02be5455c26f52b09ba00aef6dc1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:58.953825+00:00"
+    },
+    "backup-work-dirs-pg-standby": {
+      "content_sha256": "8b906519599270a228b01bcf6f6c81b23f63477a0416175255452eb51804fad5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:59.463118+00:00"
+    },
+    "backup-config-dir-pg-standby": {
+      "content_sha256": "31903fb03102567214ff0ae6044ab0cbb880bb5ce48714f663e9b0207a830b33",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:00:59.927195+00:00"
+    },
+    "backup-work-dirs-backup-1": {
+      "content_sha256": "d0aee63e77b1d20dd642d0617bab6cf366cc6250732540072927d82bbf831748",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:00.417594+00:00"
+    },
+    "backup-config-dir-backup-1": {
+      "content_sha256": "2d16f93d0ebb8de759561ceeca0d9f985f06f6b0b767e2e246fa64b7b1954456",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:00.869999+00:00"
+    },
+    "nfs-parent": {
+      "content_sha256": "4422402ccc6da42073f450774221c8640d7021d9395db897324e1e72fa094dfa",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:01.372755+00:00"
+    },
+    "nfs-directory-direct": {
+      "content_sha256": "071aeac9c4ff5db243d0541834b7495c42e714ad654379b266c32ac0a110cbaf",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:01.954662+00:00"
+    },
+    "nfs-directory-server": {
+      "content_sha256": "ed17bf06f41506883cb47a26fc576bad9b7af01426e9ae0a650e85a6cebc077f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:02.466084+00:00"
+    },
+    "nfs-exports": {
+      "content_sha256": "d8ba5636bdfbcc91f2afdd2a1616abc617949a2101b8890c65392fe949142e29",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:05.427581+00:00"
+    },
+    "nfs-version": {
+      "content_sha256": "03bde2851ff4a5f95ed763889b432304fda7b30a37a3a3083920da9b6dbc1fc0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:08.388216+00:00"
+    },
+    "nfs-enable": {
+      "content_sha256": "bfe952768cc94bc17f66744a5df754916c643eb9884b5078b1e79255a9deb208",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:09.122259+00:00"
+    },
+    "nfs-start": {
+      "content_sha256": "4f8ff5d4f81d53e3443d31a3cca65bad8fbc8281735efaf528a262b9d83e4bfb",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:09.576195+00:00"
+    },
+    "nfs-reload-exports": {
+      "content_sha256": "cc5c88effc393752206b5dfe05772c71bb566a01ee9081c3f1ac07a0730bba2c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:10.064044+00:00"
+    },
+    "mount-parent-direct": {
+      "content_sha256": "6755ddf40875d8c63d4fb29bc1999abf80ed55905fbb7a930b8f6cb395009e9a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:10.517182+00:00"
+    },
+    "mount-empty-direct": {
+      "content_sha256": "13d1da4e0b9045c310d926d0ad0327eb71c1c980d14e3239c9656ccf11f0b457",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:11.018135+00:00"
+    },
+    "fstab-direct": {
+      "content_sha256": "01a7f40e0d5614d20fc8b69e1b65d8997fd036d3c85c4590d28c5e78dd855a91",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:13.610509+00:00"
+    },
+    "mount-reload-direct": {
+      "content_sha256": "af79fade504fc8101d7306a7260f9704cbee39543b0bed594d2827e721ed62f6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:14.369320+00:00"
+    },
+    "mount-direct": {
+      "content_sha256": "d50de1b09bcaaccb59f43569b7111799fbb5e44eb441c358ad0130e1cbb64492",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:14.948915+00:00"
+    },
+    "nfs-write-direct": {
+      "content_sha256": "5ab27806808bcf8b8bce7af6c2ddb8944863f5741043af06b7e0bb8b7cdc2d9e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:10.070442+00:00"
+    },
+    "mount-parent-server": {
+      "content_sha256": "510bee3b2e92bb3784bc6f449d175fdbf0f7bbac7bdd4e1d441a5c71309ed862",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:16.130164+00:00"
+    },
+    "mount-empty-server": {
+      "content_sha256": "65a70ccd20edb03dec48776d41357c6e37b6ca6e4fb21156a361d42bdbd9d284",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:16.589471+00:00"
+    },
+    "fstab-server": {
+      "content_sha256": "7da68bd58705635e7e4b4a691c7bc742083390474c61a6a5e9ed631ac21fe32e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:19.170226+00:00"
+    },
+    "mount-reload-server": {
+      "content_sha256": "cfd1cdcab604842de85e5c0f4fea38914c1ed354c0b359d86dd218d8b5dff101",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:19.896045+00:00"
+    },
+    "mount-server": {
+      "content_sha256": "fb6855edb4c0e77f3494eed4ef94fa037659c75c0280c33e2eb094f9050b42b4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:20.420128+00:00"
+    },
+    "nfs-write-server": {
+      "content_sha256": "2e26396820fb1aff4f7fe5bf0293653c1ea04aed8974377a7f80cc0815d54dbf",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:11.012539+00:00"
+    },
+    "primary-initialize": {
+      "content_sha256": "fc8ee9ee130bf5f6a54147c475a5b69b1a870ee83dc470369b8f123ba482c4ca",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:22.425071+00:00"
+    },
+    "trust-pg-primary-tls-private-key-copy": {
+      "content_sha256": "576750bb2f752ebae039b36e9b3c7ddb9ba9ad1ad400c223913cf5bbb9843678",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:22.949456+00:00"
+    },
+    "trust-pg-primary-tls-private-key-owner": {
+      "content_sha256": "232c81500414391ee3347b256432dcbecc19c7613fc8de7b52ca16166496f712",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:23.417113+00:00"
+    },
+    "trust-pg-primary-tls-private-key-mode": {
+      "content_sha256": "4c871977d8345c46ac3ed5a56574995b588302fefd8d74c1a67be53832e065b3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:23.898716+00:00"
+    },
+    "trust-pg-primary-tls-certificate-copy": {
+      "content_sha256": "aa395d2cf6ab28ccfcfc24194a7600fcbe00d7c6a4af99018b7667c76c9d300a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:24.382964+00:00"
+    },
+    "trust-pg-primary-tls-certificate-owner": {
+      "content_sha256": "03b20af929700b964034e390309c9c09e31feac91ba7ab5b6d7df73f157989de",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:24.848099+00:00"
+    },
+    "trust-pg-primary-tls-certificate-mode": {
+      "content_sha256": "99623cea90e85e232982327dd165a364e246e1f14138a3330952d897b512ee51",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:25.328030+00:00"
+    },
+    "trust-pg-standby-tls-root-copy": {
+      "content_sha256": "b4ae3f78d31bf3f7c56ea1e6730ff17e027eb55f4e400ce4b9e2d74de43a2123",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:25.798621+00:00"
+    },
+    "trust-pg-standby-tls-root-owner": {
+      "content_sha256": "40864bc85dcb777040c8c8ab02a8f7c454f4aee68bd7f2117b9e72eae5646eae",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:26.279107+00:00"
+    },
+    "trust-pg-standby-tls-root-mode": {
+      "content_sha256": "4bf839cbcdf09c569aa5d7b098edc1efa3539b3e97dd06edeba2b015ecf6b213",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:26.765186+00:00"
+    },
+    "primary-configuration": {
+      "content_sha256": "47063ae20f745c85b74020381bfceae01ef2109ebb9c7ece4425a96e5f52b8c5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:29.767860+00:00"
+    },
+    "primary-hba": {
+      "content_sha256": "4ef80dad60d91d3d65794664d057bdee340c02d0afd56a0489aa5ee967f0b381",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:32.749994+00:00"
+    },
+    "primary-enable": {
+      "content_sha256": "5cd03947305e0a76cc05350d52e63ad263bbd8cdec3f8673dd9cc11f07ce9456",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:33.553560+00:00"
+    },
+    "primary-start": {
+      "content_sha256": "79b7b5f99a341c9259e6b520d74d6f2d4a5a65068003a8499933d48e338d6b8a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:34.093957+00:00"
+    },
+    "primary-storage": {
+      "content_sha256": "2a60e3fdc006240f8e61ffb13a56fb6e5391e23d2963a5378f479dfedaa9cc49",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:34.740009+00:00"
+    },
+    "replication-role": {
+      "content_sha256": "4ba9b8bda7cce707c0016a0baeb7bfca9adf434d655eccfa13308f1ad7c43e7b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:35.415131+00:00"
+    },
+    "replication-password": {
+      "content_sha256": "31bedcd22207a82e1ab76185fcc979b4ce01b9b49c4984918cc585278e642e44",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:36.135126+00:00"
+    },
+    "seed-database": {
+      "content_sha256": "bcd941f24224f80a1fe3e2f20c436027a2ae75a322cbe2e56221460d5d7ee696",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:37.224177+00:00"
+    },
+    "standby-password-file-private-file": {
+      "content_sha256": "5514ef1eff20f2811315e4f0ae0ae2a2e447df6b958f9b5e1a0ea5a6c9bc2f04",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:37.762963+00:00"
+    },
+    "standby-password-file": {
+      "content_sha256": "f86af933809cd67c842f5b10f0ad7fe8aca0b3de62cb19a75b3f1e827a547a58",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:40.735492+00:00"
+    },
+    "standby-basebackup": {
+      "content_sha256": "5fb89abbf72f6a3bcb4bcd02df4145a3db16bbc1c82b89c865df19f0e36deb12",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:41.729764+00:00"
+    },
+    "standby-enable": {
+      "content_sha256": "00b10a045265f3299da030bcc477492519d4a1949a1c0c0caa9edd1d95c76a04",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:42.479720+00:00"
+    },
+    "standby-start": {
+      "content_sha256": "9ed9ab0a64c262701c3d2fff165e0cb54c6f5bc06baeba42f0bd15f1f3c341f2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:43.041373+00:00"
+    },
+    "verify-replication": {
+      "content_sha256": "1f8de5d7a2fd70a07327addfa7d21b0f651823262018b2a089373beb9a2502b6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:43.572599+00:00"
+    },
+    "verify-standby-data": {
+      "content_sha256": "01b9b7cdaa7dba1cb2379acbf5111b71dd962cad49c0962b0ca7d6cc5ad2bec5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:44.341471+00:00"
+    },
+    "profile-pg-primary-pgbackrest-conf": {
+      "content_sha256": "e3b9352ad7587e5b51d957cf0a6c25101e8f9e83791c12cd81c384243da1fe8e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:47.376115+00:00"
+    },
+    "profile-pg-primary-pgbackrest-conf-owner": {
+      "content_sha256": "097bccfa58ba7275e42da66f9f82f4b632e2279c235fd91fc7089ab05748bb53",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:47.857241+00:00"
+    },
+    "profile-pg-primary-pgbackrest-conf-mode": {
+      "content_sha256": "63c99c1871d0e7e3acad9107b22977cf08c1549d7386c5aa5287624d5d2f2e12",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:48.339976+00:00"
+    },
+    "profile-pg-primary-direct-conf": {
+      "content_sha256": "240bdde02f121cb96af813102ec3ca04e57b815e157b118c8d2a9c88f60558df",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:51.315594+00:00"
+    },
+    "profile-pg-primary-direct-conf-owner": {
+      "content_sha256": "0488de86f46536c931c53a7467b5b2f918a58c5dfc69f270fe9419d8a7c67de0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:51.786214+00:00"
+    },
+    "profile-pg-primary-direct-conf-mode": {
+      "content_sha256": "4b839b4a23cbdc9cca14461dde82758ab2b29e04f54353bb083f650802fe98a8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:52.254619+00:00"
+    },
+    "profile-pg-standby-pgbackrest-conf": {
+      "content_sha256": "4b9590bb9dfbe48e247e4169b75f94a09d7ef1e848c168b6c48c14f4d758b37d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:55.207958+00:00"
+    },
+    "profile-pg-standby-pgbackrest-conf-owner": {
+      "content_sha256": "4e4d46e5b2cdb64fe0af7c8e95d4456aed946cc2d4e03d299ac42864d0669a47",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:55.687150+00:00"
+    },
+    "profile-pg-standby-pgbackrest-conf-mode": {
+      "content_sha256": "5faf17d364217df1ac0380d87df8cc1ac169e70be48172c8723ba7ef745ef7c3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:56.161948+00:00"
+    },
+    "profile-backup-1-pgbackrest-conf": {
+      "content_sha256": "70f281125f4e6b6963619edfe5b44c7c163f797cf2977b8f878c75a30a54b996",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:59.115666+00:00"
+    },
+    "profile-backup-1-pgbackrest-conf-owner": {
+      "content_sha256": "36ab075029161a03d3c74eead40017babd374ebf96be18fec11c7a43bfbee03a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:01:59.589911+00:00"
+    },
+    "profile-backup-1-pgbackrest-conf-mode": {
+      "content_sha256": "3f0e1a8b6afed7ea9b2b09b4dc428bc44ad855c2760154c87be1785e18b579d3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:00.080037+00:00"
+    },
+    "stanza-direct": {
+      "content_sha256": "8c091d963018254105eab2a8dc0559fda8daafb12d446fb87a141cdf664dd5ff",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:02.451830+00:00"
+    },
+    "stanza-server": {
+      "content_sha256": "0a63db044f58a88a5e8d3e2e19cac41db6c687fcb4a500c455b6187540db8d56",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:04.324295+00:00"
+    },
+    "enable-archiving": {
+      "content_sha256": "bc7fa1226bef988a8a745d8dfd02fdc04e2c7f79b8a336de7da088478427861b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:07.342076+00:00"
+    },
+    "restart-for-archiving": {
+      "content_sha256": "48d57843d3356094cdee037f379bcfc15152038200014eed426675ac70343375",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:07.952791+00:00"
+    },
+    "archive-mode-active": {
+      "content_sha256": "27684da421b3c0155548b72642ccde8b2c6324db901b32b9ea9f5ec2a5b3369b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:08.546156+00:00"
+    },
+    "archive-check-direct": {
+      "content_sha256": "c69643c5733908dc07262033354fd7f749c27f6409504c16771b495dea026397",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:53:38.535020+00:00"
+    },
+    "archive-check-server": {
+      "content_sha256": "c6edd8b104a8d3389dc36bd03e88b10cbe43cc72cd00d444a758a96c3d8ca51e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:12.154199+00:00"
+    },
+    "direct-full-backup": {
+      "content_sha256": "b2f7fc42892a4b9a67e2a575cdf597456b8b7a9acec7cf2abd44bda14e8ef6be",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:19.834068+00:00"
+    },
+    "server-full-backup": {
+      "content_sha256": "31e7578efb0593c3205bd91dfa3ec6a4f3016b47a951446082a007b84e733a08",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:29.550029+00:00"
+    },
+    "restore-profile-direct": {
+      "content_sha256": "89310fd075c7883941928d55885e9b6ba3ee09ce109abf3c8b8dea469f7a693b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:27.910091+00:00"
+    },
+    "restore-profile-owner-direct": {
+      "content_sha256": "7c0e126dfb81a0dfe1b98b953673534975fdbbc5d449269498b33c0d70d58840",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:28.395604+00:00"
+    },
+    "restore-empty-direct": {
+      "content_sha256": "3469bb7a13dc6be887931d5cd650e8e8d3b1ea0b878d865782c46cc93e3a2c2c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:28.878938+00:00"
+    },
+    "restore-full-direct": {
+      "content_sha256": "840d163e356f82af75e905b332e40c591d4e209fb3d6da8709e0ee9fe8a011a8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:30.639873+00:00"
+    },
+    "restore-settings-direct": {
+      "content_sha256": "c79c9473c7a019dc785bfafb1e63318d7761444f66dd08e07d590a413d94a468",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:33.664209+00:00"
+    },
+    "restore-access-direct": {
+      "content_sha256": "7fadfea881226d1ea58a6f5364c82e1b1fd240f5e491e56555c20ebe12b98060",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:36.657865+00:00"
+    },
+    "restore-start-direct": {
+      "content_sha256": "a77ec3aad18855cc5e78a39b930c0f5806f3900bb24f0faeceb62418bdb6ea7e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:38.554657+00:00"
+    },
+    "restore-prove-direct": {
+      "content_sha256": "24a6aba31e25eb163e09696d68196a54b1f915ce0521f7432d87636338bf8899",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:39.380138+00:00"
+    },
+    "restore-stop-direct": {
+      "content_sha256": "77f7f30645542e4fb63de41cc7d9ee89f150163bb6bb659b6dac267611a79023",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:40.113111+00:00"
+    },
+    "restore-profile-server": {
+      "content_sha256": "3270dacd054bfc17a05dcd05dce6d52f165e614d286fa1a80e7775e675aca9b2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:43.134545+00:00"
+    },
+    "restore-profile-owner-server": {
+      "content_sha256": "7765e3f4b51bc050787968e918a658fdc2b2d4b3fc0b928bcac1094dcbe146c2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:43.614701+00:00"
+    },
+    "restore-empty-server": {
+      "content_sha256": "b2884d71bb9f7a34133a88401c095e16e1ec6f0d67fa85f899da5630de0d8d7d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:44.094357+00:00"
+    },
+    "restore-full-server": {
+      "content_sha256": "3fc9b03054030507de11f17dd386f7e91e24527ccdd3b14595f5127818687cc4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:47.498666+00:00"
+    },
+    "restore-settings-server": {
+      "content_sha256": "f31e0a28572695225bf0b1e2449204deb2432202e2a4ef4b75fd15c9bed08a0a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:50.504450+00:00"
+    },
+    "restore-access-server": {
+      "content_sha256": "d36a276692839da2e0f4ad3f6f22bf2ee8ba9326c56491b1efdf44b1a2e05cba",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:53.478274+00:00"
+    },
+    "restore-start-server": {
+      "content_sha256": "e72787671c4e5a9f22d92e8e32c44d2c66c10c6b738c2a2e24da2cad46085467",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:56.558189+00:00"
+    },
+    "restore-prove-server": {
+      "content_sha256": "dff672d7ecf97a33ff501cc1cdc8fc643867ab2909aaf71981da89e228e9850d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:57.399489+00:00"
+    },
+    "restore-stop-server": {
+      "content_sha256": "11660907040f4a56d2119eb236abdada1b5b0ceb114a6e025669ccfcc0f0ecae",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:58.119831+00:00"
+    },
+    "s3-handoff": {
+      "content_sha256": "bbc21c2bd6c994db23e7c97bd61cae621ab7a262bd6b842675c564518c508887",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:02:58.564625+00:00"
+    },
+    "s3-profile-pg-primary": {
+      "content_sha256": "d3463b20d17827b9e0f50284bb9670afaefe4cb53ac603601faaea7c36ebc23c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:01.941667+00:00"
+    },
+    "s3-profile-backup-1": {
+      "content_sha256": "ca59a5437020c37ace759594b022f3f6b34dacbed391e34b6690710f652f2fdc",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:04.924314+00:00"
+    },
+    "s3-stanza": {
+      "content_sha256": "c137a9becc22fbc96681d12502cc91074deb07d864371d316fc56dc2489a1b18",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:08.995483+00:00"
+    },
+    "s3-full-backup": {
+      "content_sha256": "62b816d11977c602282811b1b2a76e75d14ff351af62bad5330f81190b6ac14b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:50.334290+00:00"
+    },
+    "restore-profile-s3": {
+      "content_sha256": "bc172521d7aa2e82390f0571a88562aba7fb0656e4cec565597b968f129c58f9",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:29.828917+00:00"
+    },
+    "restore-profile-owner-s3": {
+      "content_sha256": "19dbfeb95cbf569b3ba4870a116ae32f3edcbecd58f7635be63f5ee14ad930ab",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:30.319239+00:00"
+    },
+    "restore-empty-s3": {
+      "content_sha256": "2fae87e6c531f892d4f38a2557932f5afa0e2d940e3dc11061689e9460cf652b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:30.798661+00:00"
+    },
+    "restore-full-s3": {
+      "content_sha256": "411086f1c2a98b74d51f6007cc399bce67bb6b92b164883e2d30ec062cdb189d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:44.493701+00:00"
+    },
+    "restore-settings-s3": {
+      "content_sha256": "f8133e06de4e2fa1580da6a98472648c429b05a9e0b00ecd4e27fa2466d2ea8d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:47.512163+00:00"
+    },
+    "restore-access-s3": {
+      "content_sha256": "9169544c3dbd5f9e281145a6ba6ef9c5638ba17fcf067f8eabe3ac0873ddefe6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:50.497541+00:00"
+    },
+    "restore-start-s3": {
+      "content_sha256": "e3b112b5cb54fc493c375c3806e8fb38e2f660ad5919857bf722f011f31d2adb",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:53.703621+00:00"
+    },
+    "restore-prove-s3": {
+      "content_sha256": "619988b399dbf10c023720ba309f4b269e1f8ef11ae2041f86f7ef4003c0f70a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:54.518224+00:00"
+    },
+    "restore-stop-s3": {
+      "content_sha256": "078058be0f488221e7699b90e053ea20626c6ebe27bbe83d57edea62304e1f69",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:55.261864+00:00"
+    },
+    "diff-marker": {
+      "content_sha256": "bea3778740b255053a6c2ed3ae3807d5be188e34b99cc64e024edb8098564b6c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:03:55.925518+00:00"
+    },
+    "direct-differential-backup": {
+      "content_sha256": "d3a6ea157f56e09fc8dd7c7a61f532fdfcdabbdedc8f885d4c78f345d036a66a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:00.670604+00:00"
+    },
+    "restore-profile-direct-diff": {
+      "content_sha256": "32407dbb4e6d9719a24909009b866c5d9a779e4019393cf2bea0566206386f3e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:04.149348+00:00"
+    },
+    "restore-profile-owner-direct-diff": {
+      "content_sha256": "7eb73029f1dbf814fc92fef7c5e8fa0043dc07e48c3be393ca0c4ec457aabcd8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:04.621798+00:00"
+    },
+    "restore-empty-direct-diff": {
+      "content_sha256": "10890a4580dbce26a8574e589d854a4eb1f62a64b0a422cd8dab52f29960f8ba",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:05.093097+00:00"
+    },
+    "restore-diff-direct-diff": {
+      "content_sha256": "4d78eb41a44ecc01377c6da387be42df3c7de77261fb4a3d170e1863616db0aa",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:06.744008+00:00"
+    },
+    "restore-settings-direct-diff": {
+      "content_sha256": "4f00a9b3651a89eecd351a076c68c873179bb911d8c2c76c1ebbf1f8253043d2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:09.749983+00:00"
+    },
+    "restore-access-direct-diff": {
+      "content_sha256": "74091345391ef6b753de27ec214f383df5c3f34cf22436964bfbbbd848395b35",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:12.710172+00:00"
+    },
+    "restore-start-direct-diff": {
+      "content_sha256": "c23a806b32d115e65b317b8ce214eca9984251e6538528e761a33d62b016614e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:14.455192+00:00"
+    },
+    "restore-prove-direct-diff": {
+      "content_sha256": "a4af9c821b1c3eea6f95218291e232c88742c0e6ec8ac5fb58feadc66b42a7b8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:15.309761+00:00"
+    },
+    "restore-stop-direct-diff": {
+      "content_sha256": "86caa9b548aaa58674df11af1cc82811c26f1531166fbbd0181baa493f1aac8c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:16.071721+00:00"
+    },
+    "server-differential-backup": {
+      "content_sha256": "27f7c15196b7df1a221c0ff56945d0d3ca65e411ed6e4211f9834bb711f039cb",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:20.918009+00:00"
+    },
+    "restore-profile-server-diff": {
+      "content_sha256": "c2bae2f057592e375ef87234f29550aef111e3913488397f4ff1d472dfd92346",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:23.925647+00:00"
+    },
+    "restore-profile-owner-server-diff": {
+      "content_sha256": "122808c13600f2603feab3f4fa8b484a6d395bbabd23edaa19daa08b10840e85",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:24.395628+00:00"
+    },
+    "restore-empty-server-diff": {
+      "content_sha256": "2b96b24114b1afce09f8f9872cb74e4dbf69b69507afee20a9ed825b34a7ea73",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:24.871653+00:00"
+    },
+    "restore-diff-server-diff": {
+      "content_sha256": "a0c3b5b91a984be7b2c75364f96207db3dc06708e7de0a59c08745f2e04f8cd3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:27.919009+00:00"
+    },
+    "restore-settings-server-diff": {
+      "content_sha256": "0501d22d7a3ca0f11e5043dee6619a2a02b35536f04dfb77d2c15162b8a2a658",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:30.952085+00:00"
+    },
+    "restore-access-server-diff": {
+      "content_sha256": "246e66b80e0ab91a85f4745d271ecc59741f3dce29fe52f472aee12cf1d20b23",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:33.963876+00:00"
+    },
+    "restore-start-server-diff": {
+      "content_sha256": "79afd5b46cfe8801a8e933058951008dcea2c8a61582018e55dc6540a72686c6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:37.161167+00:00"
+    },
+    "restore-prove-server-diff": {
+      "content_sha256": "0f4b87f062d3d7f81322781b17489fe8098649e9071c2ca0cbb99aaf7483a7ae",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:38.030708+00:00"
+    },
+    "restore-stop-server-diff": {
+      "content_sha256": "4ba9f088c3a3a13a45203a92463ac946b8d73f7204ad3c2fb94e7be12b82d8f7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:38.787553+00:00"
+    },
+    "s3-differential-backup": {
+      "content_sha256": "66cc68b49a06d5c2adfa2978d3d7534acba0b83e6c2fa48e0692fa0db23c285d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:44.894172+00:00"
+    },
+    "restore-profile-s3-diff": {
+      "content_sha256": "66a751541b0c0231a1f7ef4dd130021029485ab0eff7338b49a4ec105e0c1030",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:47.893467+00:00"
+    },
+    "restore-profile-owner-s3-diff": {
+      "content_sha256": "a46031274c1f61d20332aeb0412203598b5529e918a384e90ecc2faee9772058",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:48.376671+00:00"
+    },
+    "restore-empty-s3-diff": {
+      "content_sha256": "479a02985f3ebf38c232f2d04eb49e4ea646a1f0b4bcc677d61650ed394e3aa7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:04:48.858588+00:00"
+    },
+    "restore-diff-s3-diff": {
+      "content_sha256": "fb56fcdedfc06bafe7fd29546f9cc012d1a5c5fe50c7c437cc028f616f70b3bf",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:03.551483+00:00"
+    },
+    "restore-settings-s3-diff": {
+      "content_sha256": "8af942df9569c580233802586333a46d954d9b2630a6b59da3fa05ebb49c7a51",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:06.756667+00:00"
+    },
+    "restore-access-s3-diff": {
+      "content_sha256": "8b84a0898f48f2c2c45b9e380e9da4a2752de195c097d20079bb76f664183774",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:09.726706+00:00"
+    },
+    "restore-start-s3-diff": {
+      "content_sha256": "2ad4089239dc8b8eca71a8151687bcef9bbfa0a6ce273ade183198e11eff1de6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:12.917490+00:00"
+    },
+    "restore-prove-s3-diff": {
+      "content_sha256": "342d256720631d78d71c2036d6b3c4e6d13f46ea6465195301df77cb25f24b94",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:13.720176+00:00"
+    },
+    "restore-stop-s3-diff": {
+      "content_sha256": "4ac65be4b34ad1968dfc169119881302afe9a8f66fef68ec5efb2676d1be5186",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:14.448620+00:00"
+    },
+    "incr-marker": {
+      "content_sha256": "11f2d7eb8a0b08f1bb54bc74ab1a914e8080c3e37c3595287482babcaaddd60d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:15.123051+00:00"
+    },
+    "direct-incremental-backup": {
+      "content_sha256": "9d6b40be0e214db4740d4722ec2318865eaed33d0f7749d2f51f5fb0c1faec35",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:19.440426+00:00"
+    },
+    "restore-profile-direct-incr": {
+      "content_sha256": "6b4fb0285c733641d28611cc122f7de98ff6086fb5ef0860a8c1c4c254748f94",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:22.460326+00:00"
+    },
+    "restore-profile-owner-direct-incr": {
+      "content_sha256": "0bd31ca7c3fed0b7456d42a9203fdef84238c32f2da26fa1636f35e397c3c653",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:22.945711+00:00"
+    },
+    "restore-empty-direct-incr": {
+      "content_sha256": "d86a3d0f0d397ddc928039995b98d9d6bc4e43ec568f7b04922ebe225627f796",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:23.422241+00:00"
+    },
+    "restore-incr-direct-incr": {
+      "content_sha256": "388f344172b35d62d7623cd73a817a375ab577094d08a3f4cfd0b3c17a8007ce",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:25.381383+00:00"
+    },
+    "restore-settings-direct-incr": {
+      "content_sha256": "cd03870e6653e9b576731e7b2a6e0216f8b0a1dea57817b710b7ea8547c15ff4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:28.395963+00:00"
+    },
+    "restore-access-direct-incr": {
+      "content_sha256": "032d88a8a91b9bd781121a8951ca2687da6f9f10822c39d88e29a68fc0d6b29b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:31.385724+00:00"
+    },
+    "restore-start-direct-incr": {
+      "content_sha256": "bac285921528c7715a45292728a7afc7f18cadf1b031de054acd6ed47d85eb8a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:33.257632+00:00"
+    },
+    "restore-prove-direct-incr": {
+      "content_sha256": "d6f2b3caf0f7f03d78fdb148656a67b45bcc304c591da1c3cd9dc5b796d31b33",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:34.095686+00:00"
+    },
+    "restore-stop-direct-incr": {
+      "content_sha256": "476fcf2168d94ef3ce22cdca0d3425ed7ae3b617d296292db44e49639fef6c0b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:34.831297+00:00"
+    },
+    "server-incremental-backup": {
+      "content_sha256": "6b077dfee2ac7b06a3c32153c440d2fb7e0b393287b98bcde7de09683a4be20d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:39.847945+00:00"
+    },
+    "restore-profile-server-incr": {
+      "content_sha256": "16d35aa61e1f588f3ce84466e268572d67ab65c21c75e8dff9ae1b93a182844c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:42.854817+00:00"
+    },
+    "restore-profile-owner-server-incr": {
+      "content_sha256": "1c33b1ae3d83cac2141fc2bfeb3ee40f8a49875d031cd08388e5f5c114db004b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:43.324328+00:00"
+    },
+    "restore-empty-server-incr": {
+      "content_sha256": "8c1effb16f165dfd0111d3e08048915e62a46c6d20c8d44932babd63836d1222",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:43.807190+00:00"
+    },
+    "restore-incr-server-incr": {
+      "content_sha256": "740902e9ea3c12137731860d6c6110d922d9765ebd4d053608453a709bc5c604",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:46.965578+00:00"
+    },
+    "restore-settings-server-incr": {
+      "content_sha256": "b8f6b3272a52bec0847d64c8f8bcb01e688443ceaee09083e549283a6727dec0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:49.980412+00:00"
+    },
+    "restore-access-server-incr": {
+      "content_sha256": "34a4e738178be44ba899cce3f9c9e8c2ac65734b10ccfb49263fba35e2d6b899",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:52.948503+00:00"
+    },
+    "restore-start-server-incr": {
+      "content_sha256": "a7ce7b4027c169e0390f4c6e331b1cf509f1e1ce6ba5c3585c9e221c1a0b756f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:56.079182+00:00"
+    },
+    "restore-prove-server-incr": {
+      "content_sha256": "eda69e6694fbc7059a728e6f028e29d50af81ddb2dffece29e15ce7807cf6324",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:56.925631+00:00"
+    },
+    "restore-stop-server-incr": {
+      "content_sha256": "ed81cc4785eda5975d0cee8f13ad169cb72d183da1408a258f7a140615b5a12c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:05:57.671473+00:00"
+    },
+    "s3-incremental-backup": {
+      "content_sha256": "956f2f06fd35f9e29c6688fdb73bcb572ef57f3797a9cfb3d0de811ed1eeca0f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:05.744922+00:00"
+    },
+    "restore-profile-s3-incr": {
+      "content_sha256": "08c9f7f52200945385f4ca647dacb4d5eb75c1077a51a9a6959f7292ee70efa5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:08.746222+00:00"
+    },
+    "restore-profile-owner-s3-incr": {
+      "content_sha256": "f676a8fe7abf3b3c99fd52a93ed2bcf4e097b3c3ead8c0283710c5417de66322",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:09.214737+00:00"
+    },
+    "restore-empty-s3-incr": {
+      "content_sha256": "5d89346cdc916f5beed7b73a2831d495bb87b57df7d239efe4bb3137ea69dc4f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:09.676955+00:00"
+    },
+    "restore-incr-s3-incr": {
+      "content_sha256": "5734e9f1de01e907375786df2c1cb81f1e86e044f9827c55643081ab784c99d1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:23.322961+00:00"
+    },
+    "restore-settings-s3-incr": {
+      "content_sha256": "5ab8cbfd5ac96d056ed704012e22550108fc72ba41b73237cc941dc9d52a0cc6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:26.347847+00:00"
+    },
+    "restore-access-s3-incr": {
+      "content_sha256": "000490553049debc04b0ca4da9603819902cd2f33d5a6141f5939390b29d99c0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:29.342551+00:00"
+    },
+    "restore-start-s3-incr": {
+      "content_sha256": "2c02c61b58e3f5eee0093334ba27266358c7ff23eacdb35354ad96fa834c5271",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:32.554604+00:00"
+    },
+    "restore-prove-s3-incr": {
+      "content_sha256": "a940eeb79d950c82316f424dc7ea907d812088fdaa61e98ca6711f3ecff310aa",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:33.389426+00:00"
+    },
+    "restore-stop-s3-incr": {
+      "content_sha256": "0773bb1157dd9dd9f01c96a5893d7747ff1dcb5dfac3232f8f7c33bc18c26467",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:34.137037+00:00"
+    },
+    "pitr-safe-point": {
+      "content_sha256": "4c90cf66452500d8db147a0e40ce05cd31eee76443f045278b0bbc14a6d80045",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:35.175139+00:00"
+    },
+    "pitr-later-write": {
+      "content_sha256": "372dd433e55cfba1e5c4095974434f0ddb7c369baa5e69cfe6749ad591a66a79",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:35.931376+00:00"
+    },
+    "pitr-archive-check": {
+      "content_sha256": "e898039a6b15d6073735f9db7d2fbb4b079f7bc18ba2cd176cd032e048c061c4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:53:48.649646+00:00"
+    },
+    "restore-profile-direct-safe": {
+      "content_sha256": "fb9841ac2e0b359d4dc9129610fe7a2d114a2e179b543d614c8c584e893238b6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:41.904576+00:00"
+    },
+    "restore-profile-owner-direct-safe": {
+      "content_sha256": "b88d49bcd04ce13162c44f2f817d070dfb2a1be6d60882a1b3dd074c40913a37",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:42.383307+00:00"
+    },
+    "restore-empty-direct-safe": {
+      "content_sha256": "286a5efc9afac453440007417b4fcbd34f4d90b0d8915e1dcdffff8913d7cf8e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:42.875089+00:00"
+    },
+    "restore-pitr-direct-safe": {
+      "content_sha256": "6f1debab825f27879890c017a8eb77da4115598fa51b0d79b8a2572784bc7db6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:44.508622+00:00"
+    },
+    "restore-settings-direct-safe": {
+      "content_sha256": "36618f912a570e62d6e465f7db1919bc76670bf0227f937f7f1b2ffa99f11fb0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:47.527499+00:00"
+    },
+    "restore-access-direct-safe": {
+      "content_sha256": "4c2517b475e3a2463d57cba2e6073fdbe7c762b50e4ac7c935b9cdace5dc1c32",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:50.494330+00:00"
+    },
+    "restore-start-direct-safe": {
+      "content_sha256": "e9114a078dfc1aa6f72fe33d1c693d1e171a3172022ec9ad5de3eff2bc771bd7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:52.341547+00:00"
+    },
+    "restore-prove-direct-safe": {
+      "content_sha256": "44cff050976571e058dd2bc145af5032eb013f9c700b0a9e4dcbc4fe12554a91",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:53.165917+00:00"
+    },
+    "restore-stop-direct-safe": {
+      "content_sha256": "75d91dcd7d08e9d9e2778b57585c56e60f98e31f72ef6abf3e2e97a40245f5ca",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:53.915741+00:00"
+    },
+    "restore-profile-server-time": {
+      "content_sha256": "9a95d21e66a1aa006952881e361b4e979871615a3de9eb4532f1d7b1833fc808",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:56.909216+00:00"
+    },
+    "restore-profile-owner-server-time": {
+      "content_sha256": "1124f56eec7c3187260e9edaafca8d161e7eaf149bbabe737e3fe91109853fe7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:57.386822+00:00"
+    },
+    "restore-empty-server-time": {
+      "content_sha256": "a5e5b329e288b1c1af82ee67a5926c6a45f8435a00e3dc908e8a10dc63e6e4c5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:06:57.863352+00:00"
+    },
+    "restore-pitr-server-time": {
+      "content_sha256": "8142988c27f271cfe3e8da0e5de5aefe146c9c77ca010e16e1f02024732d9a87",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:01.607538+00:00"
+    },
+    "restore-settings-server-time": {
+      "content_sha256": "759712d38b94d12795a8a36337b51acbfb65218cff3e43ed7a17d3dd4e48a33b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:53:51.649961+00:00"
+    },
+    "restore-access-server-time": {
+      "content_sha256": "3015b624c065e227880db10fbc767e1a8be7aaf656635098c7c56f32d4fa9200",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:53:54.640593+00:00"
+    },
+    "restore-start-server-time": {
+      "content_sha256": "92fcb22e9d9b26f3f8243fc87f855f3cdd2ff597e3b1c6c60afd228cbf7afbc6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:09.904385+00:00"
+    },
+    "restore-prove-server-time": {
+      "content_sha256": "f1b19d635fd30e6dcd127e6b0e7e0a0f5232183744c2c897249e1f5118121651",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:10.769136+00:00"
+    },
+    "restore-stop-server-time": {
+      "content_sha256": "af319a67e3c00999dd997f22eb4f74315b2e99835b66cfcf583e0c6c56db71b4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:11.509176+00:00"
+    },
+    "restore-profile-s3-safe": {
+      "content_sha256": "a959e0e98766e4938f25262a03252251dae9e5157495562ebd61b97fd2aa7e4a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:16.749248+00:00"
+    },
+    "restore-profile-owner-s3-safe": {
+      "content_sha256": "af1b2448240cf78a6e5b43d71cf0491e34af3642b496f4e38cdf604ac1d81827",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:17.220861+00:00"
+    },
+    "restore-empty-s3-safe": {
+      "content_sha256": "cc822f1914dccb325904f2abba263acfbed2dbd9aeb21856d4a1cb969b87b2d7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:17.697032+00:00"
+    },
+    "restore-pitr-s3-safe": {
+      "content_sha256": "aeae85bce037ee797913fdc523d976473d4d3c9032fa917961c383504ca71b35",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:31.152555+00:00"
+    },
+    "restore-settings-s3-safe": {
+      "content_sha256": "8fb2bb21ea0f8c5e3bf7228f79c5f6dca568fd4dc4dfddf7e7cc86d34a14c36f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:34.150088+00:00"
+    },
+    "restore-access-s3-safe": {
+      "content_sha256": "e05ad0c7dde6468473a1a2706b9028a2fb8c44adf3d5d849c4078a4ceb948e1c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:37.139065+00:00"
+    },
+    "restore-start-s3-safe": {
+      "content_sha256": "7602de9dd9b203013146dfffaba56d83c9f55ee4c1ad977e3d0a326137c18597",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:40.734679+00:00"
+    },
+    "restore-prove-s3-safe": {
+      "content_sha256": "f7445aa42ba53f17ee442504699e5b878d232e2a6450ac3c64742d02ea043ac8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:41.587531+00:00"
+    },
+    "restore-stop-s3-safe": {
+      "content_sha256": "4e9027533fbe03299422ba55a4151bd482d8690ad8ca25b675d31c0b29d2ebe7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:42.342718+00:00"
+    },
+    "inspect-backups-direct": {
+      "content_sha256": "47d0f9f5b9e18f781ce7a416b511fea0a1e3d7e508db03db44a8f3211f430346",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:43.223636+00:00"
+    },
+    "inspect-capacity-direct": {
+      "content_sha256": "51b0ee2296416c2e5817041fa545902bdd48712b6b54414e696040cd46d30010",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:43.928070+00:00"
+    },
+    "inspect-backups-server": {
+      "content_sha256": "1523f9c1ce2ac3e6db60c8e455dcd6080466ed432f60889eddef52ed3b57dcd0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:44.777572+00:00"
+    },
+    "inspect-capacity-server": {
+      "content_sha256": "2fae328ae30072cb910a20f95a3a896477c3da788cd6eaa3e3edb26dd2a27034",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:45.558919+00:00"
+    },
+    "inspect-backups-s3": {
+      "content_sha256": "1da16bdd62ca1f91b4f21b8451973287377988d6196908efbae64254df77cdd8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:46.651318+00:00"
+    },
+    "inspect-pgbackrest-logs": {
+      "content_sha256": "ffb40d4114e4cc686731eefa1ac535860200a14e7c2647a5a508298438fe1653",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:47.257963+00:00"
+    },
+    "inspect-postgres-logs": {
+      "content_sha256": "08fec1ea01932c6e7018e70322bd49cf9460b0fef6e873ee91225d8566ba5d01",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:47.849363+00:00"
+    },
+    "inspect-archiver": {
+      "content_sha256": "018fb4291000353ad7877b2f2fe1e128ed8fcb8b6f00f3ce781ea33e02da7ef5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:48.470283+00:00"
+    },
+    "inspect-replay": {
+      "content_sha256": "e536200e134576f7f9d64f9972a4d662f6ae04902c2cf35fc75849157f42f69b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:49.177525+00:00"
+    },
+    "retention-second-full": {
+      "content_sha256": "7ba29b3432843b1de12bbfdb71bf890c82ab2623fa285edda1c8e3c3d6276f1b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:56.626027+00:00"
+    },
+    "retention-before": {
+      "content_sha256": "5b96f45919029b3d4b1712e08b1d28d0b35557d6a905ace1552bc7e847b80455",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:07:57.428998+00:00"
+    },
+    "retention-new-full": {
+      "content_sha256": "90abc4742b051deaa120014bf4eff64e71f8f8d07829fb6c2535772ebf55f65a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:07.741087+00:00"
+    },
+    "retention-after": {
+      "content_sha256": "a22e70df2df6a8c909f97dfeff93040ba81cdea187539f9e03bc70377d730d81",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:08.541889+00:00"
+    },
+    "restore-profile-retention-latest": {
+      "content_sha256": "00adbace51ff16dbf2116b0130bd1f9f8eff82174f998f75c765fc168bbdf345",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:11.534617+00:00"
+    },
+    "restore-profile-owner-retention-latest": {
+      "content_sha256": "c3dd927c6ebf3109d0c0a7463ae92741a45b33c30ada0682f70b8e16d5f4bb41",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:12.005106+00:00"
+    },
+    "restore-empty-retention-latest": {
+      "content_sha256": "18afeb7a6fb2f1dfa308aba47dbbc7ffc279d61b736965b86eb13ec6c22ee363",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:12.495726+00:00"
+    },
+    "restore-full-retention-latest": {
+      "content_sha256": "9b0ac5266fadf3d3292524df5e1bcdd3579acbbeafda423f318cb43637549bad",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:15.717224+00:00"
+    },
+    "restore-settings-retention-latest": {
+      "content_sha256": "143dbfa2def2f7b7cb0ef560dbfa1aef9a1f5bf1e0c6ba9566f6af09e7730317",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:18.760769+00:00"
+    },
+    "restore-access-retention-latest": {
+      "content_sha256": "1751688f05ebc808b68d088b36f5f9364a532eebb927ed66cfd8161988e7139f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:21.726543+00:00"
+    },
+    "restore-start-retention-latest": {
+      "content_sha256": "336f65c105ed9c811e66feeeede43e789fc9eb1dee089da5a3108f597a3a11eb",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:24.818515+00:00"
+    },
+    "restore-prove-retention-latest": {
+      "content_sha256": "c13739f69bc984fc96ccb5d3eb1fb959533a342a75063865e242b94c08505592",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:25.662338+00:00"
+    },
+    "restore-stop-retention-latest": {
+      "content_sha256": "0d50033dd2787ea5898f20dcd336ef61c2847f6235e7e5fa94b49e7664f63cb1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:26.422915+00:00"
+    },
+    "cron-package-pg-primary": {
+      "content_sha256": "74aec42ad015865237c0e4da6a97c9ba2e8eb1e4fd4be6f300333bb6b73d21c5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:28.372342+00:00"
+    },
+    "cron-enable-pg-primary": {
+      "content_sha256": "76991cdb201da32f6594815639f2ead4ef7a4c2b63f69859a1f6a74e6d6c5702",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:29.095364+00:00"
+    },
+    "cron-start-pg-primary": {
+      "content_sha256": "8aea8154fd451f981338a9e3995173764aac4c58a4f25c7d7a2bcd3c26b6d19f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:29.569323+00:00"
+    },
+    "job-program-dir-pg-primary": {
+      "content_sha256": "d13125af64726659ec4d6686d44c57e260f33be96463abeb7bc2c6e84911e91f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:30.025211+00:00"
+    },
+    "copy-backup-job-py-pg-primary": {
+      "content_sha256": "91fa2a0f336d9ef3322b437b26de569a2684cb25ef7c2fbbd4be6d5bf8b21670",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:30.499461+00:00"
+    },
+    "mode-backup-job-py-pg-primary": {
+      "content_sha256": "1e8334e14bf295b9c73299dcd8a0ed92783f941b841589d9e62533f9ec075563",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:30.955982+00:00"
+    },
+    "copy-alert-sink-py-pg-primary": {
+      "content_sha256": "c67c8a365c2aca460ff64bbe5db66cc4d1e488c391f2c288b381b9fb854a20c8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:31.429332+00:00"
+    },
+    "mode-alert-sink-py-pg-primary": {
+      "content_sha256": "37a9da794b13cd5b1847523d4c14d36542c2f505a9f07ed0839b5924fcd0c8d6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:31.884660+00:00"
+    },
+    "job-state-parent-pg-primary": {
+      "content_sha256": "62db9e836c42b81f494f6d982a047ba35d3f26bb0309cb069e8f334a99adf7c6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:32.341418+00:00"
+    },
+    "alert-receiver-dir-pg-primary": {
+      "content_sha256": "054a92770f34b1afececb7880dc9ab60e331b2fb56ab01230c0f06b8697201a6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:32.792700+00:00"
+    },
+    "alert-service-pg-primary": {
+      "content_sha256": "9f6158c96c9cb50ede7bb54bc1c4db5fe7e0f219873cbef5b1e170f674a353e2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:35.750157+00:00"
+    },
+    "alert-service-reload-pg-primary": {
+      "content_sha256": "48abd98ddbc8a0d1576ef818391616f896aa5e9ec6bdf70dd0b32ca7de2f6e56",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:36.545502+00:00"
+    },
+    "alert-service-start-pg-primary": {
+      "content_sha256": "0ef6ab68057359f296520a6ca38a243ef54782dd50deb920a2d0b426edd604f6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:37.035391+00:00"
+    },
+    "cron-package-backup-1": {
+      "content_sha256": "96d7c996abf83f26522f96f6d1079f6f23ba4cb22eb591146bf65abffcf82a33",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:38.832280+00:00"
+    },
+    "cron-enable-backup-1": {
+      "content_sha256": "acf4db6d4060e77799c12efbb8586b7cbf2322d2ceaf4117e55e30dc29c27552",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:39.524890+00:00"
+    },
+    "cron-start-backup-1": {
+      "content_sha256": "7fdc6e58254cb4735c212b5a463b72350116df3e15cd17427de1a3f2e60d02d1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:39.999617+00:00"
+    },
+    "job-program-dir-backup-1": {
+      "content_sha256": "42d53861c51e030a8e1909d0ba9f476669331dece6260617e160e9ca46c6443a",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:40.459745+00:00"
+    },
+    "copy-backup-job-py-backup-1": {
+      "content_sha256": "de6f7beaff0845f3fe464ba472640475893606e46ef24cf1e09dc8d992c4bc36",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:40.936003+00:00"
+    },
+    "mode-backup-job-py-backup-1": {
+      "content_sha256": "69d80643bd40e90be5b0ad231fd04b718d665ffd1a63f1b697cad1b5b235f5b3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:41.398898+00:00"
+    },
+    "copy-alert-sink-py-backup-1": {
+      "content_sha256": "9c8cf37a326e3871a1a1cea89d1bc8d17e7651af0cb08a405a5b04a20868d039",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:41.881594+00:00"
+    },
+    "mode-alert-sink-py-backup-1": {
+      "content_sha256": "96ee2de744f07838fc812aae7c587b4a689f94184b3887b143c9e8f374573853",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:42.359529+00:00"
+    },
+    "job-state-parent-backup-1": {
+      "content_sha256": "c9eddd1cae0e25f38f208d4754f26c18fa333a6d70f60ee7455fc5e33e6e793f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:42.810818+00:00"
+    },
+    "alert-receiver-dir-backup-1": {
+      "content_sha256": "ed8a0f2cc4026c94abf78b4373f17307991c92fb500044135f4c77a251c87573",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:43.268277+00:00"
+    },
+    "alert-service-backup-1": {
+      "content_sha256": "9430afafdfbf883c2ae00875e59a04ecaf4c14fbb2df88afb3d7fe400d5325e6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:46.234246+00:00"
+    },
+    "alert-service-reload-backup-1": {
+      "content_sha256": "5f74bb658d920b00c951c4c74492ef9b20d43b46d2e43b7183c5b29e0dc5abf4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:47.014003+00:00"
+    },
+    "alert-service-start-backup-1": {
+      "content_sha256": "644dd731d9c561730b5b993b5641a84f732feb84b06b525876fd038ea8405d80",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:47.513606+00:00"
+    },
+    "job-config-direct": {
+      "content_sha256": "fb5c8b40c105a8f4cc08d12274fd6e9253bc4c9c9f11103b43e9a6275035e8ec",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:50.464712+00:00"
+    },
+    "job-config-owner-direct": {
+      "content_sha256": "5ee603eaece021c24e8f1d0059ff9e23b4530898930554864244741d6cc9e873",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:50.921154+00:00"
+    },
+    "job-config-mode-direct": {
+      "content_sha256": "456051bc21ad797ec77cb6f47d0b2fb7d756d4403885ee17b15a326eaaea67e0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:51.377981+00:00"
+    },
+    "job-state-direct": {
+      "content_sha256": "b42953f0c7ba99af62b1f95d7286ceebacafe303bb81fb0ad1f6bafa43be6d5e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:51.850670+00:00"
+    },
+    "job-direct-full": {
+      "content_sha256": "fbc946b44de1f578ab78b87a2ec968b8b39d3a3384c109eab957cb86e2a9d94b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:08:59.025975+00:00"
+    },
+    "job-direct-diff": {
+      "content_sha256": "ffc09e884a551c2eccf9f8039c473748b9a332a4aaf7d2b539ab69d9c50292df",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:54.192554+00:00"
+    },
+    "job-direct-incr": {
+      "content_sha256": "63ec7d51405c6467b5b74bce8e5e82056b466b6e2440d1d009fae923e9aee7dc",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:16:58.165552+00:00"
+    },
+    "job-config-server": {
+      "content_sha256": "a46c8f04cad48298f7e1c4fc587d8c971ab52ed1573bb2c481b8a97b880dacfe",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:10.883183+00:00"
+    },
+    "job-config-owner-server": {
+      "content_sha256": "d3a1db3186d96549d88b76f484bf4154f96c4f9742f2c7db5a5e7df337857eed",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:11.339490+00:00"
+    },
+    "job-config-mode-server": {
+      "content_sha256": "e2572d4dfaa0af9c36183233b1608ada14d54d256563c864b24784d1f617e78e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:11.794436+00:00"
+    },
+    "job-state-server": {
+      "content_sha256": "e49d3011a33199ca7d4b2d06b04c20977ec19e6e32fb93c4b275c3b956303ee4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:12.267569+00:00"
+    },
+    "job-server-full": {
+      "content_sha256": "f177707c3cb9647e2f750a9d3c9a92c3d5292d9c689a5c1ff75364df5d062f5f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:21.548174+00:00"
+    },
+    "job-server-diff": {
+      "content_sha256": "1ee366d5d05050dbf3e51741e36c561c320a0ffbbb48dcfe9ce554223b66f7cf",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:17:04.067559+00:00"
+    },
+    "job-server-incr": {
+      "content_sha256": "5e656059613dc0d6fefd411136e747dab9f21d1bac4ac392edc06d48cec7fcb8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:17:08.577964+00:00"
+    },
+    "job-config-s3": {
+      "content_sha256": "da628169a0ec851a9c024d9036cc4deb80db5e0fbcbf046e40015ceaa95ff6b8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:32.241651+00:00"
+    },
+    "job-config-owner-s3": {
+      "content_sha256": "cc7428c0e8415f3cbe22d9b47d34435852d547cec84454e7fd4389dbd86fde00",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:32.705109+00:00"
+    },
+    "job-config-mode-s3": {
+      "content_sha256": "862efd159a0f146435d2242bbdf7422ef4c08092d9e7647f21938b500347f5c3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:33.163785+00:00"
+    },
+    "job-state-s3": {
+      "content_sha256": "3c4ca2a7ee50d65908ffd2c1de5b6313b77ce4cf86c9f997e2dd53beea51240d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:33.639345+00:00"
+    },
+    "job-s3-full": {
+      "content_sha256": "651a1bddb8368268e483fc4baba203cf2534bc9d632087813b137060c37f03cd",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:09:53.427770+00:00"
+    },
+    "job-s3-diff": {
+      "content_sha256": "c2d3fc905d6ead34f2b7404d6bd0aeab439986c64c3b51d95928e4f93971e478",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:17:14.669815+00:00"
+    },
+    "job-s3-incr": {
+      "content_sha256": "3db330aef2ff29a3e027e0ea35abf3d64c1be87af59dd89b55b45c14cda7bb11",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:17:21.035997+00:00"
+    },
+    "cron-direct-file": {
+      "content_sha256": "a6d58cd86fe95bc0104b1a030e1d00bc134900b674d0fcfe50a0f8910668cb1e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:10:08.132952+00:00"
+    },
+    "cron-direct-install": {
+      "content_sha256": "10f5b50503d67ee0190eab370e50d979401e15f759ec97e76f3de2a1f4a196a2",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:10:08.609914+00:00"
+    },
+    "cron-direct-test-file": {
+      "content_sha256": "b3bc752b3130e863cbf9456d1691e4a334809c14dcc9c4d7dd3636258df14295",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:10:11.599733+00:00"
+    },
+    "cron-direct-test-time": {
+      "content_sha256": "b883c403a127735bc141d93e1b5a1ec61ea4dc40d0a3ade2a1f984bda4443a73",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:10:12.001082+00:00"
+    },
+    "cron-direct-test-install": {
+      "content_sha256": "8f590f3febd5df0f562add2ce5e98ad2f2b12d9ac1f1572f4f7d622d216c6378",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:17:21.545195+00:00"
+    },
+    "cron-direct-proof": {
+      "content_sha256": "a39ae9075cc85e8c25d82c40ccf1420671cc90b53f1dc7523e374e623cec9853",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:18:07.276155+00:00"
+    },
+    "cron-direct-observe": {
+      "content_sha256": "b310951eb70cf37a005b94233129576c205913048e72613a36aeff3ee6916bba",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:11:09.048229+00:00"
+    },
+    "cron-direct-restore": {
+      "content_sha256": "cf43859607899e69683ce0238a6c0ba1923e0e079b281dc3459bc4a28fffdeab",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:18:07.801176+00:00"
+    },
+    "cron-server-file": {
+      "content_sha256": "0160b9f9a71eb764616769577737b8c6e28ed488b161e99e7321690d9e278ff9",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:11:12.514156+00:00"
+    },
+    "cron-server-install": {
+      "content_sha256": "33f0605ea630e99f10298a792a3653355ff0767ad95df7973e354e80676e22c0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:11:12.988761+00:00"
+    },
+    "cron-server-test-file": {
+      "content_sha256": "0e7d5174f2fb1da7cbabf7b82889bdaa2e18e128960552bc99d2ec88cd15677d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:11:15.958146+00:00"
+    },
+    "cron-server-test-time": {
+      "content_sha256": "95da2db3b8483a7ad37a3b14d9287add6c2f41a66f9b96b4263c4f2526d03971",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:11:16.374568+00:00"
+    },
+    "cron-server-test-install": {
+      "content_sha256": "a186feebdeba69400a62a9646e9b9f95a2553135f8407500b31a67fb096ba746",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:18:08.269836+00:00"
+    },
+    "cron-server-proof": {
+      "content_sha256": "fd2495d4066979d938a8ff7abedccb68ff08664ce9117e15f6f54332e6e801d3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:19:08.215772+00:00"
+    },
+    "cron-s3-proof": {
+      "content_sha256": "7f096dd10370941714c3deed6eebe22e1b385f93391628aa2aea1f330b6152c1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:19:11.337226+00:00"
+    },
+    "cron-server-observe": {
+      "content_sha256": "0d75e632df076b0f6407fb13d13fb7e4b5a4c3cedaa5f9b5cc265a6e8e238c35",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:12.282225+00:00"
+    },
+    "cron-server-restore": {
+      "content_sha256": "c4d4f9d5290987011e279b6bd0da78357ec16210c57393e1d71a50cc201c2c90",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:19:11.846897+00:00"
+    },
+    "inspect-job-logs": {
+      "content_sha256": "8db711bf955771485cc460ad8cf18ae274e0f38094b8a05a1564f77072a76bf6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:13.372317+00:00"
+    },
+    "inspect-job-health": {
+      "content_sha256": "6d3053e95da048eda91317e82b8eedfcf92a72502ec8b99d4a11d75fb02ddc99",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:14.060596+00:00"
+    },
+    "preserve-tuning-config": {
+      "content_sha256": "8ef4067ba21c2f83870aad60589a888480e7ffa1f1507f117fe55b3b6644fb41",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:14.581183+00:00"
+    },
+    "tuning-payload": {
+      "content_sha256": "390755efc9e10522dc66da05fdf8e1e422ddff6f77cfb615abc004783d3ac7a1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:15.795359+00:00"
+    },
+    "config-process-one": {
+      "content_sha256": "fd8850d45a7d1cd2970808ef4b8ac000073d0cb09b68dd034dbb869f59510801",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:18.838946+00:00"
+    },
+    "config-process-one-measure": {
+      "content_sha256": "cb1d1d72b4f2aa987996f198f4d815cee9dd5302008653ae2c2e5e0b514ad001",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:31.058071+00:00"
+    },
+    "restore-profile-config-process-one-restore": {
+      "content_sha256": "d0b2a69831d416202e29b2f432ae2fce2d0681df7607d617d0cccf2cfff4185c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:34.088396+00:00"
+    },
+    "restore-profile-owner-config-process-one-restore": {
+      "content_sha256": "dbbb8da9e5e3efda47631101d82300399753937da8a925f97857b8b0972d69e4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:34.563196+00:00"
+    },
+    "restore-empty-config-process-one-restore": {
+      "content_sha256": "67d3dad3a7dd6975dcdcf295cf1c54940455dd175cb525cffda55e7bc839249b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:35.044898+00:00"
+    },
+    "restore-full-config-process-one-restore": {
+      "content_sha256": "4c6ecfa54c6831dc6f94a7ea7829fd89a1e5c94795974a5abce2c12afccb864f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:38.238354+00:00"
+    },
+    "restore-settings-config-process-one-restore": {
+      "content_sha256": "e0ae4be139304723f9cd576faef070ea326356387e7d79d8a2cf40f9a39d026f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:41.263239+00:00"
+    },
+    "restore-access-config-process-one-restore": {
+      "content_sha256": "e06938e300074bdcaf31c1346853e05dc2d7563928e1b872530f55aba424856e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:44.285616+00:00"
+    },
+    "restore-start-config-process-one-restore": {
+      "content_sha256": "8a5ce7f018d3d3b33b299e891b64b82a93852ddf16ff8b0ba06825599dcc6031",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:47.568058+00:00"
+    },
+    "restore-prove-config-process-one-restore": {
+      "content_sha256": "a68b219f276247f4126b698450802883b214ce32d2deb33bb6deca615cbe6729",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:48.446515+00:00"
+    },
+    "restore-stop-config-process-one-restore": {
+      "content_sha256": "8ef9892c02c39dd8b4262301f452707d49ea6098b78866c5aac0bedd823208c1",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:49.187019+00:00"
+    },
+    "config-process-two": {
+      "content_sha256": "3e0696c4ffaf76f86c952ad1fc970dc38ce3f464460a914aac27781e433267c0",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:12:52.193168+00:00"
+    },
+    "config-process-two-measure": {
+      "content_sha256": "14d1efaaebd7327b8fa2dd8edab308410945c8cce9a306b7cc6cf20139393b30",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:02.480245+00:00"
+    },
+    "restore-profile-config-process-two-restore": {
+      "content_sha256": "eccae93f81a8f3e5ccfa49b9829b16e8c29c476da9c72036400e559ffe32a75f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:05.586104+00:00"
+    },
+    "restore-profile-owner-config-process-two-restore": {
+      "content_sha256": "141b672059d112d1445a1782338a54ad7a8b17f1a17f0a76294fa64c86419a5c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:06.067982+00:00"
+    },
+    "restore-empty-config-process-two-restore": {
+      "content_sha256": "a2d17d6c5783a471949ae3c0118154b956b90ff978c4d9c1c0ba229af43017bd",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:06.548112+00:00"
+    },
+    "restore-full-config-process-two-restore": {
+      "content_sha256": "f69ff9acaef4a40cdc65ec79415dbee54735d7f1d446254d89c509bab3e34389",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:09.799200+00:00"
+    },
+    "restore-settings-config-process-two-restore": {
+      "content_sha256": "5682de471ffd7b4177144274aefecb283a9df7606ae79305f1c15db91834a3e6",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:12.813004+00:00"
+    },
+    "restore-access-config-process-two-restore": {
+      "content_sha256": "d7a6617f2968a9d252d6c117962ecc9bd4b3d2f5f1c4a1791102cff53e6225ba",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:15.778965+00:00"
+    },
+    "restore-start-config-process-two-restore": {
+      "content_sha256": "a5a81693899fc0893a6f092a03e56ab0b2f79b925234a563ba2b1a7e9dbed835",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:18.901840+00:00"
+    },
+    "restore-prove-config-process-two-restore": {
+      "content_sha256": "0a07083693787d193c4f8d58dd9ba17acc33574e004a2e9a987d054f0a5d1241",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:19.819738+00:00"
+    },
+    "restore-stop-config-process-two-restore": {
+      "content_sha256": "70eda5eca344ac22ff9c28e6fe07336efd3c41d864123368e5db801ba7bf4512",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:20.604202+00:00"
+    },
+    "config-compression-lz4": {
+      "content_sha256": "f8f50b7164e3f6d3d30c21af1cd808fbf7675cfa09e584e9d1ef7d4d38c8477c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:23.627634+00:00"
+    },
+    "config-compression-lz4-measure": {
+      "content_sha256": "1109e9e62aecc2a978bb722ad0978636aa6a08ec3fec38b03ba4c0f5cdada6d7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:33.434970+00:00"
+    },
+    "restore-profile-config-compression-lz4-restore": {
+      "content_sha256": "86449f6d59ccdacd272a68331500dc10b01ddb2c1d8af1b75073650440b02729",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:36.441483+00:00"
+    },
+    "restore-profile-owner-config-compression-lz4-restore": {
+      "content_sha256": "b1bd8eb5676a224f3961f53aa60332db822214543c1bb109c7d366565f8b00aa",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:36.918145+00:00"
+    },
+    "restore-empty-config-compression-lz4-restore": {
+      "content_sha256": "2694461e40ba84796e2ff6ad0bcca3c855ee065e1167c0055082b03a9f5592c4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:37.383341+00:00"
+    },
+    "restore-full-config-compression-lz4-restore": {
+      "content_sha256": "f8a0757ec3e420a349e1f5b6337e554e3fce339150b90ec1d58a4acbe8cdf291",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:40.632911+00:00"
+    },
+    "restore-settings-config-compression-lz4-restore": {
+      "content_sha256": "bf1b48db8980f36e8adf7c5339d56a499c23f8f3b74f1c8db69b6d8f1cf56c1d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:43.644908+00:00"
+    },
+    "restore-access-config-compression-lz4-restore": {
+      "content_sha256": "b69d9e98a51f78d0ad89ae4b0b4456cd9596b85868bae9755144c4d66f65e3df",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:46.694412+00:00"
+    },
+    "restore-start-config-compression-lz4-restore": {
+      "content_sha256": "0bacf0a6ca83fc2e2fdd999306661be56ac898c7207e72e337231c5527dbcacc",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:49.902709+00:00"
+    },
+    "restore-prove-config-compression-lz4-restore": {
+      "content_sha256": "af4d28acb96f341d3587ad465ec8a583089608c4e9b835dafd60e95efe222c77",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:50.883914+00:00"
+    },
+    "restore-stop-config-compression-lz4-restore": {
+      "content_sha256": "74a5ffb26509eede75a0e134a5c9b176a4ceb4696ed9d4d545ba5ab2b90c5749",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:51.698919+00:00"
+    },
+    "restore-tuning-config": {
+      "content_sha256": "25dbaafde1e8f4ce49d11b9c9cf437110492e53a2d10097312c82b35aa3ed215",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:52.271256+00:00"
+    },
+    "preserve-archive-profile": {
+      "content_sha256": "def135c4c33475d7886a2ae95a74e2eecbc1d3035b25996d9473d78ff77dc37c",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:52.794698+00:00"
+    },
+    "enable-async-archiving": {
+      "content_sha256": "9abadbb22a0fcd02da824e3cf58bdf8fd4d41b7babe3e6805b8d04aec64a829f",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:13:55.780073+00:00"
+    },
+    "check-async-archive": {
+      "content_sha256": "deb90fac7bd12c75bd93ba564a7d87d8656dcd3240c31286cd9ab6482b388edf",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:15.451123+00:00"
+    },
+    "async-safe-point": {
+      "content_sha256": "244e6462dc8fc39ce5cb21f5b8150d325405deffe5e10465e4eeba73a531600d",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:00.562060+00:00"
+    },
+    "async-target-archived": {
+      "content_sha256": "9a85f41b7b4de429e85cc50860fd4a475e53359badf97a1f0003e451c2560c59",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:19.421942+00:00"
+    },
+    "restore-profile-async-safe": {
+      "content_sha256": "d5d9e3e69e18044aa79d08dc7d20dbeb9f6e677e8e76a2632d5fe0db29af6349",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:09.345582+00:00"
+    },
+    "restore-profile-owner-async-safe": {
+      "content_sha256": "d6d33e8ab104d11b1d3f3a206d0b7c444fabf47a27ddc90fdb7cd974a806b511",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:09.822279+00:00"
+    },
+    "restore-empty-async-safe": {
+      "content_sha256": "482972fd1cc5091a3c1e77c35cf1da29db0f0b8f2d744cb27373812dd1ae1ba5",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:10.302096+00:00"
+    },
+    "restore-pitr-async-safe": {
+      "content_sha256": "cf82015f9e56028889d919c17a9da924113b156ad141d18e9429509153eedcfa",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:13.375019+00:00"
+    },
+    "restore-settings-async-safe": {
+      "content_sha256": "71168b8df75b8a140704188ad140dafe06813ba1a26aaed6bea1050af8bd7cbd",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:16.384018+00:00"
+    },
+    "restore-access-async-safe": {
+      "content_sha256": "372be9b24c19109ae3fc274b253c54d0b1468c72653900d68da8796c0c0b819e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:19.390593+00:00"
+    },
+    "restore-start-async-safe": {
+      "content_sha256": "5dda149bee1b1bbc868132ec531a1150abb15623cececbae784f5ed3d3ed53c4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:23.866186+00:00"
+    },
+    "restore-prove-async-safe": {
+      "content_sha256": "5130990e4364e16d0e4a65f71b8375ff5941856a197967889336542d0f265cf4",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:24.699663+00:00"
+    },
+    "restore-stop-async-safe": {
+      "content_sha256": "003a8d7740b3b7181df0ab47a58a49b4dc1dc98fa4a0f29236f5ab6776ebefd8",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:25.440074+00:00"
+    },
+    "rollback-async-profile": {
+      "content_sha256": "6e140eca9dea35d963e3f7f0c701abd6699826628dfe243f57c36f62825a2361",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:25.962246+00:00"
+    },
+    "final-archive-health": {
+      "content_sha256": "58be87f127792908547c4e0e3261ec474bab29a2645e0d86a86987092272b271",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:55:23.322699+00:00"
+    },
+    "seed-business-orders": {
+      "content_sha256": "bbeeed13812330c747c25be5e4cfd8b82d8a26dc846b994f59e697afb1e0ddbb",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:29.805424+00:00"
+    },
+    "app-reader-password": {
+      "content_sha256": "a4da845d5bad80a0ae3a738b744b7877df21f9d527ffa986b31cc68296fe5769",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:30.520671+00:00"
+    },
+    "app-reader-passfile-private-file": {
+      "content_sha256": "251da83cd3c83acf35ef949a4cafabb55f2522b927710a92f1c3caf308725d02",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:31.070954+00:00"
+    },
+    "app-reader-passfile": {
+      "content_sha256": "86640311d26b2afb383c43652b378299ae1f352f8d01e4799024d589fcf8b0c7",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:34.074684+00:00"
+    },
+    "app-reader-access": {
+      "content_sha256": "10445b573540bbbaf3b20b5968ebe58d107eedcea113222a36dd149d1af388dd",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:37.059587+00:00"
+    },
+    "reload-app-access": {
+      "content_sha256": "952e1cc598e85db2fb4f39e79da743a20e09049668e96343a89ade0804e7453b",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:37.691108+00:00"
+    },
+    "prove-app-reader": {
+      "content_sha256": "ce0b2af9e94372e3cd81794e21a1891062a65f0f91f3ff0e49945e4b24235ea3",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:38.396306+00:00"
+    },
+    "business-baseline-direct": {
+      "content_sha256": "73c2dc12d676f6ec992f3a1f093e4cc74ad0dfd676cc9b8164a4f876b2c3e59e",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:46.504549+00:00"
+    },
+    "business-baseline-server": {
+      "content_sha256": "4ec1bf40c7693032a46722415c3d6df561260ec04859a15a8a2a8da1eab5a501",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:14:55.516145+00:00"
+    },
+    "business-baseline-s3": {
+      "content_sha256": "efb10dc2d180077f86895c034a3f93586b197f67de38c2c9c00fef082add0e95",
+      "independent_pass": true,
+      "observed_at": "2026-09-07T06:15:18.512834+00:00"
+    }
+  },
+  "survive": {
+    "standby-unavailable": {
+      "independent_pass": true,
+      "completed_at": 1788761997.806713,
+      "cards": {
+        "survive-standby-status": "b7e6c6f8245363cc6d6d15f717a08292fae8f1147a8ad9c6f4aec5e59a52f1c9",
+        "survive-standby-start": "b23207fb37bb7cbff14237ae2454daf234dc40d17f35c5adddefc97995651929",
+        "survive-standby-backup": "0cced7270e28e7ccedbed0ef8e6573ef3ed02d9ff60df3dc244de06f25c7b5f4"
+      }
+    },
+    "standby-replay-paused": {
+      "independent_pass": true,
+      "completed_at": 1788762025.5012739,
+      "cards": {
+        "survive-replay-status": "9e388104d64dd1f17ce464de3fff3a8b0291f8024d0b78b01f3a34f6da6d3175",
+        "survive-replay-resume": "fbab6a956f46b4c129f63815e78140484af7ef180918e3f1ad0a48120bbb4e46",
+        "survive-replay-backup": "245ca5afdf756828b719dd7c3a3747246114738b16e2ac20410ed37ee35b5737"
+      }
+    },
+    "nfs-permission": {
+      "independent_pass": true,
+      "completed_at": 1788762043.5477266,
+      "cards": {
+        "survive-nfs-mode": "9eb05b48bb589624e21e31b09cf756d1a34908b069a8295d21c7dee524a120d6",
+        "survive-nfs-repair": "bd110fc5b6d5b62adc6961e700918d17150bc12efaee87e93a839e72cab00bc3",
+        "survive-nfs-archive": "8afb78410ce83842108287846b42ae8ed567b0eb89e0c4cdb1d6b92d0eb16523",
+        "survive-nfs-backup": "4308d95b543834605895ec9ce0a5ffa948ab7e2768e6d6dded0fb41790ff362c"
+      }
+    },
+    "nfs-missing-mount": {
+      "independent_pass": true,
+      "completed_at": 1788762061.689784,
+      "cards": {
+        "survive-mount-inspect": "be192728d959534c9efe6272951358eb833487317aa885e7e74e2d1d597435e3",
+        "survive-mount-repair": "a6dd2459375829d3e01d975fa4554eac88e5e2de81511782d6b915017bdc0836",
+        "survive-mount-archive": "46b49e4acf50313447b92a0428e38ea519d3443d3d42f42a7bcee739f3c94599",
+        "survive-mount-backup": "fad10a1ca91b266451079191515a1b87ed753f5dadae5795383bc51bf00d232c"
+      }
+    },
+    "s3-denied-prefix": {
+      "independent_pass": true,
+      "completed_at": 1788763426.1305838,
+      "cards": {
+        "survive-s3-job": "fd4791641422ef5526b4dc13b8f76b7f51b9027e0a9341389b3c773182a6b4fb",
+        "survive-s3-job-repair": "88d7c8d478cae8d155316dd73fb8d744bb36a5a562b20dcca4ddcc430fb443ab",
+        "survive-s3-backup": "d94f713051f5824540407e8be0cf316fcceca258c8f287fff34e34180ab5e89d"
+      }
+    },
+    "alert-delivery-failure": {
+      "independent_pass": true,
+      "completed_at": 1788762308.234048,
+      "cards": {
+        "survive-alert-attempt": "bea4035d00097ec5b8d075d38337b7260d837cdfe9895b1009254ae84ff9164b",
+        "survive-alert-receiver-repair": "54e89d95b0c07ed634370bb97410297dd495680bff21275c3bff25db21c8548c",
+        "survive-alert-retry": "d2d17ad631eae6a1452df65597b5cedd1c460e8d8fced2d32adf7803e17b6ac3",
+        "survive-alert-receipts": "1d5cf11155ce27ca03e427bbc3cd52798b6da29da5f4aa3c7d1f44ddbc712030",
+        "survive-alert-repository-repair": "da3a8dce2ff4a49b0477ee9761dfeb0b8c759023a5010ba8eb6639a748d608ec",
+        "survive-alert-archive": "7933a59d71ae0f6c9897f682f27abcc8712e5dc57c256227c056753afd382131",
+        "survive-alert-backup": "5c1d747d45d3997927f60be1176c99d149902b28a70911a07fdeca84c2f79ab7"
+      }
+    },
+    "invalid-tuning": {
+      "independent_pass": true,
+      "completed_at": 1788762326.633831,
+      "cards": {
+        "survive-tuning-file": "0731dc124b2932296f6b24f07b94eb7252c95c0783f8d197728ebc731b814fa9",
+        "survive-tuning-repair": "5deb9f5a1e1840bab6d7ccd92a1705dbbdc38f727cf9c820966d2834c3f13a26",
+        "survive-tuning-backup": "86381f4458c88a739b54d5f7f6f060937011c830655e668dab6f2c3dab4bd916"
+      }
+    },
+    "bad-update": {
+      "independent_pass": true,
+      "completed_at": 1788762388.5178397,
+      "cards": {
+        "restore-profile-incident-bad-update": "5edc4dcc525b4bd9557b2e432d4baf1c543d8ca3f616b9dd5da3c60429aa8d8a",
+        "restore-profile-owner-incident-bad-update": "7152856beb6c52debdbeba529977ab03a963fcbcca0ac376a4a55403a3dfec0e",
+        "restore-empty-incident-bad-update": "d02c6c7eaf52ea365c657f163bd1405b6d6bdb7510f2df85679ea40d1bcfa7cf",
+        "restore-pitr-incident-bad-update": "531acea32caff951d373d511a3ad958a20d6a33cbdabfc051f0ac8548bafa74b",
+        "restore-settings-incident-bad-update": "5ce5147bec15fdb6dbdecb0b6f6fce58e5c40e717c8280fafefde8d1942a56be",
+        "restore-access-incident-bad-update": "3a98780ea1227650832dea558d45b47b60f5aebb43787ed9d102312f81d53bd6",
+        "restore-start-incident-bad-update": "1c98f03537960a6f03aa422efb7df979c5cb4bed4e23d5e3829f8ec06cad7b0e",
+        "restore-prove-incident-bad-update": "9f2c6a5372d916ef5e5817c58e4bb4aa87ae2c96a5a520a6b4cdf7db94e9fd1c",
+        "restore-stop-incident-bad-update": "a65f2df5b0785dda06663c441d4c1b259df27de106f0db6e1e23d3e455a56d61",
+        "bad-update-acceptance-start": "f48788342e2678242668b615038f7381a2630b68dd81d48d69dd8bb2910821fb",
+        "bad-update-business-acceptance": "d3a4b876b431162b22577763c7f5f68a3f3b3479e0a2cda9d45a275a9bcdf8e2"
+      }
+    },
+    "bad-delete": {
+      "independent_pass": true,
+      "completed_at": 1788762457.6639023,
+      "cards": {
+        "restore-profile-incident-bad-delete": "4bfa30503a8f148e68712f4680ced0040e03b68e24bfd5dbf799824efbc95d99",
+        "restore-profile-owner-incident-bad-delete": "77bf3e1b3a32460cf6bbda4341eb0ed7028b51b149b9bd50f8f5d08dd1833825",
+        "restore-empty-incident-bad-delete": "40ed5ba62d5ef1f0bb4570a5aa02f389acdb9fcd5987130f60981e5aa65988d0",
+        "restore-pitr-incident-bad-delete": "0845ad1a62af6aa91d8d03b332a4efb6b65a560f1f56d1beb273769ed3df4059",
+        "restore-settings-incident-bad-delete": "399a3b47f66a95eb3019298ffd1b9b6097f6d81ffddc5424b43287be0f0abeba",
+        "restore-access-incident-bad-delete": "c63df444c2336009a0b48fb296e481f1ca71efb3134a620f27a62de665395d19",
+        "restore-start-incident-bad-delete": "d8b05c251e78d03fce92262b00e2fe34da35eb326e98805d7f4aebe80eeecb9c",
+        "restore-prove-incident-bad-delete": "cd9324f54408ab417f486f7c68b0540de1bace1ff2d11200512eb8129fe58a92",
+        "restore-stop-incident-bad-delete": "fe7911c1e85a23da56410086ec3b2b6aa61242ce326a6810cd0b3f237f520975",
+        "bad-delete-acceptance-start": "13d918a4e322dd57e1b5aa631a70b3966a091d2e32913bce2d9a5a401a283992",
+        "bad-delete-business-acceptance": "7b58e29cc26a2a11f92ff85530f62fee2b7fc77b4ef724c9431f5d9ae783e68e"
+      }
+    },
+    "bad-ddl": {
+      "independent_pass": true,
+      "completed_at": 1788762533.9794452,
+      "cards": {
+        "restore-profile-incident-bad-ddl": "cbe2a93074f3a90c3baf9ac78502c1862524da00a8797e3f89259a42d948c986",
+        "restore-profile-owner-incident-bad-ddl": "6d52b28ebd9a6bd3aaaa884d9f6f92b9c4e91708575cb402c66df92750a66032",
+        "restore-empty-incident-bad-ddl": "f70146729e18a0a806604e7ae61a91fc827ca101c1e40345f8ba1ee35a2420fb",
+        "restore-pitr-incident-bad-ddl": "6bba47f5d27f74270285442ca1c18cb0cf3c596fe97f81a501463e9e718469e7",
+        "restore-settings-incident-bad-ddl": "060f03cf091229624bbde42e2496a9306b9da6effdd8ea2156c9d78c282974e0",
+        "restore-access-incident-bad-ddl": "427c085d6a9173b0fce7c1161641fba8f26d28f8803583447f86ffa7e3076ef0",
+        "restore-start-incident-bad-ddl": "6bb401688abb3725c1f7e0307783f10563f33757e56cb6cd276c51556edb662a",
+        "restore-prove-incident-bad-ddl": "f292bb61314659b704977aa22978338d5405510028a605fe731ffb29e1d59d27",
+        "restore-stop-incident-bad-ddl": "9094a5f4b9f346bd8c548410047ae3432d04b53c226b1341fb7a0fd7e1d61ae8",
+        "bad-ddl-acceptance-start": "dfd45c165c9c0aa48620ab9ea19b7452a80c65fe8928f6271e1bec32403d0f0b",
+        "bad-ddl-business-acceptance": "842ecaf66f39c1e893fba73ca82b6c33453ff17bec55814ed63eb6dffa1008ad"
+      }
+    },
+    "wrong-target": {
+      "independent_pass": true,
+      "completed_at": 1788762613.3879087,
+      "cards": {
+        "restore-profile-incident-wrong-target": "ef92df134cfc7037cfc38c2e9e80cd114245dee369ab1e670091d55bc61701f6",
+        "restore-profile-owner-incident-wrong-target": "6a5fce4ff18b07f510c705b1e555508c43a4d18186cd42adfa5fc433f5272897",
+        "restore-empty-incident-wrong-target": "c084383599a72b80b7e0ca234f9392ad55f0c4151943307838f2899297a9d18b",
+        "restore-pitr-incident-wrong-target": "e64864e977b9a0b68aec34bff56158f40d3153435fae63a9b694f261e45c8b14",
+        "restore-settings-incident-wrong-target": "f660a984a1091fdab168cb83eeca42f20c3e8b3b8328396dfc78fd3878a6fda6",
+        "restore-access-incident-wrong-target": "4391cfb1faf22b92aa31d503667c4dd6c1be42ad7897ee7653175ab1683486fc",
+        "restore-start-incident-wrong-target": "e770768c20a988add707a1d7219f7c96062df4c3d0c6c6f0f286435b2f0b0cce",
+        "restore-prove-incident-wrong-target": "294b63e6b06027b544644aa5e6b56718296155a27791887f5da1ff1de16f8df8",
+        "restore-stop-incident-wrong-target": "11de8477eb39ba31679ef6106e5f830dfeb5940b8284b7a258d64237cb5c921b",
+        "wrong-target-acceptance-start": "b28e50d36399f1a7fee605169930151b390d7e2cfe2bb36b75aee44b90558349",
+        "wrong-target-business-acceptance": "ef4a04d3292247ef795d79d64300d125eefba5c087a4bbddf3e6b42842c25a78",
+        "wrong-target-candidate-stop": "8cdb2337aa3e1fba02e2ddea9dab300b6cac22bfde43dbbb1c5d865c40e127ee",
+        "restore-profile-corrected-target": "7c4e35834dff086f164d2d1976e72075b49f2790243da7f229cf1ea95bc1e70b",
+        "restore-profile-owner-corrected-target": "497596720b4ae79015d78c1c0dec61600d9c0a86708780e059919370b69805cd",
+        "restore-empty-corrected-target": "fe91c3f501e923db6e19ddd34a86acaf1588e98ca356ab454a9f13de9878ae7b",
+        "restore-pitr-corrected-target": "4920530f1dcad41b0df5f11d5ead236b4dfa927a1527f971a72daadfa1e8ad32",
+        "restore-settings-corrected-target": "ae743e94d948972d6714ba46ea83ae15a39b609898520abebed2e366a3f5aac8",
+        "restore-access-corrected-target": "2a91c71dfbece572c1a4a8d2d93a23ec49bbddb2fd71a3fbbabb53cdec37d577",
+        "restore-start-corrected-target": "6317b56d5c4cc285ba826bd2a3e7e13aab80b565cbba8228923ff29dfa6f575c",
+        "restore-prove-corrected-target": "15c4ac2787f2cd3ee2fb526c9490456790272ad269ed3d308b15622946dc72c4",
+        "restore-stop-corrected-target": "d27832be21aea485e56b9a6c4f8b687995061fb69004710693ce0467b7c9951e",
+        "corrected-target-start": "d1d526687f755a5b3c6e4e4c6aaa3571b03587b11c2c7302e7a91ac1c6478aeb",
+        "corrected-target-data": "13b11cb1ce49b71cc26f1b61478fad678cd5515e0226821e674442244ef4f4be"
+      }
+    },
+    "broken-chain": {
+      "independent_pass": true,
+      "completed_at": 1788762724.4720316,
+      "cards": {
+        "broken-chain-evidence": "0fee4412506de05568311b36f790c477b5da884e10907de59c2998b823d0a0de",
+        "broken-chain-quarantine": "7e5d5ba54cdf8b668765068e06f8664280ad311406838f118c960aa914102910",
+        "broken-chain-repair": "33703452da58d6a35ce2ea059a6032d1fc3e5229ba0a9f6319fcc87c2d022a24",
+        "restore-profile-broken-chain-repaired": "12ded5c79bdaf09cb2a4a0eac7af2cf1325149408cf7a496663d9301592e0140",
+        "restore-profile-owner-broken-chain-repaired": "0fdb66cbf51f8798cc60371e0665447b7a42cc5d94b9612824aa0277e32835a8",
+        "restore-empty-broken-chain-repaired": "fecd2d3d77292a4f8a19b0d1dfce645290672a92ec8016bc00124aebfb12355f",
+        "restore-pitr-broken-chain-repaired": "74de1b05e32047bed6a437ca76fd9d570f247793e432354ef929b7e3f0a38177",
+        "restore-settings-broken-chain-repaired": "72489d7fe4eb1985b82c0106ef5b7cd3370620db6e31d6a6b2000f34613f1673",
+        "restore-access-broken-chain-repaired": "70de1b6a9bc578fcdbd7eb27b1f9b8bb480c4298eda2706a650e9fbccc27d50a",
+        "restore-start-broken-chain-repaired": "f96afe50092a40ed8bdd47617e7f69137a5bcb67eb16ca37a966b2f93b641180",
+        "restore-prove-broken-chain-repaired": "2ab684ad88f41bc852637e38b8fb66e5105265289d0d0c7b04a880ebf528ad09",
+        "broken-chain-original-health": "bf409993d3e648f145967cc78158e9996cb43e4f8a5cb61c020cae7004287162"
+      }
+    },
+    "missing-wal": {
+      "independent_pass": true,
+      "completed_at": 1788762796.6046033,
+      "cards": {
+        "missing-wal-evidence": "c9a758419d06965c55e88f0804877bb77d6225f9d30ef3f36d2dcfb954dea120",
+        "missing-wal-quarantine": "b5a946bd53466e31715ad88b299db828e604de2081ef29ac754c4a420571da2c",
+        "missing-wal-repair": "656299cb90823ee45e9f14a8a7222ee11886a12656c11bab0c2fddaa2ef660f0",
+        "restore-profile-missing-wal-repaired": "9c73a31cb93affeb99ce21f75e26542cd13e421afc8d7bbc23f06b428d23b229",
+        "restore-profile-owner-missing-wal-repaired": "f9be2cee9280171eadd9126befa6fe3bd36f6ffb4ebe18c26407bb14cd35ee7c",
+        "restore-empty-missing-wal-repaired": "0a71ffe2d7a95990f14495d50f17ff998d6b6a795127c9e86575a2ff0daadd0e",
+        "restore-pitr-missing-wal-repaired": "62bb41f5d9f619fdd9bb7a52eae1c40a4051a50a470137e5f36cf236bbc9a4a0",
+        "restore-settings-missing-wal-repaired": "71eb958d2e2b6be9570f75b0aceb95479ea568eebd6a34b39b17a5475455e024",
+        "restore-access-missing-wal-repaired": "aaa88751a88903417f9616dda00b6c7fc2d8d6a3a288e27a12f8a39837de28c8",
+        "restore-start-missing-wal-repaired": "e162d0dfd7210f8265f83d1bfca630a9167e50b8f6c6a600aafb7fa79ae29857",
+        "restore-prove-missing-wal-repaired": "e42144b5bbd6ada0f06c593d423fe267d924438e305bca720ca4939ee7ebff2f",
+        "missing-wal-original-health": "24025722f5859c41e1d118fdbb077f6e64c06be661665d2c3e5efb67a94bcf53"
+      }
+    },
+    "missing-target": {
+      "independent_pass": true,
+      "completed_at": 1788763504.2427092,
+      "cards": {
+        "missing-target-log": "99720eca75ca0c3cbf633132c7b966ecef82223c31b5ae27fedbed573b234efc",
+        "restore-profile-existing-target": "8b607b560c46c8dfe4b55b9ffa141ce53a37dac5c440cf7854f02e87ac1b68f2",
+        "restore-profile-owner-existing-target": "5a4d16221bf8a8e7d5bcb1c5bb09a0063d89368121cfe569fbf70e75d53f635b",
+        "restore-empty-existing-target": "6b9f32eecedb5231b7a7fb1b05a5626b2d3a20d99f955835bb65fc158b2f2198",
+        "restore-pitr-existing-target": "d83c79e16c045bc84725b1552348056678a362cdb36b3c4e13b4ea60e0feec12",
+        "restore-settings-existing-target": "86511db2492e3b9e17d0af69a7aea995ee5a1fcf57b7c3d12e9387ba170e558e",
+        "restore-access-existing-target": "e5737a08bc7ce98e38ad8a99d485d323a1e29048edaa1f1b48592967e54b5a2c",
+        "restore-start-existing-target": "44bdbfbf5c5f9c5b556d883f8af04716ea7fa257c38104f5560be197f7f2d430",
+        "restore-prove-existing-target": "a04efa289e42c6f4d432d8efb345a7d1d5b1302a1e1f1330844f9ad41f8b85f8"
+      }
+    },
+    "source-service-loss": {
+      "independent_pass": true,
+      "completed_at": 1788763401.6041095,
+      "cards": {
+        "dr-fence-pg-primary": "3a4c43349c4a1857547e51cb9e458b5477a3961a3ad965205b43f4895b5b625c",
+        "dr-fence-pg-standby": "9d831a01d092afc559a5e8a1b10ff44d234c867b4b8ab21a418d4c1bf68cb6e8",
+        "restore-profile-disaster-candidate": "a2c50ff94fea9b28c146f9c4ed7007fc5f19644b3b17f95a505e8f0b8fc5d72e",
+        "restore-profile-owner-disaster-candidate": "7d134efd1da81baff8f96278921e4a313434b7e3d30a9e02609423bc273868a2",
+        "restore-empty-disaster-candidate": "40e6d846d17db31852c44474a99c0158d367faf1302b7be2dccd3ec78f05fbb3",
+        "restore-pitr-disaster-candidate": "c41b70f0b7d23f6467929b027425daf9f27e32b4c1dd20f8cb9d0ac20e20e888",
+        "restore-settings-disaster-candidate": "413294dd455638b1f7e2060772aef7981dda6cca38369228fb6fa341584f8c4e",
+        "restore-access-disaster-candidate": "26f157bba5bca54a429b3d6317ede50d71ab2a65e0ea6822d0321e52142f5cff",
+        "restore-start-disaster-candidate": "4cbc6fa1ba95fb68f8db7b6c37cb2e0228427e4527124973e5b8bb5535aa7d1b",
+        "restore-prove-disaster-candidate": "532104b87890feac7ad7c9daed92cb81493eaaffff13dbf0d185b76bf4fa20d3",
+        "restore-stop-disaster-candidate": "33e0070633fce73311c35d0e3f809b603b11739fabf0856cb53d799753bf7433",
+        "dr-candidate-app-access": "75c9d9376cd694ad7c6f2814149532040cb10acb7ef96b7b2be5732c697122e7",
+        "dr-candidate-start": "598dd63769302d8cf6eb2242822924a170906d710f1ae708b350c5ed253a84ce",
+        "dr-app-acceptance": "753b8c44b234117abd52a75dfc231b032c99273d7da5a9c593583e12089f61ef",
+        "dr-stop-candidate": "1c5e5fc72875793ee3f2ef952c3fda19650281e84f99ca47df1e5261372ea2c6",
+        "dr-nfs-restore": "698c6e08dc3c5c00f322c77cd53cc73d54f771464e98ea744b0ac27ce53c6f47",
+        "dr-preserve-primary": "ad0e199be8b72329608f6a6e94939a48c19ae0411a8d68eb32f7dc39994226b3",
+        "dr-install-candidate": "1c5e1082d1acd04c4c6aa8b5902659b3f1d144edc1c70458458214df6388cb56",
+        "dr-normal-settings": "9e3b9a84152e2c6dac97d4bd8e5a941cd8ac67a2917f0800a9457c67ef06060c",
+        "dr-normal-access": "582ab35704cd6952f02d83fa1dd5ae53491cc09301c19cb29a0a85b2badd3042",
+        "dr-clear-target": "b197e2bd1d1da6698c7725558a78460910969a1e8d49ed7f82254397973141a2",
+        "dr-primary-labels": "b81a3a39288ea96ae895e2b8456dbe83dd160c0327156d6794a421ea32ad2442",
+        "dr-primary-start": "f7af93b97be1f39dc079959cd0eed31676f5e4b22fa31f5e70048eb5c6c017d6",
+        "dr-normal-app-proof": "80a63ff30d2bb13ab2dba7dedcbca55e6c27fe690937afb9c47b46cba4692bb7",
+        "dr-new-timeline": "2c1326a1a8a25e001f7dfb0133262da9a21f04ec4e53b9726cf2494c334934b0",
+        "dr-preserve-standby": "ee57538a34fbf3d1b665ed03682cb650547a10311c639e74b3c16bca052ae910",
+        "dr-empty-standby": "d0ce664e9bfe2b787ccf457e56d3643d0e0df74a0a19733791c769b9eed5044f",
+        "dr-rebuild-standby": "5c7db591abcf84e86be5cc44a5540b18b32874209d24138b984db1c55d03c3b6",
+        "dr-standby-settings": "cb9128fe99ce743ab9d4f27a34e88888feba40e1ad55ea65b031cac59078b71b",
+        "dr-standby-labels": "90a78f9f1d8b5ade20eaa6ed2541bed340613f0221083834abbc496185c859cc",
+        "dr-standby-start": "4a163f18e1ad021465babad16187e79b1d606da94fbba4a0c3454560f433e296",
+        "dr-streaming-proof": "dbd2c4b8e778892b3e54fd388c8724ef2d6a338400e81a90aa8485d65db1f98c",
+        "dr-standby-data": "1c56953d2791a7be1161cc8ad31f9f4019493a6ee88f808f7b39f43e09280596",
+        "dr-final-archive": "60242e10477c7e951e1ce85e5bd7b2e8db4fc5665278f266328e3108aba609ac",
+        "dr-new-backup-direct": "7a66fb15ffbe6399c5ba2a7493602a15889058214a1fc8ed12039a53ec33247f",
+        "dr-new-backup-server": "52d28b0bdc5e23f724548a5fddfbd36c83d6f7c6d13aa5c94568346bae5eb01e",
+        "dr-new-backup-s3": "2451803a258d00ba44e4b56e5738c50d9ae10aec5c608995cd8dd0dd58f7e43d"
+      }
+    }
+  },
+  "controllers": {
+    "scripts/lib/pgbackrest_chaos.py": "73b03870a1f24073eaccfe9d3f317bf46c15f4c9ecdb666fe71cdeae590ab95f",
+    "scripts/lib/pgbackrest_operation_predicates.py": "610639f166c09a77af2b9aeeebc5cce08c33942160057918db4e1e80074ca9c1",
+    "scripts/pgbackrest-chaos.py": "362fe1b58b9b6daf0dc723ff9989da2d35927e79472df835aafbdd751fbcfd16",
+    "hermes-student-prototype/survive-runtime.mjs": "eb5c90f3057877e34dfcf5827ebe3094ff4a4a9ef7c370c1666e5d73e0dee824"
+  },
+  "limitations": [
+    "Synthetic AWS lab replay does not establish student learning gains.",
+    "Service outage recovery on surviving hosts does not establish physical host replacement.",
+    "Local alert receipts do not establish external recipient delivery."
+  ],
+  "retained_failed_predicates": 16
+}

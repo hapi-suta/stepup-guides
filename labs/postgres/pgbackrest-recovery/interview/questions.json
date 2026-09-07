@@ -1,0 +1,419 @@
+{
+  "schema_version": 1,
+  "levels": [
+    {
+      "id": "junior",
+      "questions": [
+        {
+          "id": "j1",
+          "prompt": "Why does a streaming standby not replace a backup?",
+          "required_groups": [
+            [
+              "replication",
+              "standby"
+            ],
+            [
+              "delete",
+              "mistake",
+              "corruption"
+            ],
+            [
+              "backup"
+            ],
+            [
+              "restore",
+              "recover"
+            ]
+          ]
+        },
+        {
+          "id": "j2",
+          "prompt": "Explain full, differential and incremental backup dependencies.",
+          "required_groups": [
+            [
+              "full"
+            ],
+            [
+              "differential",
+              "diff"
+            ],
+            [
+              "incremental",
+              "incr"
+            ],
+            [
+              "ancestor",
+              "chain",
+              "depend"
+            ]
+          ]
+        },
+        {
+          "id": "j3",
+          "prompt": "Where does the pgBackRest process run in each NFS mode?",
+          "required_groups": [
+            [
+              "primary",
+              "database server"
+            ],
+            [
+              "backup server",
+              "backup-1"
+            ],
+            [
+              "nfs"
+            ],
+            [
+              "mount"
+            ]
+          ]
+        },
+        {
+          "id": "j4",
+          "prompt": "What must accompany a base backup for PITR?",
+          "required_groups": [
+            [
+              "wal"
+            ],
+            [
+              "target",
+              "time",
+              "point"
+            ],
+            [
+              "restore"
+            ],
+            [
+              "verify",
+              "data",
+              "accept"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mid",
+      "questions": [
+        {
+          "id": "m1",
+          "prompt": "A job is in crontab. What evidence proves a scheduled backup actually succeeded?",
+          "required_groups": [
+            [
+              "cron",
+              "schedule"
+            ],
+            [
+              "timestamp",
+              "time"
+            ],
+            [
+              "job",
+              "log"
+            ],
+            [
+              "metadata",
+              "backup label"
+            ],
+            [
+              "exit",
+              "success"
+            ]
+          ]
+        },
+        {
+          "id": "m2",
+          "prompt": "Describe a practical full/differential/incremental schedule and freshness check.",
+          "required_groups": [
+            [
+              "full"
+            ],
+            [
+              "diff"
+            ],
+            [
+              "incr"
+            ],
+            [
+              "utc",
+              "timezone"
+            ],
+            [
+              "fresh",
+              "age",
+              "overdue"
+            ]
+          ]
+        },
+        {
+          "id": "m3",
+          "prompt": "How do you prove backup-from-standby instead of assuming it?",
+          "required_groups": [
+            [
+              "standby"
+            ],
+            [
+              "required",
+              "backup-standby"
+            ],
+            [
+              "replay"
+            ],
+            [
+              "log",
+              "file"
+            ],
+            [
+              "restore"
+            ]
+          ]
+        },
+        {
+          "id": "m4",
+          "prompt": "How do you configure S3 without storing AWS access keys?",
+          "required_groups": [
+            [
+              "role",
+              "instance profile"
+            ],
+            [
+              "temporary",
+              "auto"
+            ],
+            [
+              "bucket"
+            ],
+            [
+              "prefix"
+            ],
+            [
+              "least privilege",
+              "scoped",
+              "permission"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "senior",
+      "questions": [
+        {
+          "id": "s1",
+          "prompt": "A restored server starts but the application total is wrong. What happens next?",
+          "required_groups": [
+            [
+              "reject",
+              "no cutover",
+              "do not cut over"
+            ],
+            [
+              "target"
+            ],
+            [
+              "isolated"
+            ],
+            [
+              "business",
+              "data"
+            ],
+            [
+              "preserve",
+              "log"
+            ]
+          ]
+        },
+        {
+          "id": "s2",
+          "prompt": "Plan recovery after an accidental delete already reached the standby.",
+          "required_groups": [
+            [
+              "pitr"
+            ],
+            [
+              "before",
+              "time",
+              "target"
+            ],
+            [
+              "wal"
+            ],
+            [
+              "accept",
+              "verify"
+            ],
+            [
+              "later",
+              "loss",
+              "rpo"
+            ]
+          ]
+        },
+        {
+          "id": "s3",
+          "prompt": "Explain safe tuning of archive-async, process-max and compression.",
+          "required_groups": [
+            [
+              "scope",
+              "host",
+              "primary"
+            ],
+            [
+              "spool",
+              "local"
+            ],
+            [
+              "measure"
+            ],
+            [
+              "restore"
+            ],
+            [
+              "rollback"
+            ]
+          ]
+        },
+        {
+          "id": "s4",
+          "prompt": "The backup failed and webhook delivery failed too. What must the job system retain?",
+          "required_groups": [
+            [
+              "exit",
+              "failure"
+            ],
+            [
+              "job",
+              "identity"
+            ],
+            [
+              "outbox",
+              "pending"
+            ],
+            [
+              "retry"
+            ],
+            [
+              "duplicate",
+              "dedup",
+              "ack"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "principal",
+      "questions": [
+        {
+          "id": "p1",
+          "prompt": "Challenge the failure boundaries of the two NFS modes and one S3 repository.",
+          "required_groups": [
+            [
+              "nfs"
+            ],
+            [
+              "shared",
+              "single"
+            ],
+            [
+              "account",
+              "region"
+            ],
+            [
+              "credential",
+              "iam"
+            ],
+            [
+              "independent",
+              "isolation",
+              "immutable"
+            ]
+          ]
+        },
+        {
+          "id": "p2",
+          "prompt": "Define evidence for a recoverability claim and its limits.",
+          "required_groups": [
+            [
+              "restore"
+            ],
+            [
+              "application",
+              "business"
+            ],
+            [
+              "rpo",
+              "loss"
+            ],
+            [
+              "rto",
+              "time"
+            ],
+            [
+              "repeat"
+            ],
+            [
+              "limit",
+              "lab",
+              "scale"
+            ]
+          ]
+        },
+        {
+          "id": "p3",
+          "prompt": "Describe safe cutover and restored protection after PITR.",
+          "required_groups": [
+            [
+              "fence",
+              "stop"
+            ],
+            [
+              "accept",
+              "verify"
+            ],
+            [
+              "timeline"
+            ],
+            [
+              "rebuild",
+              "standby"
+            ],
+            [
+              "backup",
+              "archive"
+            ]
+          ]
+        },
+        {
+          "id": "p4",
+          "prompt": "What controls should a multi-student recovery platform enforce?",
+          "required_groups": [
+            [
+              "student",
+              "tenant"
+            ],
+            [
+              "project",
+              "experience"
+            ],
+            [
+              "approval"
+            ],
+            [
+              "audit",
+              "evidence"
+            ],
+            [
+              "cost",
+              "ttl"
+            ],
+            [
+              "cleanup",
+              "rollback"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
