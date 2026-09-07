@@ -6,26 +6,53 @@ A connected course in repository design, standby backups, daily operations, logs
 
 ### The service is back. Are the right records back?
 
-A recovery succeeds when the required data and application operation are correct.
+A database can accept connections and still return the wrong order amounts. Before declaring recovery complete, check what the application will read.
 
-In this illustrative incident, three orders total 600. A mistaken update changes every amount to zero, and the standby faithfully repeats it.
+Three orders total 600. An incorrect update changes their amounts to zero. The servers remain available, but the application now reads the wrong values.
 
-#### Follow the business fact
+#### Follow one incorrect update
 
-The number 600 gives the team a concrete acceptance condition. A server can answer connections, return three rows and still return the wrong amounts. Before touching recovery, record what was known before the incident, when the unwanted change happened and which later valid writes must be considered. Choose the evidence the recovered application must satisfy.
+In this teaching example, order 101 should contain 100, order 102 should contain 200, and order 103 should contain 300. Together they total 600. An application update sets all three amounts to zero. Assume the database rules allow zero, so PostgreSQL accepts and commits the update. The transaction has completed, even though its result is wrong for the business.
 
-#### Meet the four hosts
+The primary is the database server accepting these writes. The standby is another database server that applies changes received from the primary. After it has applied this update, the standby contains the same zero amounts.
 
-pg-primary accepts writes; pg-standby replays its WAL. backup-1 can run pgBackRest with a repository mounted from nfs-1. The alternate direct mode runs pgBackRest on the primary with its own NFS mount. S3 supplies another repository path. These are different responsibilities, not five interchangeable copies of a running database.
+#### Why the standby repeats the mistake
 
-#### Separate preparation from learning
+PostgreSQL records changes in its write-ahead log, usually called WAL. Those records let PostgreSQL reproduce database changes during recovery. In physical streaming replication, the primary sends WAL records to the standby. The standby replays them: it applies the recorded changes to its own database files.
 
-Terraform owns the AWS resources and their lifetime. Ansible manages the platform handoff. The student configures the database and backup system through BUILD, operates it in USE, and practices incidents in SURVIVE. This course explains the mechanisms first. Reading a topic, seeing a diagram or receiving a helpful Chat answer does not prove a lab action completed.
+WAL describes the database change, not whether the new amounts are correct for the business. Replication can reproduce an accepted change without detecting the application’s mistake. This is why a working replication connection can carry wrong values to another server.
 
-Which observation is stronger: the port is open, or the recovered application reads the expected orders?
+Promoting the standby lets it accept writes. If it has already replayed the incorrect update, promotion leaves those zero amounts in place. Changing which server accepts writes does not undo the update.
 
-The application check is stronger because it exercises access and business data. It still needs the chosen target, recovery state and data-loss boundary to make the complete recovery claim.
+#### Recovering the earlier values
 
+Suppose a backup completed before the mistake and you retained all the archived WAL needed to recover it. You can restore that backup and replay changes up to a chosen point before the unwanted transaction committed. This is point-in-time recovery, or PITR. The backup supplies the starting files; WAL supplies the subsequent changes needed to reach the target.
+
+Choose that target carefully. Recovery follows the recorded history up to the target. It does not skip one bad update and automatically keep every valid transaction that happened afterward. If valid new orders arrived after your chosen point, those orders will be missing from the restored copy too. Record that gap and decide how it will be handled before directing the application to the restored database.
+
+#### Check the result at three levels
+
+First, connect to the restored database. This checks access to the server. It does not check the order amounts.
+
+Then compare the recovered orders with a trusted record of the expected values. Order 101 should contain 100, order 102 should contain 200, and order 103 should contain 300. Counting three rows is not enough. The update changed the order amounts without deleting any rows.
+
+Finally, use the application’s normal connection and read those orders through the application. A database query can succeed while the application is using the wrong server or cannot authenticate. Test the operation users need to perform, not just a connection made with the administrator’s account.
+
+Also account for any valid work excluded by the recovery target. Passing this three-order example does not establish that every record in a real application is correct.
+
+#### Where you will practise this
+
+Your lab has four hosts. pg-primary accepts database writes. pg-standby receives and replays its WAL. backup-1 runs backup operations. nfs-1 stores the backup files and shares them over the network using NFS, the Network File System.
+
+You will configure two arrangements: pg-primary writing to its own NFS mount, and backup-1 writing to a separate NFS mount. A mount makes remote storage accessible through a local directory. Both mounts use the same NFS host, so you will also add an S3 repository: a backup storage location in Amazon’s object storage service. Later topics explain these paths before you configure them.
+
+Terraform provisions the AWS resources and Ansible prepares the servers. In BUILD you configure PostgreSQL and pgBackRest. In USE you schedule and inspect backups, read logs and restore copies. In SURVIVE you diagnose failures and practise recovery. Start BUILD opens the setup lessons. Reading does not mark them complete; each lab task needs its own verified result.
+
+A restored copy contains three orders with amounts 100, 100 and 400. The total is 600. Would you let the application use this copy? Explain which check is missing.
+
+The total matches, but orders 102 and 103 are wrong. A total can hide errors that cancel each other out. Compare the individual order IDs and amounts with the trusted expected values, then check them through the application. The row count and total alone do not justify switching users to this copy.
+
+[PostgreSQL 16: standby servers](https://www.postgresql.org/docs/16/warm-standby.html)
 [PostgreSQL 16: continuous archiving and PITR](https://www.postgresql.org/docs/16/continuous-archiving.html)
 [pgBackRest: RHEL user guide](https://pgbackrest.org/user-guide-rhel.html)
 
