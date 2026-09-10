@@ -57,10 +57,19 @@ Patroni must have a client certificate and its matching private key.
 
 ## Connect to a server before running its steps
 
-Do not try to SSH directly from your laptop to the private `172.31.*` addresses.
-The lab servers accept SSH through the Suta control plane. Open the HA001 lab
-terminal in SutaBot (the terminal that starts at the control-plane prompt), then
-run the pinned role helper below. It selects the correct server and key for you.
+Do not run the role helper in your Mac terminal. It is installed on the Suta
+control-plane server. From your Mac, first open the control-plane session:
+
+```bash
+ssh -4 -i ~/.ssh/suta-openclaw.pem -o StrictHostKeyChecking=yes ec2-user@32.199.6.222
+```
+
+If your key is stored elsewhere, use that full path after `-i`. You should now
+see a prompt like `[ec2-user@ip-172-31-... ~]$`. The next command must be run
+at that control-plane prompt, not at `hafopezi@Happys-MacBook-Pro`.
+
+The lab servers accept SSH through this control plane. In SutaBot, the HA001
+terminal may already open at this prompt; if so, skip the first command.
 
 To connect to a role:
 

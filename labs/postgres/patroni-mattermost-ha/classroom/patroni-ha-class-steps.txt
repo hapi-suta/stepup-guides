@@ -119,8 +119,17 @@ Patroni must have a client certificate and its matching private key.
 
 CONNECT TO A SERVER BEFORE RUNNING ITS STEPS
 ============================================
-Do not SSH directly from your laptop to the private 172.31.* addresses. Open
-the HA001 lab terminal in SutaBot. At the control-plane prompt, run:
+Do not run the role helper in your Mac terminal. From your Mac, first connect
+to the Suta control plane:
+
+  ssh -4 -i ~/.ssh/suta-openclaw.pem -o StrictHostKeyChecking=yes ec2-user@32.199.6.222
+
+You should now see a prompt like [ec2-user@ip-172-31-... ~]$. The next command
+must be run at that control-plane prompt, not at hafopezi@Happys-MacBook-Pro.
+In SutaBot, the HA001 terminal may already open at this prompt; if so, skip
+the SSH command above.
+
+At the control-plane prompt, run:
 
   /home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-1
 
