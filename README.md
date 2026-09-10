@@ -28,6 +28,10 @@ Step-by-step lab guides for learning PostgreSQL administration. Built from real 
 | [19 - DevOps](postgres/module19-devops/) | CI/CD, Terraform, Ansible, Flyway | 5 | 6 | 8 |
 | [20 - Capstone](postgres/module20-capstone/) | Full Stack DBA Project | 5 | 6 | 8 |
 
+### Instructor-led classroom
+
+[Patroni HA with an instructor-provided app](labs/postgres/patroni-mattermost-ha/classroom/README.md) — configure etcd, Patroni and HAProxy, then verify the application.
+
 ### Standalone Projects
 
 | Project | Topic | BUILD | USE | SURVIVE |

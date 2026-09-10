@@ -1,0 +1,103 @@
+# Prepare your worksheet
+
+[Classroom home](README.md) · [Next](02-etcd.md)
+
+## PART 0 — BEFORE CLASS
+
+The main lesson assumes software, OS dependencies, service users, directories,
+service units for Patroni/HAProxy/Mattermost, and TLS files are already installed.
+The sysadmin reference at the end lists the existing installation procedure.
+It requires Suta handoff artifacts; it is not a generic download/install guide.
+
+Prepared versions: etcd 3.6.14+suta.2; PostgreSQL 16.15; Patroni 4.1.4;
+HAProxy 3.2.22; Mattermost 11.10.1. Use the matching CentOS lab artifacts.
+
+No database should have been initialized. Patroni will run initdb and clone the
+replicas. All four application services should initially be stopped.
+
+Fill in the private IPv4 address of each server:
+  DCS_1_IP = __________________   (dcs-1)
+  DCS_2_IP = __________________   (dcs-2)
+  DCS_3_IP = __________________   (dcs-3)
+  PG_HA_1_IP = __________________   (pg-ha-1)
+  PG_HA_2_IP = __________________   (pg-ha-2)
+  PG_HA_3_IP = __________________   (pg-ha-3)
+  DB_ROUTER_1_IP = __________________   (db-router-1)
+  MATTERMOST_1_IP = __________________   (mattermost-1)
+
+Replace every *_IP token in the configuration text before saving it. These are
+worksheet placeholders, not shell variables. Use actual private IPv4 addresses.
+All eight hostnames must resolve to their correct private addresses.
+Use the assigned terminal/SSH session for each named server as ec2-user.
+
+Prepare three different strong passwords in a private password manager:
+  REPLACE_POSTGRES_SUPERUSER_PASSWORD
+  REPLACE_REPLICATION_PASSWORD
+  REPLACE_MATTERMOST_DATABASE_PASSWORD
+Use the same superuser and replication values on all three Patroni nodes.
+For simple substitution in YAML and the application URI, use long random
+alphanumeric passwords. Otherwise quote/escape YAML and percent-encode the URI
+password correctly. Never use the literal placeholder as a password.
+
+Network prerequisites within this lab: etcd peers 2380; etcd clients 2379;
+PostgreSQL replication 5432; Patroni health API 8008 from the router;
+app to router 5432; instructor access to Mattermost 8065 through the approved
+lab access path. Do not expose PostgreSQL, etcd or the Patroni API to the internet.
+
+TLS prerequisites: each etcd member certificate must cover that node's private
+IP and hostname. Certificates must be current and signed by the same CA.
+Patroni must have a client certificate and its matching private key.
+
+How to use this file:
+- Run one indented command at a time. Do not paste whole sections into a terminal.
+- Text between BEGIN FILE and END FILE goes into the editor, not the shell.
+- In vi: press i, paste the file text, press Escape, type :wq, press Enter.
+- YAML indentation uses spaces. Keep the indentation shown.
+- postgres=# is a database prompt; a prompt ending in $ is a Linux shell.
+- Type only commands, never the sample prompt.
+- Stop and investigate an unexpected result before the next dependency.
+
+Check your starting terminal on every server:
+
+```bash
+hostname
+```
+
+
+
+```bash
+whoami
+```
+
+
+Expect the assigned role name and ec2-user.
+
+On each PostgreSQL server, verify the installed binary:
+
+```bash
+/opt/pgsql/bin/postgres --version
+```
+
+
+Expect PostgreSQL 16.15. A version check proves the program runs, not that a
+database has been created.
+
+
+## ARCHITECTURE
+
+Mattermost -> HAProxy:5432 -> current PostgreSQL writer
+Patroni on each PostgreSQL server -> etcd:2379 (mutual TLS)
+etcd members -> each other:2380 (mutual TLS)
+PostgreSQL writer -> streaming replicas
+
+etcd stores coordination state and the leader lock; it does not store application
+tables. Patroni manages PostgreSQL and leadership. HAProxy checks /primary on
+port 8008 and sends database connections to the node reporting HTTP 200.
+This lab uses asynchronous replication. It does not guarantee zero data loss.
+A single router and a single app server remain single points of failure.
+
+### Checkpoint
+
+- [ ] You can identify every server and have the prepared software, TLS files and private passwords.
+
+[Classroom home](README.md) · [Next](02-etcd.md)
