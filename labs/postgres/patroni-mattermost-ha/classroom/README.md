@@ -16,6 +16,8 @@ Build the database cluster on prepared servers, then connect the instructor's ap
 
 ## Follow this order
 
+**Before step 1:** the instructor provisions the servers, completes the [software preparation](sysadmin-installation.md), installs the [runtime-directory correction](03-patroni.md#prepare-the-service-to-survive-a-reboot), and verifies certificates. Students begin with installed software and an unconfigured database stack.
+
 | Milestone | Work | Finish when |
 |---|---|---|
 | 1 | [Prepare](01-prepare.md) | Server addresses and prerequisites are confirmed |
@@ -23,8 +25,10 @@ Build the database cluster on prepared servers, then connect the instructor's ap
 | 3 | [Patroni](03-patroni.md) | One leader and two streaming replicas |
 | 4 | [HAProxy](04-haproxy.md) | Valid configuration and running router |
 | 5 | [Application database](05-app-database.md) | Role, password and database created |
+| 5b | [Standby routing](05b-readonly-routing.md) | Reads reach replicas; writes are rejected |
 | 6 | [Verify and receive the app](06-verify.md) | Replication and browser checks succeed |
-| 7 | [Planned switchover — optional](07-switchover.md) | New leader, same router, working app |
+| 7 | [Planned switchover](07-switchover.md) | New leader, same router, working app |
+| 8 | [Failure and recovery](08-failure-recovery.md) | Database, node and service failures recover with working app |
 
 [Read logs and understand settings](08-troubleshooting.md) when a check fails.
 
@@ -41,10 +45,12 @@ The app IP does not go into the Patroni member list or HAProxy database backends
 - [Software installation reference](sysadmin-installation.md)
 - [Download the complete plain-text manual](patroni-ha-class-steps.txt)
 
-## Were these steps tested?
+## Tested on a real lab
 
-The guide is derived from SutaBot's existing Patroni journey and configuration templates. That source contains recorded live outputs for individual checks, including service status and configuration validation. Those records are prior evidence, not a fresh execution of this classroom guide.
+**Yes. The configurations and operations were executed on a fresh eight-node AWS lab on September 9, 2026 (Pacific).** We tested replication, writer/standby routing, real Mattermost writes, switchover, PostgreSQL failure, server stop/start and Patroni-service stop.
 
-**This reorganized manual has not been rehearsed end to end on fresh servers.** Addresses and passwords are worksheet placeholders. The instructor-app handoff is an adaptation of the previous workflow. Documentation checks cover step coverage, configuration preservation, links and separate commands; they do not prove today's servers are ready.
+Testing found an expired certificate, retained app connections after switchover and a missing socket directory after reboot. The guide contains the corrections, and the affected experiments were repeated.
 
-Before calling this class environment ready, verify the prerequisites, run the guide in order and retain the actual results at each checkpoint. Do not interpret an expected-result paragraph as a captured result.
+[Read the measured results and limits](TEST-RESULTS.md). All 470 acknowledged test messages remained readable. Transient failed requests are documented; this is not a claim of seamless failover or guaranteed zero data loss.
+
+Use your assigned addresses and private passwords in the worksheets. The instructor provisions fresh software-ready servers for class; the tested rehearsal cluster is separate from that clean starting state.

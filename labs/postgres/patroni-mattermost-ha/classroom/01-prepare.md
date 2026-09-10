@@ -101,3 +101,27 @@ A single router and a single app server remain single points of failure.
 - [ ] You can identify every server and have the prepared software, TLS files and private passwords.
 
 [Classroom home](README.md) · [Next](02-etcd.md)
+
+## Instructor certificate checks before the student starts
+
+On each etcd node, check its member certificate:
+
+```bash
+sudo openssl x509 -in /etc/etcd/member.crt -noout -dates
+```
+
+```bash
+sudo openssl verify -CAfile /etc/etcd/ca.crt /etc/etcd/member.crt
+```
+
+On each PostgreSQL node, check the Patroni client certificate:
+
+```bash
+sudo openssl x509 -in /etc/patroni/etcd-client.crt -noout -dates
+```
+
+```bash
+sudo openssl verify -CAfile /etc/patroni/etcd-ca.crt /etc/patroni/etcd-client.crt
+```
+
+The validity interval must cover the class and verification must report `OK`. An expired certificate requires instructor renewal and redistribution, not disabling TLS verification. The CA signing key stays on the control plane.

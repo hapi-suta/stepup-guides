@@ -1,6 +1,6 @@
 # Practice a planned switchover
 
-[Classroom home](README.md) · [Previous](06-verify.md) · [Next](08-troubleshooting.md)
+[Classroom home](README.md) · [Previous](06-verify.md) · [Next: failure exercises](08-failure-recovery.md)
 
 ## PART 3 — OPTIONAL PLANNED SWITCHOVER
 
@@ -74,4 +74,4 @@ leader manually, you have not demonstrated automatic routing.
 
 - [ ] pg-ha-2 is Leader, the other nodes stream, and the app works through the same router endpoint.
 
-[Classroom home](README.md) · [Previous](06-verify.md) · [Next](08-troubleshooting.md)
+[Classroom home](README.md) · [Previous](06-verify.md) · [Next: failure exercises](08-failure-recovery.md)

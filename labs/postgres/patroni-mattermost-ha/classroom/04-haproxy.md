@@ -38,9 +38,9 @@ backend patroni_primary
   http-check connect port 8008
   http-check send meth GET uri /primary ver HTTP/1.1 hdr Host patroni
   http-check expect status 200
-  server pg-ha-1 PG_HA_1_IP:5432 check port 8008 inter 2s fall 2 rise 2
-  server pg-ha-2 PG_HA_2_IP:5432 check port 8008 inter 2s fall 2 rise 2
-  server pg-ha-3 PG_HA_3_IP:5432 check port 8008 inter 2s fall 2 rise 2
+  server pg-ha-1 PG_HA_1_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-2 PG_HA_2_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-3 PG_HA_3_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
 ```
 
 
@@ -109,3 +109,7 @@ Expected: HAProxy listens on port 5432 and routes a rollback-only write check to
 - [ ] The configuration validates and HAProxy is running. Application verification follows after the database is created.
 
 [Classroom home](README.md) · [Previous](03-patroni.md) · [Next](05-app-database.md)
+
+## Why disconnect an unhealthy backend?
+
+`on-marked-down shutdown-sessions` closes existing connections when a node fails the writer health check. Without it, a connection pool can keep using the old primary after it becomes a standby, causing write errors even though a new primary is healthy. In-flight requests may still fail; the application must reconnect and handle retries safely.

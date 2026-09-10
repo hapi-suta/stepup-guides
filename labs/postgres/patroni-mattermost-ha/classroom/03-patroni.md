@@ -2,6 +2,37 @@
 
 [Classroom home](README.md) · [Previous](02-etcd.md) · [Next](04-haproxy.md)
 
+## Prepare the service to survive a reboot
+
+**On each of pg-ha-1, pg-ha-2 and pg-ha-3, as ec2-user**, confirm the instructor installed the following systemd drop-in. If it is missing, create it before starting Patroni:
+
+```bash
+sudo mkdir -p /etc/systemd/system/patroni.service.d
+```
+
+```bash
+sudo vi /etc/systemd/system/patroni.service.d/runtime-directory.conf
+```
+
+Save this content:
+
+```ini
+[Service]
+RuntimeDirectory=postgresql
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+```
+
+```bash
+sudo systemctl daemon-reload
+```
+
+```bash
+systemctl cat patroni
+```
+
+Look for the three RuntimeDirectory settings. systemd creates `/run/postgresql` owned by the unit's postgres user before starting the service. `/var/run` points to `/run`; its contents do not survive a reboot. Creating the directory once by hand is insufficient.
+
 ## 8. Configure Patroni on pg-ha-1
 
 **SERVER: pg-ha-1 | START AS: ec2-user in Linux**

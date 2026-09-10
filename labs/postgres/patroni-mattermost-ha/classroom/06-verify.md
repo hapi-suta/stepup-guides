@@ -1,6 +1,6 @@
 # Verify replication and receive the app
 
-[Classroom home](README.md) · [Previous](05-app-database.md) · [Next](07-switchover.md)
+[Classroom home](README.md) · [Previous](05b-readonly-routing.md) · [Next](07-switchover.md)
 
 ## PART 2 — PROVE THE STACK WORKS
 
@@ -167,4 +167,4 @@ it does not prove that users can sign in or that their messages survive.
 
 - [ ] Two streaming connections are visible; the instructor app can sign in, save a message and show it after reload.
 
-[Classroom home](README.md) · [Previous](05-app-database.md) · [Next](07-switchover.md)
+[Classroom home](README.md) · [Previous](05b-readonly-routing.md) · [Next](07-switchover.md)

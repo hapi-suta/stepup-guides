@@ -1,6 +1,6 @@
 # Create the application database
 
-[Classroom home](README.md) · [Previous](04-haproxy.md) · [Next](06-verify.md)
+[Classroom home](README.md) · [Previous](04-haproxy.md) · [Next: standby routing](05b-readonly-routing.md)
 
 ## 16. Create the Mattermost database login
 
@@ -241,4 +241,4 @@ Expected: The prompt should identify ec2-user again.
 
 - [ ] The mattermost role has a SCRAM password and owns the mattermost database.
 
-[Classroom home](README.md) · [Previous](04-haproxy.md) · [Next](06-verify.md)
+[Classroom home](README.md) · [Previous](04-haproxy.md) · [Next: standby routing](05b-readonly-routing.md)
