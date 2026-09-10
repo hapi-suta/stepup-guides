@@ -117,6 +117,34 @@ TLS prerequisites: each etcd member certificate must cover that node's private
 IP and hostname. Certificates must be current and signed by the same CA.
 Patroni must have a client certificate and its matching private key.
 
+CONNECT TO A SERVER BEFORE RUNNING ITS STEPS
+============================================
+Do not SSH directly from your laptop to the private 172.31.* addresses. Open
+the HA001 lab terminal in SutaBot. At the control-plane prompt, run:
+
+  /home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-1
+
+Change only the final role name for the next server:
+
+  dcs-1  dcs-2  dcs-3  pg-ha-1  pg-ha-2  pg-ha-3  db-router-1  mattermost-1
+
+The prompt should look like [ec2-user@dcs-1 ~]$. Confirm the connection:
+
+  hostname
+  whoami
+
+Expect the role name and ec2-user. Run only that role's commands. Return to the
+control plane when finished:
+
+  exit
+
+Then connect to the next role, for example:
+
+  /home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-2
+
+If the helper says the role has no address, tell the instructor. Do not bypass
+strict host-key checking or copy a private key to your laptop.
+
 How to use this file:
 - Run one indented command at a time. Do not paste whole sections into a terminal.
 - Text between BEGIN FILE and END FILE goes into the editor, not the shell.

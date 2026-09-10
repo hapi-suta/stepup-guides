@@ -55,6 +55,60 @@ TLS prerequisites: each etcd member certificate must cover that node's private
 IP and hostname. Certificates must be current and signed by the same CA.
 Patroni must have a client certificate and its matching private key.
 
+## Connect to a server before running its steps
+
+Do not try to SSH directly from your laptop to the private `172.31.*` addresses.
+The lab servers accept SSH through the Suta control plane. Open the HA001 lab
+terminal in SutaBot (the terminal that starts at the control-plane prompt), then
+run the pinned role helper below. It selects the correct server and key for you.
+
+To connect to a role:
+
+```bash
+/home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-1
+```
+
+Use one of these role names as the final argument:
+
+```text
+dcs-1
+dcs-2
+dcs-3
+pg-ha-1
+pg-ha-2
+pg-ha-3
+db-router-1
+mattermost-1
+```
+
+The command should leave you at a prompt like `[ec2-user@dcs-1 ~]$`. Confirm
+where you landed before doing anything:
+
+```bash
+hostname
+```
+
+```bash
+whoami
+```
+
+Expect the role name and `ec2-user`. Run only the commands for that role while
+connected. When that role's section is complete, return to the control plane:
+
+```bash
+exit
+```
+
+Then connect to the next role by changing only the final argument. For example:
+
+```bash
+/home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-2
+```
+
+If the helper says the role has no address, the server is not ready; tell the
+instructor. Do not bypass strict host-key checking or copy a private key to your
+laptop.
+
 How to use this file:
 - Run one indented command at a time. Do not paste whole sections into a terminal.
 - Text between BEGIN FILE and END FILE goes into the editor, not the shell.
