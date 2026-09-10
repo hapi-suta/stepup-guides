@@ -38,9 +38,9 @@ backend patroni_primary
   http-check connect port 8008
   http-check send meth GET uri /primary ver HTTP/1.1 hdr Host patroni
   http-check expect status 200
-  server pg-ha-1 PG_HA_1_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
-  server pg-ha-2 PG_HA_2_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
-  server pg-ha-3 PG_HA_3_IP:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-1 172.31.16.18:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-2 172.31.19.223:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-3 172.31.28.89:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
 ```
 
 

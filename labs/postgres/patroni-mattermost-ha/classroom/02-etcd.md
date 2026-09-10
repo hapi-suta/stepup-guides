@@ -30,11 +30,11 @@ User=root
 ExecStart=/usr/local/bin/etcd \
   --name=dcs-1 \
   --data-dir=/var/lib/etcd \
-  --listen-client-urls=https://DCS_1_IP:2379 \
-  --advertise-client-urls=https://DCS_1_IP:2379 \
-  --listen-peer-urls=https://DCS_1_IP:2380 \
-  --initial-advertise-peer-urls=https://DCS_1_IP:2380 \
-  --initial-cluster=dcs-1=https://DCS_1_IP:2380,dcs-2=https://DCS_2_IP:2380,dcs-3=https://DCS_3_IP:2380 \
+  --listen-client-urls=https://172.31.22.177:2379 \
+  --advertise-client-urls=https://172.31.22.177:2379 \
+  --listen-peer-urls=https://172.31.22.177:2380 \
+  --initial-advertise-peer-urls=https://172.31.22.177:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
   --initial-cluster-state=new \
   --initial-cluster-token=suta-ha001-etcd \
   --client-cert-auth=true \
@@ -97,11 +97,11 @@ User=root
 ExecStart=/usr/local/bin/etcd \
   --name=dcs-2 \
   --data-dir=/var/lib/etcd \
-  --listen-client-urls=https://DCS_2_IP:2379 \
-  --advertise-client-urls=https://DCS_2_IP:2379 \
-  --listen-peer-urls=https://DCS_2_IP:2380 \
-  --initial-advertise-peer-urls=https://DCS_2_IP:2380 \
-  --initial-cluster=dcs-1=https://DCS_1_IP:2380,dcs-2=https://DCS_2_IP:2380,dcs-3=https://DCS_3_IP:2380 \
+  --listen-client-urls=https://172.31.17.244:2379 \
+  --advertise-client-urls=https://172.31.17.244:2379 \
+  --listen-peer-urls=https://172.31.17.244:2380 \
+  --initial-advertise-peer-urls=https://172.31.17.244:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
   --initial-cluster-state=new \
   --initial-cluster-token=suta-ha001-etcd \
   --client-cert-auth=true \
@@ -164,11 +164,11 @@ User=root
 ExecStart=/usr/local/bin/etcd \
   --name=dcs-3 \
   --data-dir=/var/lib/etcd \
-  --listen-client-urls=https://DCS_3_IP:2379 \
-  --advertise-client-urls=https://DCS_3_IP:2379 \
-  --listen-peer-urls=https://DCS_3_IP:2380 \
-  --initial-advertise-peer-urls=https://DCS_3_IP:2380 \
-  --initial-cluster=dcs-1=https://DCS_1_IP:2380,dcs-2=https://DCS_2_IP:2380,dcs-3=https://DCS_3_IP:2380 \
+  --listen-client-urls=https://172.31.23.72:2379 \
+  --advertise-client-urls=https://172.31.23.72:2379 \
+  --listen-peer-urls=https://172.31.23.72:2380 \
+  --initial-advertise-peer-urls=https://172.31.23.72:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
   --initial-cluster-state=new \
   --initial-cluster-token=suta-ha001-etcd \
   --client-cert-auth=true \

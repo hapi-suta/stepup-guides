@@ -147,7 +147,7 @@ Expected: The prompt should identify ec2-user again.
 ## INSTRUCTOR APP HANDOFF
 
 The instructor prepares the Mattermost server after the database stack is ready.
-Give the instructor DB_ROUTER_1_IP, database name mattermost, username mattermost,
+Give the instructor 172.31.31.45, database name mattermost, username mattermost,
 and the database password through the agreed private channel.
 The instructor supplies APP_IP and the approved browser URL once the app is connected.
 Open that URL (http://APP_IP:8065 when direct lab access is enabled).

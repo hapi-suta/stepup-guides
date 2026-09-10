@@ -52,10 +52,10 @@ scope: suta-ha001
 namespace: /service/
 name: pg-ha-1
 restapi:
-  listen: PG_HA_1_IP:8008
-  connect_address: PG_HA_1_IP:8008
+  listen: 172.31.16.18:8008
+  connect_address: 172.31.16.18:8008
 etcd3:
-  hosts: DCS_1_IP:2379,DCS_2_IP:2379,DCS_3_IP:2379
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
   protocol: https
   cacert: /etc/patroni/etcd-ca.crt
   cert: /etc/patroni/etcd-client.crt
@@ -79,16 +79,16 @@ bootstrap:
     - data-checksums
   pg_hba:
     - local all all peer
-    - host all postgres PG_HA_1_IP/32 scram-sha-256
-    - host all postgres PG_HA_2_IP/32 scram-sha-256
-    - host all postgres PG_HA_3_IP/32 scram-sha-256
-    - host replication replicator PG_HA_1_IP/32 scram-sha-256
-    - host replication replicator PG_HA_2_IP/32 scram-sha-256
-    - host replication replicator PG_HA_3_IP/32 scram-sha-256
-    - host mattermost mattermost DB_ROUTER_1_IP/32 scram-sha-256
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
 postgresql:
-  listen: PG_HA_1_IP:5432
-  connect_address: PG_HA_1_IP:5432
+  listen: 172.31.16.18:5432
+  connect_address: 172.31.16.18:5432
   data_dir: /opt/pgsql/data
   bin_dir: /opt/pgsql/bin
   pgpass: /etc/patroni/pgpass
@@ -161,10 +161,10 @@ scope: suta-ha001
 namespace: /service/
 name: pg-ha-2
 restapi:
-  listen: PG_HA_2_IP:8008
-  connect_address: PG_HA_2_IP:8008
+  listen: 172.31.19.223:8008
+  connect_address: 172.31.19.223:8008
 etcd3:
-  hosts: DCS_1_IP:2379,DCS_2_IP:2379,DCS_3_IP:2379
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
   protocol: https
   cacert: /etc/patroni/etcd-ca.crt
   cert: /etc/patroni/etcd-client.crt
@@ -188,16 +188,16 @@ bootstrap:
     - data-checksums
   pg_hba:
     - local all all peer
-    - host all postgres PG_HA_1_IP/32 scram-sha-256
-    - host all postgres PG_HA_2_IP/32 scram-sha-256
-    - host all postgres PG_HA_3_IP/32 scram-sha-256
-    - host replication replicator PG_HA_1_IP/32 scram-sha-256
-    - host replication replicator PG_HA_2_IP/32 scram-sha-256
-    - host replication replicator PG_HA_3_IP/32 scram-sha-256
-    - host mattermost mattermost DB_ROUTER_1_IP/32 scram-sha-256
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
 postgresql:
-  listen: PG_HA_2_IP:5432
-  connect_address: PG_HA_2_IP:5432
+  listen: 172.31.19.223:5432
+  connect_address: 172.31.19.223:5432
   data_dir: /opt/pgsql/data
   bin_dir: /opt/pgsql/bin
   pgpass: /etc/patroni/pgpass
@@ -270,10 +270,10 @@ scope: suta-ha001
 namespace: /service/
 name: pg-ha-3
 restapi:
-  listen: PG_HA_3_IP:8008
-  connect_address: PG_HA_3_IP:8008
+  listen: 172.31.28.89:8008
+  connect_address: 172.31.28.89:8008
 etcd3:
-  hosts: DCS_1_IP:2379,DCS_2_IP:2379,DCS_3_IP:2379
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
   protocol: https
   cacert: /etc/patroni/etcd-ca.crt
   cert: /etc/patroni/etcd-client.crt
@@ -297,16 +297,16 @@ bootstrap:
     - data-checksums
   pg_hba:
     - local all all peer
-    - host all postgres PG_HA_1_IP/32 scram-sha-256
-    - host all postgres PG_HA_2_IP/32 scram-sha-256
-    - host all postgres PG_HA_3_IP/32 scram-sha-256
-    - host replication replicator PG_HA_1_IP/32 scram-sha-256
-    - host replication replicator PG_HA_2_IP/32 scram-sha-256
-    - host replication replicator PG_HA_3_IP/32 scram-sha-256
-    - host mattermost mattermost DB_ROUTER_1_IP/32 scram-sha-256
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
 postgresql:
-  listen: PG_HA_3_IP:5432
-  connect_address: PG_HA_3_IP:5432
+  listen: 172.31.28.89:5432
+  connect_address: 172.31.28.89:5432
   data_dir: /opt/pgsql/data
   bin_dir: /opt/pgsql/bin
   pgpass: /etc/patroni/pgpass

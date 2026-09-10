@@ -8,7 +8,7 @@ Students do not run the following application-server steps.
 Install the application software using the app preparation steps in this appendix.
 Configure the app to reach the student router on TCP 5432. Ensure db-router-1
 resolves to that student router from the app server, or replace db-router-1 in
-DataSource with the actual DB_ROUTER_1_IP. Never point it directly at a PG node.
+DataSource with the actual 172.31.31.45. Never point it directly at a PG node.
 Use the database password agreed with the student. Provide the app URL only after
 the ping check and a browser sign-in/post/reload check succeed.
 Changing the app SiteURL alone does not connect it to PostgreSQL.
