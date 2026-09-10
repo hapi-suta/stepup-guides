@@ -19,14 +19,14 @@ Fill in the private IPv4 address of each server:
 
 | Worksheet field | Server role | Private IPv4 address |
 |---|---|---|
-| `172.31.22.177` | `dcs-1` | __________________ |
-| `172.31.17.244` | `dcs-2` | __________________ |
-| `172.31.23.72` | `dcs-3` | __________________ |
-| `172.31.16.18` | `pg-ha-1` | __________________ |
-| `172.31.19.223` | `pg-ha-2` | __________________ |
-| `172.31.28.89` | `pg-ha-3` | __________________ |
-| `172.31.31.45` | `db-router-1` | __________________ |
-| `172.31.27.193` | `mattermost-1` | __________________ |
+| `DCS_1_IP` | `dcs-1` | `172.31.22.177` |
+| `DCS_2_IP` | `dcs-2` | `172.31.17.244` |
+| `DCS_3_IP` | `dcs-3` | `172.31.23.72` |
+| `PG_HA_1_IP` | `pg-ha-1` | `172.31.16.18` |
+| `PG_HA_2_IP` | `pg-ha-2` | `172.31.19.223` |
+| `PG_HA_3_IP` | `pg-ha-3` | `172.31.28.89` |
+| `DB_ROUTER_1_IP` | `db-router-1` | `172.31.31.45` |
+| `MATTERMOST_1_IP` | `mattermost-1` | `172.31.27.193` |
 
 Replace every *_IP token in the configuration text before saving it. These are
 worksheet placeholders, not shell variables. Use actual private IPv4 addresses.
