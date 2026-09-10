@@ -1,0 +1,88 @@
+{
+  "phases": {
+    "baseline": {
+      "success": 25,
+      "failure": 0,
+      "max_seconds": 0.017
+    },
+    "planned-switchover": {
+      "success": 4,
+      "failure": 18,
+      "max_seconds": 4.029
+    },
+    "healthy-after-switchover": {
+      "success": 0,
+      "failure": 27,
+      "max_seconds": 0.004
+    },
+    "patroni-service-stop": {
+      "success": 26,
+      "failure": 4,
+      "max_seconds": 0.026
+    },
+    "healthy-after-patroni-stop": {
+      "success": 17,
+      "failure": 0,
+      "max_seconds": 0.075
+    },
+    "router-connection-fix": {
+      "success": 11,
+      "failure": 0,
+      "max_seconds": 0.032
+    },
+    "planned-switchover-fixed": {
+      "success": 22,
+      "failure": 1,
+      "max_seconds": 2.805
+    },
+    "healthy-after-switchover-fixed": {
+      "success": 16,
+      "failure": 0,
+      "max_seconds": 0.075
+    },
+    "postgresql-immediate-stop": {
+      "success": 28,
+      "failure": 0,
+      "max_seconds": 2.048
+    },
+    "healthy-after-database-stop": {
+      "success": 6,
+      "failure": 0,
+      "max_seconds": 0.016
+    },
+    "writer-node-stop": {
+      "success": 142,
+      "failure": 0,
+      "max_seconds": 4.896
+    },
+    "healthy-after-node-recovery": {
+      "success": 24,
+      "failure": 0,
+      "max_seconds": 0.018
+    },
+    "writer-node-stop-fixed": {
+      "success": 83,
+      "failure": 0,
+      "max_seconds": 5.431
+    },
+    "healthy-after-node-recovery-fixed": {
+      "success": 17,
+      "failure": 0,
+      "max_seconds": 0.016
+    },
+    "patroni-service-stop-fixed": {
+      "success": 30,
+      "failure": 1,
+      "max_seconds": 2.228
+    },
+    "healthy-after-patroni-stop-fixed": {
+      "success": 18,
+      "failure": 0,
+      "max_seconds": 0.037
+    }
+  },
+  "acknowledged_posts_missing": 0,
+  "baseline_post_present": true,
+  "acknowledged_test_posts": 470,
+  "date_utc": "2026-09-10"
+}

@@ -1,0 +1,5971 @@
+
+
+Patroni HA — classroom guide
+============================
+
+Build the database cluster on prepared servers, then connect the instructor's application.
+
+Start with 1. Prepare your worksheet (01-prepare.md). Run one command at a time. Every configuration step names the server, provides the file contents and explains how to check the result.
+
+Who does what?
+==============
+
+| Students | Instructor |
+|---|---|
+| Configure three etcd members | Provision servers and install software/dependencies |
+| Configure three PostgreSQL/Patroni members | Supply working networking, TLS certificates and access |
+| Configure one HAProxy router | Install and configure Mattermost on the app server |
+| Create the app database and verify replication | Connect the app to the student router and provide the app URL |
+| Test the app and practice a switchover | Verify the app before handing it over |
+
+Follow this order
+=================
+
+Before step 1: the instructor provisions the servers, completes the software preparation (sysadmin-installation.md), installs the runtime-directory correction (03-patroni.md#prepare-the-service-to-survive-a-reboot), and verifies certificates. Students begin with installed software and an unconfigured database stack.
+
+| Milestone | Work | Finish when |
+|---|---|---|
+| 1 | Prepare (01-prepare.md) | Server addresses and prerequisites are confirmed |
+| 2 | etcd (02-etcd.md) | Three endpoints report healthy |
+| 3 | Patroni (03-patroni.md) | One leader and two streaming replicas |
+| 4 | HAProxy (04-haproxy.md) | Valid configuration and running router |
+| 5 | Application database (05-app-database.md) | Role, password and database created |
+| 5b | Standby routing (05b-readonly-routing.md) | Reads reach replicas; writes are rejected |
+| 6 | Verify and receive the app (06-verify.md) | Replication and browser checks succeed |
+| 7 | Planned switchover (07-switchover.md) | New leader, same router, working app |
+| 8 | Failure and recovery (08-failure-recovery.md) | Database, node and service failures recover with working app |
+
+Read logs and understand settings (08-troubleshooting.md) when a check fails.
+
+The two addresses
+=================
+
+- Database router IP: the instructor puts this in the app's database connection.
+- App IP / URL: students use this to open the app in a browser.
+
+The app IP does not go into the Patroni member list or HAProxy database backends. PostgreSQL sees the router as its client in this topology. The instructor manages any app-to-router network allowlist.
+
+Instructor material
+===================
+
+- Prepare and connect the app (instructor-app.md)
+- Software installation reference (sysadmin-installation.md)
+- Download the complete plain-text manual (patroni-ha-class-steps.txt)
+
+Tested on a real lab
+====================
+
+Yes. The configurations and operations were executed on a fresh eight-node AWS lab on September 9, 2026 (Pacific). We tested replication, writer/standby routing, real Mattermost writes, switchover, PostgreSQL failure, server stop/start and Patroni-service stop.
+
+Testing found an expired certificate, retained app connections after switchover and a missing socket directory after reboot. The guide contains the corrections, and the affected experiments were repeated.
+
+Read the measured results and limits (TEST-RESULTS.md). All 470 acknowledged test messages remained readable. Transient failed requests are documented; this is not a claim of seamless failover or guaranteed zero data loss.
+
+Use your assigned addresses and private passwords in the worksheets. The instructor provisions fresh software-ready servers for class; the tested rehearsal cluster is separate from that clean starting state.
+
+Prepare your worksheet
+======================
+
+Classroom home (README.md) · Next (02-etcd.md)
+
+PART 0 — BEFORE CLASS
+=====================
+
+The main lesson assumes software, OS dependencies, service users, directories,
+service units for Patroni/HAProxy/Mattermost, and TLS files are already installed.
+The sysadmin reference at the end lists the existing installation procedure.
+It requires Suta handoff artifacts; it is not a generic download/install guide.
+
+Prepared versions: etcd 3.6.14+suta.2; PostgreSQL 16.15; Patroni 4.1.4;
+HAProxy 3.2.22; Mattermost 11.10.1. Use the matching CentOS lab artifacts.
+
+No database should have been initialized. Patroni will run initdb and clone the
+replicas. All four application services should initially be stopped.
+
+Fill in the private IPv4 address of each server:
+
+  DCS_1_IP         dcs-1          172.31.22.177
+  DCS_2_IP         dcs-2          172.31.17.244
+  DCS_3_IP         dcs-3          172.31.23.72
+  PG_HA_1_IP       pg-ha-1        172.31.16.18
+  PG_HA_2_IP       pg-ha-2        172.31.19.223
+  PG_HA_3_IP       pg-ha-3        172.31.28.89
+  DB_ROUTER_1_IP   db-router-1    172.31.31.45
+  MATTERMOST_1_IP  mattermost-1   172.31.27.193
+
+Replace every *_IP token in the configuration text before saving it. These are
+worksheet placeholders, not shell variables. Use actual private IPv4 addresses.
+All eight hostnames must resolve to their correct private addresses.
+Use the assigned terminal/SSH session for each named server as ec2-user.
+
+Prepare three different strong passwords in a private password manager:
+
+  REPLACE_POSTGRES_SUPERUSER_PASSWORD   Patroni PostgreSQL superuser
+  REPLACE_REPLICATION_PASSWORD          Patroni replication user
+  REPLACE_MATTERMOST_DATABASE_PASSWORD  Mattermost database login
+Use the same superuser and replication values on all three Patroni nodes.
+For simple substitution in YAML and the application URI, use long random
+alphanumeric passwords. Otherwise quote/escape YAML and percent-encode the URI
+password correctly. Never use the literal placeholder as a password.
+
+Network prerequisites within this lab: etcd peers 2380; etcd clients 2379;
+PostgreSQL replication 5432; Patroni health API 8008 from the router;
+app to router 5432; instructor access to Mattermost 8065 through the approved
+lab access path. Do not expose PostgreSQL, etcd or the Patroni API to the internet.
+
+TLS prerequisites: each etcd member certificate must cover that node's private
+IP and hostname. Certificates must be current and signed by the same CA.
+Patroni must have a client certificate and its matching private key.
+
+CONNECT TO A SERVER BEFORE RUNNING ITS STEPS
+============================================
+Do not SSH directly from your laptop to the private 172.31.* addresses. Open
+the HA001 lab terminal in SutaBot. At the control-plane prompt, run:
+
+  /home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-1
+
+Change only the final role name for the next server:
+
+  dcs-1  dcs-2  dcs-3  pg-ha-1  pg-ha-2  pg-ha-3  db-router-1  mattermost-1
+
+The prompt should look like [ec2-user@dcs-1 ~]$. Confirm the connection:
+
+  hostname
+  whoami
+
+Expect the role name and ec2-user. Run only that role's commands. Return to the
+control plane when finished:
+
+  exit
+
+Then connect to the next role, for example:
+
+  /home/ec2-user/.local/bin/patroni-role-ssh HA001 dcs-2
+
+If the helper says the role has no address, tell the instructor. Do not bypass
+strict host-key checking or copy a private key to your laptop.
+
+How to use this file:
+- Run one indented command at a time. Do not paste whole sections into a terminal.
+- Text between BEGIN FILE and END FILE goes into the editor, not the shell.
+- In vi: press i, paste the file text, press Escape, type :wq, press Enter.
+- YAML indentation uses spaces. Keep the indentation shown.
+- postgres=# is a database prompt; a prompt ending in $ is a Linux shell.
+- Type only commands, never the sample prompt.
+- Stop and investigate an unexpected result before the next dependency.
+
+Check your starting terminal on every server:
+
+hostname
+
+
+
+whoami
+
+
+Expect the assigned role name and ec2-user.
+
+On each PostgreSQL server, verify the installed binary:
+
+/opt/pgsql/bin/postgres --version
+
+
+Expect PostgreSQL 16.15. A version check proves the program runs, not that a
+database has been created.
+
+
+ARCHITECTURE
+============
+
+Mattermost -> HAProxy:5432 -> current PostgreSQL writer
+Patroni on each PostgreSQL server -> etcd:2379 (mutual TLS)
+etcd members -> each other:2380 (mutual TLS)
+PostgreSQL writer -> streaming replicas
+
+etcd stores coordination state and the leader lock; it does not store application
+tables. Patroni manages PostgreSQL and leadership. HAProxy checks /primary on
+port 8008 and sends database connections to the node reporting HTTP 200.
+This lab uses asynchronous replication. It does not guarantee zero data loss.
+A single router and a single app server remain single points of failure.
+
+Checkpoint
+==========
+
+- [ ] You can identify every server and have the prepared software, TLS files and private passwords.
+
+Classroom home (README.md) · Next (02-etcd.md)
+
+Instructor certificate checks before the student starts
+=======================================================
+
+On each etcd node, check its member certificate:
+
+sudo openssl x509 -in /etc/etcd/member.crt -noout -dates
+
+sudo openssl verify -CAfile /etc/etcd/ca.crt /etc/etcd/member.crt
+
+On each PostgreSQL node, check the Patroni client certificate:
+
+sudo openssl x509 -in /etc/patroni/etcd-client.crt -noout -dates
+
+sudo openssl verify -CAfile /etc/patroni/etcd-ca.crt /etc/patroni/etcd-client.crt
+
+The validity interval must cover the class and verification must report OK. An expired certificate requires instructor renewal and redistribution, not disabling TLS verification. The CA signing key stays on the control plane.
+
+Configure etcd
+==============
+
+Classroom home (README.md) · Previous (01-prepare.md) · Next (03-patroni.md)
+
+1. Configure dcs-1
+==================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+The first member needs a unique name, addresses, peer list, data directory and mutual-TLS rules.
+
+
+sudo vi /etc/systemd/system/etcd.service
+
+
+The backslashes continue ONE ExecStart instruction across lines. They do not
+chain commands. Keep them exactly as shown.
+
+
+[Unit]
+Description=SUTA etcd member
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/etcd \
+  --name=dcs-1 \
+  --data-dir=/var/lib/etcd \
+  --listen-client-urls=https://172.31.22.177:2379 \
+  --advertise-client-urls=https://172.31.22.177:2379 \
+  --listen-peer-urls=https://172.31.22.177:2380 \
+  --initial-advertise-peer-urls=https://172.31.22.177:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
+  --initial-cluster-state=new \
+  --initial-cluster-token=suta-ha001-etcd \
+  --client-cert-auth=true \
+  --trusted-ca-file=/etc/etcd/ca.crt \
+  --cert-file=/etc/etcd/member.crt \
+  --key-file=/etc/etcd/member.key \
+  --peer-client-cert-auth=true \
+  --peer-trusted-ca-file=/etc/etcd/ca.crt \
+  --peer-cert-file=/etc/etcd/member.crt \
+  --peer-key-file=/etc/etcd/member.key
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+What happens: sudo opens the systemd unit with permission to save; vi lets you enter the exact role-resolved configuration supplied for this step.
+
+Check:
+
+sudo grep -n "ExecStart" /etc/systemd/system/etcd.service
+
+
+Look for: one ExecStart= line with the full path of the binary
+grep -n prints matching lines with their line numbers. A saved unit file must contain exactly one ExecStart line; if grep prints nothing, the file was not saved or is empty.
+
+Expected: vi opens the new etcd.service file; after saving, systemctl can parse the unit.
+
+
+2. Configure dcs-2
+==================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Every voting member needs its own identity while sharing the same initial cluster definition.
+
+
+sudo vi /etc/systemd/system/etcd.service
+
+
+The backslashes continue ONE ExecStart instruction across lines. They do not
+chain commands. Keep them exactly as shown.
+
+
+[Unit]
+Description=SUTA etcd member
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/etcd \
+  --name=dcs-2 \
+  --data-dir=/var/lib/etcd \
+  --listen-client-urls=https://172.31.17.244:2379 \
+  --advertise-client-urls=https://172.31.17.244:2379 \
+  --listen-peer-urls=https://172.31.17.244:2380 \
+  --initial-advertise-peer-urls=https://172.31.17.244:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
+  --initial-cluster-state=new \
+  --initial-cluster-token=suta-ha001-etcd \
+  --client-cert-auth=true \
+  --trusted-ca-file=/etc/etcd/ca.crt \
+  --cert-file=/etc/etcd/member.crt \
+  --key-file=/etc/etcd/member.key \
+  --peer-client-cert-auth=true \
+  --peer-trusted-ca-file=/etc/etcd/ca.crt \
+  --peer-cert-file=/etc/etcd/member.crt \
+  --peer-key-file=/etc/etcd/member.key
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+What happens: Create the dcs-2 unit using the exact role-resolved configuration supplied for this step.
+
+Check:
+
+sudo grep -n "ExecStart" /etc/systemd/system/etcd.service
+
+
+Look for: one ExecStart= line with the full path of the binary
+grep -n prints matching lines with their line numbers. A saved unit file must contain exactly one ExecStart line; if grep prints nothing, the file was not saved or is empty.
+
+Expected: The saved unit names dcs-2 and uses the common three-member initial cluster.
+
+
+3. Configure dcs-3
+==================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The third voting member completes the odd-sized quorum design.
+
+
+sudo vi /etc/systemd/system/etcd.service
+
+
+The backslashes continue ONE ExecStart instruction across lines. They do not
+chain commands. Keep them exactly as shown.
+
+
+[Unit]
+Description=SUTA etcd member
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+ExecStart=/usr/local/bin/etcd \
+  --name=dcs-3 \
+  --data-dir=/var/lib/etcd \
+  --listen-client-urls=https://172.31.23.72:2379 \
+  --advertise-client-urls=https://172.31.23.72:2379 \
+  --listen-peer-urls=https://172.31.23.72:2380 \
+  --initial-advertise-peer-urls=https://172.31.23.72:2380 \
+  --initial-cluster=dcs-1=https://172.31.22.177:2380,dcs-2=https://172.31.17.244:2380,dcs-3=https://172.31.23.72:2380 \
+  --initial-cluster-state=new \
+  --initial-cluster-token=suta-ha001-etcd \
+  --client-cert-auth=true \
+  --trusted-ca-file=/etc/etcd/ca.crt \
+  --cert-file=/etc/etcd/member.crt \
+  --key-file=/etc/etcd/member.key \
+  --peer-client-cert-auth=true \
+  --peer-trusted-ca-file=/etc/etcd/ca.crt \
+  --peer-cert-file=/etc/etcd/member.crt \
+  --peer-key-file=/etc/etcd/member.key
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+
+What happens: Create the dcs-3 unit using the exact role-resolved configuration supplied for this step.
+
+Check:
+
+sudo grep -n "ExecStart" /etc/systemd/system/etcd.service
+
+
+Look for: one ExecStart= line with the full path of the binary
+grep -n prints matching lines with their line numbers. A saved unit file must contain exactly one ExecStart line; if grep prints nothing, the file was not saved or is empty.
+
+Expected: The saved unit names dcs-3 and contains authenticated client and peer TLS settings.
+
+
+4. Start dcs-1
+==============
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+dcs-1 can start only after all three initial member configurations pass validation.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable etcd
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start etcd
+
+
+Start the service now.
+
+What happens: enable registers etcd for boot; --now starts the service on dcs-1 immediately.
+
+Check:
+
+systemctl status etcd --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: The command returns without error and dcs-1 enters its initial member startup.
+
+The first member alone cannot form a majority. Continue starting dcs-2 and
+dcs-3, then run the three-endpoint health check. Do not change the cluster list
+just because the first member reports that it has no leader yet.
+
+
+5. Start dcs-2
+==============
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+The second configured voting member allows the initial cluster to reach a majority.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable etcd
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start etcd
+
+
+Start the service now.
+
+What happens: enable registers etcd for boot and starts the service on dcs-2.
+
+Check:
+
+systemctl status etcd --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: The command returns without error and dcs-2 becomes active.
+
+
+6. Start dcs-3
+==============
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The third configured voter restores the intended one-member failure tolerance.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable etcd
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start etcd
+
+
+Start the service now.
+
+What happens: enable registers etcd for boot and starts the service on dcs-3.
+
+Check:
+
+systemctl status etcd --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: The command returns without error and dcs-3 becomes active.
+
+
+7. Prove quorum over mutual TLS
+===============================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+A running process is weaker evidence than three reachable voting members that can commit.
+
+
+sudo /usr/local/bin/etcdctl --endpoints=https://dcs-1:2379,https://dcs-2:2379,https://dcs-3:2379 --cacert=/etc/etcd/ca.crt --cert=/etc/etcd/member.crt --key=/etc/etcd/member.key endpoint health
+
+
+What happens: etcdctl contacts every named endpoint with the member certificate and asks each endpoint to commit a health proposal.
+
+Expected: Three lines report healthy endpoints and successful proposal commits.
+
+Checkpoint
+==========
+
+- [ ] All three endpoints report healthy. A single running etcd service is not enough.
+
+Classroom home (README.md) · Previous (01-prepare.md) · Next (03-patroni.md)
+
+Configure Patroni and join replicas
+===================================
+
+Classroom home (README.md) · Previous (02-etcd.md) · Next (04-haproxy.md)
+
+Prepare the service to survive a reboot
+=======================================
+
+On each of pg-ha-1, pg-ha-2 and pg-ha-3, as ec2-user, confirm the instructor installed the following systemd drop-in. If it is missing, create it before starting Patroni:
+
+sudo mkdir -p /etc/systemd/system/patroni.service.d
+
+sudo vi /etc/systemd/system/patroni.service.d/runtime-directory.conf
+
+Save this content:
+
+[Service]
+RuntimeDirectory=postgresql
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+
+sudo systemctl daemon-reload
+
+systemctl cat patroni
+
+Look for the three RuntimeDirectory settings. systemd creates /run/postgresql owned by the unit's postgres user before starting the service. /var/run points to /run; its contents do not survive a reboot. Creating the directory once by hand is insufficient.
+
+8. Configure Patroni on pg-ha-1
+===============================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Save this member’s generated identity and cluster configuration.
+
+
+sudo vi /etc/patroni/patroni.yml
+
+
+
+scope: suta-ha001
+namespace: /service/
+name: pg-ha-1
+restapi:
+  listen: 172.31.16.18:8008
+  connect_address: 172.31.16.18:8008
+etcd3:
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
+  protocol: https
+  cacert: /etc/patroni/etcd-ca.crt
+  cert: /etc/patroni/etcd-client.crt
+  key: /etc/patroni/etcd-client.key
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: 'on'
+        max_wal_senders: 10
+        max_replication_slots: 10
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  pg_hba:
+    - local all all peer
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
+postgresql:
+  listen: 172.31.16.18:5432
+  connect_address: 172.31.16.18:5432
+  data_dir: /opt/pgsql/data
+  bin_dir: /opt/pgsql/bin
+  pgpass: /etc/patroni/pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: REPLACE_POSTGRES_SUPERUSER_PASSWORD
+    replication:
+      username: replicator
+      password: REPLACE_REPLICATION_PASSWORD
+  parameters:
+    unix_socket_directories: /var/run/postgresql
+    password_encryption: scram-sha-256
+  create_replica_methods:
+    - basebackup
+  basebackup:
+    checkpoint: fast
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+
+
+What happens: Enter the role-resolved pg-ha-1 YAML supplied for this step. Secret tokens are inserted through the protected field and are never rendered into chat.
+
+
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+
+
+
+sudo chmod 0600 /etc/patroni/patroni.yml
+
+
+Only postgres and root can read the database passwords.
+
+Check:
+
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+
+
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected: The saved configuration passes YAML, secret-permission and Patroni contract validation.
+
+
+9. Configure Patroni on pg-ha-2
+===============================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Save this member’s generated identity and cluster configuration.
+
+
+sudo vi /etc/patroni/patroni.yml
+
+
+
+scope: suta-ha001
+namespace: /service/
+name: pg-ha-2
+restapi:
+  listen: 172.31.19.223:8008
+  connect_address: 172.31.19.223:8008
+etcd3:
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
+  protocol: https
+  cacert: /etc/patroni/etcd-ca.crt
+  cert: /etc/patroni/etcd-client.crt
+  key: /etc/patroni/etcd-client.key
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: 'on'
+        max_wal_senders: 10
+        max_replication_slots: 10
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  pg_hba:
+    - local all all peer
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
+postgresql:
+  listen: 172.31.19.223:5432
+  connect_address: 172.31.19.223:5432
+  data_dir: /opt/pgsql/data
+  bin_dir: /opt/pgsql/bin
+  pgpass: /etc/patroni/pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: REPLACE_POSTGRES_SUPERUSER_PASSWORD
+    replication:
+      username: replicator
+      password: REPLACE_REPLICATION_PASSWORD
+  parameters:
+    unix_socket_directories: /var/run/postgresql
+    password_encryption: scram-sha-256
+  create_replica_methods:
+    - basebackup
+  basebackup:
+    checkpoint: fast
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+
+
+What happens: Enter the supplied pg-ha-2 YAML. Protected secrets resolve outside chat.
+
+
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+
+
+
+sudo chmod 0600 /etc/patroni/patroni.yml
+
+
+Only postgres and root can read the database passwords.
+
+Check:
+
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+
+
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected: The file names pg-ha-2 and passes the Patroni contract validator.
+
+
+10. Configure Patroni on pg-ha-3
+================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Save this member’s generated identity and cluster configuration.
+
+
+sudo vi /etc/patroni/patroni.yml
+
+
+
+scope: suta-ha001
+namespace: /service/
+name: pg-ha-3
+restapi:
+  listen: 172.31.28.89:8008
+  connect_address: 172.31.28.89:8008
+etcd3:
+  hosts: 172.31.22.177:2379,172.31.17.244:2379,172.31.23.72:2379
+  protocol: https
+  cacert: /etc/patroni/etcd-ca.crt
+  cert: /etc/patroni/etcd-client.crt
+  key: /etc/patroni/etcd-client.key
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: 'on'
+        max_wal_senders: 10
+        max_replication_slots: 10
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  pg_hba:
+    - local all all peer
+    - host all postgres 172.31.16.18/32 scram-sha-256
+    - host all postgres 172.31.19.223/32 scram-sha-256
+    - host all postgres 172.31.28.89/32 scram-sha-256
+    - host replication replicator 172.31.16.18/32 scram-sha-256
+    - host replication replicator 172.31.19.223/32 scram-sha-256
+    - host replication replicator 172.31.28.89/32 scram-sha-256
+    - host mattermost mattermost 172.31.31.45/32 scram-sha-256
+postgresql:
+  listen: 172.31.28.89:5432
+  connect_address: 172.31.28.89:5432
+  data_dir: /opt/pgsql/data
+  bin_dir: /opt/pgsql/bin
+  pgpass: /etc/patroni/pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: REPLACE_POSTGRES_SUPERUSER_PASSWORD
+    replication:
+      username: replicator
+      password: REPLACE_REPLICATION_PASSWORD
+  parameters:
+    unix_socket_directories: /var/run/postgresql
+    password_encryption: scram-sha-256
+  create_replica_methods:
+    - basebackup
+  basebackup:
+    checkpoint: fast
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+
+
+What happens: Enter the supplied pg-ha-3 YAML using the same protected cluster credentials.
+
+
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+
+
+
+sudo chmod 0600 /etc/patroni/patroni.yml
+
+
+Only postgres and root can read the database passwords.
+
+Check:
+
+sudo grep -n -E "^(scope|name|restapi|etcd3|postgresql):" /etc/patroni/patroni.yml
+
+
+Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on its own numbered line
+grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
+
+Expected: The file names pg-ha-3 and passes the Patroni contract validator.
+
+
+11. Bootstrap the first Patroni leader
+======================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Start Patroni on pg-ha-1 and inspect the service status.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable patroni
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start patroni
+
+
+Start the service now.
+
+What happens: Enable Patroni for boot and start only pg-ha-1; Patroni initializes PostgreSQL with checksums and writes cluster state to etcd.
+
+Check:
+
+systemctl status patroni --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: pg-ha-1 becomes one running leader before either replica starts.
+
+Before starting either replica, prove pg-ha-1 became the writer:
+
+sudo -iu postgres
+
+
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+
+
+exit
+
+
+Expect pg-ha-1 as Leader and running. If no leader appears, read Patroni logs
+and fix it before joining replicas. A running systemd process alone is insufficient.
+
+
+12. Join pg-ha-2 as the first replica
+=====================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Start pg-ha-2 and watch it join the established cluster.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable patroni
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start patroni
+
+
+Start the service now.
+
+What happens: Start Patroni on pg-ha-2 only after the leader and pg-ha-2 configuration validators pass.
+
+Check:
+
+systemctl status patroni --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.
+
+
+13. Join pg-ha-3 as the second replica
+======================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Start Patroni on pg-ha-3 and inspect the service status.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable patroni
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start patroni
+
+
+Start the service now.
+
+What happens: Start Patroni on pg-ha-3 after the first replica is already streaming.
+
+Check:
+
+systemctl status patroni --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: The cluster reports one leader and two streaming replicas on one timeline.
+
+Now verify all members:
+
+sudo -iu postgres
+
+
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+
+
+exit
+
+
+Expect one Leader and two streaming Replicas. Wait for cloning to finish.
+
+Checkpoint
+==========
+
+- [ ] One member is Leader and two members are streaming Replicas.
+
+Classroom home (README.md) · Previous (02-etcd.md) · Next (04-haproxy.md)
+
+Configure the database router
+=============================
+
+Classroom home (README.md) · Previous (03-patroni.md) · Next (05-app-database.md)
+
+14. Configure the HAProxy writer route
+======================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+Mattermost needs one stable address that selects only Patroni's current primary.
+
+
+sudo vi /etc/haproxy/haproxy.cfg
+
+
+
+global
+  log stdout format raw local0
+  maxconn 1024
+
+defaults
+  log global
+  timeout connect 5s
+  timeout client 60s
+  timeout server 60s
+
+frontend postgres_writer
+  bind *:5432
+  mode tcp
+  default_backend patroni_primary
+
+backend patroni_primary
+  mode tcp
+  option httpchk
+  http-check connect port 8008
+  http-check send meth GET uri /primary ver HTTP/1.1 hdr Host patroni
+  http-check expect status 200
+  server pg-ha-1 172.31.16.18:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-2 172.31.19.223:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-3 172.31.28.89:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+
+
+What happens: Enter the supplied TCP frontend, three PostgreSQL backends and Patroni /primary HTTP health check.
+
+Check:
+
+sudo /usr/local/sbin/haproxy -c -V -f /etc/haproxy/haproxy.cfg
+
+
+Look for: Configuration file is valid
+haproxy -c checks the configuration without starting the service, -V makes it say so out loud, -f names the file. Anything other than 'valid' points at the exact line to fix.
+
+Expected: HAProxy's parser accepts the file and exactly one healthy writer backend is eligible.
+
+
+15. Start the writer endpoint
+=============================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+A valid file must still be loaded by a healthy service before applications can use it.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable haproxy
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start haproxy
+
+
+Start the service now.
+
+What happens: Enable and start HAProxy after the configuration parser and role-health validator pass.
+
+Check:
+
+systemctl status haproxy --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: HAProxy listens on port 5432 and routes a rollback-only write check to the current primary.
+
+Checkpoint
+==========
+
+- [ ] The configuration validates and HAProxy is running. Application verification follows after the database is created.
+
+Classroom home (README.md) · Previous (03-patroni.md) · Next (05-app-database.md)
+
+Why disconnect an unhealthy backend?
+====================================
+
+on-marked-down shutdown-sessions closes existing connections when a node fails the writer health check. Without it, a connection pool can keep using the old primary after it becomes a standby, causing write errors even though a new primary is healthy. In-flight requests may still fail; the application must reconnect and handle retries safely.
+
+Create the application database
+===============================
+
+Classroom home (README.md) · Previous (04-haproxy.md) · Next: standby routing (05b-readonly-routing.md)
+
+16. Create the Mattermost database login
+========================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+The application needs its own least-privilege PostgreSQL identity instead of the superuser.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
+
+Connect to PostgreSQL
+Type this in the postgres Linux shell.
+
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+
+
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Expected: Wait for postgres=#. You are now entering SQL or psql commands.
+
+Create the application login
+Type this at the postgres=# database prompt. Type only the command.
+
+CREATE ROLE mattermost LOGIN;
+
+
+Create the PostgreSQL role that Mattermost will use. LOGIN allows it to connect; it does not grant superuser privileges.
+Expected: Look for CREATE ROLE. If the role already exists, inspect it with the next check.
+
+Check the new role
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+
+\du mattermost
+
+
+List the mattermost database role and its attributes.
+Expected: Find mattermost. It must not be a Superuser or show Cannot login.
+
+Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+
+\q
+
+
+Leave the database client and return to Linux.
+Expected: You should see the postgres shell prompt again.
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+
+17. Set the protected Mattermost database password
+==================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+SCRAM authentication requires a password while chat and logs must never contain it.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
+
+Connect to PostgreSQL
+Type this in the postgres Linux shell.
+
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+
+
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Expected: Wait for postgres=#. You are now entering SQL or psql commands.
+
+Start the password change
+Type this at the postgres=# database prompt. Type only the command.
+
+\password mattermost
+
+
+psql securely prompts for a new password without placing it in your SQL command or shell history.
+Expected: Wait for Enter new password for user "mattermost":. The next two inputs will be hidden.
+
+Enter the generated password
+At the first password prompt, enter the value from Load protected password. Never paste it into Chat.
+Type the private Mattermost database password when prompted. Input is hidden.
+
+The terminal hides password input. No stars or letters appearing is normal.
+Expected: Press Enter once. Wait for Enter it again:.
+
+Enter the same password again
+At Enter it again:, enter the same protected value.
+Type the private Mattermost database password when prompted. Input is hidden.
+
+The terminal hides password input. No stars or letters appearing is normal.
+Expected: Press Enter. Wait for postgres=# before running the check. If it reports a mismatch, start the password action again.
+
+Check that the role has a SCRAM password
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+
+select rolname, rolpassword like 'SCRAM-SHA-256%' as scram from pg_authid where rolname = 'mattermost';
+
+
+Return the role name and a boolean indicating SCRAM storage. The query does not display the password or its stored hash.
+Expected: Find mattermost and t under scram. t means true.
+
+Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+
+\q
+
+
+Leave the database client and return to Linux.
+Expected: You should see the postgres shell prompt again.
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+
+18. Create the Mattermost database
+==================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Mattermost needs an isolated database owned by its application role.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
+
+Connect to PostgreSQL
+Type this in the postgres Linux shell.
+
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+
+
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Expected: Wait for postgres=#. You are now entering SQL or psql commands.
+
+Create the application database
+Type this at the postgres=# database prompt. Type only the command.
+
+CREATE DATABASE mattermost OWNER mattermost;
+
+
+Create one database named mattermost and give its ownership to the application role.
+Expected: Look for CREATE DATABASE.
+
+Check the database owner
+On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
+
+\l mattermost
+
+
+List the mattermost database and its ownership.
+Expected: Find mattermost in both the Name and Owner columns. If a pager opens, press q to return to postgres=#.
+
+Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+
+\q
+
+
+Leave the database client and return to Linux.
+Expected: You should see the postgres shell prompt again.
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+Checkpoint
+==========
+
+- [ ] The mattermost role has a SCRAM password and owns the mattermost database.
+
+Classroom home (README.md) · Previous (04-haproxy.md) · Next: standby routing (05b-readonly-routing.md)
+
+Route read-only connections to standbys
+=======================================
+
+Classroom home (README.md) · Previous: app database (05-app-database.md) · Next: app verification (06-verify.md)
+
+Complete the app database step first. Keep the application on port 5432. We will add 5433 for connections that should go to a standby.
+
+HAProxy does not inspect SQL and split SELECT from INSERT. The client chooses a connection endpoint. A standby rejects writes because PostgreSQL is in recovery.
+
+1. Add the reader endpoint
+==========================
+
+Server: db-router-1 · User: ec2-user · Linux terminal
+
+sudo vi /etc/haproxy/haproxy.cfg
+
+Keep the existing writer configuration. Append the following text, replacing the three IP placeholders with the PostgreSQL private addresses:
+
+frontend postgres_readers
+  bind *:5433
+  mode tcp
+  default_backend patroni_replicas
+
+backend patroni_replicas
+  mode tcp
+  balance roundrobin
+  option httpchk
+  http-check connect port 8008
+  http-check send meth GET uri /replica?lag=16MB ver HTTP/1.1 hdr Host patroni
+  http-check expect status 200
+  server pg-ha-1 172.31.16.18:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-2 172.31.19.223:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+  server pg-ha-3 172.31.28.89:5432 check port 8008 inter 2s fall 2 rise 2 on-marked-down shutdown-sessions
+
+The health check requires a running replica with acceptable lag. The leader is excluded. on-marked-down shutdown-sessions also closes existing reader sessions when their server stops meeting the replica check, including when it is promoted. Round-robin distributes new connections; a connected session stays on its selected server. The 16 MB lag threshold is a lab choice, not a guarantee of fresh reads. See Patroni's health-check contract (https://patroni.readthedocs.io/en/latest/rest_api.html).
+
+2. Validate before restarting
+=============================
+
+sudo /usr/local/sbin/haproxy -c -V -f /etc/haproxy/haproxy.cfg
+
+Expect Configuration file is valid. Fix any reported error before continuing.
+
+sudo systemctl restart haproxy
+
+This installed unit has no reload action. Restarting can disconnect existing sessions, so do this before handing over the app.
+
+systemctl status haproxy --no-pager
+
+Expect active (running). Allow a few seconds for backend health checks. The instructor must permit the intended lab client to reach the router on 5433; keep it private.
+
+3. Write a test row through the writer endpoint
+===============================================
+
+Server: pg-ha-1 · User: ec2-user · Linux terminal
+
+/opt/pgsql/bin/psql -h db-router-1 -p 5432 -U mattermost -d mattermost
+
+Enter the Mattermost database password privately. Wait for mattermost=>.
+
+CREATE TABLE classroom_routing_probe (id integer PRIMARY KEY, note text);
+
+Expect CREATE TABLE. Run this once in the fresh class database.
+
+INSERT INTO classroom_routing_probe VALUES (1, 'written through the writer endpoint');
+
+Expect INSERT 0 1.
+
+\q
+
+You are back in Linux.
+
+4. Connect through the reader endpoint
+======================================
+
+/opt/pgsql/bin/psql -h db-router-1 -p 5433 -U mattermost -d mattermost
+
+Enter the same database password. At mattermost=>:
+
+SELECT inet_server_addr(), pg_is_in_recovery();
+
+Expect a standby's private IP and t. Record the IP. Exit with \q, reconnect and repeat several times to see how new connections are distributed. Do not expect one existing connection to switch servers between queries.
+
+TABLE classroom_routing_probe;
+
+Expect the row created through 5432. Replication is asynchronous; if it has not arrived yet, wait briefly and repeat this read.
+
+5. Prove the standby refuses a write
+====================================
+
+Still connected through 5433:
+
+INSERT INTO classroom_routing_probe VALUES (2, 'must be rejected');
+
+Expected failure: cannot execute INSERT in a read-only transaction. This error is the successful outcome of this test. If the write succeeds, stop and investigate the endpoint before using it for read-only routing.
+
+\q
+
+Checkpoint
+==========
+
+- [ ] A write through 5432 succeeded.
+- [ ] Reader connections reached standbys with pg_is_in_recovery() = t.
+- [ ] The replicated row was readable through 5433.
+- [ ] A write through 5433 was rejected.
+- [ ] The app still uses the writer endpoint, 5432.
+
+Next: app verification (06-verify.md)
+
+Verify replication and receive the app
+======================================
+
+Classroom home (README.md) · Previous (05b-readonly-routing.md) · Next (07-switchover.md)
+
+PART 2 — PROVE THE STACK WORKS
+==============================
+
+Run these checks before any switchover. pg-ha-1 should still be the writer.
+
+
+19. Inspect streaming replication
+=================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Check the writer’s count of streaming replication connections.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
+
+Connect to PostgreSQL
+Type this in the postgres Linux shell.
+
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+
+
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Expected: Wait for postgres=#. You are now entering SQL or psql commands.
+
+Check replication
+Type this at the postgres=# database prompt. Type only the command.
+
+select state,count(*) from pg_stat_replication group by state;
+
+
+Count the writer’s replication connections in each state. The semicolon ends this one SQL statement.
+Expected: Look for streaming with count 2. This does not measure replay lag.
+
+Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+
+\q
+
+
+Leave the database client and return to Linux.
+Expected: You should see the postgres shell prompt again.
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+
+20. Verify data placement and checksums
+=======================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Correct storage and checksums are prerequisites for safe recovery.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-2, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-2 ~]$.
+
+Connect to PostgreSQL
+Type this in the postgres Linux shell.
+
+/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres
+
+
+The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
+Expected: Wait for postgres=#. You are now entering SQL or psql commands.
+
+Check the data directory
+Type this at the postgres=# database prompt. Type only the command.
+
+show data_directory;
+
+
+SHOW reports the current setting. data_directory identifies where PostgreSQL stores the cluster files.
+Expected: Look for /opt/pgsql/data.
+
+Check whether checksums are enabled
+Type this at the postgres=# database prompt. Type only the command.
+
+show data_checksums;
+
+
+Page checksums help detect corrupted data pages. This separate SHOW reports whether they are enabled.
+Expected: Look for on. Both this result and the data-directory result are required.
+
+Leave PostgreSQL
+After reading the checks, type this at postgres=#.
+
+\q
+
+
+Leave the database client and return to Linux.
+Expected: You should see the postgres shell prompt again.
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+
+INSTRUCTOR APP HANDOFF
+======================
+
+The instructor prepares the Mattermost server after the database stack is ready.
+Give the instructor 172.31.31.45, database name mattermost, username mattermost,
+and the database password through the agreed private channel.
+The instructor supplies APP_IP and the approved browser URL once the app is connected.
+Open that URL (http://APP_IP:8065 when direct lab access is enabled).
+Do not put APP_IP into the HAProxy backend list. Those are PostgreSQL nodes.
+Do not replace the router address in PostgreSQL pg_hba with APP_IP: PostgreSQL
+sees HAProxy as the TCP client in this configuration.
+If lab networking requires an application-source allowlist, authorize APP_IP/32
+to the router on TCP 5432 through the instructor-managed IaC/network policy.
+The app IP is not entered into etcd or Patroni membership.
+
+In the browser, open Mattermost using the approved lab URL or forwarded port.
+Create the first account if needed, sign in and post a test message. Reload and
+confirm the message is still present. The ping API proves service responsiveness;
+it does not prove that users can sign in or that their messages survive.
+
+Checkpoint
+==========
+
+- [ ] Two streaming connections are visible; the instructor app can sign in, save a message and show it after reload.
+
+Classroom home (README.md) · Previous (05b-readonly-routing.md) · Next (07-switchover.md)
+
+Practice a planned switchover
+=============================
+
+Classroom home (README.md) · Previous (06-verify.md) · Next: failure exercises (08-failure-recovery.md)
+
+PART 3 — OPTIONAL PLANNED SWITCHOVER
+====================================
+
+Only proceed when all three members are healthy and pg-ha-1 is the current leader.
+This interrupts existing database sessions; the application must reconnect.
+
+
+21. Perform a planned Patroni switchover
+========================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Maintenance requires moving leadership without pretending an outage occurred.
+
+Switch to the postgres user
+Start in the Linux terminal on pg-ha-1, as ec2-user.
+
+sudo -iu postgres
+
+
+sudo selects another operating-system user. -i opens a login shell; -u postgres chooses the postgres account.
+Expected: The prompt should identify postgres: [postgres@pg-ha-1 ~]$.
+
+Move leadership to pg-ha-2
+Type this in the postgres Linux shell.
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml switchover --leader pg-ha-1 --candidate pg-ha-2 --force
+
+
+Request a planned leadership change from pg-ha-1 to pg-ha-2. --force confirms the request without another question. Confirm the candidate is streaming before running it.
+Expected: pg-ha-2 is leader, the former leader rejoins as streaming replica, and the application route is unchanged.
+
+Check the cluster topology
+On pg-ha-1, type this in the postgres Linux shell.
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+
+patronictl list shows the cluster from the DCS point of view: who leads, who streams, and each member's lag. A switchover is only done when the candidate is Leader and the old leader is back as a streaming Replica.
+Expected: pg-ha-2 in the Leader role and every other member as Replica with state streaming
+
+Return to your original user
+Type this in the postgres Linux shell.
+
+exit
+
+
+Close the nested shell before the next lesson.
+Expected: The prompt should identify ec2-user again.
+
+Instructor: on mattermost-1, check the application again:
+
+curl -fsS http://127.0.0.1:8065/api/v4/system/ping
+
+
+Reload the browser, confirm the earlier message remains and post a second one.
+The app database hostname must still be db-router-1. If you changed it to the new
+leader manually, you have not demonstrated automatic routing.
+
+Checkpoint
+==========
+
+- [ ] pg-ha-2 is Leader, the other nodes stream, and the app works through the same router endpoint.
+
+Classroom home (README.md) · Previous (06-verify.md) · Next: failure exercises (08-failure-recovery.md)
+
+Observe failure and recovery
+============================
+
+Classroom home (README.md) · Previous: planned switchover (07-switchover.md) · Read logs (08-troubleshooting.md)
+
+Run these exercises only on the assigned practice cluster. Complete one exercise, recover all three members, and verify the app before starting the next one.
+
+Before each experiment
+======================
+
+1. Open the app. Post a message identifying the experiment and reload it.
+2. Keep that browser open. Attempt another message during the disruption and note any error or delay.
+3. In a surviving PostgreSQL server's terminal, switch to postgres:
+
+sudo -iu postgres
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+Record the current Leader. Do not assume it is still pg-ha-1 after a previous exercise. Confirm the other two nodes are streaming.
+
+exit
+
+Record: old leader, new leader, time disruption began, first successful new app write, and whether the original message remains. A failed request can have an uncertain outcome; check for the message before blindly retrying it.
+
+Exercise A — PostgreSQL stops while Patroni remains running
+===========================================================
+
+Target: the current Leader only. Start as ec2-user in its Linux terminal.
+
+sudo -iu postgres
+
+/opt/pgsql/bin/pg_ctl -D /opt/pgsql/data stop -m immediate
+
+This is an intentional database crash for the lab. Immediate shutdown skips a clean database shutdown; PostgreSQL must perform crash recovery. Patroni remains active and can restart it. Do not run this command on all three nodes.
+
+exit
+
+From the surviving observer terminal:
+
+sudo -iu postgres
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+Repeat the list command while it recovers. A database crash does not necessarily cause a promotion: Patroni may restart the same writer before it needs to fail over. Record which outcome occurs.
+
+exit
+
+On the affected node, read the recovery sequence:
+
+sudo journalctl -u patroni -n 80 --no-pager
+
+Finish: one running leader, two streaming replicas, a new app message saves, and the earlier message survives a browser reload.
+
+Exercise B — the writer's entire server becomes unavailable
+===========================================================
+
+Instructor action: use the AWS CLI session for the class account. Students observe from a different server.
+
+First identify the current leader again. Map that role to its EC2 instance ID in the instructor's inventory. Replace WRITER_INSTANCE_ID below with that exact ID.
+
+aws sts get-caller-identity
+
+Confirm this is the intended lab account.
+
+aws ec2 describe-instances --region us-east-1 --instance-ids WRITER_INSTANCE_ID --query 'Reservations[].Instances[].{Id:InstanceId,State:State.Name,Tags:Tags}'
+
+Confirm the role and ownership tags. Never select the control plane, router, app server or another student's instance.
+
+aws ec2 stop-instances --region us-east-1 --instance-ids WRITER_INSTANCE_ID
+
+Stopping the instance makes both Patroni and PostgreSQL unavailable. This is a whole-node availability exercise, not a network-partition or power-loss simulation.
+
+On the surviving observer, switch to postgres and inspect membership:
+
+sudo -iu postgres
+
+/usr/local/bin/patronictl -c /etc/patroni/patroni.yml list
+
+Repeat until a different node is Leader. Meanwhile, try saving messages in the app. Expect possible failed requests or delays during detection and reconnection; measure them.
+
+exit
+
+Once promotion and an app write have been observed, the instructor starts the original instance:
+
+aws ec2 start-instances --region us-east-1 --instance-ids WRITER_INSTANCE_ID
+
+Wait for the server to boot. Inspect membership again from the surviving observer. The returned node must rejoin as a streaming replica; do not manually initialize it or force it to become primary.
+
+Finish: one running leader, two streaming replicas, app writes succeed through the unchanged router, and previously saved messages remain readable.
+
+Exercise C — stop the Patroni service
+=====================================
+
+Identify the current leader again. On that server as ec2-user:
+
+sudo systemctl stop patroni
+
+This is a controlled service stop. With this unit, stopping Patroni also affects its managed PostgreSQL processes. It is not equivalent to killing only the Patroni process and leaving PostgreSQL running.
+
+Observe membership from another node and try the app. Record whether leadership moves and how requests behave.
+
+Restore the stopped service on the original node:
+
+sudo systemctl start patroni
+
+sudo journalctl -u patroni -n 80 --no-pager
+
+Wait for all three members to recover before ending the exercise.
+
+Recheck the reader endpoint
+===========================
+
+On a PostgreSQL server as ec2-user:
+
+/opt/pgsql/bin/psql -h db-router-1 -p 5433 -U mattermost -d mattermost
+
+Enter the database password. At the database prompt:
+
+SELECT inet_server_addr(), pg_is_in_recovery();
+
+Expect a current standby and t. A promoted node must no longer be eligible for new reader connections.
+
+\q
+
+What these exercises prove
+==========================
+
+They demonstrate recovery for the specific failures you injected and the messages you checked. This asynchronous cluster does not guarantee zero data loss for every failure. A successful ping does not prove that writes work, and a successful write does not prove every earlier message survived. Check all three separately.
+
+Read logs and understand settings
+=================================
+
+Classroom home (README.md) · Previous (07-switchover.md)
+
+WHEN A CHECK FAILS
+==================
+
+On the server with the failing service, read its recent logs. These are separate
+commands; run the relevant one. Logs may contain sensitive configuration details.
+
+
+sudo journalctl -u etcd -n 80 --no-pager
+
+
+
+sudo journalctl -u patroni -n 80 --no-pager
+
+
+
+sudo journalctl -u haproxy -n 80 --no-pager
+
+
+
+sudo journalctl -u mattermost -n 80 --no-pager
+
+
+Read from the earliest error in the failed start, not only the final exit line.
+- etcd: certificate expired/unknown authority means check validity and common CA.
+  Address/SAN mismatch means the certificate does not identify this server.
+  Connection refused means check peer address, listener and network rules.
+- Patroni: YAML errors identify an indentation or syntax problem. Permission
+  denied often points at config, TLS keys, socket directory or the data directory.
+  DCS connection errors must be fixed before PostgreSQL leadership can work.
+- HAProxy: configuration validation gives a line number. If all backends are DOWN,
+  inspect Patroni /primary health responses and port 8008 connectivity.
+- Mattermost: password authentication failed means compare the role password with
+  the URI. Connection refused means verify router listener and healthy backend.
+Do not delete data directories or reset etcd to hide a configuration error.
+
+
+UNDERSTAND THE IMPORTANT SETTINGS
+=================================
+
+scope and namespace identify the same Patroni cluster on all three nodes.
+name is unique per node; connect_address advertises a reachable private address.
+ttl=30 is the DCS leader-lock lifetime; loop_wait=10 is the normal control-loop
+interval; retry_timeout=10 bounds retries. These are related settings.
+maximum_lag_on_failover=1048576 excludes excessively lagging candidates by this
+lag check; it is not a promise that at most 1 MB can ever be lost.
+use_pg_rewind allows a former primary to be realigned when rewind prerequisites
+hold. data-checksums is enabled at bootstrap to support this setup.
+use_slots helps retain WAL needed by replicas; monitor WAL/disk if one is offline.
+bootstrap.dcs seeds shared settings only when the cluster is first initialized.
+Changing that section later does not automatically update existing DCS settings.
+pg_hba permits local peer login, exact database-node addresses for administration
+and replication, and the router address for the Mattermost role/database.
+HAProxy /primary checks distinguish the writer from a merely reachable database.
+The etcd snapshot is coordination metadata, not a PostgreSQL backup.
+
+Checkpoint
+==========
+
+- [ ] Identify the first meaningful error before changing configuration or restarting services.
+
+Classroom home (README.md) · Previous (07-switchover.md)
+
+Instructor: prepare and connect the app
+=======================================
+
+Classroom home (README.md)
+
+INSTRUCTOR ONLY — PREPARE AND CONNECT THE APP
+=============================================
+
+Students do not run the following application-server steps.
+Install the application software using the app preparation steps in this appendix.
+Configure the app to reach the student router on TCP 5432. Ensure db-router-1
+resolves to that student router from the app server, or replace db-router-1 in
+DataSource with the actual 172.31.31.45. Never point it directly at a PG node.
+Use the database password agreed with the student. Provide the app URL only after
+the ping check and a browser sign-in/post/reload check succeed.
+Changing the app SiteURL alone does not connect it to PostgreSQL.
+
+
+22. Connect Mattermost to HAProxy
+=================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The application must use the stable writer endpoint rather than a PostgreSQL node address.
+
+
+sudo vi /opt/mattermost/config/config.json
+
+
+Edit the existing SqlSettings and ServiceSettings objects to match these
+fields. Keep other existing settings. If no config exists, this is the minimal
+lab configuration. Use the SAME password you set with \password mattermost.
+The app connects to db-router-1, never directly to pg-ha-1.
+sslmode=disable matches this isolated lab; it does not encrypt database traffic.
+
+
+{
+  "SqlSettings": {
+    "DriverName": "postgres",
+    "DataSource": "postgres://mattermost:REPLACE_MATTERMOST_DATABASE_PASSWORD@db-router-1:5432/mattermost?sslmode=disable&connect_timeout=10"
+  },
+  "ServiceSettings": {
+    "ListenAddress": ":8065",
+    "SiteURL": ""
+  }
+}
+
+
+What happens: Apply the supplied SQL and listen settings to the installed Mattermost configuration. The database password resolves through a protected field and is never rendered into chat.
+
+
+sudo chown mattermost:mattermost /opt/mattermost/config/config.json
+
+
+
+sudo chmod 0600 /opt/mattermost/config/config.json
+
+
+Check:
+
+sudo python3 -m json.tool /opt/mattermost/config/config.json /dev/null
+
+
+Look for: No error is printed and the Linux prompt returns. A parsing error means the JSON must be corrected.
+python3 parses the JSON file and sends formatted output to /dev/null. This checks syntax without displaying the password-bearing configuration. It does not test the database connection.
+
+Expected: The protected configuration targets db-router-1:5432 and remains readable only by the mattermost account.
+
+
+23. Start and prove Mattermost
+==============================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The completed BUILD must prove the real application path, not only database processes.
+
+
+sudo systemctl daemon-reload
+
+
+Reload systemd so it sees the saved unit. This does not start the service.
+
+
+sudo systemctl enable mattermost
+
+
+Enable startup after reboot.
+
+
+sudo systemctl start mattermost
+
+
+Start the service now.
+
+What happens: Enable and start Mattermost; its startup migrations and health endpoint exercise the HAProxy-to-PostgreSQL path.
+
+Check:
+
+systemctl status mattermost --no-pager
+
+
+Look for: Loaded: loaded (... ; enabled ...) and Active: active (running)
+Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+
+Expected: Mattermost reports active, its system ping returns OK and database migrations complete through HAProxy.
+
+
+24. Check Mattermost from the workload node
+===========================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The application is the end-to-end consumer of the HA database path.
+
+
+curl -fsS http://127.0.0.1:8065/api/v4/system/ping
+
+
+What happens: curl requests Mattermost’s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds.
+
+Expected: The API reports status OK.
+
+Checkpoint
+==========
+
+- [ ] The app connects to the student router; sign-in, message creation and reload succeed before handing out the URL.
+
+Classroom home (README.md)
+
+Sysadmin: installation reference
+================================
+
+Classroom home (README.md)
+
+This is an instructor reference, not the student lesson. It assumes the Suta artifacts, runtime dependencies, networking and certificates have already been supplied. It does not provision AWS or generate PKI. Skip actions that are already complete.
+
+SYSADMIN INSTALLATION ACTIONS
+=============================
+
+
+
+25. Verify the staged etcd archive
+==================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+You must prove the software bytes are approved before installing them.
+
+
+sha256sum /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz
+
+
+What happens: sha256sum calculates the archive fingerprint; compare it with the digest shown in the handoff manifest.
+
+Expected: One SHA-256 digest followed by the archive path.
+
+
+26. Copy the etcd server program into place
+===========================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: one line ending in /usr/local/bin/etcd with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+
+27. Make the etcd server program runnable
+=========================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+The etcd program runs one voting member of the distributed configuration store.
+
+
+sudo chmod 0755 /usr/local/bin/etcd
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
+
+
+28. Copy the etcdctl client program into place
+==============================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: one line ending in /usr/local/bin/etcdctl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+
+29. Make the etcdctl client program runnable
+============================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+etcdctl sends authenticated health, membership and snapshot requests to etcd.
+
+
+sudo chmod 0755 /usr/local/bin/etcdctl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl is executable.
+
+
+30. Copy the etcdutl recovery program into place
+================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: one line ending in /usr/local/bin/etcdutl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+
+31. Make the etcdutl recovery program runnable
+==============================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+etcdutl inspects and restores offline etcd data such as snapshots.
+
+
+sudo chmod 0755 /usr/local/bin/etcdutl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl is executable.
+
+
+32. Create the etcd-directories-1 directories
+=============================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /etc/etcd
+
+
+What happens: sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+33. Give root ownership of the etcd-directories-1 directories
+=============================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /etc/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+34. Lock down the etcd-directories-1 directory permissions
+==========================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Configuration and consensus data need explicit protected locations.
+
+
+sudo chmod 0700 /etc/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /etc/etcd is owned by root with mode 0700.
+
+
+35. Create the etcd-data-directory-1 directories
+================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /var/lib/etcd
+
+
+What happens: sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+36. Give root ownership of the etcd-data-directory-1 directories
+================================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /var/lib/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+37. Lock down the etcd-data-directory-1 directory permissions
+=============================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+etcd must persist quorum state in a root-only directory that starts empty.
+
+
+sudo chmod 0700 /var/lib/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
+
+
+38. Copy the role-bound TLS public certificate into place
+=========================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: one line ending in /etc/etcd/member.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+
+39. Set permissions on the role-bound TLS public certificate
+============================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Peers need this signed public certificate to authenticate the member name and private address.
+
+
+sudo chmod 0644 /etc/etcd/member.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The certificate is installed without printing its contents.
+
+
+40. Copy the etcd trust anchor into place
+=========================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: one line ending in /etc/etcd/ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+
+41. Set permissions on the etcd trust anchor
+============================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+The member needs the lab CA certificate to verify certificates presented by clients and peers.
+
+
+sudo chmod 0644 /etc/etcd/ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The CA certificate is installed without exposing any private key.
+
+
+42. Copy the role-bound TLS private key into place
+==================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: one line ending in /etc/etcd/member.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.key now exists.
+
+
+43. Set permissions on the role-bound TLS private key
+=====================================================
+
+SERVER: dcs-1 | START AS: ec2-user in Linux
+
+
+Mutual TLS must identify this member without exposing its private key.
+
+
+sudo chmod 0600 /etc/etcd/member.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: The command returns without displaying key material.
+
+
+44. Copy the etcd server program into place
+===========================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: one line ending in /usr/local/bin/etcd with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+
+45. Make the etcd server program runnable
+=========================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+The etcd program runs one voting member of the distributed configuration store.
+
+
+sudo chmod 0755 /usr/local/bin/etcd
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
+
+
+46. Copy the etcdctl client program into place
+==============================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: one line ending in /usr/local/bin/etcdctl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+
+47. Make the etcdctl client program runnable
+============================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+etcdctl sends authenticated health, membership and snapshot requests to etcd.
+
+
+sudo chmod 0755 /usr/local/bin/etcdctl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl is executable.
+
+
+48. Copy the etcdutl recovery program into place
+================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: one line ending in /usr/local/bin/etcdutl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+
+49. Make the etcdutl recovery program runnable
+==============================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+etcdutl inspects and restores offline etcd data such as snapshots.
+
+
+sudo chmod 0755 /usr/local/bin/etcdutl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl is executable.
+
+
+50. Create the etcd-directories-2 directories
+=============================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /etc/etcd
+
+
+What happens: sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+51. Give root ownership of the etcd-directories-2 directories
+=============================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /etc/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+52. Lock down the etcd-directories-2 directory permissions
+==========================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Configuration and consensus data need explicit protected locations.
+
+
+sudo chmod 0700 /etc/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /etc/etcd is owned by root with mode 0700.
+
+
+53. Create the etcd-data-directory-2 directories
+================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /var/lib/etcd
+
+
+What happens: sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+54. Give root ownership of the etcd-data-directory-2 directories
+================================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /var/lib/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+55. Lock down the etcd-data-directory-2 directory permissions
+=============================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+etcd must persist quorum state in a root-only directory that starts empty.
+
+
+sudo chmod 0700 /var/lib/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
+
+
+56. Copy the role-bound TLS public certificate into place
+=========================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: one line ending in /etc/etcd/member.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+
+57. Set permissions on the role-bound TLS public certificate
+============================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Peers need this signed public certificate to authenticate the member name and private address.
+
+
+sudo chmod 0644 /etc/etcd/member.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The certificate is installed without printing its contents.
+
+
+58. Copy the etcd trust anchor into place
+=========================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: one line ending in /etc/etcd/ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+
+59. Set permissions on the etcd trust anchor
+============================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+The member needs the lab CA certificate to verify certificates presented by clients and peers.
+
+
+sudo chmod 0644 /etc/etcd/ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The CA certificate is installed without exposing any private key.
+
+
+60. Copy the role-bound TLS private key into place
+==================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: one line ending in /etc/etcd/member.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.key now exists.
+
+
+61. Set permissions on the role-bound TLS private key
+=====================================================
+
+SERVER: dcs-2 | START AS: ec2-user in Linux
+
+
+Mutual TLS must identify this member without exposing its private key.
+
+
+sudo chmod 0600 /etc/etcd/member.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: The command returns without displaying key material.
+
+
+62. Copy the etcd server program into place
+===========================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcd. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: one line ending in /usr/local/bin/etcd with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcd now exists.
+
+
+63. Make the etcd server program runnable
+=========================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The etcd program runs one voting member of the distributed configuration store.
+
+
+sudo chmod 0755 /usr/local/bin/etcd
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcd
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt without an error and /usr/local/bin/etcd is executable.
+
+
+64. Copy the etcdctl client program into place
+==============================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdctl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: one line ending in /usr/local/bin/etcdctl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl now exists.
+
+
+65. Make the etcdctl client program runnable
+============================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+etcdctl sends authenticated health, membership and snapshot requests to etcd.
+
+
+sudo chmod 0755 /usr/local/bin/etcdctl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdctl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdctl is executable.
+
+
+66. Copy the etcdutl recovery program into place
+================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/etcdutl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: one line ending in /usr/local/bin/etcdutl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl now exists.
+
+
+67. Make the etcdutl recovery program runnable
+==============================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+etcdutl inspects and restores offline etcd data such as snapshots.
+
+
+sudo chmod 0755 /usr/local/bin/etcdutl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/etcdutl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The command returns to the prompt and /usr/local/bin/etcdutl is executable.
+
+
+68. Create the etcd-directories-3 directories
+=============================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /etc/etcd
+
+
+What happens: sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+69. Give root ownership of the etcd-directories-3 directories
+=============================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /etc/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+70. Lock down the etcd-directories-3 directory permissions
+==========================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Configuration and consensus data need explicit protected locations.
+
+
+sudo chmod 0700 /etc/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /etc/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /etc/etcd is owned by root with mode 0700.
+
+
+71. Create the etcd-data-directory-3 directories
+================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /var/lib/etcd
+
+
+What happens: sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+72. Give root ownership of the etcd-data-directory-3 directories
+================================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /var/lib/etcd
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+73. Lock down the etcd-data-directory-3 directory permissions
+=============================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+etcd must persist quorum state in a root-only directory that starts empty.
+
+
+sudo chmod 0700 /var/lib/etcd
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/lib/etcd
+
+
+Look for: the first column reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: The command returns without error and /var/lib/etcd remains empty, root-owned, and mode 0700.
+
+
+74. Copy the role-bound TLS public certificate into place
+=========================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: one line ending in /etc/etcd/member.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.crt now exists.
+
+
+75. Set permissions on the role-bound TLS public certificate
+============================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Peers need this signed public certificate to authenticate the member name and private address.
+
+
+sudo chmod 0644 /etc/etcd/member.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The certificate is installed without printing its contents.
+
+
+76. Copy the etcd trust anchor into place
+=========================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: one line ending in /etc/etcd/ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/ca.crt now exists.
+
+
+77. Set permissions on the etcd trust anchor
+============================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+The member needs the lab CA certificate to verify certificates presented by clients and peers.
+
+
+sudo chmod 0644 /etc/etcd/ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The CA certificate is installed without exposing any private key.
+
+
+78. Copy the role-bound TLS private key into place
+==================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/etcd/member.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: one line ending in /etc/etcd/member.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/etcd/member.key now exists.
+
+
+79. Set permissions on the role-bound TLS private key
+=====================================================
+
+SERVER: dcs-3 | START AS: ec2-user in Linux
+
+
+Mutual TLS must identify this member without exposing its private key.
+
+
+sudo chmod 0600 /etc/etcd/member.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+sudo ls -l /etc/etcd/member.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: The command returns without displaying key material.
+
+
+80. Create the postgres operating-system account on pg-ha-1
+===========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+PostgreSQL and Patroni must run as a dedicated account instead of root.
+
+
+sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres
+
+
+What happens: useradd creates a system account named postgres with /opt/pgsql as its home and bash for controlled administration.
+
+Check:
+
+id postgres
+
+
+Look for: uid=... (postgres) gid=... (postgres)
+id prints the numeric user id, group id and groups of an account. If the account did not get created, id says 'no such user'.
+
+Expected: The command returns without error and the postgres account exists without a login password.
+
+
+81. Install PostgreSQL on pg-ha-1
+=================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Patroni manages PostgreSQL but does not replace the PostgreSQL server binaries.
+
+
+sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C /
+
+
+What happens: tar extracts the verified PostgreSQL filesystem archive beneath its approved absolute paths.
+
+Check:
+
+ls -l /opt/pgsql/bin/postgres
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/pgsql/bin/postgres
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: The command returns without error and /opt/pgsql/bin/postgres exists.
+
+
+82. Create the postgresql-layout-1 directories
+==============================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: 4 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+83. Give postgres ownership of the postgresql-layout-1 directories
+==================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+The postgres service must own these directories to write into them.
+
+
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+84. Lock down the postgresql-layout-1 directory permissions
+===========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Data, WAL, backup and log paths have different operational purposes.
+
+
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: each line reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: All four directories exist with postgres ownership and mode 0700; PGDATA remains uninitialized.
+
+
+85. Create the postgres operating-system account on pg-ha-2
+===========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Every PostgreSQL member uses the same dedicated operating-system identity.
+
+
+sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres
+
+
+What happens: Create the postgres system account on pg-ha-2 before extracting files owned by it.
+
+Check:
+
+id postgres
+
+
+Look for: uid=... (postgres) gid=... (postgres)
+id prints the numeric user id, group id and groups of an account. If the account did not get created, id says 'no such user'.
+
+Expected: The postgres account exists on pg-ha-2.
+
+
+86. Install PostgreSQL on pg-ha-2
+=================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+A future replica needs the exact same PostgreSQL minor-version binaries as the leader.
+
+
+sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C /
+
+
+What happens: Extract the verified PostgreSQL archive into the approved filesystem paths on pg-ha-2.
+
+Check:
+
+ls -l /opt/pgsql/bin/postgres
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/pgsql/bin/postgres
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: PostgreSQL 16.15 is installed without initializing a cluster.
+
+
+87. Create the postgresql-layout-2 directories
+==============================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: 4 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+88. Give postgres ownership of the postgresql-layout-2 directories
+==================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+The postgres service must own these directories to write into them.
+
+
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+89. Lock down the postgresql-layout-2 directory permissions
+===========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+The replica needs the same protected operational paths before it can clone.
+
+
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: each line reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: All four directories exist and /opt/pgsql/data has no PG_VERSION.
+
+
+90. Create the postgres operating-system account on pg-ha-3
+===========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+The third database member also needs the dedicated least-privilege process identity.
+
+
+sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres
+
+
+What happens: Create the postgres system account on pg-ha-3.
+
+Check:
+
+id postgres
+
+
+Look for: uid=... (postgres) gid=... (postgres)
+id prints the numeric user id, group id and groups of an account. If the account did not get created, id says 'no such user'.
+
+Expected: The postgres account exists on pg-ha-3.
+
+
+91. Install PostgreSQL on pg-ha-3
+=================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+The second replica must match the leader and first replica software version.
+
+
+sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C /
+
+
+What happens: Extract the same verified PostgreSQL archive on pg-ha-3.
+
+Check:
+
+ls -l /opt/pgsql/bin/postgres
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/pgsql/bin/postgres
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: PostgreSQL 16.15 is installed without an initialized PGDATA.
+
+
+92. Create the postgresql-layout-3 directories
+==============================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: sudo mkdir -p creates /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: 4 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+93. Give postgres ownership of the postgresql-layout-3 directories
+==================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+The postgres service must own these directories to write into them.
+
+
+sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+94. Lock down the postgresql-layout-3 directory permissions
+===========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+The second replica needs the same protected layout and empty PGDATA.
+
+
+sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+What happens: chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log
+
+
+Look for: each line reading drwx------
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0700 must appear as drwx------; anything else means the chmod did not apply.
+
+Expected: All paths exist with postgres ownership and PG_VERSION is absent.
+
+
+95. Create the patroni-directories-1 directories
+================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Create separate homes for Patroni’s software and configuration.
+
+
+sudo mkdir -p /opt/patroni /etc/patroni
+
+
+What happens: sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: 2 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+96. Give postgres ownership of the patroni-directories-1 directories
+====================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Give the postgres service account ownership of both locations.
+
+
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+97. Lock down the patroni-directories-1 directory permissions
+=============================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Set who can enter and change Patroni’s directories.
+
+
+sudo chmod 0750 /opt/patroni /etc/patroni
+
+
+What happens: chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: each line reading drwxr-x---
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected: Both directories exist with postgres ownership and mode 0750.
+
+
+98. Create the postgresql-socket-directory-1 directories
+========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Create the directory for local PostgreSQL connections.
+
+
+sudo mkdir -p /var/run/postgresql
+
+
+What happens: sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+99. Give postgres ownership of the postgresql-socket-directory-1 directories
+===========================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Let postgres own the directory where it creates its local socket.
+
+
+sudo chown -R postgres:postgres /var/run/postgresql
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: owner postgres and group postgres on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+100. Lock down the postgresql-socket-directory-1 directory permissions
+======================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Allow local clients to enter the socket directory.
+
+
+sudo chmod 0755 /var/run/postgresql
+
+
+What happens: chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: the first column reading drwxr-xr-x
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /var/run/postgresql exists with postgres ownership.
+
+
+101. Install Patroni on pg-ha-1
+===============================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
+
+
+What happens: tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+Check:
+
+sudo ls -l /opt/patroni/bin/patroni
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+
+102. Copy the etcd CA certificate on pg-ha-1 into place
+=======================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Place the trust certificate Patroni will use to check etcd’s identity.
+
+
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+
+103. Set permissions on the etcd CA certificate on pg-ha-1
+==========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Allow the trust certificate to be read while restricting writes.
+
+
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-ca.crt now has mode 644.
+
+
+104. Give postgres ownership of the etcd CA certificate on pg-ha-1
+==================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The CA certificate is readable by Patroni and contains no private key.
+
+
+105. Copy Patroni's etcd client certificate on pg-ha-1 into place
+=================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Place the certificate Patroni presents as its client identity.
+
+
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+
+106. Set permissions on Patroni's etcd client certificate on pg-ha-1
+====================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Set read access on the public client certificate.
+
+
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.crt now has mode 644.
+
+
+107. Give postgres ownership of Patroni's etcd client certificate on pg-ha-1
+===========================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The signed client certificate is postgres-owned and mode 0644.
+
+
+108. Copy Patroni's protected etcd client key on pg-ha-1 into place
+===================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Place the private key used with Patroni’s client certificate.
+
+
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+
+109. Set permissions on Patroni's protected etcd client key on pg-ha-1
+======================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Restrict the private key to its owner.
+
+
+sudo chmod 0600 /etc/patroni/etcd-client.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.key now has mode 600.
+
+
+110. Give postgres ownership of Patroni's protected etcd client key on pg-ha-1
+===========================================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The command shows no key material and the destination mode is 0600.
+
+
+111. Copy the Patroni launcher on pg-ha-1 into place
+====================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Put the launcher for the Patroni manager in place.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+
+112. Make the Patroni launcher on pg-ha-1 runnable
+==================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patroni
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+
+113. Copy the patronictl launcher on pg-ha-1 into place
+=======================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Install the launcher for the cluster administration tool.
+
+
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+
+114. Make the patronictl launcher on pg-ha-1 runnable
+=====================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patronictl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patronictl is executable.
+
+
+115. Copy the Patroni systemd unit on pg-ha-1 into place
+========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Give systemd the definition it needs to start Patroni.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+
+116. Set permissions on the Patroni systemd unit on pg-ha-1
+===========================================================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Set read access on the service definition.
+
+
+sudo chmod 0644 /etc/systemd/system/patroni.service
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+
+117. Reload systemd on pg-ha-1
+==============================
+
+SERVER: pg-ha-1 | START AS: ec2-user in Linux
+
+
+Ask systemd to reread its service definitions.
+
+
+sudo systemctl daemon-reload
+
+
+What happens: daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Check:
+
+systemctl cat patroni --no-pager
+
+
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected: The command returns to the prompt and Patroni remains inactive.
+
+
+118. Create the patroni-directories-2 directories
+=================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Create separate homes for Patroni’s software and configuration.
+
+
+sudo mkdir -p /opt/patroni /etc/patroni
+
+
+What happens: sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: 2 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+119. Give postgres ownership of the patroni-directories-2 directories
+=====================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Give the postgres service account ownership of both locations.
+
+
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+120. Lock down the patroni-directories-2 directory permissions
+==============================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Set who can enter and change Patroni’s directories.
+
+
+sudo chmod 0750 /opt/patroni /etc/patroni
+
+
+What happens: chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: each line reading drwxr-x---
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected: Both directories exist with postgres ownership and mode 0750.
+
+
+121. Create the postgresql-socket-directory-2 directories
+=========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Create the directory for local PostgreSQL connections.
+
+
+sudo mkdir -p /var/run/postgresql
+
+
+What happens: sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+122. Give postgres ownership of the postgresql-socket-directory-2 directories
+===========================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Let postgres own the directory where it creates its local socket.
+
+
+sudo chown -R postgres:postgres /var/run/postgresql
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: owner postgres and group postgres on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+123. Lock down the postgresql-socket-directory-2 directory permissions
+======================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Allow local clients to enter the socket directory.
+
+
+sudo chmod 0755 /var/run/postgresql
+
+
+What happens: chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: the first column reading drwxr-xr-x
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /var/run/postgresql exists with postgres ownership.
+
+
+124. Install Patroni on pg-ha-2
+===============================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
+
+
+What happens: tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+Check:
+
+sudo ls -l /opt/patroni/bin/patroni
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+
+125. Copy the etcd CA certificate on pg-ha-2 into place
+=======================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Place the trust certificate Patroni will use to check etcd’s identity.
+
+
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+
+126. Set permissions on the etcd CA certificate on pg-ha-2
+==========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Allow the trust certificate to be read while restricting writes.
+
+
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-ca.crt now has mode 644.
+
+
+127. Give postgres ownership of the etcd CA certificate on pg-ha-2
+==================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The CA certificate is readable by Patroni and contains no private key.
+
+
+128. Copy Patroni's etcd client certificate on pg-ha-2 into place
+=================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Place the certificate Patroni presents as its client identity.
+
+
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+
+129. Set permissions on Patroni's etcd client certificate on pg-ha-2
+====================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Set read access on the public client certificate.
+
+
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.crt now has mode 644.
+
+
+130. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
+===========================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The signed client certificate is postgres-owned and mode 0644.
+
+
+131. Copy Patroni's protected etcd client key on pg-ha-2 into place
+===================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Place the private key used with Patroni’s client certificate.
+
+
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+
+132. Set permissions on Patroni's protected etcd client key on pg-ha-2
+======================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Restrict the private key to its owner.
+
+
+sudo chmod 0600 /etc/patroni/etcd-client.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.key now has mode 600.
+
+
+133. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
+===========================================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The command shows no key material and the destination mode is 0600.
+
+
+134. Copy the Patroni launcher on pg-ha-2 into place
+====================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Put the launcher for the Patroni manager in place.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+
+135. Make the Patroni launcher on pg-ha-2 runnable
+==================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patroni
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+
+136. Copy the patronictl launcher on pg-ha-2 into place
+=======================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Install the launcher for the cluster administration tool.
+
+
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+
+137. Make the patronictl launcher on pg-ha-2 runnable
+=====================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patronictl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patronictl is executable.
+
+
+138. Copy the Patroni systemd unit on pg-ha-2 into place
+========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Give systemd the definition it needs to start Patroni.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+
+139. Set permissions on the Patroni systemd unit on pg-ha-2
+===========================================================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Set read access on the service definition.
+
+
+sudo chmod 0644 /etc/systemd/system/patroni.service
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+
+140. Reload systemd on pg-ha-2
+==============================
+
+SERVER: pg-ha-2 | START AS: ec2-user in Linux
+
+
+Ask systemd to reread its service definitions.
+
+
+sudo systemctl daemon-reload
+
+
+What happens: daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Check:
+
+systemctl cat patroni --no-pager
+
+
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected: The command returns to the prompt and Patroni remains inactive.
+
+
+141. Create the patroni-directories-3 directories
+=================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Create separate homes for Patroni’s software and configuration.
+
+
+sudo mkdir -p /opt/patroni /etc/patroni
+
+
+What happens: sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: 2 lines, one per directory, each starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+142. Give postgres ownership of the patroni-directories-3 directories
+=====================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Give the postgres service account ownership of both locations.
+
+
+sudo chown -R postgres:postgres /opt/patroni /etc/patroni
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: owner postgres and group postgres on every line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+143. Lock down the patroni-directories-3 directory permissions
+==============================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Set who can enter and change Patroni’s directories.
+
+
+sudo chmod 0750 /opt/patroni /etc/patroni
+
+
+What happens: chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/patroni /etc/patroni
+
+
+Look for: each line reading drwxr-x---
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected: Both directories exist with postgres ownership and mode 0750.
+
+
+144. Create the postgresql-socket-directory-3 directories
+=========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Create the directory for local PostgreSQL connections.
+
+
+sudo mkdir -p /var/run/postgresql
+
+
+What happens: sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+145. Give postgres ownership of the postgresql-socket-directory-3 directories
+===========================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Let postgres own the directory where it creates its local socket.
+
+
+sudo chown -R postgres:postgres /var/run/postgresql
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: owner postgres and group postgres on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
+
+Expected: The directories are now owned by postgres.
+
+
+146. Lock down the postgresql-socket-directory-3 directory permissions
+======================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Allow local clients to enter the socket directory.
+
+
+sudo chmod 0755 /var/run/postgresql
+
+
+What happens: chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /var/run/postgresql
+
+
+Look for: the first column reading drwxr-xr-x
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /var/run/postgresql exists with postgres ownership.
+
+
+147. Install Patroni on pg-ha-3
+===============================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1
+
+
+What happens: tar extracts the verified Patroni runtime into the prepared directory and removes the archive's outer folder.
+
+Check:
+
+sudo ls -l /opt/patroni/bin/patroni
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/patroni/bin/patroni
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: Patroni 4.1.4 Python modules exist under /opt/patroni.
+
+
+148. Copy the etcd CA certificate on pg-ha-3 into place
+=======================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Place the trust certificate Patroni will use to check etcd’s identity.
+
+
+sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-ca.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-ca.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-ca.crt now exists.
+
+
+149. Set permissions on the etcd CA certificate on pg-ha-3
+==========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Allow the trust certificate to be read while restricting writes.
+
+
+sudo chmod 0644 /etc/patroni/etcd-ca.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-ca.crt now has mode 644.
+
+
+150. Give postgres ownership of the etcd CA certificate on pg-ha-3
+==================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-ca.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The CA certificate is readable by Patroni and contains no private key.
+
+
+151. Copy Patroni's etcd client certificate on pg-ha-3 into place
+=================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Place the certificate Patroni presents as its client identity.
+
+
+sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.crt. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: one line ending in /etc/patroni/etcd-client.crt with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.crt now exists.
+
+
+152. Set permissions on Patroni's etcd client certificate on pg-ha-3
+====================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Set read access on the public client certificate.
+
+
+sudo chmod 0644 /etc/patroni/etcd-client.crt
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.crt now has mode 644.
+
+
+153. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
+===========================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.crt
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.crt
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The signed client certificate is postgres-owned and mode 0644.
+
+
+154. Copy Patroni's protected etcd client key on pg-ha-3 into place
+===================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Place the private key used with Patroni’s client certificate.
+
+
+sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/patroni/etcd-client.key. It does not set the file's permissions - the next step does that.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: one line ending in /etc/patroni/etcd-client.key with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/patroni/etcd-client.key now exists.
+
+
+155. Set permissions on Patroni's protected etcd client key on pg-ha-3
+======================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Restrict the private key to its owner.
+
+
+sudo chmod 0600 /etc/patroni/etcd-client.key
+
+
+What happens: chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: the first column reading -rw-------
+ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+
+Expected: /etc/patroni/etcd-client.key now has mode 600.
+
+
+156. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
+===========================================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Install the pinned Patroni runtime and inspect its entry point.
+
+
+sudo chown postgres:postgres /etc/patroni/etcd-client.key
+
+
+What happens: chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
+
+Check:
+
+sudo ls -l /etc/patroni/etcd-client.key
+
+
+Look for: owner postgres and group postgres on the line
+ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+
+Expected: The command shows no key material and the destination mode is 0600.
+
+
+157. Copy the Patroni launcher on pg-ha-3 into place
+====================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Put the launcher for the Patroni manager in place.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patroni. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: one line ending in /usr/local/bin/patroni with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patroni now exists.
+
+
+158. Make the Patroni launcher on pg-ha-3 runnable
+==================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patroni
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patroni
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patroni is executable and reports Patroni 4.1.4.
+
+
+159. Copy the patronictl launcher on pg-ha-3 into place
+=======================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Install the launcher for the cluster administration tool.
+
+
+sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/bin/patronictl. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: one line ending in /usr/local/bin/patronictl with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/bin/patronictl now exists.
+
+
+160. Make the patronictl launcher on pg-ha-3 runnable
+=====================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Make the launcher executable, then inspect its permissions.
+
+
+sudo chmod 0755 /usr/local/bin/patronictl
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/bin/patronictl
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: /usr/local/bin/patronictl is executable.
+
+
+161. Copy the Patroni systemd unit on pg-ha-3 into place
+========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Give systemd the definition it needs to start Patroni.
+
+
+sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/patroni.service. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: one line ending in /etc/systemd/system/patroni.service with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/systemd/system/patroni.service now exists.
+
+
+162. Set permissions on the Patroni systemd unit on pg-ha-3
+===========================================================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Set read access on the service definition.
+
+
+sudo chmod 0644 /etc/systemd/system/patroni.service
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+ls -l /etc/systemd/system/patroni.service
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+
+
+163. Reload systemd on pg-ha-3
+==============================
+
+SERVER: pg-ha-3 | START AS: ec2-user in Linux
+
+
+Ask systemd to reread its service definitions.
+
+
+sudo systemctl daemon-reload
+
+
+What happens: daemon-reload asks systemd to reread unit files without starting Patroni.
+
+Check:
+
+systemctl cat patroni --no-pager
+
+
+Look for: # /etc/systemd/system/patroni.service followed by [Unit]
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected: The command returns to the prompt and Patroni remains inactive.
+
+
+164. Copy the pinned HAProxy binary into place
+==============================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /usr/local/sbin/haproxy. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /usr/local/sbin/haproxy
+
+
+Look for: one line ending in /usr/local/sbin/haproxy with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /usr/local/sbin/haproxy now exists.
+
+
+165. Make the pinned HAProxy binary runnable
+============================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+The writer router needs the reviewed immutable HAProxy build staged by the platform team.
+
+
+sudo chmod 0755 /usr/local/sbin/haproxy
+
+
+What happens: chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
+
+Check:
+
+ls -l /usr/local/sbin/haproxy
+
+
+Look for: the first column reading -rwxr-xr-x
+ls -l shows the file with its permission bits in the first column. Mode 0755 must appear as -rwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: HAProxy reports version 3.2.22.
+
+
+166. Create the haproxy-directory directories
+=============================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /etc/haproxy
+
+
+What happens: sudo mkdir -p creates /etc/haproxy (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /etc/haproxy
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+167. Give root ownership of the haproxy-directory directories
+=============================================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+The root service must own these directories to write into them.
+
+
+sudo chown -R root:root /etc/haproxy
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /etc/haproxy
+
+
+Look for: owner root and group root on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read root root.
+
+Expected: The directories are now owned by root.
+
+
+168. Lock down the haproxy-directory directory permissions
+==========================================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+The router needs a root-owned location for its reviewed writer-routing policy.
+
+
+sudo chmod 0755 /etc/haproxy
+
+
+What happens: chmod 0755 sets the permissions to 755 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /etc/haproxy
+
+
+Look for: the first column reading drwxr-xr-x
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0755 must appear as drwxr-xr-x; anything else means the chmod did not apply.
+
+Expected: The directory is root-owned with mode 0755.
+
+
+169. Copy the HAProxy systemd unit into place
+=============================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/haproxy.service. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /etc/systemd/system/haproxy.service
+
+
+Look for: one line ending in /etc/systemd/system/haproxy.service with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/systemd/system/haproxy.service now exists.
+
+
+170. Set permissions on the HAProxy systemd unit
+================================================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+A stable unit makes the writer router restartable and boot-persistent.
+
+
+sudo chmod 0644 /etc/systemd/system/haproxy.service
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+ls -l /etc/systemd/system/haproxy.service
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: systemd verifies the HAProxy unit.
+
+
+171. Reload systemd for HAProxy
+===============================
+
+SERVER: db-router-1 | START AS: ec2-user in Linux
+
+
+systemd must reread the newly installed unit before it can start it.
+
+
+sudo systemctl daemon-reload
+
+
+What happens: Reload unit definitions without starting HAProxy.
+
+Check:
+
+systemctl cat haproxy --no-pager
+
+
+Look for: # /etc/systemd/system/haproxy.service followed by [Unit]
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected: The unit is visible and HAProxy remains inactive.
+
+
+172. Create the Mattermost operating-system account
+===================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The application process must not run as root.
+
+
+sudo useradd --system --home-dir /opt/mattermost --shell /sbin/nologin mattermost
+
+
+What happens: Create a non-login system account whose home matches the application directory.
+
+Check:
+
+id mattermost
+
+
+Look for: uid=... (mattermost) gid=... (mattermost)
+id prints the numeric user id, group id and groups of an account. If the account did not get created, id says 'no such user'.
+
+Expected: The mattermost system account exists with nologin shell.
+
+
+173. Install the pinned Mattermost application
+==============================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The workload must use the reviewed version staged during handoff.
+
+
+sudo tar -xzf /opt/suta/artifacts/mattermost-team-11.10.1-linux-amd64.tar.gz -C /opt
+
+
+What happens: Extract the verified archive; its top-level mattermost directory becomes /opt/mattermost.
+
+Check:
+
+ls -l /opt/mattermost/bin/mattermost
+
+
+Look for: an executable file (-rwxr-xr-x) at /opt/mattermost/bin/mattermost
+tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.
+
+Expected: The Mattermost 11.10.1 server binary exists under /opt/mattermost/bin.
+
+
+174. Create the mattermost-data-directory directories
+=====================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+Creating the empty directories first keeps each action clear; ownership and permissions come next.
+
+
+sudo mkdir -p /opt/mattermost/data
+
+
+What happens: sudo mkdir -p creates /opt/mattermost/data (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
+
+Check:
+
+ls -ld /opt/mattermost/data
+
+
+Look for: one line starting with d
+ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
+
+Expected: The command returns to the prompt and the directories exist.
+
+
+175. Give mattermost ownership of the mattermost-data-directory directories
+===========================================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The mattermost service must own these directories to write into them.
+
+
+sudo chown -R mattermost:mattermost /opt/mattermost/data
+
+
+What happens: chown -R sets the owner and group of the directories (and their contents) to mattermost, because a plain mkdir left them owned by root.
+
+Check:
+
+ls -ld /opt/mattermost/data
+
+
+Look for: owner mattermost and group mattermost on the line
+ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read mattermost mattermost.
+
+Expected: The directories are now owned by mattermost.
+
+
+176. Lock down the mattermost-data-directory directory permissions
+==================================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+Mattermost needs a writable runtime-data directory owned only by its service account.
+
+
+sudo chmod 0750 /opt/mattermost/data
+
+
+What happens: chmod 0750 sets the permissions to 750 (owner-only for a data directory), which the service requires.
+
+Check:
+
+ls -ld /opt/mattermost/data
+
+
+Look for: the first column reading drwxr-x---
+ls -ld shows the directory itself with its permission bits in the first column. Mode 0750 must appear as drwxr-x---; anything else means the chmod did not apply.
+
+Expected: /opt/mattermost/data exists with mattermost ownership and mode 0750.
+
+
+177. Assign the Mattermost application tree
+===========================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The non-root service account must be able to read the installed application and write its runtime paths.
+
+
+sudo chown -R mattermost:mattermost /opt/mattermost
+
+
+What happens: Assign the extracted tree to the dedicated service account without changing unrelated system paths.
+
+Check:
+
+ls -l /opt/mattermost
+
+
+Look for: owner mattermost and group mattermost on the line
+ls -l shows the file with owner and group in columns three and four. After a recursive chown the top entry must already read mattermost mattermost.
+
+Expected: The Mattermost application tree is owned by mattermost.
+
+
+178. Copy the Mattermost systemd unit into place
+================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+Copying puts the file where the system expects it. Setting its permissions is a separate step so each action is clear.
+
+
+sudo cp /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service
+
+
+What happens: sudo runs the copy with permission to write to that location. cp copies the file from the staged path to /etc/systemd/system/mattermost.service. It does not set the file's permissions - the next step does that.
+
+Check:
+
+ls -l /etc/systemd/system/mattermost.service
+
+
+Look for: one line ending in /etc/systemd/system/mattermost.service with a size greater than 0
+cp prints nothing on success, so prove the copy by listing the destination (sudo is needed when the directory is root-only). The size column must be greater than 0; 'No such file' means the copy landed somewhere else.
+
+Expected: The command returns to the prompt and /etc/systemd/system/mattermost.service now exists.
+
+
+179. Set permissions on the Mattermost systemd unit
+===================================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+The workload needs a supervised, boot-persistent service definition.
+
+
+sudo chmod 0644 /etc/systemd/system/mattermost.service
+
+
+What happens: chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
+
+Check:
+
+ls -l /etc/systemd/system/mattermost.service
+
+
+Look for: the first column reading -rw-r--r--
+ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+
+Expected: systemd verifies the unit and its non-root identity.
+
+
+180. Reload systemd for Mattermost
+==================================
+
+SERVER: mattermost-1 | START AS: ec2-user in Linux
+
+
+systemd must discover the new unit while leaving the unconfigured application stopped.
+
+
+sudo systemctl daemon-reload
+
+
+What happens: Reload unit definitions without starting Mattermost.
+
+Check:
+
+systemctl cat mattermost --no-pager
+
+
+Look for: # /etc/systemd/system/mattermost.service followed by [Unit]
+Read the service definition. The first comment names the unit file being loaded.
+
+Expected: The unit is visible and Mattermost remains inactive.
+
+END OF CLASS MANUAL
+
+Checkpoint
+==========
+
+- [ ] Software and files are installed. The student still configures and starts the stack.
+
+Classroom home (README.md)
+
+Live classroom rehearsal — 9 September 2026
+===========================================
+
+Executed September 9 Pacific / September 10 UTC on a fresh HA001 eight-node CentOS lab provisioned with Terraform. Software preparation ran through Ansible; configuration bodies came from the classroom manual with real private addresses and protected passwords substituted.
+
+Final verified behavior
+=======================
+
+| Check | Result |
+|---|---|
+| etcd | Three healthy endpoints using mutual TLS |
+| Patroni | One running leader and two streaming replicas |
+| PostgreSQL | Two streaming connections; /opt/pgsql/data; checksums on |
+| Writer endpoint, 5432 | Writable primary reached through HAProxy |
+| Reader endpoint, 5433 | Standbys reached; replicated row read; INSERT rejected |
+| Real application | Account login, message creation and readback through the router |
+| Planned switchover, corrected configuration | 22 successful writes, 1 transient failed write during the marked test window |
+| PostgreSQL immediate stop | Same writer recovered; 28 successful writes, no failed writes in the marked window |
+| Whole writer server stop/start, corrected configuration | Different leader promoted; returned server rejoined without repair; 83 successful writes, no failed writes in the marked window |
+| Patroni service stop, corrected configuration | Different leader promoted; stopped member rejoined; 30 successful writes, 1 transient failed write |
+| Final verification | One leader, two streaming replicas; both router endpoints correct; app healthy |
+| Data readback | All 470 acknowledged messages, including the baseline message, remained readable |
+
+The workload issued one API write at a time, waited for its result, then paused one second. Windows include recovery observation; request counts are not throughput benchmarks. Maximum observed request durations were 2.805 s for the corrected switchover, 2.048 s for the PostgreSQL stop, 5.431 s for the corrected node test and 2.228 s for the corrected Patroni-service stop. These are request latencies, not measurements of total outage duration.
+
+The application checks used real Mattermost login/post/read APIs. They were not a browser click-through or a concurrent student load test. Failed/timed-out requests were not counted as acknowledged. This is evidence for these runs, not a zero-data-loss guarantee for asynchronous replication.
+
+Problems found and corrected
+============================
+
+1. Expired Patroni client certificate. The staged identity had expired September 8. It was renewed from the protected CA, verified, and redistributed before bootstrap. Certificate validity checks are now in the prerequisites.
+2. Connections retained on the former primary. The original router switched new connections but the app pool retained old connections to the demoted node. App logs showed SQLSTATE 25006, an UPDATE attempted in a read-only transaction. Added on-marked-down shutdown-sessions to writer and reader backend lines, validated, and repeated the switchover. App writes then recovered automatically; a transient request failure remained visible rather than being hidden.
+3. Missing socket directory after reboot. The original unit did not recreate /var/run/postgresql. Returning node failed with PermissionError. Added the systemd RuntimeDirectory drop-in on all PG nodes, recovered the member, then repeated a complete writer stop/start on another node without manual repair.
+
+An initial power-operation attempt was rejected because a provisioning-only STS session lacked Stop/Start. No instance changed in that rejected attempt. The actual test used a short-lived session scoped to the selected owned test instance; no IAM role grants were changed.
+
+Reproduction order
+==================
+
+Provision → install software and corrected runtime unit → validate TLS → etcd → Patroni bootstrap → replicas and SQL checks → HAProxy → application database → instructor app → reader endpoint → app workload → switchover → PostgreSQL stop → server stop/start → Patroni stop → endpoint checks → read back acknowledged messages.
+
+The classroom pages place reader routing before handing the app to students, avoiding an unnecessary router restart during their first app use. Both endpoints were verified again after the failure exercises.
+
+Machine-readable request counts (test-results.json) include the initial failed configuration runs and corrected runs. They are deliberately not collapsed into a misleading all-green total. Private runtime logs and credentials are retained outside this public guide.
