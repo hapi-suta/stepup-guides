@@ -32,6 +32,18 @@ Build the database cluster on prepared servers, then connect the instructor's ap
 
 [Read logs and understand settings](08-troubleshooting.md) when a check fails.
 
+## Connection path
+
+```mermaid
+flowchart TD
+    A[Instructor app] -->|database writes and reads: 5432| W[HAProxy writer endpoint]
+    Q[Student read-only SQL session] -->|5433| R[HAProxy reader endpoint]
+    W --> P[Current PostgreSQL primary]
+    R --> S[Healthy PostgreSQL standbys]
+    P -->|streaming replication| S
+    C[Patroni on each database server] -->|coordination over mutual TLS| E[Three-member etcd cluster]
+```
+
 ## The two addresses
 
 - **Database router IP:** the instructor puts this in the app's database connection.
