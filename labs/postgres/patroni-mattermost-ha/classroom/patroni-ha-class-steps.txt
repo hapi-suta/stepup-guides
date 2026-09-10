@@ -83,14 +83,15 @@ No database should have been initialized. Patroni will run initdb and clone the
 replicas. All four application services should initially be stopped.
 
 Fill in the private IPv4 address of each server:
-  DCS_1_IP = __________________   (dcs-1)
-  DCS_2_IP = __________________   (dcs-2)
-  DCS_3_IP = __________________   (dcs-3)
-  PG_HA_1_IP = __________________   (pg-ha-1)
-  PG_HA_2_IP = __________________   (pg-ha-2)
-  PG_HA_3_IP = __________________   (pg-ha-3)
-  DB_ROUTER_1_IP = __________________   (db-router-1)
-  MATTERMOST_1_IP = __________________   (mattermost-1)
+
+  DCS_1_IP       dcs-1          __________________
+  DCS_2_IP       dcs-2          __________________
+  DCS_3_IP       dcs-3          __________________
+  PG_HA_1_IP     pg-ha-1        __________________
+  PG_HA_2_IP     pg-ha-2        __________________
+  PG_HA_3_IP     pg-ha-3        __________________
+  DB_ROUTER_1_IP db-router-1    __________________
+  MATTERMOST_1_IP mattermost-1  __________________
 
 Replace every *_IP token in the configuration text before saving it. These are
 worksheet placeholders, not shell variables. Use actual private IPv4 addresses.
@@ -98,9 +99,10 @@ All eight hostnames must resolve to their correct private addresses.
 Use the assigned terminal/SSH session for each named server as ec2-user.
 
 Prepare three different strong passwords in a private password manager:
-  REPLACE_POSTGRES_SUPERUSER_PASSWORD
-  REPLACE_REPLICATION_PASSWORD
-  REPLACE_MATTERMOST_DATABASE_PASSWORD
+
+  REPLACE_POSTGRES_SUPERUSER_PASSWORD   Patroni PostgreSQL superuser
+  REPLACE_REPLICATION_PASSWORD          Patroni replication user
+  REPLACE_MATTERMOST_DATABASE_PASSWORD  Mattermost database login
 Use the same superuser and replication values on all three Patroni nodes.
 For simple substitution in YAML and the application URI, use long random
 alphanumeric passwords. Otherwise quote/escape YAML and percent-encode the URI
