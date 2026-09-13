@@ -5,7 +5,7 @@
   "release": {
     "owner_only": false,
     "fault_scenarios_verified": true,
-    "label": "Enrolled learner release — clean baseline verified"
+    "label": "Enrolled learner release \u2014 clean baseline verified"
   },
   "completion": {
     "source": "deterministic-validator",
@@ -2537,7 +2537,7 @@
           "expected": "The command returns without error and dcs-1 enters its initial member startup.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -2584,7 +2584,7 @@
           "expected": "The command returns without error and dcs-2 becomes active.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -2631,7 +2631,7 @@
           "expected": "The command returns without error and dcs-3 becomes active.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -3405,7 +3405,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3504,7 +3504,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3518,7 +3518,7 @@
               "observe": "Read the owner/group/others groups in drwxr-x---.",
               "match": "If the listing has those bits, the owner has write permission. Group members may read and traverse, but do not receive write permission from this mode.",
               "different": "If the bits differ, use the actual listing to identify which permission group differs. Do not infer success from the command returning.",
-              "limit": "The directory’s owner and group are separate facts to inspect."
+              "limit": "The directory\u2019s owner and group are separate facts to inspect."
             }
           }
         },
@@ -3768,7 +3768,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4052,7 +4052,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4415,15 +4415,15 @@
           "title": "Set permissions on the Patroni systemd unit on pg-ha-1",
           "role": "pg-ha-1",
           "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "why": "systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.",
           "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
           "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "expected": "The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.",
           "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
             "question": "Which process should systemd start?",
             "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.",
             "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
@@ -4573,7 +4573,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4586,7 +4586,7 @@
               ],
               "observe": "Read name: pg-ha-1 and the assigned scope in the narrow identity check.",
               "match": "If this member name and scope match the assigned configuration, the visible identity fields are present.",
-              "different": "If a member name belongs to another node, return to this node’s generated template and inspect that mismatch.",
+              "different": "If a member name belongs to another node, return to this node\u2019s generated template and inspect that mismatch.",
               "limit": "A text match does not parse the complete YAML or validate connectivity."
             }
           }
@@ -4627,7 +4627,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "apply",
             "transfer": "The same paths are used on this node: /opt/patroni and /etc/patroni.",
             "first_step_id": "mkdir-patroni-directories-1",
@@ -4737,7 +4737,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "apply",
             "transfer": "Apply mode 0750 again, then read the permission groups yourself.",
             "first_step_id": "create-patroni-directories-1",
@@ -4881,7 +4881,7 @@
           "teaching": {
             "brief": "Allow local clients to enter the socket directory.",
             "mode": "apply",
-            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.",
+            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni\u2019s directories.",
             "first_step_id": "create-postgresql-socket-directory-1",
             "prediction": null
           }
@@ -4979,7 +4979,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "apply",
             "transfer": "Use the handoff file staged on this node, even though the paths look familiar.",
             "first_step_id": "copy-patroni-ca-1",
@@ -5123,7 +5123,7 @@
           "teaching": {
             "brief": "Place the certificate Patroni presents as its client identity.",
             "mode": "apply",
-            "transfer": "Use this node’s staged client certificate, not a resolved file copied from another node.",
+            "transfer": "Use this node\u2019s staged client certificate, not a resolved file copied from another node.",
             "first_step_id": "copy-patroni-client-cert-1",
             "prediction": null
           }
@@ -5263,9 +5263,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "apply",
-            "transfer": "Use this node’s handoff. Inspect file metadata without printing the key.",
+            "transfer": "Use this node\u2019s handoff. Inspect file metadata without printing the key.",
             "first_step_id": "copy-patroni-client-key-1",
             "prediction": null
           }
@@ -5463,7 +5463,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "apply",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patroni-wrapper-1",
             "prediction": null
           }
@@ -5562,7 +5562,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "apply",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patronictl-wrapper-1",
             "prediction": null
           }
@@ -5615,15 +5615,15 @@
           "title": "Set permissions on the Patroni systemd unit on pg-ha-2",
           "role": "pg-ha-2",
           "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "why": "systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.",
           "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
           "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "expected": "The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.",
           "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
             "question": "Which process should systemd start?",
             "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.",
             "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
@@ -5773,9 +5773,9 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "apply",
-            "transfer": "Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.",
+            "transfer": "Keep the shared scope. Use this node\u2019s unique name, addresses, and generated credentials.",
             "first_step_id": "configure-patroni-member-1",
             "prediction": null
           }
@@ -5816,7 +5816,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "independent",
             "transfer": "The same paths are used on this node: /opt/patroni and /etc/patroni.",
             "first_step_id": "mkdir-patroni-directories-1",
@@ -5915,7 +5915,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "independent",
             "transfer": "Apply mode 0750 again, then read the permission groups yourself.",
             "first_step_id": "create-patroni-directories-1",
@@ -6059,7 +6059,7 @@
           "teaching": {
             "brief": "Allow local clients to enter the socket directory.",
             "mode": "independent",
-            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.",
+            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni\u2019s directories.",
             "first_step_id": "create-postgresql-socket-directory-1",
             "prediction": null
           }
@@ -6157,7 +6157,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "independent",
             "transfer": "Use the handoff file staged on this node, even though the paths look familiar.",
             "first_step_id": "copy-patroni-ca-1",
@@ -6301,7 +6301,7 @@
           "teaching": {
             "brief": "Place the certificate Patroni presents as its client identity.",
             "mode": "independent",
-            "transfer": "Use this node’s staged client certificate, not a resolved file copied from another node.",
+            "transfer": "Use this node\u2019s staged client certificate, not a resolved file copied from another node.",
             "first_step_id": "copy-patroni-client-cert-1",
             "prediction": null
           }
@@ -6441,9 +6441,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "independent",
-            "transfer": "Use this node’s handoff. Inspect file metadata without printing the key.",
+            "transfer": "Use this node\u2019s handoff. Inspect file metadata without printing the key.",
             "first_step_id": "copy-patroni-client-key-1",
             "prediction": null
           }
@@ -6641,7 +6641,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "independent",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patroni-wrapper-1",
             "prediction": null
           }
@@ -6740,7 +6740,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "independent",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patronictl-wrapper-1",
             "prediction": null
           }
@@ -6793,15 +6793,15 @@
           "title": "Set permissions on the Patroni systemd unit on pg-ha-3",
           "role": "pg-ha-3",
           "user": "ec2-user",
-          "why": "systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.",
+          "why": "systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.",
           "command": "sudo chmod 0644 /etc/systemd/system/patroni.service",
           "command_explanation": "chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.",
-          "expected": "The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.",
+          "expected": "The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.",
           "hint": "Patroni owns PostgreSQL startup in this cluster.",
           "hints": {
             "question": "Which process should systemd start?",
             "hint": "Patroni owns PostgreSQL startup in this cluster.",
-            "stronger_hint": "ExecStart must call /usr/local/bin/patroni.",
+            "stronger_hint": "ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.",
             "solution": "Install the unit and require PATRONI_UNIT_CREATED."
           },
           "safety": "change",
@@ -6951,9 +6951,9 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "independent",
-            "transfer": "Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.",
+            "transfer": "Keep the shared scope. Use this node\u2019s unique name, addresses, and generated credentials.",
             "first_step_id": "configure-patroni-member-1",
             "prediction": null
           }
@@ -6969,7 +6969,7 @@
           "expected": "pg-ha-1 becomes one running leader before either replica starts.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7019,7 +7019,7 @@
               "observe": "Read Loaded and Active in the service status.",
               "match": "If it is enabled and active, systemd has started the service and will start it at boot.",
               "different": "If it is failed or inactive, inspect the service error before continuing.",
-              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state."
+              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step\u2019s required role state."
             }
           }
         },
@@ -7034,7 +7034,7 @@
           "expected": "pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7088,7 +7088,7 @@
           "expected": "The cluster reports one leader and two streaming replicas on one timeline.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7138,7 +7138,7 @@
               "observe": "Read Loaded and Active in the service status.",
               "match": "If it is enabled and active, systemd has started the service and will start it at boot.",
               "different": "If it is failed or inactive, inspect the service error before continuing.",
-              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state."
+              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step\u2019s required role state."
             }
           }
         },
@@ -7544,7 +7544,7 @@
           "expected": "HAProxy listens on port 5432 and routes a rollback-only write check to the current primary.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/haproxy.service → /etc/systemd/system/haproxy.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/haproxy.service \u2192 /etc/systemd/system/haproxy.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7644,7 +7644,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -7749,7 +7749,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -7818,7 +7818,7 @@
           "why": "Mattermost needs an isolated database owned by its application role.",
           "command": "sudo -u postgres /opt/pgsql/bin/createdb -h /var/run/postgresql -O mattermost mattermost",
           "command_explanation": "Follow the numbered actions in order. Switch user first, open the database client, and enter one SQL statement at a time. Read each result before continuing. Finish the exit actions to return to ec2-user.",
-          "expected": "The database exists once with mattermost as owner.",
+          "expected": "The database exists once with mattermost as owner, including after a safe retry.",
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator MATTERMOST_DATABASE_CREATED passed.",
@@ -7842,7 +7842,7 @@
             "question": "Who should own the application database?",
             "hint": "Use the dedicated application role.",
             "stronger_hint": "Both role and database are named mattermost.",
-            "solution": "Create the database and require MATTERMOST_DATABASE_CREATED."
+            "solution": "Create the database only if missing, correct its owner, and require MATTERMOST_DATABASE_CREATED."
           },
           "safety": "change",
           "release_verified": true,
@@ -7874,16 +7874,24 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
-                "title": "Create the application database",
+                "title": "Create the database only when it is missing",
                 "context": "Type this at the postgres=# database prompt. Type only the command.",
-                "command": "CREATE DATABASE mattermost OWNER mattermost;",
+                "command": "SELECT 'CREATE DATABASE mattermost OWNER mattermost' WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'mattermost') \\gexec",
                 "language": "sql",
-                "explanation": "Create one database named mattermost and give its ownership to the application role.",
-                "expect": "Look for CREATE DATABASE."
+                "explanation": "The query asks PostgreSQL whether the database is missing. \\gexec runs CREATE DATABASE only when the query returns it, so retrying this lesson is safe.",
+                "expect": "Look for CREATE DATABASE when it was created. No returned row means it already exists; continue to the ownership step."
+              },
+              {
+                "title": "Set the application database owner",
+                "context": "Type this at the postgres=# database prompt. Type only the command.",
+                "command": "ALTER DATABASE mattermost OWNER TO mattermost;",
+                "language": "sql",
+                "explanation": "Set the owner even when the database was created earlier without the OWNER clause.",
+                "expect": "Look for ALTER DATABASE."
               }
             ],
             "checks": [
@@ -8379,7 +8387,7 @@
           "expected": "Mattermost reports active, its system ping returns OK and database migrations complete through HAProxy.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/mattermost.service → /etc/systemd/system/mattermost.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/mattermost.service \u2192 /etc/systemd/system/mattermost.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -8574,7 +8582,7 @@
             "explanation": "This step is itself a check: read its output carefully, that is the verification."
           },
           "teaching": {
-            "brief": "Check the writer’s count of streaming replication connections.",
+            "brief": "Check the writer\u2019s count of streaming replication connections.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -8607,7 +8615,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8615,7 +8623,7 @@
                 "context": "Type this at the postgres=# database prompt. Type only the command.",
                 "command": "select state,count(*) from pg_stat_replication group by state;",
                 "language": "sql",
-                "explanation": "Count the writer’s replication connections in each state. The semicolon ends this one SQL statement.",
+                "explanation": "Count the writer\u2019s replication connections in each state. The semicolon ends this one SQL statement.",
                 "expect": "Look for streaming with count 2. This does not measure replay lag."
               }
             ],
@@ -8695,7 +8703,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8773,7 +8781,7 @@
             "kind": "self",
             "explanation": "This step is itself a check: read its output carefully, that is the verification."
           },
-          "command_explanation": "curl requests Mattermost’s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds."
+          "command_explanation": "curl requests Mattermost\u2019s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds."
         },
         {
           "id": "planned-switchover",
@@ -8939,7 +8947,7 @@
                 "command": "/usr/local/bin/patronictl -c /etc/patroni/patroni.yml show-config",
                 "language": "bash",
                 "explanation": "Read the dynamic configuration stored in the DCS. Locate the named field yourself.",
-                "expect": "Under postgresql → parameters, find log_min_duration_statement: 1000. This proves the DCS value; it does not prove every running process has applied it."
+                "expect": "Under postgresql \u2192 parameters, find log_min_duration_statement: 1000. This proves the DCS value; it does not prove every running process has applied it."
               }
             ],
             "cleanup": [
@@ -9110,7 +9118,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/usr/local/bin/patronictl -c /etc/patroni/patroni.yml reinit {{cluster_scope}} pg-ha-3 --force",
                 "language": "bash",
-                "explanation": "Replace this replica’s local data from the leader. This lab action destroys the replica copy: confirm pg-ha-3 is a replica with no unique data first.",
+                "explanation": "Replace this replica\u2019s local data from the leader. This lab action destroys the replica copy: confirm pg-ha-3 is a replica with no unique data first.",
                 "expect": "pg-ha-3 is freshly cloned and returns to streaming on the current timeline."
               }
             ],
@@ -9193,7 +9201,7 @@
           "user": "ec2-user",
           "why": "Database topology is only useful when the unchanged application endpoint still works.",
           "command": "curl -fsS http://127.0.0.1:8065/api/v4/system/ping",
-          "command_explanation": "curl requests Mattermost’s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds.",
+          "command_explanation": "curl requests Mattermost\u2019s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds.",
           "expected": "Mattermost returns status OK after switchover, config work and replica maintenance.",
           "hint": "Prove the application path, not only patronictl list.",
           "hints": {
@@ -9240,7 +9248,7 @@
             {
               "id": "prove",
               "title": "Prove",
-              "goal": "Connect the cluster roles to PostgreSQL’s replication evidence.",
+              "goal": "Connect the cluster roles to PostgreSQL\u2019s replication evidence.",
               "outcome": "Explain the two streaming connections and the limits of what that observation proves.",
               "step_ids": [
                 "inspect-streaming"

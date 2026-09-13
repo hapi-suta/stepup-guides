@@ -3211,10 +3211,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: Certificate will not expire
 
 <details>
 <summary>Full explanation</summary>
@@ -3223,7 +3223,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -3870,13 +3870,13 @@ Look for: the first column reading -rw-r--r--
 <details>
 <summary>Full explanation</summary>
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
 
-Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+Expected result: The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.
 
 </details>
 
@@ -3900,7 +3900,7 @@ Patroni owns PostgreSQL startup in this cluster.
 <details>
 <summary>stronger hint</summary>
 
-ExecStart must call /usr/local/bin/patroni.
+ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.
 
 </details>
 
@@ -3932,7 +3932,7 @@ sudo systemctl daemon-reload
 **Prove it worked**
 
 ```bash
-systemctl cat patroni --no-pager
+systemctl cat patroni
 ```
 
 Look for: # /etc/systemd/system/patroni.service followed by [Unit]
@@ -3944,7 +3944,7 @@ systemd does not use a newly installed unit until its manager configuration is r
 
 daemon-reload asks systemd to reread unit files without starting Patroni.
 
-Read the service definition. The first comment names the unit file being loaded.
+systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not.
 
 Expected result: The command returns to the prompt and Patroni remains inactive.
 
@@ -5040,10 +5040,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: Certificate will not expire
 
 <details>
 <summary>Full explanation</summary>
@@ -5052,7 +5052,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -5696,13 +5696,13 @@ Look for: the first column reading -rw-r--r--
 <details>
 <summary>Full explanation</summary>
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
 
-Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+Expected result: The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.
 
 </details>
 
@@ -5726,7 +5726,7 @@ Patroni owns PostgreSQL startup in this cluster.
 <details>
 <summary>stronger hint</summary>
 
-ExecStart must call /usr/local/bin/patroni.
+ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.
 
 </details>
 
@@ -5760,7 +5760,7 @@ sudo systemctl daemon-reload
 **Prove it worked**
 
 ```bash
-systemctl cat patroni --no-pager
+systemctl cat patroni
 ```
 
 Look for: # /etc/systemd/system/patroni.service followed by [Unit]
@@ -5772,7 +5772,7 @@ systemd does not use a newly installed unit until its manager configuration is r
 
 daemon-reload asks systemd to reread unit files without starting Patroni.
 
-Read the service definition. The first comment names the unit file being loaded.
+systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not.
 
 Expected result: The command returns to the prompt and Patroni remains inactive.
 
@@ -6828,10 +6828,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: Certificate will not expire
 
 <details>
 <summary>Full explanation</summary>
@@ -6840,7 +6840,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -7484,13 +7484,13 @@ Look for: the first column reading -rw-r--r--
 <details>
 <summary>Full explanation</summary>
 
-systemd must run Patroni—not postgres directly—as the owner of the PostgreSQL lifecycle.
+systemd must run Patroni as the owner of PostgreSQL and recreate its temporary socket directory after every reboot.
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, others read - or owner-only for keys), which the service requires.
 
 ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
 
-Expected result: The unit parses, names the postgres user and starts Patroni with /etc/patroni/patroni.yml.
+Expected result: The unit parses, owns /run/postgresql and starts Patroni with /etc/patroni/patroni.yml.
 
 </details>
 
@@ -7514,7 +7514,7 @@ Patroni owns PostgreSQL startup in this cluster.
 <details>
 <summary>stronger hint</summary>
 
-ExecStart must call /usr/local/bin/patroni.
+ExecStart must call /usr/local/bin/patroni and RuntimeDirectory must name postgresql.
 
 </details>
 
@@ -7548,7 +7548,7 @@ sudo systemctl daemon-reload
 **Prove it worked**
 
 ```bash
-systemctl cat patroni --no-pager
+systemctl cat patroni
 ```
 
 Look for: # /etc/systemd/system/patroni.service followed by [Unit]
@@ -7560,7 +7560,7 @@ systemd does not use a newly installed unit until its manager configuration is r
 
 daemon-reload asks systemd to reread unit files without starting Patroni.
 
-Read the service definition. The first comment names the unit file being loaded.
+systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not.
 
 Expected result: The command returns to the prompt and Patroni remains inactive.
 
@@ -7783,7 +7783,7 @@ Starting one member first prevents three empty nodes from racing to initialize o
 
 Enable Patroni for boot and start only pg-ha-1; Patroni initializes PostgreSQL with checksums and writes cluster state to etcd.
 
-Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there.
 
 Expected result: pg-ha-1 becomes one running leader before either replica starts.
 
@@ -7853,7 +7853,7 @@ The member should discover the established leader and clone it instead of initia
 
 Start Patroni on pg-ha-2 only after the leader and pg-ha-2 configuration validators pass.
 
-Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there.
 
 Expected result: pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.
 
@@ -7944,7 +7944,7 @@ The final member restores the intended two-replica redundancy.
 
 Start Patroni on pg-ha-3 after the first replica is already streaming.
 
-Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.
+systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there.
 
 Expected result: The cluster reports one leader and two streaming replicas on one timeline.
 
@@ -8458,15 +8458,23 @@ Type this in the postgres Linux shell.
 The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.
 Wait for postgres=#. You are now entering SQL or psql commands.
 
-3. Create the application database
+3. Create the database only when it is missing
 Type this at the postgres=# database prompt. Type only the command.
 ```sql
-CREATE DATABASE mattermost OWNER mattermost;
+SELECT 'CREATE DATABASE mattermost OWNER mattermost' WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'mattermost') \gexec
 ```
-Create one database named mattermost and give its ownership to the application role.
-Look for CREATE DATABASE.
+The query asks PostgreSQL whether the database is missing. \gexec runs CREATE DATABASE only when the query returns it, so retrying this lesson is safe.
+Look for CREATE DATABASE when it was created. No returned row means it already exists; continue to the ownership step.
 
-4. Check the database owner
+4. Set the application database owner
+Type this at the postgres=# database prompt. Type only the command.
+```sql
+ALTER DATABASE mattermost OWNER TO mattermost;
+```
+Set the owner even when the database was created earlier without the OWNER clause.
+Look for ALTER DATABASE.
+
+5. Check the database owner
 On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
 ```text
 \l mattermost
@@ -8474,7 +8482,7 @@ On pg-ha-1, type this at the postgres=# database prompt. Type only the command.
 List the mattermost database and its ownership.
 Find mattermost in both the Name and Owner columns. If a pager opens, press q to return to postgres=#.
 
-5. Leave PostgreSQL
+6. Leave PostgreSQL
 After reading the checks, type this at postgres=#.
 ```text
 \q
@@ -8482,7 +8490,7 @@ After reading the checks, type this at postgres=#.
 Leave the database client and return to Linux.
 You should see the postgres shell prompt again.
 
-6. Return to your original user
+7. Return to your original user
 Type this in the postgres Linux shell.
 ```bash
 exit
@@ -8490,7 +8498,7 @@ exit
 Close the nested shell before the next lesson.
 The prompt should identify ec2-user again.
 
-Expected: The database exists once with mattermost as owner.
+Expected: The database exists once with mattermost as owner, including after a safe retry.
 
 Done when the independent MATTERMOST_DATABASE_CREATED check and the learner-run proof pass.
 
