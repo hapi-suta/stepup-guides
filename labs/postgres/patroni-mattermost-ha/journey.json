@@ -686,10 +686,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1346 Sep  6 00:55 /etc/etcd/member.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           }
         },
@@ -1491,10 +1491,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1346 Sep  6 00:55 /etc/etcd/member.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           }
         },
@@ -2296,10 +2296,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1346 Sep  6 00:56 /etc/etcd/member.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           }
         },
@@ -2570,9 +2570,7 @@
             "kind": "command",
             "command": "systemctl status etcd --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● etcd.service - SUTA etcd member\n     Loaded: loaded (/etc/systemd/system/etcd.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:56:20 UTC; 30min ago\n   Main PID: 4830 (etcd)\n      Tasks: 9 (limit: 4111)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           }
         },
         {
@@ -2619,9 +2617,7 @@
             "kind": "command",
             "command": "systemctl status etcd --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● etcd.service - SUTA etcd member\n     Loaded: loaded (/etc/systemd/system/etcd.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:56:21 UTC; 30min ago\n   Main PID: 4803 (etcd)\n      Tasks: 8 (limit: 4111)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           }
         },
         {
@@ -2668,9 +2664,7 @@
             "kind": "command",
             "command": "systemctl status etcd --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● etcd.service - SUTA etcd member\n     Loaded: loaded (/etc/systemd/system/etcd.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:56:22 UTC; 30min ago\n   Main PID: 4792 (etcd)\n      Tasks: 8 (limit: 4111)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           }
         },
         {
@@ -4008,10 +4002,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:56 /etc/patroni/etcd-client.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           },
           "teaching": {
@@ -4514,11 +4508,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "systemctl cat patroni --no-pager",
+            "command": "systemctl cat patroni",
             "look_for": "# /etc/systemd/system/patroni.service followed by [Unit]",
-            "explanation": "Read the service definition. The first comment names the unit file being loaded.",
-            "sample_output": "# /etc/systemd/system/patroni.service\n[Unit]\nDescription=SUTA Patroni PostgreSQL HA",
-            "sample_source": "live-captured"
+            "explanation": "systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not."
           },
           "teaching": {
             "brief": "Ask systemd to reread its service definitions.",
@@ -5221,10 +5213,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:57 /etc/patroni/etcd-client.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           },
           "teaching": {
@@ -5716,11 +5708,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "systemctl cat patroni --no-pager",
+            "command": "systemctl cat patroni",
             "look_for": "# /etc/systemd/system/patroni.service followed by [Unit]",
-            "explanation": "Read the service definition. The first comment names the unit file being loaded.",
-            "sample_output": "# /etc/systemd/system/patroni.service\n[Unit]\nDescription=SUTA Patroni PostgreSQL HA",
-            "sample_source": "live-captured"
+            "explanation": "systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not."
           },
           "teaching": {
             "brief": "Ask systemd to reread its service definitions.",
@@ -6401,10 +6391,10 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:57 /etc/patroni/etcd-client.crt",
+            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
+            "look_for": "Certificate will not expire",
+            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
+            "sample_output": "Certificate will not expire",
             "sample_source": "live-captured"
           },
           "teaching": {
@@ -6896,11 +6886,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "systemctl cat patroni --no-pager",
+            "command": "systemctl cat patroni",
             "look_for": "# /etc/systemd/system/patroni.service followed by [Unit]",
-            "explanation": "Read the service definition. The first comment names the unit file being loaded.",
-            "sample_output": "# /etc/systemd/system/patroni.service\n[Unit]\nDescription=SUTA Patroni PostgreSQL HA",
-            "sample_source": "live-captured"
+            "explanation": "systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not."
           },
           "teaching": {
             "brief": "Ask systemd to reread its service definitions.",
@@ -7014,9 +7002,7 @@
             "kind": "command",
             "command": "systemctl status patroni --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● patroni.service - SUTA Patroni PostgreSQL HA\n     Loaded: loaded (/etc/systemd/system/patroni.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:57:42 UTC; 29min ago\n   Main PID: 6208 (python3)\n      Tasks: 27 (limit: 10079)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           },
           "teaching": {
             "brief": "Start Patroni on pg-ha-1 and inspect the service status.",
@@ -7081,9 +7067,7 @@
             "kind": "command",
             "command": "systemctl status patroni --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● patroni.service - SUTA Patroni PostgreSQL HA\n     Loaded: loaded (/etc/systemd/system/patroni.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:57:51 UTC; 29min ago\n   Main PID: 5965 (python3)\n      Tasks: 24 (limit: 10079)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           },
           "teaching": {
             "brief": "Start pg-ha-2 and watch it join the established cluster.",
@@ -7137,9 +7121,7 @@
             "kind": "command",
             "command": "systemctl status patroni --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● patroni.service - SUTA Patroni PostgreSQL HA\n     Loaded: loaded (/etc/systemd/system/patroni.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:58:12 UTC; 29min ago\n   Main PID: 5864 (python3)\n      Tasks: 24 (limit: 10079)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           },
           "teaching": {
             "brief": "Start Patroni on pg-ha-3 and inspect the service status.",
@@ -7493,11 +7475,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "systemctl cat haproxy --no-pager",
+            "command": "systemctl cat haproxy",
             "look_for": "# /etc/systemd/system/haproxy.service followed by [Unit]",
-            "explanation": "Read the service definition. The first comment names the unit file being loaded.",
-            "sample_output": "# /etc/systemd/system/haproxy.service\n[Unit]\nDescription=SUTA HAProxy PostgreSQL writer router",
-            "sample_source": "live-captured"
+            "explanation": "systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not."
           }
         },
         {
@@ -7597,9 +7577,7 @@
             "kind": "command",
             "command": "systemctl status haproxy --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● haproxy.service - SUTA HAProxy PostgreSQL writer router\n     Loaded: loaded (/etc/systemd/system/haproxy.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 00:58:40 UTC; 28min ago\n   Main PID: 3621 (haproxy)\n      Tasks: 3 (limit: 4111)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           }
         },
         {
@@ -8334,11 +8312,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "systemctl cat mattermost --no-pager",
+            "command": "systemctl cat mattermost",
             "look_for": "# /etc/systemd/system/mattermost.service followed by [Unit]",
-            "explanation": "Read the service definition. The first comment names the unit file being loaded.",
-            "sample_output": "# /etc/systemd/system/mattermost.service\n[Unit]\nDescription=SUTA Mattermost Team",
-            "sample_source": "live-captured"
+            "explanation": "systemctl cat prints the unit file exactly as systemd loaded it. If systemd shows your file here, the daemon-reload picked it up; 'No files found' means it did not."
           }
         },
         {
@@ -8387,9 +8363,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo python3 -m json.tool /opt/mattermost/config/config.json /dev/null",
-            "look_for": "No error is printed and the Linux prompt returns. A parsing error means the JSON must be corrected.",
-            "explanation": "python3 parses the JSON file and sends formatted output to /dev/null. This checks syntax without displaying the password-bearing configuration. It does not test the database connection."
+            "command": "sudo python3 -c 'import json; json.load(open(\"/opt/mattermost/config/config.json\")); print(\"JSON OK\")'",
+            "look_for": "JSON OK",
+            "explanation": "Python parses the file and fails loudly on a missing comma or quote. It prints only JSON OK, so the database password is never displayed."
           }
         },
         {
@@ -8436,9 +8412,7 @@
             "kind": "command",
             "command": "systemctl status mattermost --no-pager",
             "look_for": "Loaded: loaded (... ; enabled ...) and Active: active (running)",
-            "explanation": "Read the Loaded and Active lines in the full status output. Loaded identifies the unit; Active reports the current service state.",
-            "sample_output": "● mattermost.service - SUTA Mattermost Team\n     Loaded: loaded (/etc/systemd/system/mattermost.service; enabled; preset: disabled)\n     Active: active (running) since Sun 2026-09-06 01:27:49 UTC; 16s ago\n   Main PID: 5571 (mattermost)\n      Tasks: 17 (limit: 10079)",
-            "sample_source": "live-captured"
+            "explanation": "systemctl status shows whether the unit is enabled (starts at boot) and active (running now). Both words must be there."
           }
         }
       ],
@@ -8597,7 +8571,7 @@
           },
           "verify": {
             "kind": "self",
-            "explanation": "The SQL query is the check. Read its state and count; opening the user shell or database client does not complete this step."
+            "explanation": "This step is itself a check: read its output carefully, that is the verification."
           },
           "teaching": {
             "brief": "Check the writer’s count of streaming replication connections.",
@@ -8934,9 +8908,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo -u postgres /usr/local/bin/patronictl -c /etc/patroni/patroni.yml show-config | grep -n log_min_duration_statement",
-            "look_for": "Under postgresql → parameters, find log_min_duration_statement: 1000. This proves the DCS value; it does not prove every running process has applied it.",
-            "explanation": "Read the dynamic configuration stored in the DCS. Locate the named field yourself."
+            "command": "sudo -u postgres /usr/local/bin/patronictl -c /etc/patroni/patroni.yml show-config",
+            "look_for": "one line with log_min_duration_statement and the value you set",
+            "explanation": "show-config prints the dynamic configuration stored in the DCS. Find the setting you changed; if it is there, every member will apply it."
           },
           "command_sequence": {
             "kind": "patroni-config",
