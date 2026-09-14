@@ -17,7 +17,7 @@ through the bounded lab reset and is proved independently before the next depend
 
 - Work only on the role shown for the current step.
 - Never print private keys, passwords, connection strings, or complete secret files.
-- Run one command at a time. Do not combine steps with `&&`, pipes, or scripts.
+- Run each displayed action exactly as authored. Do not combine separate Guide steps or invent extra commands.
 - Do not initialize PostgreSQL manually; Patroni owns first bootstrap.
 - Do not start replicas until the first leader validator passes.
 - If observed output differs, pause and diagnose before continuing.
@@ -3499,7 +3499,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 1 of 24**
+**Patroni setup → Configure · 1 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3569,7 +3569,7 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 2 of 24**
+**Patroni setup → Configure · 2 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3639,7 +3639,7 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 3 of 24**
+**Patroni setup → Configure · 3 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3709,7 +3709,7 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 4 of 24**
+**Patroni setup → Configure · 4 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3779,7 +3779,7 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 5 of 24**
+**Patroni setup → Configure · 5 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3849,7 +3849,7 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 6 of 24**
+**Patroni setup → Configure · 6 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3919,7 +3919,7 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 7 of 24**
+**Patroni setup → Configure · 7 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -3989,7 +3989,7 @@ Reload systemd and require PATRONI_SYSTEMD_RELOADED.
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
-**Patroni setup → Configure · 8 of 24**
+**Patroni setup → Configure · 8 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -4093,7 +4093,7 @@ This reflection does not mark the step complete.
 
 The first Patroni member defines the cluster scope, DCS transport, bootstrap rules and local PostgreSQL identity.
 
-Enter the role-resolved pg-ha-1 YAML supplied for this step. Secret tokens are inserted through the protected field and are never rendered into chat.
+Open the generated pg-ha-1 Patroni YAML in vi, replace the whole file, and save it. This step validates the YAML and cluster settings; the next two steps set its service ownership and protected mode.
 
 grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
 
@@ -4136,7 +4136,147 @@ Enter the supplied pg-ha-1 configuration and save; the validator checks structur
 
 **Done when:** the independent `PATRONI_MEMBER_1_CONFIGURED` validator passes and the required learner-run check is observed.
 
-## 102. Create the patroni-directories-2 directories
+## 102. Give postgres ownership of the Patroni configuration on pg-ha-1
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+**Patroni setup → Configure · 9 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Give the Patroni service account ownership of its saved configuration.
+
+```bash
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: postgres postgres as the final two fields
+
+<details>
+<summary>Full explanation</summary>
+
+Patroni runs as postgres, so its service account must own the configuration file it reads.
+
+chown sets the saved configuration file owner and group to the postgres service account.
+
+stat prints only the symbolic mode, owner and group. The owner and group must both read postgres; the permission mode is handled in the next action.
+
+Expected result: The file is owned by postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which operating-system account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+The Patroni systemd unit uses postgres.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Set both owner and group to postgres on /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chown command, then read the owner and group with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_OWNER_SET` validator passes and the required learner-run check is observed.
+
+## 103. Protect the Patroni configuration on pg-ha-1
+
+**Work on:** `pg-ha-1` as `ec2-user`
+
+**Patroni setup → Configure · 10 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Restrict the credential-bearing YAML to the postgres service account.
+
+```bash
+sudo chmod 0600 /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: -rw------- postgres postgres
+
+<details>
+<summary>Full explanation</summary>
+
+The file contains database credentials, so only the postgres owner may read or change it.
+
+chmod 0600 grants read and write access only to the file owner and removes all group and other access.
+
+stat prints only the symbolic mode, owner and group. -rw------- proves mode 0600, and the final fields prove Patroni still owns the file.
+
+Expected result: The file mode is 0600 and its owner remains postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file stricter than a public certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It contains database passwords.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Mode 0600 appears as -rw-------.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chmod command, then verify the symbolic mode with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_SECURE` validator passes and the required learner-run check is observed.
+
+## 104. Create the patroni-directories-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4229,7 +4369,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 103. Give postgres ownership of the patroni-directories-2 directories
+## 105. Give postgres ownership of the patroni-directories-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4301,7 +4441,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 104. Lock down the patroni-directories-2 directory permissions
+## 106. Lock down the patroni-directories-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4373,7 +4513,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
-## 105. Create the postgresql-socket-directory-2 directories
+## 107. Create the postgresql-socket-directory-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4445,7 +4585,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 106. Give postgres ownership of the postgresql-socket-directory-2 directories
+## 108. Give postgres ownership of the postgresql-socket-directory-2 directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4517,7 +4657,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 107. Lock down the postgresql-socket-directory-2 directory permissions
+## 109. Lock down the postgresql-socket-directory-2 directory permissions
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4589,7 +4729,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes and the required learner-run check is observed.
 
-## 108. Install Patroni on pg-ha-2
+## 110. Install Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4661,7 +4801,7 @@ Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 109. Copy the etcd CA certificate on pg-ha-2 into place
+## 111. Copy the etcd CA certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4733,7 +4873,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_COPIED` validator passes and the required learner-run check is observed.
 
-## 110. Set permissions on the etcd CA certificate on pg-ha-2
+## 112. Set permissions on the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4805,7 +4945,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 111. Give postgres ownership of the etcd CA certificate on pg-ha-2
+## 113. Give postgres ownership of the etcd CA certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4877,7 +5017,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 112. Copy Patroni's etcd client certificate on pg-ha-2 into place
+## 114. Copy Patroni's etcd client certificate on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4949,7 +5089,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes and the required learner-run check is observed.
 
-## 113. Set permissions on Patroni's etcd client certificate on pg-ha-2
+## 115. Set permissions on Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -5021,7 +5161,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 114. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
+## 116. Give postgres ownership of Patroni's etcd client certificate on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -5093,7 +5233,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 115. Copy Patroni's protected etcd client key on pg-ha-2 into place
+## 117. Copy Patroni's protected etcd client key on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -5165,7 +5305,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes and the required learner-run check is observed.
 
-## 116. Set permissions on Patroni's protected etcd client key on pg-ha-2
+## 118. Set permissions on Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -5237,7 +5377,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 117. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
+## 119. Give postgres ownership of Patroni's protected etcd client key on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -5309,11 +5449,11 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 118. Copy the Patroni launcher on pg-ha-2 into place
+## 120. Copy the Patroni launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 9 of 24**
+**Patroni setup → Configure · 11 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5381,11 +5521,11 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
-## 119. Make the Patroni launcher on pg-ha-2 runnable
+## 121. Make the Patroni launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 10 of 24**
+**Patroni setup → Configure · 12 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5453,11 +5593,11 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 120. Copy the patronictl launcher on pg-ha-2 into place
+## 122. Copy the patronictl launcher on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 11 of 24**
+**Patroni setup → Configure · 13 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5525,11 +5665,11 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
-## 121. Make the patronictl launcher on pg-ha-2 runnable
+## 123. Make the patronictl launcher on pg-ha-2 runnable
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 12 of 24**
+**Patroni setup → Configure · 14 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5597,11 +5737,11 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 122. Copy the Patroni systemd unit on pg-ha-2 into place
+## 124. Copy the Patroni systemd unit on pg-ha-2 into place
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 13 of 24**
+**Patroni setup → Configure · 15 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5669,11 +5809,11 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Done when:** the independent `PATRONI_UNIT_COPIED` validator passes and the required learner-run check is observed.
 
-## 123. Set permissions on the Patroni systemd unit on pg-ha-2
+## 125. Set permissions on the Patroni systemd unit on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 14 of 24**
+**Patroni setup → Configure · 16 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5741,11 +5881,11 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes and the required learner-run check is observed.
 
-## 124. Reload systemd on pg-ha-2
+## 126. Reload systemd on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 15 of 24**
+**Patroni setup → Configure · 17 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5813,11 +5953,11 @@ Reload systemd and require PATRONI_SYSTEMD_RELOADED.
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes and the required learner-run check is observed.
 
-## 125. Configure Patroni on pg-ha-2
+## 127. Configure Patroni on pg-ha-2
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
-**Patroni setup → Configure · 16 of 24**
+**Patroni setup → Configure · 18 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -5902,7 +6042,7 @@ Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on
 
 The first replica shares the cluster contract but has its own member identity and addresses.
 
-Enter the supplied pg-ha-2 YAML. Protected secrets resolve outside chat.
+Open the generated pg-ha-2 Patroni YAML in vi, replace the whole file, and save it. This step validates the YAML and cluster settings; the next two steps set its service ownership and protected mode.
 
 grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
 
@@ -5945,7 +6085,151 @@ Enter the supplied YAML and require PATRONI_MEMBER_2_CONFIGURED.
 
 **Done when:** the independent `PATRONI_MEMBER_2_CONFIGURED` validator passes and the required learner-run check is observed.
 
-## 126. Create the patroni-directories-3 directories
+## 128. Give postgres ownership of the Patroni configuration on pg-ha-2
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+**Patroni setup → Configure · 19 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Give the Patroni service account ownership of its saved configuration.
+
+**Your turn:** Apply the same service ownership to this member’s own configuration file.
+
+```bash
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: postgres postgres as the final two fields
+
+<details>
+<summary>Full explanation</summary>
+
+Patroni runs as postgres, so its service account must own the configuration file it reads.
+
+chown sets the saved configuration file owner and group to the postgres service account.
+
+stat prints only the symbolic mode, owner and group. The owner and group must both read postgres; the permission mode is handled in the next action.
+
+Expected result: The file is owned by postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which operating-system account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+The Patroni systemd unit uses postgres.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Set both owner and group to postgres on /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chown command, then read the owner and group with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_OWNER_SET` validator passes and the required learner-run check is observed.
+
+## 129. Protect the Patroni configuration on pg-ha-2
+
+**Work on:** `pg-ha-2` as `ec2-user`
+
+**Patroni setup → Configure · 20 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Restrict the credential-bearing YAML to the postgres service account.
+
+**Your turn:** Apply the same owner-only mode to this member’s configuration.
+
+```bash
+sudo chmod 0600 /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: -rw------- postgres postgres
+
+<details>
+<summary>Full explanation</summary>
+
+The file contains database credentials, so only the postgres owner may read or change it.
+
+chmod 0600 grants read and write access only to the file owner and removes all group and other access.
+
+stat prints only the symbolic mode, owner and group. -rw------- proves mode 0600, and the final fields prove Patroni still owns the file.
+
+Expected result: The file mode is 0600 and its owner remains postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file stricter than a public certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It contains database passwords.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Mode 0600 appears as -rw-------.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chmod command, then verify the symbolic mode with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_SECURE` validator passes and the required learner-run check is observed.
+
+## 130. Create the patroni-directories-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6017,7 +6301,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 127. Give postgres ownership of the patroni-directories-3 directories
+## 131. Give postgres ownership of the patroni-directories-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6089,7 +6373,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 128. Lock down the patroni-directories-3 directory permissions
+## 132. Lock down the patroni-directories-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6161,7 +6445,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
-## 129. Create the postgresql-socket-directory-3 directories
+## 133. Create the postgresql-socket-directory-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6233,7 +6517,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 130. Give postgres ownership of the postgresql-socket-directory-3 directories
+## 134. Give postgres ownership of the postgresql-socket-directory-3 directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6305,7 +6589,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 131. Lock down the postgresql-socket-directory-3 directory permissions
+## 135. Lock down the postgresql-socket-directory-3 directory permissions
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6377,7 +6661,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_CREATED` validator passes and the required learner-run check is observed.
 
-## 132. Install Patroni on pg-ha-3
+## 136. Install Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6449,7 +6733,7 @@ Extract the staged archive and require PATRONI_SOFTWARE_INSTALLED.
 
 **Done when:** the independent `PATRONI_SOFTWARE_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 133. Copy the etcd CA certificate on pg-ha-3 into place
+## 137. Copy the etcd CA certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6521,7 +6805,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_COPIED` validator passes and the required learner-run check is observed.
 
-## 134. Set permissions on the etcd CA certificate on pg-ha-3
+## 138. Set permissions on the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6593,7 +6877,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 135. Give postgres ownership of the etcd CA certificate on pg-ha-3
+## 139. Give postgres ownership of the etcd CA certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6665,7 +6949,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 **Done when:** the independent `PATRONI_CA_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 136. Copy Patroni's etcd client certificate on pg-ha-3 into place
+## 140. Copy Patroni's etcd client certificate on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6737,7 +7021,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_COPIED` validator passes and the required learner-run check is observed.
 
-## 137. Set permissions on Patroni's etcd client certificate on pg-ha-3
+## 141. Set permissions on Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6809,7 +7093,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 138. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
+## 142. Give postgres ownership of Patroni's etcd client certificate on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6881,7 +7165,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_CERT_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 139. Copy Patroni's protected etcd client key on pg-ha-3 into place
+## 143. Copy Patroni's protected etcd client key on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6953,7 +7237,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_COPIED` validator passes and the required learner-run check is observed.
 
-## 140. Set permissions on Patroni's protected etcd client key on pg-ha-3
+## 144. Set permissions on Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -7025,7 +7309,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_MODE_SET` validator passes and the required learner-run check is observed.
 
-## 141. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
+## 145. Give postgres ownership of Patroni's protected etcd client key on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -7097,11 +7381,11 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 **Done when:** the independent `PATRONI_CLIENT_KEY_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 142. Copy the Patroni launcher on pg-ha-3 into place
+## 146. Copy the Patroni launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 17 of 24**
+**Patroni setup → Configure · 21 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7169,11 +7453,11 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONI_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
-## 143. Make the Patroni launcher on pg-ha-3 runnable
+## 147. Make the Patroni launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 18 of 24**
+**Patroni setup → Configure · 22 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7241,11 +7525,11 @@ Install the wrapper and require PATRONI_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONI_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 144. Copy the patronictl launcher on pg-ha-3 into place
+## 148. Copy the patronictl launcher on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 19 of 24**
+**Patroni setup → Configure · 23 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7313,11 +7597,11 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONICTL_WRAPPER_COPIED` validator passes and the required learner-run check is observed.
 
-## 145. Make the patronictl launcher on pg-ha-3 runnable
+## 149. Make the patronictl launcher on pg-ha-3 runnable
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 20 of 24**
+**Patroni setup → Configure · 24 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7385,11 +7669,11 @@ Install the wrapper and require PATRONICTL_WRAPPER_INSTALLED.
 
 **Done when:** the independent `PATRONICTL_WRAPPER_INSTALLED` validator passes and the required learner-run check is observed.
 
-## 146. Copy the Patroni systemd unit on pg-ha-3 into place
+## 150. Copy the Patroni systemd unit on pg-ha-3 into place
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 21 of 24**
+**Patroni setup → Configure · 25 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7457,11 +7741,11 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Done when:** the independent `PATRONI_UNIT_COPIED` validator passes and the required learner-run check is observed.
 
-## 147. Set permissions on the Patroni systemd unit on pg-ha-3
+## 151. Set permissions on the Patroni systemd unit on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 22 of 24**
+**Patroni setup → Configure · 26 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7529,11 +7813,11 @@ Install the unit and require PATRONI_UNIT_CREATED.
 
 **Done when:** the independent `PATRONI_UNIT_CREATED` validator passes and the required learner-run check is observed.
 
-## 148. Reload systemd on pg-ha-3
+## 152. Reload systemd on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 23 of 24**
+**Patroni setup → Configure · 27 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7601,11 +7885,11 @@ Reload systemd and require PATRONI_SYSTEMD_RELOADED.
 
 **Done when:** the independent `PATRONI_SYSTEMD_RELOADED` validator passes and the required learner-run check is observed.
 
-## 149. Configure Patroni on pg-ha-3
+## 153. Configure Patroni on pg-ha-3
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
-**Patroni setup → Configure · 24 of 24**
+**Patroni setup → Configure · 28 of 30**
 
 Set up the launchers, service definition, and identity of each member.
 
@@ -7690,7 +7974,7 @@ Look for: the scope, name, restapi, etcd3 and postgresql top-level keys, each on
 
 The second replica completes the topology with a unique member identity.
 
-Enter the supplied pg-ha-3 YAML using the same protected cluster credentials.
+Open the generated pg-ha-3 Patroni YAML in vi, replace the whole file, and save it. This step validates the YAML and cluster settings; the next two steps set its service ownership and protected mode.
 
 grep -E matches several patterns at once; -n adds line numbers. Every top-level section of patroni.yml must be present. A missing key means the file was saved incomplete.
 
@@ -7733,7 +8017,151 @@ Enter the supplied YAML and require PATRONI_MEMBER_3_CONFIGURED.
 
 **Done when:** the independent `PATRONI_MEMBER_3_CONFIGURED` validator passes and the required learner-run check is observed.
 
-## 150. Bootstrap the first Patroni leader
+## 154. Give postgres ownership of the Patroni configuration on pg-ha-3
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+**Patroni setup → Configure · 29 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Give the Patroni service account ownership of its saved configuration.
+
+**Your turn:** Apply the same service ownership to this member’s own configuration file.
+
+```bash
+sudo chown postgres:postgres /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: postgres postgres as the final two fields
+
+<details>
+<summary>Full explanation</summary>
+
+Patroni runs as postgres, so its service account must own the configuration file it reads.
+
+chown sets the saved configuration file owner and group to the postgres service account.
+
+stat prints only the symbolic mode, owner and group. The owner and group must both read postgres; the permission mode is handled in the next action.
+
+Expected result: The file is owned by postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Which operating-system account runs Patroni?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+The Patroni systemd unit uses postgres.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Set both owner and group to postgres on /etc/patroni/patroni.yml.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chown command, then read the owner and group with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_OWNER_SET` validator passes and the required learner-run check is observed.
+
+## 155. Protect the Patroni configuration on pg-ha-3
+
+**Work on:** `pg-ha-3` as `ec2-user`
+
+**Patroni setup → Configure · 30 of 30**
+
+Set up the launchers, service definition, and identity of each member.
+
+Restrict the credential-bearing YAML to the postgres service account.
+
+**Your turn:** Apply the same owner-only mode to this member’s configuration.
+
+```bash
+sudo chmod 0600 /etc/patroni/patroni.yml
+```
+
+**Prove it worked**
+
+```bash
+sudo stat -c '%A %U %G' /etc/patroni/patroni.yml
+```
+
+Look for: -rw------- postgres postgres
+
+<details>
+<summary>Full explanation</summary>
+
+The file contains database credentials, so only the postgres owner may read or change it.
+
+chmod 0600 grants read and write access only to the file owner and removes all group and other access.
+
+stat prints only the symbolic mode, owner and group. -rw------- proves mode 0600, and the final fields prove Patroni still owns the file.
+
+Expected result: The file mode is 0600 and its owner remains postgres:postgres.
+
+</details>
+
+<details>
+<summary>Need a hint?</summary>
+
+<details>
+<summary>question</summary>
+
+Why is this file stricter than a public certificate?
+
+</details>
+
+<details>
+<summary>hint</summary>
+
+It contains database passwords.
+
+</details>
+
+<details>
+<summary>stronger hint</summary>
+
+Mode 0600 appears as -rw-------.
+
+</details>
+
+<details>
+<summary>solution</summary>
+
+Run the displayed chmod command, then verify the symbolic mode with ls -l.
+
+</details>
+
+</details>
+
+**Done when:** the independent `PATRONI_CONFIG_SECURE` validator passes and the required learner-run check is observed.
+
+## 156. Bootstrap the first Patroni leader
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -7824,7 +8252,7 @@ Start Patroni on pg-ha-1 and wait for the leader validator before continuing.
 
 **Done when:** the independent `PATRONI_LEADER_BOOTSTRAPPED` validator passes and the required learner-run check is observed.
 
-## 151. Join pg-ha-2 as the first replica
+## 157. Join pg-ha-2 as the first replica
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -7894,7 +8322,7 @@ Start Patroni on pg-ha-2 and require PATRONI_REPLICA_2_JOINED.
 
 **Done when:** the independent `PATRONI_REPLICA_2_JOINED` validator passes and the required learner-run check is observed.
 
-## 152. Join pg-ha-3 as the second replica
+## 158. Join pg-ha-3 as the second replica
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -7985,7 +8413,7 @@ Start Patroni on pg-ha-3 and require PATRONI_REPLICA_3_JOINED.
 
 **Done when:** the independent `PATRONI_REPLICA_3_JOINED` validator passes and the required learner-run check is observed.
 
-## 153. Copy the pinned HAProxy binary into place
+## 159. Copy the pinned HAProxy binary into place
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8014,7 +8442,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_COPIED` validator passes.
 
-## 154. Make the pinned HAProxy binary runnable
+## 160. Make the pinned HAProxy binary runnable
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8043,7 +8471,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_INSTALLED` validator passes.
 
-## 155. Create the haproxy-directory directories
+## 161. Create the haproxy-directory directories
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8072,7 +8500,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_DIRS_MADE` validator passes.
 
-## 156. Give root ownership of the haproxy-directory directories
+## 162. Give root ownership of the haproxy-directory directories
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8101,7 +8529,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_DIRS_OWNED` validator passes.
 
-## 157. Lock down the haproxy-directory directory permissions
+## 163. Lock down the haproxy-directory directory permissions
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8130,7 +8558,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_CREATED` validator passes.
 
-## 158. Copy the HAProxy systemd unit into place
+## 164. Copy the HAProxy systemd unit into place
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8159,7 +8587,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_UNIT_COPIED` validator passes.
 
-## 159. Set permissions on the HAProxy systemd unit
+## 165. Set permissions on the HAProxy systemd unit
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8188,7 +8616,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_UNIT_CREATED` validator passes.
 
-## 160. Reload systemd for HAProxy
+## 166. Reload systemd for HAProxy
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8217,7 +8645,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_SYSTEMD_RELOADED` validator passes.
 
-## 161. Configure the HAProxy writer route
+## 167. Configure the HAProxy writer route
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8275,7 +8703,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_CONFIGURED` validator passes.
 
-## 162. Start the writer endpoint
+## 168. Start the writer endpoint
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8304,7 +8732,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_WRITER_STARTED` validator passes.
 
-## 163. Create the Mattermost database login
+## 169. Create the Mattermost database login
 
 On **pg-ha-1** as **ec2-user**.
 
@@ -8364,7 +8792,7 @@ Expected: PostgreSQL reports CREATE ROLE and the role has login but no superuser
 
 Done when the independent MATTERMOST_DB_ROLE_CREATED check and the learner-run proof pass.
 
-## 164. Set the protected Mattermost database password
+## 170. Set the protected Mattermost database password
 
 On **pg-ha-1** as **ec2-user**.
 
@@ -8434,7 +8862,7 @@ Expected: The password is stored as a SCRAM verifier and no plaintext appears.
 
 Done when the independent MATTERMOST_DB_PASSWORD_SET check and the learner-run proof pass.
 
-## 165. Create the Mattermost database
+## 171. Create the Mattermost database
 
 On **pg-ha-1** as **ec2-user**.
 
@@ -8502,7 +8930,7 @@ Expected: The database exists once with mattermost as owner, including after a s
 
 Done when the independent MATTERMOST_DATABASE_CREATED check and the learner-run proof pass.
 
-## 166. Create the Mattermost operating-system account
+## 172. Create the Mattermost operating-system account
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8531,7 +8959,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_OS_USER_CREATED` validator passes.
 
-## 167. Install the pinned Mattermost application
+## 173. Install the pinned Mattermost application
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8560,7 +8988,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_INSTALLED` validator passes.
 
-## 168. Create the mattermost-data-directory directories
+## 174. Create the mattermost-data-directory directories
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8589,7 +9017,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_MADE` validator passes.
 
-## 169. Give mattermost ownership of the mattermost-data-directory directories
+## 175. Give mattermost ownership of the mattermost-data-directory directories
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8618,7 +9046,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_OWNED` validator passes.
 
-## 170. Lock down the mattermost-data-directory directory permissions
+## 176. Lock down the mattermost-data-directory directory permissions
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8647,7 +9075,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_CREATED` validator passes.
 
-## 171. Assign the Mattermost application tree
+## 177. Assign the Mattermost application tree
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8676,7 +9104,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_TREE_OWNED` validator passes.
 
-## 172. Copy the Mattermost systemd unit into place
+## 178. Copy the Mattermost systemd unit into place
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8705,7 +9133,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_COPIED` validator passes.
 
-## 173. Set permissions on the Mattermost systemd unit
+## 179. Set permissions on the Mattermost systemd unit
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8734,7 +9162,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_CREATED` validator passes.
 
-## 174. Reload systemd for Mattermost
+## 180. Reload systemd for Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8763,7 +9191,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_SYSTEMD_RELOADED` validator passes.
 
-## 175. Connect Mattermost to HAProxy
+## 181. Connect Mattermost to HAProxy
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8807,7 +9235,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CONFIGURED` validator passes.
 
-## 176. Start and prove Mattermost
+## 182. Start and prove Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -8841,4 +9269,3 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 BUILD is complete only when every registered server validator passes in order and
 Mattermost succeeds through the unchanged HAProxy writer endpoint. The learner's
 commands—not SutaBot, chat text, or a reference configurator—must produce that state.
-
