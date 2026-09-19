@@ -2440,5 +2440,11 @@
     "Service outage recovery on surviving hosts does not establish physical host replacement.",
     "Local alert receipts do not establish external recipient delivery."
   ],
-  "retained_failed_predicates": 16
+  "retained_failed_predicates": 16,
+  "controller_amendments": {
+    "scripts/lib/pgbackrest_operation_predicates.py": {
+      "receipt": "reports/student-reliability-repair-2026-09-18/pgbackrest-controller-amendment.json",
+      "sha256": "df7e503c4fb3545a84e16f0be240640b1d86059895ea19872e4199069a171b82"
+    }
+  }
 }
