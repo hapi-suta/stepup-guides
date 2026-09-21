@@ -36,9 +36,9 @@ Run this one action:
 sha256sum /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz
 ```
 
-**What the command means:** sha256sum calculates the archive fingerprint; compare it with the digest shown in the handoff manifest.
+**What the command means:** sha256sum calculates the archive fingerprint. The reviewed SUTA etcd 3.6.14-suta.2 digest is 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9. The same approved value is in the readable /opt/suta/artifacts/SHA256SUMS file on each dcs server; use cat /opt/suta/artifacts/SHA256SUMS to inspect that reference. Printing any digest alone does not prove approval.
 
-**Expected result:** One SHA-256 digest followed by the archive path.
+**Expected result:** The first field must equal 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9, followed by /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz. Stop if even one character differs.
 
 **Safety:** This is a read-only observation.
 
@@ -47,7 +47,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 1. Question: Which value proves the staged bytes are the approved bytes?
 2. Hint: Look at the first field in the output.
 3. Stronger hint: Compare it with /opt/suta/artifacts/SHA256SUMS.
-4. Solution: Run sha256sum on the staged archive and stop if the digest differs.
+4. Solution: The first field must equal 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9, followed by /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz. Stop if even one character differs.
 
 **Done when:** the independent `ETCD_ARCHIVE_VERIFIED` validator passes.
 
@@ -225,11 +225,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 8. Create the etcd-directories-1 directories
+## 8. Create the /etc/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /etc/etcd before setting its ownership and permissions.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -241,7 +241,7 @@ sudo mkdir -p /etc/etcd
 
 **What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /etc/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -254,11 +254,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 9. Give root ownership of the etcd-directories-1 directories
+## 9. Give root ownership of the /etc/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /etc/etcd so the intended process can use this location.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -270,7 +270,7 @@ sudo chown -R root:root /etc/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /etc/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -283,11 +283,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 10. Lock down the etcd-directories-1 directory permissions
+## 10. Set permissions on the /etc/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
-Configuration and consensus data need explicit protected locations.
+/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -312,11 +312,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 11. Create the etcd-data-directory-1 directories
+## 11. Create the /var/lib/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/lib/etcd before setting its ownership and permissions.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -328,7 +328,7 @@ sudo mkdir -p /var/lib/etcd
 
 **What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /var/lib/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -341,11 +341,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 12. Give root ownership of the etcd-data-directory-1 directories
+## 12. Give root ownership of the /var/lib/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /var/lib/etcd so the intended process can use this location.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -357,7 +357,7 @@ sudo chown -R root:root /var/lib/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /var/lib/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -370,7 +370,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 13. Lock down the etcd-data-directory-1 directory permissions
+## 13. Set permissions on the /var/lib/etcd directory
 
 **Work on:** `dcs-1` as `ec2-user`
 
@@ -795,11 +795,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 27. Create the etcd-directories-2 directories
+## 27. Create the /etc/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /etc/etcd before setting its ownership and permissions.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -811,7 +811,7 @@ sudo mkdir -p /etc/etcd
 
 **What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /etc/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -824,11 +824,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 28. Give root ownership of the etcd-directories-2 directories
+## 28. Give root ownership of the /etc/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /etc/etcd so the intended process can use this location.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -840,7 +840,7 @@ sudo chown -R root:root /etc/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /etc/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -853,11 +853,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 29. Lock down the etcd-directories-2 directory permissions
+## 29. Set permissions on the /etc/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
-Configuration and consensus data need explicit protected locations.
+/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -882,11 +882,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 30. Create the etcd-data-directory-2 directories
+## 30. Create the /var/lib/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/lib/etcd before setting its ownership and permissions.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -898,7 +898,7 @@ sudo mkdir -p /var/lib/etcd
 
 **What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /var/lib/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -911,11 +911,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 31. Give root ownership of the etcd-data-directory-2 directories
+## 31. Give root ownership of the /var/lib/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /var/lib/etcd so the intended process can use this location.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -927,7 +927,7 @@ sudo chown -R root:root /var/lib/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /var/lib/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -940,7 +940,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 32. Lock down the etcd-data-directory-2 directory permissions
+## 32. Set permissions on the /var/lib/etcd directory
 
 **Work on:** `dcs-2` as `ec2-user`
 
@@ -1365,11 +1365,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCDUTL_INSTALLED` validator passes.
 
-## 46. Create the etcd-directories-3 directories
+## 46. Create the /etc/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /etc/etcd before setting its ownership and permissions.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -1381,7 +1381,7 @@ sudo mkdir -p /etc/etcd
 
 **What the command means:** sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /etc/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -1394,11 +1394,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 47. Give root ownership of the etcd-directories-3 directories
+## 47. Give root ownership of the /etc/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /etc/etcd so the intended process can use this location.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -1410,7 +1410,7 @@ sudo chown -R root:root /etc/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /etc/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -1423,11 +1423,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 48. Lock down the etcd-directories-3 directory permissions
+## 48. Set permissions on the /etc/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
-Configuration and consensus data need explicit protected locations.
+/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.
 
 **Predict first:** Who should be able to read the future member private key?
 
@@ -1452,11 +1452,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_CONFIG_DIRECTORY_SECURE` validator passes.
 
-## 49. Create the etcd-data-directory-3 directories
+## 49. Create the /var/lib/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/lib/etcd before setting its ownership and permissions.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -1468,7 +1468,7 @@ sudo mkdir -p /var/lib/etcd
 
 **What the command means:** sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /var/lib/etcd exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -1481,11 +1481,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_MADE` validator passes.
 
-## 50. Give root ownership of the etcd-data-directory-3 directories
+## 50. Give root ownership of the /var/lib/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /var/lib/etcd so the intended process can use this location.
 
 **Predict first:** Why separate configuration from consensus data?
 
@@ -1497,7 +1497,7 @@ sudo chown -R root:root /var/lib/etcd
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /var/lib/etcd is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -1510,7 +1510,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `ETCD_DATA_DIRECTORY_SECURE_DIRS_OWNED` validator passes.
 
-## 51. Lock down the etcd-data-directory-3 directory permissions
+## 51. Set permissions on the /var/lib/etcd directory
 
 **Work on:** `dcs-3` as `ec2-user`
 
@@ -2312,7 +2312,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `PG_LAYOUT_3_CREATED` validator passes.
 
-## 78. Create the patroni-directories-1 directories
+## 78. Create the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2337,13 +2337,13 @@ Look for: 2 lines, one per directory, each starting with d
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /opt/patroni and /etc/patroni before setting its ownership and permissions.
 
 sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /opt/patroni and /etc/patroni exists.
 
 </details>
 
@@ -2382,7 +2382,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 79. Give postgres ownership of the patroni-directories-1 directories
+## 79. Give postgres ownership of the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2407,13 +2407,13 @@ Look for: owner postgres and group postgres on every line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /opt/patroni and /etc/patroni is owned by postgres.
 
 </details>
 
@@ -2452,7 +2452,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 80. Lock down the patroni-directories-1 directory permissions
+## 80. Set permissions on the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2543,7 +2543,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
-## 81. Create the postgresql-socket-directory-1 directories
+## 81. Create the /var/run/postgresql directory
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2568,13 +2568,13 @@ Look for: one line starting with d
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/run/postgresql before setting its ownership and permissions.
 
 sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /var/run/postgresql exists.
 
 </details>
 
@@ -2613,7 +2613,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 82. Give postgres ownership of the postgresql-socket-directory-1 directories
+## 82. Give postgres ownership of the /var/run/postgresql directory
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2638,13 +2638,13 @@ Look for: owner postgres and group postgres on the line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /var/run/postgresql so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /var/run/postgresql is owned by postgres.
 
 </details>
 
@@ -2683,7 +2683,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 83. Lock down the postgresql-socket-directory-1 directory permissions
+## 83. Set permissions on the /var/run/postgresql directory
 
 **Work on:** `pg-ha-1` as `ec2-user`
 
@@ -2922,7 +2922,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Allow the trust certificate to be read while restricting writes.
+Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
@@ -2931,10 +2931,10 @@ sudo chmod 0644 /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -2943,7 +2943,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
 
@@ -2992,7 +2992,7 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
@@ -3001,10 +3001,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 644 /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -3013,7 +3013,7 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The CA certificate is readable by Patroni and contains no private key.
 
@@ -3132,7 +3132,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Set read access on the public client certificate.
+Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
@@ -3141,10 +3141,10 @@ sudo chmod 0644 /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -3153,7 +3153,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.crt now has mode 644.
 
@@ -3202,7 +3202,7 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.crt.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
@@ -3211,10 +3211,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: Certificate will not expire
+Look for: postgres postgres 644 /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -3223,7 +3223,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -3342,7 +3342,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Restrict the private key to its owner.
+Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
@@ -3357,10 +3357,10 @@ sudo chmod 0600 /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: the first column reading -rw-------
+Look for: the mode field 600 and path /etc/patroni/etcd-client.key
 
 <details>
 <summary>Compare your prediction with the check</summary>
@@ -3384,7 +3384,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.key now has mode 600.
 
@@ -3433,7 +3433,7 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.key.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
@@ -3442,10 +3442,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 600 /etc/patroni/etcd-client.key
 
 <details>
 <summary>Full explanation</summary>
@@ -3454,7 +3454,7 @@ The private key proves possession of the client identity and must not be exposed
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The command shows no key material and the destination mode is 0600.
 
@@ -4276,7 +4276,7 @@ Run the displayed chmod command, then verify the symbolic mode with ls -l.
 
 **Done when:** the independent `PATRONI_CONFIG_SECURE` validator passes and the required learner-run check is observed.
 
-## 104. Create the patroni-directories-2 directories
+## 104. Create the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4324,13 +4324,13 @@ This reflection does not mark the step complete.
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /opt/patroni and /etc/patroni before setting its ownership and permissions.
 
 sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /opt/patroni and /etc/patroni exists.
 
 </details>
 
@@ -4369,7 +4369,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 105. Give postgres ownership of the patroni-directories-2 directories
+## 105. Give postgres ownership of the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4396,13 +4396,13 @@ Look for: owner postgres and group postgres on every line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /opt/patroni and /etc/patroni is owned by postgres.
 
 </details>
 
@@ -4441,7 +4441,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 106. Lock down the patroni-directories-2 directory permissions
+## 106. Set permissions on the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4513,7 +4513,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
-## 107. Create the postgresql-socket-directory-2 directories
+## 107. Create the /var/run/postgresql directory
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4540,13 +4540,13 @@ Look for: one line starting with d
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/run/postgresql before setting its ownership and permissions.
 
 sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /var/run/postgresql exists.
 
 </details>
 
@@ -4585,7 +4585,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 108. Give postgres ownership of the postgresql-socket-directory-2 directories
+## 108. Give postgres ownership of the /var/run/postgresql directory
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4612,13 +4612,13 @@ Look for: owner postgres and group postgres on the line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /var/run/postgresql so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /var/run/postgresql is owned by postgres.
 
 </details>
 
@@ -4657,7 +4657,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 109. Lock down the postgresql-socket-directory-2 directory permissions
+## 109. Set permissions on the /var/run/postgresql directory
 
 **Work on:** `pg-ha-2` as `ec2-user`
 
@@ -4881,9 +4881,9 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Allow the trust certificate to be read while restricting writes.
+Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.
 
-**Your turn:** This is public certificate material; keep its file mode at 0644.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-2.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
@@ -4892,10 +4892,10 @@ sudo chmod 0644 /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -4904,7 +4904,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
 
@@ -4953,9 +4953,9 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-2.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
@@ -4964,10 +4964,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 644 /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -4976,7 +4976,7 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The CA certificate is readable by Patroni and contains no private key.
 
@@ -5097,9 +5097,9 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Set read access on the public client certificate.
+Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.
 
-**Your turn:** Use the same 0644 certificate mode on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-2.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
@@ -5108,10 +5108,10 @@ sudo chmod 0644 /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -5120,7 +5120,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.crt now has mode 644.
 
@@ -5169,9 +5169,9 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.crt.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-2.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
@@ -5180,10 +5180,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: Certificate will not expire
+Look for: postgres postgres 644 /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -5192,7 +5192,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -5313,9 +5313,9 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Restrict the private key to its owner.
+Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.
 
-**Your turn:** The key uses 0600. Certificate files use a different mode.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-2.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
@@ -5324,10 +5324,10 @@ sudo chmod 0600 /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: the first column reading -rw-------
+Look for: the mode field 600 and path /etc/patroni/etcd-client.key
 
 <details>
 <summary>Full explanation</summary>
@@ -5336,7 +5336,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.key now has mode 600.
 
@@ -5385,9 +5385,9 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.key.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-2.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
@@ -5396,10 +5396,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 600 /etc/patroni/etcd-client.key
 
 <details>
 <summary>Full explanation</summary>
@@ -5408,7 +5408,7 @@ The private key proves possession of the client identity and must not be exposed
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The command shows no key material and the destination mode is 0600.
 
@@ -6229,7 +6229,7 @@ Run the displayed chmod command, then verify the symbolic mode with ls -l.
 
 **Done when:** the independent `PATRONI_CONFIG_SECURE` validator passes and the required learner-run check is observed.
 
-## 130. Create the patroni-directories-3 directories
+## 130. Create the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6256,13 +6256,13 @@ Look for: 2 lines, one per directory, each starting with d
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /opt/patroni and /etc/patroni before setting its ownership and permissions.
 
 sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /opt/patroni and /etc/patroni exists.
 
 </details>
 
@@ -6301,7 +6301,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 131. Give postgres ownership of the patroni-directories-3 directories
+## 131. Give postgres ownership of the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6328,13 +6328,13 @@ Look for: owner postgres and group postgres on every line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /opt/patroni and /etc/patroni is owned by postgres.
 
 </details>
 
@@ -6373,7 +6373,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 132. Lock down the patroni-directories-3 directory permissions
+## 132. Set permissions on the /opt/patroni and /etc/patroni directories
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6445,7 +6445,7 @@ Run the displayed command and require PATRONI_DIRS_CREATED.
 
 **Done when:** the independent `PATRONI_DIRS_CREATED` validator passes and the required learner-run check is observed.
 
-## 133. Create the postgresql-socket-directory-3 directories
+## 133. Create the /var/run/postgresql directory
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6472,13 +6472,13 @@ Look for: one line starting with d
 <details>
 <summary>Full explanation</summary>
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /var/run/postgresql before setting its ownership and permissions.
 
 sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
 ls -ld shows the directory entry itself instead of listing what is inside it. A line starting with d proves the directory exists; 'No such file or directory' means mkdir did not run where you think.
 
-Expected result: The command returns to the prompt and the directories exist.
+Expected result: The command returns to the prompt and /var/run/postgresql exists.
 
 </details>
 
@@ -6517,7 +6517,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_MADE` validator passes and the required learner-run check is observed.
 
-## 134. Give postgres ownership of the postgresql-socket-directory-3 directories
+## 134. Give postgres ownership of the /var/run/postgresql directory
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6544,13 +6544,13 @@ Look for: owner postgres and group postgres on the line
 <details>
 <summary>Full explanation</summary>
 
-The postgres service must own these directories to write into them.
+The postgres account owns /var/run/postgresql so the intended process can use this location.
 
 chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.
 
 ls -ld shows the directory itself with owner and group in columns three and four. After a recursive chown the top entry must already read postgres postgres.
 
-Expected result: The directories are now owned by postgres.
+Expected result: /var/run/postgresql is owned by postgres.
 
 </details>
 
@@ -6589,7 +6589,7 @@ Create the directory and require PATRONI_SOCKET_DIR_CREATED.
 
 **Done when:** the independent `PATRONI_SOCKET_DIR_DIRS_OWNED` validator passes and the required learner-run check is observed.
 
-## 135. Lock down the postgresql-socket-directory-3 directory permissions
+## 135. Set permissions on the /var/run/postgresql directory
 
 **Work on:** `pg-ha-3` as `ec2-user`
 
@@ -6813,9 +6813,9 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Allow the trust certificate to be read while restricting writes.
+Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.
 
-**Your turn:** This is public certificate material; keep its file mode at 0644.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-3.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-ca.crt
@@ -6824,10 +6824,10 @@ sudo chmod 0644 /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -6836,7 +6836,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-ca.crt now has mode 644.
 
@@ -6885,9 +6885,9 @@ Install the CA certificate and require PATRONI_CA_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-3.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
@@ -6896,10 +6896,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-ca.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-ca.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 644 /etc/patroni/etcd-ca.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -6908,7 +6908,7 @@ Patroni must verify that it is talking to the assigned etcd cluster.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The CA certificate is readable by Patroni and contains no private key.
 
@@ -7029,9 +7029,9 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Set read access on the public client certificate.
+Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.
 
-**Your turn:** Use the same 0644 certificate mode on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-3.
 
 ```bash
 sudo chmod 0644 /etc/patroni/etcd-client.crt
@@ -7040,10 +7040,10 @@ sudo chmod 0644 /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: the first column reading -rw-r--r--
+Look for: the mode field 644 and path /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -7052,7 +7052,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0644 sets the file's permissions to 644 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.crt now has mode 644.
 
@@ -7101,9 +7101,9 @@ Install it and require PATRONI_CLIENT_CERT_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.crt.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-3.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.crt
@@ -7112,10 +7112,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.crt
 **Prove it worked**
 
 ```bash
-sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt
 ```
 
-Look for: Certificate will not expire
+Look for: postgres postgres 644 /etc/patroni/etcd-client.crt
 
 <details>
 <summary>Full explanation</summary>
@@ -7124,7 +7124,7 @@ etcd mutual TLS also verifies Patroni's client identity.
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The signed client certificate is postgres-owned and mode 0644.
 
@@ -7245,9 +7245,9 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Restrict the private key to its owner.
+Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.
 
-**Your turn:** The key uses 0600. Certificate files use a different mode.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-3.
 
 ```bash
 sudo chmod 0600 /etc/patroni/etcd-client.key
@@ -7256,10 +7256,10 @@ sudo chmod 0600 /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: the first column reading -rw-------
+Look for: the mode field 600 and path /etc/patroni/etcd-client.key
 
 <details>
 <summary>Full explanation</summary>
@@ -7268,7 +7268,7 @@ The permissions decide who may read this file before ownership is handed to post
 
 chmod 0600 sets the file's permissions to 600 (owner read/write, group/others read - or owner-only for a private key).
 
-ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: /etc/patroni/etcd-client.key now has mode 600.
 
@@ -7317,9 +7317,9 @@ Install it and require PATRONI_CLIENT_KEY_INSTALLED.
 
 Prepare the trust, certificate, and private-key files for etcd.
 
-Install the pinned Patroni runtime and inspect its entry point.
+Give the postgres service account the required access to /etc/patroni/etcd-client.key.
 
-**Your turn:** Use the same staged archive and inspect the installed entry point on this node.
+**Your turn:** Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-3.
 
 ```bash
 sudo chown postgres:postgres /etc/patroni/etcd-client.key
@@ -7328,10 +7328,10 @@ sudo chown postgres:postgres /etc/patroni/etcd-client.key
 **Prove it worked**
 
 ```bash
-sudo ls -l /etc/patroni/etcd-client.key
+sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key
 ```
 
-Look for: owner postgres and group postgres on the line
+Look for: postgres postgres 600 /etc/patroni/etcd-client.key
 
 <details>
 <summary>Full explanation</summary>
@@ -7340,7 +7340,7 @@ The private key proves possession of the client identity and must not be exposed
 
 chown sets the file's owner and group to postgres so the service, which runs as postgres, can read it. A plain cp left it owned by root.
 
-ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.
+stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health.
 
 Expected result: The command shows no key material and the destination mode is 0600.
 
@@ -8458,7 +8458,7 @@ sudo chmod 0755 /usr/local/sbin/haproxy
 
 **What the command means:** chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.
 
-**Expected result:** HAProxy reports version 3.2.22.
+**Expected result:** The permission listing for /usr/local/sbin/haproxy starts with -rwxr-xr-x. The independent validator also enforces the pinned HAProxy version 3.2.22.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -8471,11 +8471,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_INSTALLED` validator passes.
 
-## 161. Create the haproxy-directory directories
+## 161. Create the /etc/haproxy directory
 
 **Work on:** `db-router-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+Create /etc/haproxy before setting its ownership and permissions.
 
 **Predict first:** Who should own routing policy?
 
@@ -8487,7 +8487,7 @@ sudo mkdir -p /etc/haproxy
 
 **What the command means:** sudo mkdir -p creates /etc/haproxy (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /etc/haproxy exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -8500,11 +8500,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_DIRS_MADE` validator passes.
 
-## 162. Give root ownership of the haproxy-directory directories
+## 162. Give root ownership of the /etc/haproxy directory
 
 **Work on:** `db-router-1` as `ec2-user`
 
-The root service must own these directories to write into them.
+The root account owns /etc/haproxy so the intended process can use this location.
 
 **Predict first:** Who should own routing policy?
 
@@ -8516,7 +8516,7 @@ sudo chown -R root:root /etc/haproxy
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by root.
+**Expected result:** /etc/haproxy is owned by root.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -8529,7 +8529,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `HAPROXY_DIR_DIRS_OWNED` validator passes.
 
-## 163. Lock down the haproxy-directory directory permissions
+## 163. Set permissions on the /etc/haproxy directory
 
 **Work on:** `db-router-1` as `ec2-user`
 
@@ -8740,6 +8740,8 @@ The application needs its own least-privilege PostgreSQL identity instead of the
 
 Run one action at a time. Prompt examples identify where to type; do not type the prompt.
 
+If the change is already in place, open the postgres shell and psql using the first two actions, then run the displayed check and exit actions. If you are already at postgres=#, run the check there. You do not need to repeat the change. SutaBot still independently checks the server state.
+
 1. Switch to the postgres user
 Start in the Linux terminal on pg-ha-1, as ec2-user.
 ```bash
@@ -8799,6 +8801,8 @@ On **pg-ha-1** as **ec2-user**.
 SCRAM authentication requires a password while chat and logs must never contain it.
 
 Run one action at a time. Prompt examples identify where to type; do not type the prompt.
+
+If the change is already in place, open the postgres shell and psql using the first two actions, then run the displayed check and exit actions. If you are already at postgres=#, run the check there. You do not need to repeat the change. SutaBot still independently checks the server state.
 
 1. Switch to the postgres user
 Start in the Linux terminal on pg-ha-1, as ec2-user.
@@ -8869,6 +8873,8 @@ On **pg-ha-1** as **ec2-user**.
 Mattermost needs an isolated database owned by its application role.
 
 Run one action at a time. Prompt examples identify where to type; do not type the prompt.
+
+If the change is already in place, open the postgres shell and psql using the first two actions, then run the displayed check and exit actions. If you are already at postgres=#, run the check there. You do not need to repeat the change. SutaBot still independently checks the server state.
 
 1. Switch to the postgres user
 Start in the Linux terminal on pg-ha-1, as ec2-user.
@@ -8988,11 +8994,40 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_INSTALLED` validator passes.
 
-## 174. Create the mattermost-data-directory directories
+## 174. Remove shared write access from the Mattermost application
 
 **Work on:** `mattermost-1` as `ec2-user`
 
-Creating the empty directories first keeps each action clear; ownership and permissions come next.
+An executable or its parent directory must not be writable by unrelated local accounts. The service account keeps its own write access to required runtime paths.
+
+**Predict first:** Who could replace a program in a directory writable by everyone?
+
+Run this one action:
+
+```bash
+sudo chmod -R go-w /opt/mattermost
+```
+
+**What the command means:** chmod changes permission bits. -R applies the change throughout /opt/mattermost. go-w removes write access for the group and everyone else, while preserving owner access, executable bits and more restrictive files such as mode 0600 configuration.
+
+**Expected result:** The application root, bin and config directories and the executable have no group or other write bit. Mode 0777 entries become 0755; existing 0600 files and 0750 data directories keep their stricter modes.
+
+**Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
+
+If you are stuck, ask SutaBot for help. It will reveal help in this order:
+
+1. Question: Who could replace a program in a directory writable by everyone?
+2. Hint: The program and its parent directories both need protection.
+3. Stronger hint: Remove group and other write access while preserving the owner permissions.
+4. Solution: Run the displayed chmod action, then inspect the four listed paths.
+
+**Done when:** the independent `MATTERMOST_TREE_SECURE` validator passes.
+
+## 175. Create the /opt/mattermost/data directory
+
+**Work on:** `mattermost-1` as `ec2-user`
+
+Create /opt/mattermost/data before setting its ownership and permissions.
 
 **Predict first:** Which account needs write access here?
 
@@ -9004,7 +9039,7 @@ sudo mkdir -p /opt/mattermost/data
 
 **What the command means:** sudo mkdir -p creates /opt/mattermost/data (and any missing parents). It does not set who owns them or their permissions - the next two steps do.
 
-**Expected result:** The command returns to the prompt and the directories exist.
+**Expected result:** The command returns to the prompt and /opt/mattermost/data exists.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -9017,11 +9052,11 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_MADE` validator passes.
 
-## 175. Give mattermost ownership of the mattermost-data-directory directories
+## 176. Give mattermost ownership of the /opt/mattermost/data directory
 
 **Work on:** `mattermost-1` as `ec2-user`
 
-The mattermost service must own these directories to write into them.
+The mattermost account owns /opt/mattermost/data so the intended process can use this location.
 
 **Predict first:** Which account needs write access here?
 
@@ -9033,7 +9068,7 @@ sudo chown -R mattermost:mattermost /opt/mattermost/data
 
 **What the command means:** chown -R sets the owner and group of the directories (and their contents) to mattermost, because a plain mkdir left them owned by root.
 
-**Expected result:** The directories are now owned by mattermost.
+**Expected result:** /opt/mattermost/data is owned by mattermost.
 
 **Safety:** This changes the assigned lab role. The registered validator and reset contract bound the change.
 
@@ -9046,7 +9081,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_DIRS_OWNED` validator passes.
 
-## 176. Lock down the mattermost-data-directory directory permissions
+## 177. Set permissions on the /opt/mattermost/data directory
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9075,7 +9110,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATA_DIR_CREATED` validator passes.
 
-## 177. Assign the Mattermost application tree
+## 178. Assign the Mattermost application tree
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9104,7 +9139,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_TREE_OWNED` validator passes.
 
-## 178. Copy the Mattermost systemd unit into place
+## 179. Copy the Mattermost systemd unit into place
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9133,7 +9168,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_COPIED` validator passes.
 
-## 179. Set permissions on the Mattermost systemd unit
+## 180. Set permissions on the Mattermost systemd unit
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9162,7 +9197,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_UNIT_CREATED` validator passes.
 
-## 180. Reload systemd for Mattermost
+## 181. Reload systemd for Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9191,7 +9226,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_SYSTEMD_RELOADED` validator passes.
 
-## 181. Connect Mattermost to HAProxy
+## 182. Connect Mattermost to HAProxy
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9235,7 +9270,7 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 
 **Done when:** the independent `MATTERMOST_DATABASE_CONFIGURED` validator passes.
 
-## 182. Start and prove Mattermost
+## 183. Start and prove Mattermost
 
 **Work on:** `mattermost-1` as `ec2-user`
 
@@ -9269,3 +9304,4 @@ If you are stuck, ask SutaBot for help. It will reveal help in this order:
 BUILD is complete only when every registered server validator passes in order and
 Mattermost succeeds through the unchanged HAProxy writer endpoint. The learner's
 commands—not SutaBot, chat text, or a reference configurator—must produce that state.
+

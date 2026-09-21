@@ -5,7 +5,7 @@
   "release": {
     "owner_only": false,
     "fault_scenarios_verified": true,
-    "label": "Enrolled learner release — clean baseline verified"
+    "label": "Enrolled learner release \u2014 clean baseline verified"
   },
   "completion": {
     "source": "deterministic-validator",
@@ -73,8 +73,8 @@
           "user": "ec2-user",
           "why": "You must prove the software bytes are approved before installing them.",
           "command": "sha256sum /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz",
-          "command_explanation": "sha256sum calculates the archive fingerprint; compare it with the digest shown in the handoff manifest.",
-          "expected": "One SHA-256 digest followed by the archive path.",
+          "command_explanation": "sha256sum calculates the archive fingerprint. The reviewed SUTA etcd 3.6.14-suta.2 digest is 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9. The same approved value is in the readable /opt/suta/artifacts/SHA256SUMS file on each dcs server; use cat /opt/suta/artifacts/SHA256SUMS to inspect that reference. Printing any digest alone does not prove approval.",
+          "expected": "The first field must equal 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9, followed by /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz. Stop if even one character differs.",
           "expected_output": {
             "source": "live-captured",
             "contains": "Independent validator ETCD_ARCHIVE_VERIFIED passed.",
@@ -98,7 +98,7 @@
             "question": "Which value proves the staged bytes are the approved bytes?",
             "hint": "Look at the first field in the output.",
             "stronger_hint": "Compare it with /opt/suta/artifacts/SHA256SUMS.",
-            "solution": "Run sha256sum on the staged archive and stop if the digest differs."
+            "solution": "The first field must equal 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9, followed by /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz. Stop if even one character differs."
           },
           "safety": "read",
           "release_verified": true,
@@ -108,7 +108,7 @@
           },
           "verify": {
             "kind": "self",
-            "explanation": "This step is itself a check: read its output carefully, that is the verification."
+            "explanation": "sha256sum calculates the archive fingerprint. The reviewed SUTA etcd 3.6.14-suta.2 digest is 7f731a8b478d714d779e8f1c596a00f0613abc5bfca376451f594ede9d0d56e9. The same approved value is in the readable /opt/suta/artifacts/SHA256SUMS file on each dcs server; use cat /opt/suta/artifacts/SHA256SUMS to inspect that reference. Printing any digest alone does not prove approval."
           }
         },
         {
@@ -368,13 +368,13 @@
         },
         {
           "id": "mkdir-etcd-directories-1",
-          "title": "Create the etcd-directories-1 directories",
+          "title": "Create the /etc/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /etc/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /etc/etcd",
           "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /etc/etcd exists.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -404,13 +404,13 @@
         },
         {
           "id": "chown-etcd-directories-1",
-          "title": "Give root ownership of the etcd-directories-1 directories",
+          "title": "Give root ownership of the /etc/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /etc/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /etc/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/etc/etcd is owned by root.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -440,10 +440,10 @@
         },
         {
           "id": "create-etcd-directories-1",
-          "title": "Lock down the etcd-directories-1 directory permissions",
+          "title": "Set permissions on the /etc/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
-          "why": "Configuration and consensus data need explicit protected locations.",
+          "why": "/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.",
           "command": "sudo chmod 0700 /etc/etcd",
           "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
@@ -489,13 +489,13 @@
         },
         {
           "id": "mkdir-etcd-data-directory-1",
-          "title": "Create the etcd-data-directory-1 directories",
+          "title": "Create the /var/lib/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/lib/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/lib/etcd",
           "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/lib/etcd exists.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -525,13 +525,13 @@
         },
         {
           "id": "chown-etcd-data-directory-1",
-          "title": "Give root ownership of the etcd-data-directory-1 directories",
+          "title": "Give root ownership of the /var/lib/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /var/lib/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /var/lib/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/var/lib/etcd is owned by root.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -561,7 +561,7 @@
         },
         {
           "id": "create-etcd-data-directory-1",
-          "title": "Lock down the etcd-data-directory-1 directory permissions",
+          "title": "Set permissions on the /var/lib/etcd directory",
           "role": "dcs-1",
           "user": "ec2-user",
           "why": "etcd must persist quorum state in a root-only directory that starts empty.",
@@ -686,11 +686,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/member.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -771,11 +769,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1484 Sep  6 00:55 /etc/etcd/ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/ca.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -856,11 +852,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 root root 1704 Sep  6 00:55 /etc/etcd/member.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.key",
+            "look_for": "the mode field 600 and path /etc/etcd/member.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -1173,13 +1167,13 @@
         },
         {
           "id": "mkdir-etcd-directories-2",
-          "title": "Create the etcd-directories-2 directories",
+          "title": "Create the /etc/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /etc/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /etc/etcd",
           "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /etc/etcd exists.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -1209,13 +1203,13 @@
         },
         {
           "id": "chown-etcd-directories-2",
-          "title": "Give root ownership of the etcd-directories-2 directories",
+          "title": "Give root ownership of the /etc/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /etc/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /etc/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/etc/etcd is owned by root.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -1245,10 +1239,10 @@
         },
         {
           "id": "create-etcd-directories-2",
-          "title": "Lock down the etcd-directories-2 directory permissions",
+          "title": "Set permissions on the /etc/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
-          "why": "Configuration and consensus data need explicit protected locations.",
+          "why": "/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.",
           "command": "sudo chmod 0700 /etc/etcd",
           "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
@@ -1294,13 +1288,13 @@
         },
         {
           "id": "mkdir-etcd-data-directory-2",
-          "title": "Create the etcd-data-directory-2 directories",
+          "title": "Create the /var/lib/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/lib/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/lib/etcd",
           "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/lib/etcd exists.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -1330,13 +1324,13 @@
         },
         {
           "id": "chown-etcd-data-directory-2",
-          "title": "Give root ownership of the etcd-data-directory-2 directories",
+          "title": "Give root ownership of the /var/lib/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /var/lib/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /var/lib/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/var/lib/etcd is owned by root.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -1366,7 +1360,7 @@
         },
         {
           "id": "create-etcd-data-directory-2",
-          "title": "Lock down the etcd-data-directory-2 directory permissions",
+          "title": "Set permissions on the /var/lib/etcd directory",
           "role": "dcs-2",
           "user": "ec2-user",
           "why": "etcd must persist quorum state in a root-only directory that starts empty.",
@@ -1491,11 +1485,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/member.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -1576,11 +1568,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1484 Sep  6 00:55 /etc/etcd/ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/ca.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -1661,11 +1651,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 root root 1704 Sep  6 00:55 /etc/etcd/member.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.key",
+            "look_for": "the mode field 600 and path /etc/etcd/member.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -1978,13 +1966,13 @@
         },
         {
           "id": "mkdir-etcd-directories-3",
-          "title": "Create the etcd-directories-3 directories",
+          "title": "Create the /etc/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /etc/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /etc/etcd",
           "command_explanation": "sudo mkdir -p creates /etc/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /etc/etcd exists.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -2014,13 +2002,13 @@
         },
         {
           "id": "chown-etcd-directories-3",
-          "title": "Give root ownership of the etcd-directories-3 directories",
+          "title": "Give root ownership of the /etc/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /etc/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /etc/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/etc/etcd is owned by root.",
           "hint": "Create only /etc/etcd in this action; the data directory is next.",
           "hints": {
             "question": "Who should be able to read the future member private key?",
@@ -2050,10 +2038,10 @@
         },
         {
           "id": "create-etcd-directories-3",
-          "title": "Lock down the etcd-directories-3 directory permissions",
+          "title": "Set permissions on the /etc/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
-          "why": "Configuration and consensus data need explicit protected locations.",
+          "why": "/etc/etcd holds the member configuration and TLS identity files. Mode 0700 lets only the root account that runs this etcd service traverse or list this protected directory.",
           "command": "sudo chmod 0700 /etc/etcd",
           "command_explanation": "chmod 0700 sets the permissions to 700 (owner-only for a data directory), which the service requires.",
           "expected": "The command returns without error and /etc/etcd is owned by root with mode 0700.",
@@ -2099,13 +2087,13 @@
         },
         {
           "id": "mkdir-etcd-data-directory-3",
-          "title": "Create the etcd-data-directory-3 directories",
+          "title": "Create the /var/lib/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/lib/etcd before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/lib/etcd",
           "command_explanation": "sudo mkdir -p creates /var/lib/etcd (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/lib/etcd exists.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -2135,13 +2123,13 @@
         },
         {
           "id": "chown-etcd-data-directory-3",
-          "title": "Give root ownership of the etcd-data-directory-3 directories",
+          "title": "Give root ownership of the /var/lib/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /var/lib/etcd so the intended process can use this location.",
           "command": "sudo chown -R root:root /var/lib/etcd",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/var/lib/etcd is owned by root.",
           "hint": "This is the data directory named by --data-dir in the next configuration step.",
           "hints": {
             "question": "Why separate configuration from consensus data?",
@@ -2171,7 +2159,7 @@
         },
         {
           "id": "create-etcd-data-directory-3",
-          "title": "Lock down the etcd-data-directory-3 directory permissions",
+          "title": "Set permissions on the /var/lib/etcd directory",
           "role": "dcs-3",
           "user": "ec2-user",
           "why": "etcd must persist quorum state in a root-only directory that starts empty.",
@@ -2296,11 +2284,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/etcd/member.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads the public certificate without showing its key. -checkend 604800 asks whether it remains valid for the next seven days. 'Certificate will not expire' means this member can keep authenticating through the lab. If the check fails, stop and ask SutaBot to renew the staged certificate; never disable TLS to get around it.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/member.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -2381,11 +2367,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 root root 1484 Sep  6 00:56 /etc/etcd/ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/ca.crt",
+            "look_for": "the mode field 644 and path /etc/etcd/ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -2466,11 +2450,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/etcd/member.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 root root 1704 Sep  6 00:56 /etc/etcd/member.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/etcd/member.key",
+            "look_for": "the mode field 600 and path /etc/etcd/member.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           }
         },
         {
@@ -2537,7 +2519,7 @@
           "expected": "The command returns without error and dcs-1 enters its initial member startup.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -2584,7 +2566,7 @@
           "expected": "The command returns without error and dcs-2 becomes active.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -2631,7 +2613,7 @@
           "expected": "The command returns without error and dcs-3 becomes active.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service → /etc/systemd/system/etcd.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/etcd.service \u2192 /etc/systemd/system/etcd.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -3371,13 +3353,13 @@
         },
         {
           "id": "mkdir-patroni-directories-1",
-          "title": "Create the patroni-directories-1 directories",
+          "title": "Create the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /opt/patroni and /etc/patroni before setting its ownership and permissions.",
           "command": "sudo mkdir -p /opt/patroni /etc/patroni",
           "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /opt/patroni and /etc/patroni exists.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -3405,7 +3387,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3414,13 +3396,13 @@
         },
         {
           "id": "chown-patroni-directories-1",
-          "title": "Give postgres ownership of the patroni-directories-1 directories",
+          "title": "Give postgres ownership of the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-1",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/opt/patroni and /etc/patroni is owned by postgres.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -3457,7 +3439,7 @@
         },
         {
           "id": "create-patroni-directories-1",
-          "title": "Lock down the patroni-directories-1 directory permissions",
+          "title": "Set permissions on the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-1",
           "user": "ec2-user",
           "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
@@ -3504,7 +3486,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3518,19 +3500,19 @@
               "observe": "Read the owner/group/others groups in drwxr-x---.",
               "match": "If the listing has those bits, the owner has write permission. Group members may read and traverse, but do not receive write permission from this mode.",
               "different": "If the bits differ, use the actual listing to identify which permission group differs. Do not infer success from the command returning.",
-              "limit": "The directory’s owner and group are separate facts to inspect."
+              "limit": "The directory\u2019s owner and group are separate facts to inspect."
             }
           }
         },
         {
           "id": "mkdir-postgresql-socket-directory-1",
-          "title": "Create the postgresql-socket-directory-1 directories",
+          "title": "Create the /var/run/postgresql directory",
           "role": "pg-ha-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/run/postgresql before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/run/postgresql",
           "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/run/postgresql exists.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -3567,13 +3549,13 @@
         },
         {
           "id": "chown-postgresql-socket-directory-1",
-          "title": "Give postgres ownership of the postgresql-socket-directory-1 directories",
+          "title": "Give postgres ownership of the /var/run/postgresql directory",
           "role": "pg-ha-1",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /var/run/postgresql so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /var/run/postgresql",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/var/run/postgresql is owned by postgres.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -3610,7 +3592,7 @@
         },
         {
           "id": "create-postgresql-socket-directory-1",
-          "title": "Lock down the postgresql-socket-directory-1 directory permissions",
+          "title": "Set permissions on the /var/run/postgresql directory",
           "role": "pg-ha-1",
           "user": "ec2-user",
           "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
@@ -3768,7 +3750,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3799,11 +3781,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:56 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -3811,7 +3791,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Allow the trust certificate to be read while restricting writes.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3860,14 +3840,12 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:56 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -3941,11 +3919,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:56 /etc/patroni/etcd-client.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -3953,7 +3929,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Set read access on the public client certificate.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4002,14 +3978,12 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.crt.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4052,7 +4026,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4083,11 +4057,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:56 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "the mode field 600 and path /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -4095,7 +4067,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Restrict the private key to its owner.",
+            "brief": "Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4155,14 +4127,12 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:56 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "postgres postgres 600 /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.key.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4573,7 +4543,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -4586,7 +4556,7 @@
               ],
               "observe": "Read name: pg-ha-1 and the assigned scope in the narrow identity check.",
               "match": "If this member name and scope match the assigned configuration, the visible identity fields are present.",
-              "different": "If a member name belongs to another node, return to this node’s generated template and inspect that mismatch.",
+              "different": "If a member name belongs to another node, return to this node\u2019s generated template and inspect that mismatch.",
               "limit": "A text match does not parse the complete YAML or validate connectivity."
             }
           }
@@ -4679,13 +4649,13 @@
         },
         {
           "id": "mkdir-patroni-directories-2",
-          "title": "Create the patroni-directories-2 directories",
+          "title": "Create the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-2",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /opt/patroni and /etc/patroni before setting its ownership and permissions.",
           "command": "sudo mkdir -p /opt/patroni /etc/patroni",
           "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /opt/patroni and /etc/patroni exists.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -4713,7 +4683,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "apply",
             "transfer": "The same paths are used on this node: /opt/patroni and /etc/patroni.",
             "first_step_id": "mkdir-patroni-directories-1",
@@ -4733,13 +4703,13 @@
         },
         {
           "id": "chown-patroni-directories-2",
-          "title": "Give postgres ownership of the patroni-directories-2 directories",
+          "title": "Give postgres ownership of the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-2",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/opt/patroni and /etc/patroni is owned by postgres.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -4776,7 +4746,7 @@
         },
         {
           "id": "create-patroni-directories-2",
-          "title": "Lock down the patroni-directories-2 directory permissions",
+          "title": "Set permissions on the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-2",
           "user": "ec2-user",
           "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
@@ -4823,7 +4793,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "apply",
             "transfer": "Apply mode 0750 again, then read the permission groups yourself.",
             "first_step_id": "create-patroni-directories-1",
@@ -4832,13 +4802,13 @@
         },
         {
           "id": "mkdir-postgresql-socket-directory-2",
-          "title": "Create the postgresql-socket-directory-2 directories",
+          "title": "Create the /var/run/postgresql directory",
           "role": "pg-ha-2",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/run/postgresql before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/run/postgresql",
           "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/run/postgresql exists.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -4875,13 +4845,13 @@
         },
         {
           "id": "chown-postgresql-socket-directory-2",
-          "title": "Give postgres ownership of the postgresql-socket-directory-2 directories",
+          "title": "Give postgres ownership of the /var/run/postgresql directory",
           "role": "pg-ha-2",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /var/run/postgresql so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /var/run/postgresql",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/var/run/postgresql is owned by postgres.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -4918,7 +4888,7 @@
         },
         {
           "id": "create-postgresql-socket-directory-2",
-          "title": "Lock down the postgresql-socket-directory-2 directory permissions",
+          "title": "Set permissions on the /var/run/postgresql directory",
           "role": "pg-ha-2",
           "user": "ec2-user",
           "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
@@ -4967,7 +4937,7 @@
           "teaching": {
             "brief": "Allow local clients to enter the socket directory.",
             "mode": "apply",
-            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.",
+            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni\u2019s directories.",
             "first_step_id": "create-postgresql-socket-directory-1",
             "prediction": null
           }
@@ -5065,7 +5035,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "apply",
             "transfer": "Use the handoff file staged on this node, even though the paths look familiar.",
             "first_step_id": "copy-patroni-ca-1",
@@ -5096,11 +5066,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:57 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -5108,9 +5076,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Allow the trust certificate to be read while restricting writes.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.",
             "mode": "apply",
-            "transfer": "This is public certificate material; keep its file mode at 0644.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-2.",
             "first_step_id": "setperm-patroni-ca-1",
             "prediction": null
           }
@@ -5157,16 +5125,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:57 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.",
             "mode": "apply",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-2.",
             "first_step_id": "install-patroni-ca-1",
             "prediction": null
           }
@@ -5209,7 +5175,7 @@
           "teaching": {
             "brief": "Place the certificate Patroni presents as its client identity.",
             "mode": "apply",
-            "transfer": "Use this node’s staged client certificate, not a resolved file copied from another node.",
+            "transfer": "Use this node\u2019s staged client certificate, not a resolved file copied from another node.",
             "first_step_id": "copy-patroni-client-cert-1",
             "prediction": null
           }
@@ -5238,11 +5204,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:57 /etc/patroni/etcd-client.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -5250,9 +5214,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Set read access on the public client certificate.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.",
             "mode": "apply",
-            "transfer": "Use the same 0644 certificate mode on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-2.",
             "first_step_id": "setperm-patroni-client-cert-1",
             "prediction": null
           }
@@ -5299,16 +5263,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.crt.",
             "mode": "apply",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-2.",
             "first_step_id": "install-patroni-client-cert-1",
             "prediction": null
           }
@@ -5349,9 +5311,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "apply",
-            "transfer": "Use this node’s handoff. Inspect file metadata without printing the key.",
+            "transfer": "Use this node\u2019s handoff. Inspect file metadata without printing the key.",
             "first_step_id": "copy-patroni-client-key-1",
             "prediction": null
           }
@@ -5380,11 +5342,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:57 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "the mode field 600 and path /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -5392,9 +5352,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Restrict the private key to its owner.",
+            "brief": "Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.",
             "mode": "apply",
-            "transfer": "The key uses 0600. Certificate files use a different mode.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-2.",
             "first_step_id": "setperm-patroni-client-key-1",
             "prediction": null
           }
@@ -5441,16 +5401,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:57 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "postgres postgres 600 /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.key.",
             "mode": "apply",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-2.",
             "first_step_id": "install-patroni-client-key-1",
             "prediction": null
           }
@@ -5549,7 +5507,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "apply",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patroni-wrapper-1",
             "prediction": null
           }
@@ -5648,7 +5606,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "apply",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patronictl-wrapper-1",
             "prediction": null
           }
@@ -5859,9 +5817,9 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "apply",
-            "transfer": "Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.",
+            "transfer": "Keep the shared scope. Use this node\u2019s unique name, addresses, and generated credentials.",
             "first_step_id": "configure-patroni-member-1",
             "prediction": null
           }
@@ -5904,7 +5862,7 @@
           "teaching": {
             "brief": "Give the Patroni service account ownership of its saved configuration.",
             "mode": "apply",
-            "transfer": "Apply the same service ownership to this member’s own configuration file.",
+            "transfer": "Apply the same service ownership to this member\u2019s own configuration file.",
             "first_step_id": "chown-patroni-config-1",
             "prediction": null
           }
@@ -5947,20 +5905,20 @@
           "teaching": {
             "brief": "Restrict the credential-bearing YAML to the postgres service account.",
             "mode": "apply",
-            "transfer": "Apply the same owner-only mode to this member’s configuration.",
+            "transfer": "Apply the same owner-only mode to this member\u2019s configuration.",
             "first_step_id": "chmod-patroni-config-1",
             "prediction": null
           }
         },
         {
           "id": "mkdir-patroni-directories-3",
-          "title": "Create the patroni-directories-3 directories",
+          "title": "Create the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-3",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /opt/patroni and /etc/patroni before setting its ownership and permissions.",
           "command": "sudo mkdir -p /opt/patroni /etc/patroni",
           "command_explanation": "sudo mkdir -p creates /opt/patroni /etc/patroni (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /opt/patroni and /etc/patroni exists.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -5988,7 +5946,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Create separate homes for Patroni’s software and configuration.",
+            "brief": "Create separate homes for Patroni\u2019s software and configuration.",
             "mode": "independent",
             "transfer": "The same paths are used on this node: /opt/patroni and /etc/patroni.",
             "first_step_id": "mkdir-patroni-directories-1",
@@ -5997,13 +5955,13 @@
         },
         {
           "id": "chown-patroni-directories-3",
-          "title": "Give postgres ownership of the patroni-directories-3 directories",
+          "title": "Give postgres ownership of the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-3",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /opt/patroni and /etc/patroni so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/opt/patroni and /etc/patroni is owned by postgres.",
           "hint": "Use the same postgres OS account that owns PostgreSQL.",
           "hints": {
             "question": "Which account runs Patroni?",
@@ -6040,7 +5998,7 @@
         },
         {
           "id": "create-patroni-directories-3",
-          "title": "Lock down the patroni-directories-3 directory permissions",
+          "title": "Set permissions on the /opt/patroni and /etc/patroni directories",
           "role": "pg-ha-3",
           "user": "ec2-user",
           "why": "Patroni software and protected configuration need explicit postgres-owned locations.",
@@ -6087,7 +6045,7 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Set who can enter and change Patroni’s directories.",
+            "brief": "Set who can enter and change Patroni\u2019s directories.",
             "mode": "independent",
             "transfer": "Apply mode 0750 again, then read the permission groups yourself.",
             "first_step_id": "create-patroni-directories-1",
@@ -6096,13 +6054,13 @@
         },
         {
           "id": "mkdir-postgresql-socket-directory-3",
-          "title": "Create the postgresql-socket-directory-3 directories",
+          "title": "Create the /var/run/postgresql directory",
           "role": "pg-ha-3",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /var/run/postgresql before setting its ownership and permissions.",
           "command": "sudo mkdir -p /var/run/postgresql",
           "command_explanation": "sudo mkdir -p creates /var/run/postgresql (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /var/run/postgresql exists.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -6139,13 +6097,13 @@
         },
         {
           "id": "chown-postgresql-socket-directory-3",
-          "title": "Give postgres ownership of the postgresql-socket-directory-3 directories",
+          "title": "Give postgres ownership of the /var/run/postgresql directory",
           "role": "pg-ha-3",
           "user": "ec2-user",
-          "why": "The postgres service must own these directories to write into them.",
+          "why": "The postgres account owns /var/run/postgresql so the intended process can use this location.",
           "command": "sudo chown -R postgres:postgres /var/run/postgresql",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to postgres, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by postgres.",
+          "expected": "/var/run/postgresql is owned by postgres.",
           "hint": "It holds runtime socket files, not table data.",
           "hints": {
             "question": "Is this directory permanent database storage?",
@@ -6182,7 +6140,7 @@
         },
         {
           "id": "create-postgresql-socket-directory-3",
-          "title": "Lock down the postgresql-socket-directory-3 directory permissions",
+          "title": "Set permissions on the /var/run/postgresql directory",
           "role": "pg-ha-3",
           "user": "ec2-user",
           "why": "Local clients and Patroni need a writable runtime location for the Unix socket.",
@@ -6231,7 +6189,7 @@
           "teaching": {
             "brief": "Allow local clients to enter the socket directory.",
             "mode": "independent",
-            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni’s directories.",
+            "transfer": "Use mode 0755 for this runtime directory, rather than the 0750 used for Patroni\u2019s directories.",
             "first_step_id": "create-postgresql-socket-directory-1",
             "prediction": null
           }
@@ -6329,7 +6287,7 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the trust certificate Patroni will use to check etcd’s identity.",
+            "brief": "Place the trust certificate Patroni will use to check etcd\u2019s identity.",
             "mode": "independent",
             "transfer": "Use the handoff file staged on this node, even though the paths look familiar.",
             "first_step_id": "copy-patroni-ca-1",
@@ -6360,11 +6318,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:57 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -6372,9 +6328,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Allow the trust certificate to be read while restricting writes.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-ca.crt without displaying its contents.",
             "mode": "independent",
-            "transfer": "This is public certificate material; keep its file mode at 0644.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-3.",
             "first_step_id": "setperm-patroni-ca-1",
             "prediction": null
           }
@@ -6421,16 +6377,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-ca.crt",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1484 Sep  6 00:57 /etc/patroni/etcd-ca.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-ca.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-ca.crt.",
             "mode": "independent",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-ca.crt on pg-ha-3.",
             "first_step_id": "install-patroni-ca-1",
             "prediction": null
           }
@@ -6473,7 +6427,7 @@
           "teaching": {
             "brief": "Place the certificate Patroni presents as its client identity.",
             "mode": "independent",
-            "transfer": "Use this node’s staged client certificate, not a resolved file copied from another node.",
+            "transfer": "Use this node\u2019s staged client certificate, not a resolved file copied from another node.",
             "first_step_id": "copy-patroni-client-cert-1",
             "prediction": null
           }
@@ -6502,11 +6456,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.crt",
-            "look_for": "the first column reading -rw-r--r--",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0644 must appear as -rw-r--r--; anything else means the chmod did not apply.",
-            "sample_output": "-rw-r--r--. 1 postgres postgres 1318 Sep  6 00:57 /etc/patroni/etcd-client.crt",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "the mode field 644 and path /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -6514,9 +6466,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Set read access on the public client certificate.",
+            "brief": "Set mode 644 on /etc/patroni/etcd-client.crt without displaying its contents.",
             "mode": "independent",
-            "transfer": "Use the same 0644 certificate mode on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-3.",
             "first_step_id": "setperm-patroni-client-cert-1",
             "prediction": null
           }
@@ -6563,16 +6515,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo openssl x509 -checkend 604800 -noout -in /etc/patroni/etcd-client.crt",
-            "look_for": "Certificate will not expire",
-            "explanation": "openssl reads Patroni's public client certificate. -checkend 604800 proves it remains valid for the next seven days. 'Certificate will not expire' means etcd can continue accepting Patroni's identity. If the check fails, stop and ask SutaBot to renew the staged certificate; changing Patroni YAML will not repair an expired identity.",
-            "sample_output": "Certificate will not expire",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt",
+            "look_for": "postgres postgres 644 /etc/patroni/etcd-client.crt",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.crt.",
             "mode": "independent",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.crt on pg-ha-3.",
             "first_step_id": "install-patroni-client-cert-1",
             "prediction": null
           }
@@ -6613,9 +6563,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Place the private key used with Patroni’s client certificate.",
+            "brief": "Place the private key used with Patroni\u2019s client certificate.",
             "mode": "independent",
-            "transfer": "Use this node’s handoff. Inspect file metadata without printing the key.",
+            "transfer": "Use this node\u2019s handoff. Inspect file metadata without printing the key.",
             "first_step_id": "copy-patroni-client-key-1",
             "prediction": null
           }
@@ -6644,11 +6594,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "the first column reading -rw-------",
-            "explanation": "ls -l shows the file with its permission bits in the first column. Mode 0600 must appear as -rw-------; anything else means the chmod did not apply.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:57 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "the mode field 600 and path /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "expected_output": {
             "source": "live-captured",
@@ -6656,9 +6604,9 @@
             "evidence": "verify.sample_output"
           },
           "teaching": {
-            "brief": "Restrict the private key to its owner.",
+            "brief": "Set mode 600 on /etc/patroni/etcd-client.key without displaying its contents.",
             "mode": "independent",
-            "transfer": "The key uses 0600. Certificate files use a different mode.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-3.",
             "first_step_id": "setperm-patroni-client-key-1",
             "prediction": null
           }
@@ -6705,16 +6653,14 @@
           },
           "verify": {
             "kind": "command",
-            "command": "sudo ls -l /etc/patroni/etcd-client.key",
-            "look_for": "owner postgres and group postgres on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. It must read postgres postgres.",
-            "sample_output": "-rw-------. 1 postgres postgres 1704 Sep  6 00:57 /etc/patroni/etcd-client.key",
-            "sample_source": "live-captured"
+            "command": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key",
+            "look_for": "postgres postgres 600 /etc/patroni/etcd-client.key",
+            "explanation": "stat prints owner, group, numeric mode and path without reading file contents. Compare these fields with this action. The independent validator also retains the required certificate validity, trust and key checks; file metadata alone does not prove TLS health."
           },
           "teaching": {
-            "brief": "Install the pinned Patroni runtime and inspect its entry point.",
+            "brief": "Give the postgres service account the required access to /etc/patroni/etcd-client.key.",
             "mode": "independent",
-            "transfer": "Use the same staged archive and inspect the installed entry point on this node.",
+            "transfer": "Inspect the owner and mode of /etc/patroni/etcd-client.key on pg-ha-3.",
             "first_step_id": "install-patroni-client-key-1",
             "prediction": null
           }
@@ -6813,7 +6759,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "independent",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patroni-wrapper-1",
             "prediction": null
           }
@@ -6912,7 +6858,7 @@
           "teaching": {
             "brief": "Make the launcher executable, then inspect its permissions.",
             "mode": "independent",
-            "transfer": "Apply the executable-file pattern and check this node’s launcher permissions.",
+            "transfer": "Apply the executable-file pattern and check this node\u2019s launcher permissions.",
             "first_step_id": "install-patronictl-wrapper-1",
             "prediction": null
           }
@@ -7123,9 +7069,9 @@
             "sample_source": "live-captured"
           },
           "teaching": {
-            "brief": "Save this member’s generated identity and cluster configuration.",
+            "brief": "Save this member\u2019s generated identity and cluster configuration.",
             "mode": "independent",
-            "transfer": "Keep the shared scope. Use this node’s unique name, addresses, and generated credentials.",
+            "transfer": "Keep the shared scope. Use this node\u2019s unique name, addresses, and generated credentials.",
             "first_step_id": "configure-patroni-member-1",
             "prediction": null
           }
@@ -7168,7 +7114,7 @@
           "teaching": {
             "brief": "Give the Patroni service account ownership of its saved configuration.",
             "mode": "independent",
-            "transfer": "Apply the same service ownership to this member’s own configuration file.",
+            "transfer": "Apply the same service ownership to this member\u2019s own configuration file.",
             "first_step_id": "chown-patroni-config-1",
             "prediction": null
           }
@@ -7211,7 +7157,7 @@
           "teaching": {
             "brief": "Restrict the credential-bearing YAML to the postgres service account.",
             "mode": "independent",
-            "transfer": "Apply the same owner-only mode to this member’s configuration.",
+            "transfer": "Apply the same owner-only mode to this member\u2019s configuration.",
             "first_step_id": "chmod-patroni-config-1",
             "prediction": null
           }
@@ -7227,7 +7173,7 @@
           "expected": "pg-ha-1 becomes one running leader before either replica starts.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7277,7 +7223,7 @@
               "observe": "Read Loaded and Active in the service status.",
               "match": "If it is enabled and active, systemd has started the service and will start it at boot.",
               "different": "If it is failed or inactive, inspect the service error before continuing.",
-              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state."
+              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step\u2019s required role state."
             }
           }
         },
@@ -7292,7 +7238,7 @@
           "expected": "pg-ha-2 joins as a streaming replica while pg-ha-1 remains leader.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7346,7 +7292,7 @@
           "expected": "The cluster reports one leader and two streaming replicas on one timeline.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service → /etc/systemd/system/patroni.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/patroni.service \u2192 /etc/systemd/system/patroni.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7396,7 +7342,7 @@
               "observe": "Read Loaded and Active in the service status.",
               "match": "If it is enabled and active, systemd has started the service and will start it at boot.",
               "different": "If it is failed or inactive, inspect the service error before continuing.",
-              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step’s required role state."
+              "limit": "Service status alone does not identify a leader or prove replication. The registered cluster validator checks this step\u2019s required role state."
             }
           }
         },
@@ -7444,7 +7390,7 @@
           "why": "The writer router needs the reviewed immutable HAProxy build staged by the platform team.",
           "command": "sudo chmod 0755 /usr/local/sbin/haproxy",
           "command_explanation": "chmod 0755 sets the file readable and executable by everyone and writable only by the owner (755), so the system can run it.",
-          "expected": "HAProxy reports version 3.2.22.",
+          "expected": "The permission listing for /usr/local/sbin/haproxy starts with -rwxr-xr-x. The independent validator also enforces the pinned HAProxy version 3.2.22.",
           "hint": "Its digest and version were fixed before handoff.",
           "hints": {
             "question": "Why use the staged binary?",
@@ -7487,13 +7433,13 @@
         },
         {
           "id": "mkdir-haproxy-directory",
-          "title": "Create the haproxy-directory directories",
+          "title": "Create the /etc/haproxy directory",
           "role": "db-router-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "Create /etc/haproxy before setting its ownership and permissions.",
           "command": "sudo mkdir -p /etc/haproxy",
           "command_explanation": "sudo mkdir -p creates /etc/haproxy (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /etc/haproxy exists.",
           "hint": "It is system configuration, not application data.",
           "hints": {
             "question": "Who should own routing policy?",
@@ -7523,13 +7469,13 @@
         },
         {
           "id": "chown-haproxy-directory",
-          "title": "Give root ownership of the haproxy-directory directories",
+          "title": "Give root ownership of the /etc/haproxy directory",
           "role": "db-router-1",
           "user": "ec2-user",
-          "why": "The root service must own these directories to write into them.",
+          "why": "The root account owns /etc/haproxy so the intended process can use this location.",
           "command": "sudo chown -R root:root /etc/haproxy",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to root, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by root.",
+          "expected": "/etc/haproxy is owned by root.",
           "hint": "It is system configuration, not application data.",
           "hints": {
             "question": "Who should own routing policy?",
@@ -7559,7 +7505,7 @@
         },
         {
           "id": "create-haproxy-directory",
-          "title": "Lock down the haproxy-directory directory permissions",
+          "title": "Set permissions on the /etc/haproxy directory",
           "role": "db-router-1",
           "user": "ec2-user",
           "why": "The router needs a root-owned location for its reviewed writer-routing policy.",
@@ -7802,7 +7748,7 @@
           "expected": "HAProxy listens on port 5432 and routes a rollback-only write check to the current primary.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/haproxy.service → /etc/systemd/system/haproxy.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/haproxy.service \u2192 /etc/systemd/system/haproxy.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -7902,7 +7848,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8007,7 +7953,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8132,7 +8078,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8275,21 +8221,56 @@
           "verify": {
             "kind": "command",
             "command": "ls -l /opt/mattermost/bin/mattermost",
-            "look_for": "an executable file (-rwxr-xr-x) at /opt/mattermost/bin/mattermost",
-            "explanation": "tar prints nothing on success, so you prove the extraction by looking for the binary it should have created. If ls says 'No such file', the archive went to the wrong place.",
+            "look_for": "an executable file at /opt/mattermost/bin/mattermost; read its actual permission bits",
+            "explanation": "The listing proves that the archive created the binary. This reviewed archive restores mode 0777 (-rwxrwxrwx), which allows other local accounts to modify it. The next action removes group and other write access from the whole application tree before configuration or startup. Do not describe this listing as mode 0755.",
             "sample_output": "-rwxrwxrwx. 1 mattermost mattermost 125532157 Aug 21 15:49 /opt/mattermost/bin/mattermost",
             "sample_source": "live-captured"
           }
         },
         {
-          "id": "mkdir-mattermost-data-directory",
-          "title": "Create the mattermost-data-directory directories",
+          "id": "harden-mattermost-tree",
+          "title": "Remove shared write access from the Mattermost application",
           "role": "mattermost-1",
           "user": "ec2-user",
-          "why": "Creating the empty directories first keeps each action clear; ownership and permissions come next.",
+          "why": "An executable or its parent directory must not be writable by unrelated local accounts. The service account keeps its own write access to required runtime paths.",
+          "command": "sudo chmod -R go-w /opt/mattermost",
+          "command_explanation": "chmod changes permission bits. -R applies the change throughout /opt/mattermost. go-w removes write access for the group and everyone else, while preserving owner access, executable bits and more restrictive files such as mode 0600 configuration.",
+          "expected": "The application root, bin and config directories and the executable have no group or other write bit. Mode 0777 entries become 0755; existing 0600 files and 0750 data directories keep their stricter modes.",
+          "hint": "Read the group and other permission fields, not only the owner.",
+          "hints": {
+            "question": "Who could replace a program in a directory writable by everyone?",
+            "hint": "The program and its parent directories both need protection.",
+            "stronger_hint": "Remove group and other write access while preserving the owner permissions.",
+            "solution": "Run the displayed chmod action, then inspect the four listed paths."
+          },
+          "safety": "change",
+          "release_verified": true,
+          "validator": {
+            "source": "server-observer",
+            "code": "MATTERMOST_TREE_SECURE"
+          },
+          "expected_output": {
+            "source": "live-captured",
+            "contains": "Independent validator MATTERMOST_TREE_SECURE passed.",
+            "evidence_digest": "sha256:f8f2fb0a0187cf70268d31886776cd2b2db89df09b8a5a53407a7efa2e21b763",
+            "capture": "2026-09-21: existing HA001 application repair, service active and ping OK; fresh provisioning not yet retested"
+          },
+          "verify": {
+            "kind": "command",
+            "command": "ls -ld /opt/mattermost /opt/mattermost/bin /opt/mattermost/bin/mattermost /opt/mattermost/config",
+            "look_for": "drwxr-xr-x for the three directories and -rwxr-xr-x for the binary after fresh extraction; no group or other w on any entry",
+            "explanation": "ls -ld prints each named entry itself. The independent check also scans the whole application tree for group or other writable files and directories. This proof displays metadata only."
+          }
+        },
+        {
+          "id": "mkdir-mattermost-data-directory",
+          "title": "Create the /opt/mattermost/data directory",
+          "role": "mattermost-1",
+          "user": "ec2-user",
+          "why": "Create /opt/mattermost/data before setting its ownership and permissions.",
           "command": "sudo mkdir -p /opt/mattermost/data",
           "command_explanation": "sudo mkdir -p creates /opt/mattermost/data (and any missing parents). It does not set who owns them or their permissions - the next two steps do.",
-          "expected": "The command returns to the prompt and the directories exist.",
+          "expected": "The command returns to the prompt and /opt/mattermost/data exists.",
           "hint": "Only the Mattermost service account.",
           "hints": {
             "question": "Which account needs write access here?",
@@ -8319,13 +8300,13 @@
         },
         {
           "id": "chown-mattermost-data-directory",
-          "title": "Give mattermost ownership of the mattermost-data-directory directories",
+          "title": "Give mattermost ownership of the /opt/mattermost/data directory",
           "role": "mattermost-1",
           "user": "ec2-user",
-          "why": "The mattermost service must own these directories to write into them.",
+          "why": "The mattermost account owns /opt/mattermost/data so the intended process can use this location.",
           "command": "sudo chown -R mattermost:mattermost /opt/mattermost/data",
           "command_explanation": "chown -R sets the owner and group of the directories (and their contents) to mattermost, because a plain mkdir left them owned by root.",
-          "expected": "The directories are now owned by mattermost.",
+          "expected": "/opt/mattermost/data is owned by mattermost.",
           "hint": "Only the Mattermost service account.",
           "hints": {
             "question": "Which account needs write access here?",
@@ -8355,7 +8336,7 @@
         },
         {
           "id": "create-mattermost-data-directory",
-          "title": "Lock down the mattermost-data-directory directory permissions",
+          "title": "Set permissions on the /opt/mattermost/data directory",
           "role": "mattermost-1",
           "user": "ec2-user",
           "why": "Mattermost needs a writable runtime-data directory owned only by its service account.",
@@ -8444,11 +8425,9 @@
           },
           "verify": {
             "kind": "command",
-            "command": "ls -l /opt/mattermost",
-            "look_for": "owner mattermost and group mattermost on the line",
-            "explanation": "ls -l shows the file with owner and group in columns three and four. After a recursive chown the top entry must already read mattermost mattermost.",
-            "sample_output": "total 728\ndrwxrwxrwx. 2 mattermost mattermost     37 Aug 21 15:49 bin\ndrwxrwxrwx. 8 mattermost mattermost  36864 Aug 21 15:49 client\ndrwxrwxrwx. 2 mattermost mattermost     42 Aug 21 15:49 config\ndrwxr-x---. 2 mattermost mattermost      6 Sep  6 00:58 data\ndrwxrwxrwx. 2 mattermost mattermost     44 Aug 21 15:49 fonts\ndrwxrwxrwx. 2 mattermost mattermost   4096 Aug 21 15:49 i18n\n...",
-            "sample_source": "live-captured"
+            "command": "ls -ld /opt/mattermost /opt/mattermost/bin /opt/mattermost/config",
+            "look_for": "mattermost mattermost on all three directory entries, with no group or other write bit",
+            "explanation": "ls -ld shows the application directory and the parents of the executable and protected configuration. Ownership must be mattermost; group and other accounts must not have write access."
           }
         },
         {
@@ -8645,7 +8624,7 @@
           "expected": "Mattermost reports active, its system ping returns OK and database migrations complete through HAProxy.",
           "expected_output": {
             "source": "live-captured",
-            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/mattermost.service → /etc/systemd/system/mattermost.service.",
+            "contains": "Created symlink /etc/systemd/system/multi-user.target.wants/mattermost.service \u2192 /etc/systemd/system/mattermost.service.",
             "cycles": [
               {
                 "cycle": 1,
@@ -8846,7 +8825,7 @@
             "explanation": "This step is itself a check: read its output carefully, that is the verification."
           },
           "teaching": {
-            "brief": "Check the writer’s count of streaming replication connections.",
+            "brief": "Check the writer\u2019s count of streaming replication connections.",
             "mode": "walkthrough",
             "transfer": null,
             "first_step_id": null,
@@ -8879,7 +8858,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -8887,7 +8866,7 @@
                 "context": "Type this at the postgres=# database prompt. Type only the command.",
                 "command": "select state,count(*) from pg_stat_replication group by state;",
                 "language": "sql",
-                "explanation": "Count the writer’s replication connections in each state. The semicolon ends this one SQL statement.",
+                "explanation": "Count the writer\u2019s replication connections in each state. The semicolon ends this one SQL statement.",
                 "expect": "Look for streaming with count 2. This does not measure replay lag."
               }
             ],
@@ -8967,7 +8946,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres",
                 "language": "bash",
-                "explanation": "The full path selects this lab’s psql program. -h selects the local socket directory; -d selects the postgres database.",
+                "explanation": "The full path selects this lab\u2019s psql program. -h selects the local socket directory; -d selects the postgres database.",
                 "expect": "Wait for postgres=#. You are now entering SQL or psql commands."
               },
               {
@@ -9045,7 +9024,7 @@
             "kind": "self",
             "explanation": "This step is itself a check: read its output carefully, that is the verification."
           },
-          "command_explanation": "curl requests Mattermost’s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds."
+          "command_explanation": "curl requests Mattermost\u2019s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds."
         },
         {
           "id": "planned-switchover",
@@ -9211,7 +9190,7 @@
                 "command": "/usr/local/bin/patronictl -c /etc/patroni/patroni.yml show-config",
                 "language": "bash",
                 "explanation": "Read the dynamic configuration stored in the DCS. Locate the named field yourself.",
-                "expect": "Under postgresql → parameters, find log_min_duration_statement: 1000. This proves the DCS value; it does not prove every running process has applied it."
+                "expect": "Under postgresql \u2192 parameters, find log_min_duration_statement: 1000. This proves the DCS value; it does not prove every running process has applied it."
               }
             ],
             "cleanup": [
@@ -9382,7 +9361,7 @@
                 "context": "Type this in the postgres Linux shell.",
                 "command": "/usr/local/bin/patronictl -c /etc/patroni/patroni.yml reinit {{cluster_scope}} pg-ha-3 --force",
                 "language": "bash",
-                "explanation": "Replace this replica’s local data from the leader. This lab action destroys the replica copy: confirm pg-ha-3 is a replica with no unique data first.",
+                "explanation": "Replace this replica\u2019s local data from the leader. This lab action destroys the replica copy: confirm pg-ha-3 is a replica with no unique data first.",
                 "expect": "pg-ha-3 is freshly cloned and returns to streaming on the current timeline."
               }
             ],
@@ -9465,7 +9444,7 @@
           "user": "ec2-user",
           "why": "Database topology is only useful when the unchanged application endpoint still works.",
           "command": "curl -fsS http://127.0.0.1:8065/api/v4/system/ping",
-          "command_explanation": "curl requests Mattermost’s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds.",
+          "command_explanation": "curl requests Mattermost\u2019s system ping endpoint on this workload node. 127.0.0.1 means this same machine. -f treats HTTP errors as failure; -s hides the progress meter; -S still shows errors. A successful ping does not prove a workload write succeeds.",
           "expected": "Mattermost returns status OK after switchover, config work and replica maintenance.",
           "hint": "Prove the application path, not only patronictl list.",
           "hints": {
@@ -9512,7 +9491,7 @@
             {
               "id": "prove",
               "title": "Prove",
-              "goal": "Connect the cluster roles to PostgreSQL’s replication evidence.",
+              "goal": "Connect the cluster roles to PostgreSQL\u2019s replication evidence.",
               "outcome": "Explain the two streaming connections and the limits of what that observation proves.",
               "step_ids": [
                 "inspect-streaming"

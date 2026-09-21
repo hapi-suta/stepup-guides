@@ -16,7 +16,7 @@
     {"id":"senior","questions":[
       {"id":"s1","prompt":"The old primary returns after failover. Explain how you prevent split brain and rejoin it.","required_groups":[["fence","stop"],["timeline","diverg"],["pg_rewind","rewind"],["replica","standby"]]},
       {"id":"s2","prompt":"Explain the durability and latency trade-off between asynchronous and synchronous replication.","required_groups":[["async"],["data loss","rpo"],["sync"],["latency","wait"]]},
-      {"id":"s3","prompt":"One etcd member is down. What remains safe, what risk increased, and what do you do?","required_groups":[["quorum","two"],["one failure","tolerat"],["risk","no more"],["identity","rejoin","repair"]]},
+      {"id":"s3","prompt":"One etcd member is down. What remains safe, what risk increased, and what do you do?","required_groups":[["quorum","two"],["one failure","tolerat","tolerance"],["risk","no more","losing another","lost failure tolerance"],["identity","rejoin","repair","restore","original member"]]},
       {"id":"s4","prompt":"Mattermost is down but Patroni is healthy. Describe your diagnostic boundary.","required_groups":[["mattermost"],["haproxy"],["database","patroni"],["path","endpoint","migration","credential"]]}
     ]},
     {"id":"principal","questions":[
