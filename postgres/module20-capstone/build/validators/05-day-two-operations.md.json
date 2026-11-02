@@ -1,0 +1,270 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/scripts/migrations - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/migrations/001-add-products-table.sql - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "-- Migration 001: Add products table - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/scripts/migrations/001-add-products-table.sql - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -f /opt/pgsql/scripts/migrations/001-add-products-table.sql - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT count(*) FROM information_schema.tables WHERE table_schema = 'app' AND table_ - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/migrations/001-add-products-table-rollback.sql - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "-- Rollback Migration 001: Remove products table - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT pg_create_physical_replication_slot('read_replica_1');\" - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_basebackup -h [PRIMARY_IP] -U replicator -D /opt/pgsql/data --waldir=/opt/pgsql/wal -X stream -P -R - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/data/postgresql.conf - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT pg_is_in_recovery();\" - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "# Primary (writes) - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT version();\" - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "curl -s https://www.postgresql.org/docs/16/release-16-3.html > /tmp/pg16-release-notes.html - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "head -50 /tmp/pg16-release-notes.html - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "systemctl stop postgresql-16 - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "dnf update -y postgresql16-server postgresql16-contrib - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "systemctl start postgresql-16 - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT pg_is_in_recovery();\" - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT version();\" - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "systemctl stop postgresql-16 - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "dnf update -y postgresql16-server postgresql16-contrib - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "systemctl start postgresql-16 - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT version();\" - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT client_addr, state FROM pg_stat_replication;\" - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT pid, now() - query_start AS runtime, state, left(query, 80) AS query FROM pg_ - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT left(query, 60) AS query, calls, round(total_exec_time::numeric, 1) AS total_ - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT * FROM app.orders WHERE status = 'pen - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT blocked.pid AS blocked_pid, blocked.query AS blocked_query, blocking.pid AS b - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"CREATE INDEX CONCURRENTLY idx_orders_created_at ON app.orders (created_at);\" - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"ANALYZE app.orders;\" - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"VACUUM ANALYZE app.orders;\" - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT datname, pg_size_pretty(pg_database_size(datname)) AS size FROM pg_database WHERE datn - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT schemaname || '.' || relname AS table, pg_size_pretty(pg_total_relation_size( - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT relname, n_tup_ins AS inserts, n_tup_upd AS updates, n_tup_del AS deletes, st - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT count(*) AS total, count(*) FILTER (WHERE state = 'active') AS active, count(*) FILTER - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT sum(heap_blks_hit)::float / greatest(sum(heap_blks_hit) + sum(heap_blks_read) - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT pg_size_pretty(pg_database_size('appdb')) AS current_size, pg_size_pretty(pg_ - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT rolname, rolsuper, rolcreaterole, rolcreatedb, rolreplication FROM pg_roles WHERE rols - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "grep -v '^#' /opt/pgsql/data/pg_hba.conf | grep -v '^$' - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SHOW ssl;\" - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SHOW password_encryption;\" - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT rolname FROM pg_authid WHERE rolcanlogin AND rolpassword IS NULL;\" - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SHOW log_connections;\" - judge from their output."
+  },
+  "64": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SHOW log_disconnections;\" - judge from their output."
+  },
+  "65": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SHOW log_statement;\" - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT nspname, nspacl FROM pg_namespace WHERE nspname = 'public';\" - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

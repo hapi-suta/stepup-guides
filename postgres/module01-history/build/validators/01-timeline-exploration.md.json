@@ -1,0 +1,10 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "Features to map: - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "1970  |--E.F. Codd publishes relational model paper at IBM - judge from their output."
+  }
+}

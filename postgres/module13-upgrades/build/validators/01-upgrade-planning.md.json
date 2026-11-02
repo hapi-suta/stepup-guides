@@ -1,0 +1,134 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh ec2-user@NODE1 - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -c \"SELECT version();\" - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-*/bin/postgres - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/postgres --version - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -c \"SELECT name, setting, unit FROM pg_settings WHERE source NOT IN ('default', 'override - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "cat /tmp/current_settings.txt - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -l - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -c \"SELECT datname FROM pg_database WHERE datistemplate = false;\" -t -A - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d postgres -c \"SELECT extname, extversion FROM pg_extension ORDER BY extname;\" - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb -c \"SELECT extname, extversion FROM pg_extension ORDER BY extname;\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-16/lib/pg_stat_statements.so - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "ls /usr/pgsql-16/share/extension/pg_stat_statements--*.sql - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "df -h /opt/pgsql - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo du -sh /opt/pgsql/data - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-15 - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-16 - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_upgrade \\ - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "28": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-15 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-15`",
+    "done": "postgresql-15 is running"
+  },
+  "29": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_basebackup -p 5432 -D /opt/pgsql/backup/pre-upgrade-$(date +%Y%m%d) -Fp -Xs -P - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

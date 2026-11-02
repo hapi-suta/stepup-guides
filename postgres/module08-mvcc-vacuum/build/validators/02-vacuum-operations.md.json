@@ -1,0 +1,74 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/student.pem ec2-user@<NODE1_IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "CREATE TABLE vacuum_demo ( - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "INSERT INTO vacuum_demo (val) - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "UPDATE vacuum_demo SET val = val || '_updated'; - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "VACUUM VERBOSE vacuum_demo; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT pg_size_pretty(pg_relation_size('vacuum_demo')) AS heap_size; - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "UPDATE vacuum_demo SET val = val || '_again'; - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "VACUUM FULL VERBOSE vacuum_demo; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT pg_size_pretty(pg_relation_size('vacuum_demo')) AS heap_size; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT name, setting, unit, short_desc - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT relname, - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

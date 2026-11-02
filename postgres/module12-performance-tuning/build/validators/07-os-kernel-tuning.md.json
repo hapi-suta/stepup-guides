@@ -1,0 +1,188 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/Downloads/your-key.pem ec2-user@YOUR_SERVER_IP - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "[ec2-user@pg-primary ~]$ - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sysctl vm.swappiness vm.dirty_ratio vm.dirty_background_ratio vm.overcommit_memory - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.swappiness=1 - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sysctl vm.swappiness - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo vi /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "# PostgreSQL kernel tuning - SUTA Labs Module 12 - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "cat /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.dirty_background_ratio=3 - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.dirty_ratio=10 - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo vi /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "cat /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.overcommit_memory=2 - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "CommitLimit = (overcommit_ratio / 100) * RAM + Swap - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "CommitLimit = (80 / 100) * 736 MB + 1024 MB = 588.8 + 1024 = 1612.8 MB - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.overcommit_ratio=80 - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "sudo vi /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "cat /sys/kernel/mm/transparent_hugepage/enabled - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo sh -c 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "cat /sys/kernel/mm/transparent_hugepage/enabled - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo sh -c 'echo never > /sys/kernel/mm/transparent_hugepage/defrag' - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "cat /sys/kernel/mm/transparent_hugepage/defrag - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/disable-thp.service - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "25": {
+    "type": "ssh",
+    "check": "systemctl is-enabled disable-thp >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable disable-thp`",
+    "done": "disable-thp is enabled"
+  },
+  "26": {
+    "type": "manual",
+    "hint": "sudo -u postgres bash -c 'ulimit -n' - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "sudo -u postgres bash -c 'ulimit -u' - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "sudo vi /etc/security/limits.d/99-postgresql.conf - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "# PostgreSQL ulimits - SUTA Labs Module 12 - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "cat /etc/security/limits.d/99-postgresql.conf - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "mount | grep ' xfs ' - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "/dev/nvme1n1 /opt/pgsql xfs defaults,noatime,nodiratime 0 0 - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "8 GB / 4 KB per page = 2,097,152 pages - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "8 GB / 2 MB per page = 4,096 pages - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "sudo head -1 /proc/$(sudo cat /opt/pgsql/data/postmaster.pid | head -1)/maps | awk '{print $NF}' - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "grep Hugepagesize /proc/meminfo - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "sudo sysctl -w vm.nr_hugepages=8292 - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "grep HugePages /proc/meminfo - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "cat /etc/sysctl.d/99-postgresql.conf - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "sudo sysctl --system - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "sysctl vm.swappiness vm.dirty_ratio vm.dirty_background_ratio vm.overcommit_memory vm.overcommit_ratio - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "sudo su - postgres - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl stop -D /opt/pgsql/data - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl start -D /opt/pgsql/data -l /opt/pgsql/log/postgresql.log - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "cat /proc/$(cat /opt/pgsql/data/postmaster.pid | head -1)/limits | grep \"Max open files\" - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

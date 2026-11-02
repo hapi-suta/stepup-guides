@@ -1,0 +1,94 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/student.pem ec2-user@<NODE1_IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT name, setting, unit, short_desc - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_max_workers; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_naptime; - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "CREATE TABLE hot_orders ( - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "INSERT INTO hot_orders (status) - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "ALTER TABLE hot_orders SET ( - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT relname, reloptions - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "UPDATE hot_orders SET status = 'processing', updated = now(); - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, autovacuum_count - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, autovacuum_count - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT pid, query, state, wait_event_type, wait_event - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT relname, - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ALTER SYSTEM SET autovacuum_naptime = '15s'; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT pg_reload_conf(); - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_naptime; - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "ALTER SYSTEM RESET autovacuum_naptime; - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "SELECT pg_reload_conf(); - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

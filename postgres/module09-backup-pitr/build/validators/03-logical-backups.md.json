@@ -1,0 +1,178 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "pg_dump -Fp appdb > /opt/pgsql/backup/dumps/appdb.sql - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "head -30 /opt/pgsql/backup/dumps/appdb.sql - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/appdb.sql - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "pg_dump -Fc appdb > /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/appdb.sql /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "pg_restore --list /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "pg_dump -Fd appdb -f /opt/pgsql/backup/dumps/appdb_dir/ - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/backup/dumps/appdb_dir/ - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "pg_dump -Fd -j 2 labdb -f /opt/pgsql/backup/dumps/labdb_dir/ - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "pg_dump -Ft appdb > /opt/pgsql/backup/dumps/appdb.tar - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "tar tf /opt/pgsql/backup/dumps/appdb.tar | head -10 - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/appdb.sql - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "du -sh /opt/pgsql/backup/dumps/appdb_dir/ - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/appdb.tar - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "pg_dump -Fp --schema-only appdb > /opt/pgsql/backup/dumps/appdb_schema.sql - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "grep -c \"^COPY\\|^INSERT\" /opt/pgsql/backup/dumps/appdb_schema.sql - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "pg_dump -Fp --data-only appdb > /opt/pgsql/backup/dumps/appdb_data.sql - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "grep -c \"^CREATE\" /opt/pgsql/backup/dumps/appdb_data.sql - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "pg_dump -Fc -t employees appdb > /opt/pgsql/backup/dumps/appdb_employees.dump - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "pg_dump -Fc -t pgbench_accounts -t pgbench_branches labdb > /opt/pgsql/backup/dumps/labdb_partial.dump - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "pg_dump -Fc -T pgbench_history labdb > /opt/pgsql/backup/dumps/labdb_no_history.dump - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "pg_restore --list /opt/pgsql/backup/dumps/labdb_no_history.dump | grep -i \"table data\" - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pg_dump -Fc --schema=public appdb > /opt/pgsql/backup/dumps/appdb_public.dump - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "pg_dump -Fp --no-owner --no-privileges appdb > /opt/pgsql/backup/dumps/appdb_portable.sql - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "grep -c \"ALTER.*OWNER\\|^GRANT\\|^REVOKE\" /opt/pgsql/backup/dumps/appdb_portable.sql - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "pg_dump -Fc --compress=9 labdb > /opt/pgsql/backup/dumps/labdb_max_compress.dump - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "pg_dump -Fc labdb > /opt/pgsql/backup/dumps/labdb_default_compress.dump - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/labdb_max_compress.dump /opt/pgsql/backup/dumps/labdb_default_compress.dump - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "pg_dumpall > /opt/pgsql/backup/dumps/full_cluster.sql - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/full_cluster.sql - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "head -50 /opt/pgsql/backup/dumps/full_cluster.sql - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "pg_dumpall --globals-only > /opt/pgsql/backup/dumps/globals.sql - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "pg_dump -Fc appdb | ssh postgres@pg-backup \"cat > /opt/pgsql/backup/logical/appdb.dump\" - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "pg_dump -Fc labdb | ssh postgres@pg-backup \"cat > /opt/pgsql/backup/logical/labdb.dump\" - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "pg_dump -Fc blobdb | ssh postgres@pg-backup \"cat > /opt/pgsql/backup/logical/blobdb.dump\" - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "pg_dumpall --globals-only | ssh postgres@pg-backup \"cat > /opt/pgsql/backup/logical/globals.sql\" - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-backup \"ls -lh /opt/pgsql/backup/logical/\" - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "pg_dump -Fc blobdb > /opt/pgsql/backup/dumps/blobdb.dump - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "pg_restore --list /opt/pgsql/backup/dumps/blobdb.dump - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "psql -tAc \"SELECT pg_size_pretty(pg_database_size('blobdb'));\" - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/dumps/blobdb.dump - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

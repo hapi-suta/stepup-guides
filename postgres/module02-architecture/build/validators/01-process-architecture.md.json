@@ -1,0 +1,104 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo su - - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "ps aux | grep postgres - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ps aux | grep postgres - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "psql - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT pid, backend_type FROM pg_stat_activity WHERE backend_type != 'client backend'; - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, state, query FROM pg_stat_activity WHERE backend_type = 'client backend'; - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sudo su - - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "psql - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SHOW max_connections; - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "pstree -p $(head -1 /opt/pgsql/data/postmaster.pid) - judge from their output."
+  },
+  "17": {
+    "type": "ssh",
+    "check": "rpm -q psmisc >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y psmisc`",
+    "done": "package(s) psmisc installed"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "pstree -p $(head -1 /opt/pgsql/data/postmaster.pid) - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "psql - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, state FROM pg_stat_activity WHERE backend_type = 'client backend'; - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, state FROM pg_stat_activity WHERE backend_type = 'client backend'; - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT pg_terminate_backend(1602); - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, state FROM pg_stat_activity WHERE backend_type = 'client backend'; - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/data/postmaster.pid - judge from their output."
+  }
+}

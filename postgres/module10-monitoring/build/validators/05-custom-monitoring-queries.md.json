@@ -1,0 +1,82 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i <your-key.pem> ec2-user@<NODE1-IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT count(*) AS current_connections, - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SELECT datname, - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT client_addr, - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT schemaname, - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, datname, state, - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT checkpoints_timed, - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/monitor.sh - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "#!/usr/bin/env bash - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "chmod +x /opt/pgsql/monitor.sh - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "/opt/pgsql/monitor.sh - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "/opt/pgsql/monitor.sh --csv - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/opt/pgsql/monitor.sh --csv >> /opt/pgsql/log/pg_health_trend.csv - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "/opt/pgsql/monitor.sh --csv >> /opt/pgsql/log/pg_health_trend.csv - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/log/pg_health_trend.csv - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "http://<NODE1-IP>:8080 - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

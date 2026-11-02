@@ -1,0 +1,82 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/.ssh/your-key.pem ec2-user@YOUR_SERVER_IP - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo su - postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d labdb - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, state, wait_event_type, wait_event, backend_type, - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "ssh -i ~/.ssh/your-key.pem ec2-user@YOUR_SERVER_IP - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo su - postgres - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d labdb - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "BEGIN; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "UPDATE orders SET status = 'test2' WHERE order_id = 1; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, state, wait_event_type, wait_event, - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT locktype, relation::regclass, mode, granted, pid - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT pid, - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "COMMIT; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "-- LAST RESORT ONLY - do not run this now - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "UPDATE orders SET status = 'pending' WHERE order_id = 1; - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ALTER SYSTEM SET log_lock_waits = on; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "-- Try to acquire advisory lock 12345 (non-blocking) - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SELECT pg_advisory_unlock(12345); - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

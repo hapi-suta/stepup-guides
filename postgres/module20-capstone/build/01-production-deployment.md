@@ -271,7 +271,10 @@ The data directory must have permissions 700 (owner only). PostgreSQL refuses to
 
 ```bash
 dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sed -i 's/$releasever_major.$releasever_minor/$releasever/g' /etc/yum.repos.d/pgdg-redhat-all.repo
 ```
+
+The second command is needed on CentOS Stream 9: the repo file the RPM installs uses `$releasever_major.$releasever_minor` in its download URLs, and CentOS Stream has no minor version, so `dnf` would fail with "Cannot download repomd.xml". The `sed` rewrites those URLs to plain `$releasever` (9). RHEL and Rocky do not need it but it is harmless there.
 
 This installs the official PostgreSQL Global Development Group (PGDG) repository. It contains the latest PostgreSQL packages built for your OS version.
 

@@ -1,0 +1,62 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo dnf update -y - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo hostnamectl set-hostname pg-primary - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo hostnamectl set-hostname pg-standby - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "hostname - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo vi /etc/hosts - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "ping -c 2 pg-primary - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "ping -c 2 pg-standby - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sudo firewall-cmd --permanent --add-service=ssh - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo firewall-cmd --permanent --add-port=5432/tcp - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo firewall-cmd --reload - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo firewall-cmd --list-all - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo timedatectl set-timezone UTC - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "timedatectl - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "ssh root@pg-standby hostname - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "ssh root@pg-primary hostname - judge from their output."
+  }
+}

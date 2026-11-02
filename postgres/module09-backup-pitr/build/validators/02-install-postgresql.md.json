@@ -1,0 +1,266 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rp - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo dnf -qy module disable postgresql - judge from their output."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "rpm -q postgresql16-server postgresql16-contrib >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y postgresql16-server postgresql16-contrib`",
+    "done": "package(s) postgresql16-server postgresql16-contrib installed"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/initdb -D /opt/pgsql/data \\ - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/data/ - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/wal/ - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/data/pg_wal - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "vim /opt/pgsql/data/postgresql.conf - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "# Custom paths - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "echo \"export PATH=/usr/pgsql-16/bin:$PATH\" >> ~/.bash_profile - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "echo \"export PGDATA=/opt/pgsql/data\" >> ~/.bash_profile - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "which psql - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo EDITOR=vi systemctl edit postgresql-16 - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "23": {
+    "type": "ssh",
+    "check": "systemctl is-enabled postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable postgresql-16`",
+    "done": "postgresql-16 is enabled"
+  },
+  "24": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT version();\" - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "sudo systemctl status postgresql-16 - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "psql -c \"SHOW data_directory;\" - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "psql -c \"SHOW log_directory;\" - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "33": {
+    "type": "ssh",
+    "check": "rpm -q postgresql16 >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y postgresql16`",
+    "done": "package(s) postgresql16 installed"
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "echo \"export PATH=/usr/pgsql-16/bin:$PATH\" >> ~/.bash_profile - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "psql --version - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "pg_dump --version - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "pg_restore --version - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "hostname -I | awk '{print $1}' - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "vim /opt/pgsql/data/pg_hba.conf - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "# Allow backup server to connect - private IP, so this survives a restart - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "psql -c \"ALTER ROLE postgres PASSWORD 'backup_lab_2026';\" - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "sudo systemctl reload postgresql-16 - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "PGPASSWORD=backup_lab_2026 /usr/pgsql-16/bin/psql -h pg-primary -U postgres -c \"SELECT 1;\" - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "createdb labdb - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "pgbench -i -s 330 labdb - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "psql -d labdb -c \"SELECT count(*) FROM pgbench_accounts;\" - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_size_pretty(pg_database_size('labdb'));\" - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "createdb appdb - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "psql appdb -c \" - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "psql -d appdb -c \" - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "createdb blobdb - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "psql blobdb -c \" - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "psql -d blobdb -c \"SELECT count(*), pg_size_pretty(sum(length(content))) AS total_size FROM documents;\" - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "psql -c \"\\l\" - judge from their output."
+  },
+  "64": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}
