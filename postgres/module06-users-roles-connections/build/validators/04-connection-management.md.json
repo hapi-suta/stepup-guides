@@ -44,8 +44,10 @@
     "hint": "SELECT pg_terminate_backend(pid) - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "ALTER SYSTEM SET idle_in_transaction_session_timeout = '5min'; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='idle_in_transaction_session_timeout' and setting='5min'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET idle_in_transaction_session_timeout = '5min';`",
+    "done": "idle_in_transaction_session_timeout = 5min is in postgresql.auto.conf"
   },
   "13": {
     "type": "manual",

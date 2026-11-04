@@ -60,8 +60,10 @@
     "hint": "UPDATE orders SET status = 'pending' WHERE order_id = 1; - judge from their output."
   },
   "16": {
-    "type": "manual",
-    "hint": "ALTER SYSTEM SET log_lock_waits = on; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_file_settings where name='log_lock_waits' and setting='on'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET log_lock_waits = on;`",
+    "done": "log_lock_waits = on is in postgresql.auto.conf"
   },
   "17": {
     "type": "manual",

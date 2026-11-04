@@ -48,12 +48,16 @@
     "hint": "GRANT SELECT (order_id, status, total_amount) ON TABLE orders TO readonly_user; - judge from their output."
   },
   "13": {
-    "type": "manual",
-    "hint": "CREATE SCHEMA restricted_data; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_namespace where nspname='restricted_data'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE SCHEMA restricted_data;`",
+    "done": "schema restricted_data exists"
   },
   "14": {
-    "type": "manual",
-    "hint": "CREATE TABLE restricted_data.sensitive_records ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='sensitive_records' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE restricted_data.sensitive_records (`",
+    "done": "table sensitive_records exists"
   },
   "15": {
     "type": "manual",

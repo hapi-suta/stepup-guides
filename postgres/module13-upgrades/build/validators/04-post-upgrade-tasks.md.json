@@ -72,8 +72,10 @@
     "hint": "/usr/pgsql-16/bin/psql -p 5434 -c \"SHOW shared_preload_libraries;\" - judge from their output."
   },
   "19": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5434 -c \"ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5434 -d postgres -tAXqc \"select 1 from pg_file_settings where name='shared_preload_libraries' and setting='pg_stat_statements'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5434 -c \"ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';\"`",
+    "done": "shared_preload_libraries = pg_stat_statements is in postgresql.auto.conf"
   },
   "20": {
     "type": "manual",

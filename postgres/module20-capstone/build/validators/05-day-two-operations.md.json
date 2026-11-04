@@ -176,16 +176,22 @@
     "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT blocked.pid AS blocked_pid, blocked.query AS blocked_query, blocking.pid AS b - judge from their output."
   },
   "45": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"CREATE INDEX CONCURRENTLY idx_orders_created_at ON app.orders (created_at);\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from pg_class where relname='idx_orders_created_at' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"CREATE INDEX CONCURRENTLY idx_orders_created_at ON app.orders (created_at);\"`",
+    "done": "index idx_orders_created_at exists"
   },
   "46": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"ANALYZE app.orders;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from pg_stat_user_tables where relname='orders' and (last_analyze is not null or last_autoanalyze is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"ANALYZE app.orders;\"`",
+    "done": "orders was analyzed"
   },
   "47": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"VACUUM ANALYZE app.orders;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from pg_stat_user_tables where relname='orders' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"VACUUM ANALYZE app.orders;\"`",
+    "done": "orders was vacuumd"
   },
   "48": {
     "type": "manual",

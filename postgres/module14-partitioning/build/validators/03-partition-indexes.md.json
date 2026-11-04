@@ -12,20 +12,26 @@
     "hint": "SELECT indexname, tablename - judge from their output."
   },
   "4": {
-    "type": "manual",
-    "hint": "CREATE INDEX idx_orders_part_customer - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_part_customer' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_part_customer`",
+    "done": "index idx_orders_part_customer exists"
   },
   "5": {
     "type": "manual",
     "hint": "SELECT indexname, tablename - judge from their output."
   },
   "6": {
-    "type": "manual",
-    "hint": "CREATE INDEX idx_orders_part_status_date - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_part_status_date' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_part_status_date`",
+    "done": "index idx_orders_part_status_date exists"
   },
   "7": {
-    "type": "manual",
-    "hint": "CREATE INDEX idx_orders_2024_12_region - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_2024_12_region' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_2024_12_region`",
+    "done": "index idx_orders_2024_12_region exists"
   },
   "8": {
     "type": "manual",
@@ -56,16 +62,22 @@
     "hint": "ALTER TABLE order_notes - judge from their output."
   },
   "15": {
-    "type": "manual",
-    "hint": "CREATE TABLE order_notes_bad ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='order_notes_bad' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE order_notes_bad (`",
+    "done": "table order_notes_bad exists"
   },
   "16": {
-    "type": "manual",
-    "hint": "DROP TABLE order_notes; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='order_notes' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE order_notes;`",
+    "done": "table order_notes is gone"
   },
   "17": {
-    "type": "manual",
-    "hint": "INSERT INTO orders_partitioned - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders_partitioned limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders_partitioned`",
+    "done": "orders_partitioned has rows"
   },
   "18": {
     "type": "manual",

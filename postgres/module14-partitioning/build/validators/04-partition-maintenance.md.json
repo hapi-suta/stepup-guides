@@ -20,16 +20,22 @@
     "hint": "\\q - judge from their output."
   },
   "6": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ANALYZE orders_2024_06;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='orders_2024_06' and (last_analyze is not null or last_autoanalyze is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ANALYZE orders_2024_06;\"`",
+    "done": "orders_2024_06 was analyzed"
   },
   "7": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"VACUUM orders_2024_06;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='orders_2024_06' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"VACUUM orders_2024_06;\"`",
+    "done": "orders_2024_06 was vacuumd"
   },
   "8": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"VACUUM ANALYZE orders_partitioned;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='orders_partitioned' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"VACUUM ANALYZE orders_partitioned;\"`",
+    "done": "orders_partitioned was vacuumd"
   },
   "9": {
     "type": "manual",
@@ -104,8 +110,10 @@
     "hint": "sudo -iu postgres - judge from their output."
   },
   "27": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_tablespace where spcname='cold_storage'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"`",
+    "done": "tablespace cold_storage exists"
   },
   "28": {
     "type": "manual",

@@ -12,24 +12,34 @@
     "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
   },
   "4": {
-    "type": "manual",
-    "hint": "CREATE ROLE dev_team NOLOGIN; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='dev_team'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE ROLE dev_team NOLOGIN;`",
+    "done": "role dev_team exists"
   },
   "5": {
-    "type": "manual",
-    "hint": "CREATE ROLE analytics_team NOLOGIN; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='analytics_team'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE ROLE analytics_team NOLOGIN;`",
+    "done": "role analytics_team exists"
   },
   "6": {
-    "type": "manual",
-    "hint": "CREATE ROLE dev_alice WITH LOGIN PASSWORD 'devpass123'; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='dev_alice'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE ROLE dev_alice WITH LOGIN PASSWORD 'devpass123';`",
+    "done": "role dev_alice exists"
   },
   "7": {
-    "type": "manual",
-    "hint": "CREATE ROLE dev_bob WITH LOGIN PASSWORD 'devpass123'; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='dev_bob'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE ROLE dev_bob WITH LOGIN PASSWORD 'devpass123';`",
+    "done": "role dev_bob exists"
   },
   "8": {
-    "type": "manual",
-    "hint": "CREATE ROLE analyst_carol WITH LOGIN PASSWORD 'analpass123'; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='analyst_carol'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE ROLE analyst_carol WITH LOGIN PASSWORD 'analpass123';`",
+    "done": "role analyst_carol exists"
   },
   "9": {
     "type": "manual",
@@ -44,12 +54,16 @@
     "hint": "GRANT analytics_team TO analyst_carol; - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "CREATE SCHEMA dev_schema AUTHORIZATION dev_team; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_namespace where nspname='dev_schema'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE SCHEMA dev_schema AUTHORIZATION dev_team;`",
+    "done": "schema dev_schema exists"
   },
   "13": {
-    "type": "manual",
-    "hint": "CREATE SCHEMA analytics_schema AUTHORIZATION analytics_team; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_namespace where nspname='analytics_schema'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE SCHEMA analytics_schema AUTHORIZATION analytics_team;`",
+    "done": "schema analytics_schema exists"
   },
   "14": {
     "type": "manual",
@@ -64,8 +78,10 @@
     "hint": "GRANT USAGE ON SCHEMA analytics_schema TO analytics_team; - judge from their output."
   },
   "17": {
-    "type": "manual",
-    "hint": "CREATE TABLE dev_schema.feature_flags ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='feature_flags' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE dev_schema.feature_flags (`",
+    "done": "table feature_flags exists"
   },
   "18": {
     "type": "manual",
@@ -76,8 +92,10 @@
     "hint": "GRANT ALL ON ALL SEQUENCES IN SCHEMA dev_schema TO dev_team; - judge from their output."
   },
   "20": {
-    "type": "manual",
-    "hint": "CREATE TABLE analytics_schema.daily_revenue ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='daily_revenue' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE analytics_schema.daily_revenue (`",
+    "done": "table daily_revenue exists"
   },
   "21": {
     "type": "manual",

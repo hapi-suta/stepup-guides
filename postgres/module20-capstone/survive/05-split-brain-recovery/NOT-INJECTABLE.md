@@ -1,0 +1,3 @@
+# Not injectable: 05-split-brain-recovery
+
+Split brain means two nodes both accept writes as primary with diverging timelines. It needs both pg-prod-primary and pg-prod-standby (promote the standby while the old primary stays writable), and the fix (choose the winner, pg_rewind the loser, re-attach it) runs against the other node. These scripts only run on one node and cannot reach the other. The tutor should walk the runbook from pasted output: have the learner paste `pg_controldata` timeline lines and `pg_is_in_recovery()` from both nodes, then guide the choice of surviving primary and the pg_rewind step.

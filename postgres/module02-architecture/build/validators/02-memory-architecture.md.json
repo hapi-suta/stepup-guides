@@ -28,8 +28,10 @@
     "hint": "SHOW wal_buffers; - judge from their output."
   },
   "8": {
-    "type": "manual",
-    "hint": "CREATE EXTENSION IF NOT EXISTS pg_buffercache; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_extension where extname='pg_buffercache'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE EXTENSION IF NOT EXISTS pg_buffercache;`",
+    "done": "extension pg_buffercache installed"
   },
   "9": {
     "type": "manual",

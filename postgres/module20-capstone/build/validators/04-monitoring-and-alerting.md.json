@@ -20,8 +20,10 @@
     "hint": "su - postgres - judge from their output."
   },
   "6": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -c \"CREATE ROLE monitoring WITH LOGIN PASSWORD 'M0n!tor_2026';\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_roles where rolname='monitoring'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -c \"CREATE ROLE monitoring WITH LOGIN PASSWORD 'M0n!tor_2026';\"`",
+    "done": "role monitoring exists"
   },
   "7": {
     "type": "manual",

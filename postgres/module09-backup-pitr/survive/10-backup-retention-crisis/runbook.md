@@ -149,8 +149,9 @@ sudo vi /etc/pgbackrest/pgbackrest.conf
 Clean up the corrupted backup:
 
 ```bash
-# Remove corrupt backup entries
-sudo rm -rf /opt/pgsql/backup/pgbackrest/backup/main/*
+# Remove corrupt backup entries AND the stanza's archive metadata: pgBackRest refuses
+# stanza-create when archive.info exists without backup.info ("repository corruption")
+sudo rm -rf /opt/pgsql/backup/pgbackrest/backup/main/* /opt/pgsql/backup/pgbackrest/archive/main/*
 ```
 
 Switch back to the postgres user:

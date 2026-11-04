@@ -12,12 +12,16 @@
     "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
   },
   "4": {
-    "type": "manual",
-    "hint": "CREATE TABLE vacuum_demo ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='vacuum_demo' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE vacuum_demo (`",
+    "done": "table vacuum_demo exists"
   },
   "5": {
-    "type": "manual",
-    "hint": "INSERT INTO vacuum_demo (val) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from vacuum_demo limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO vacuum_demo (val)`",
+    "done": "vacuum_demo has rows"
   },
   "6": {
     "type": "manual",
@@ -28,8 +32,10 @@
     "hint": "SELECT relname, n_live_tup, n_dead_tup, - judge from their output."
   },
   "8": {
-    "type": "manual",
-    "hint": "VACUUM VERBOSE vacuum_demo; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='vacuum_demo' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `VACUUM VERBOSE vacuum_demo;`",
+    "done": "vacuum_demo was vacuumd"
   },
   "9": {
     "type": "manual",
@@ -44,8 +50,10 @@
     "hint": "UPDATE vacuum_demo SET val = val || '_again'; - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "VACUUM FULL VERBOSE vacuum_demo; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='vacuum_demo' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `VACUUM FULL VERBOSE vacuum_demo;`",
+    "done": "vacuum_demo was vacuumd"
   },
   "13": {
     "type": "manual",

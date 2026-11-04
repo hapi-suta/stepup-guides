@@ -12,16 +12,22 @@
     "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT name, setting, unit FROM pg_settings WHERE name IN ('checkpoin - judge from their output."
   },
   "4": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET checkpoint_timeout = '15min';\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='checkpoint_timeout' and setting='15min'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET checkpoint_timeout = '15min';\"`",
+    "done": "checkpoint_timeout = 15min is in postgresql.auto.conf"
   },
   "5": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET max_wal_size = '2GB';\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='max_wal_size' and setting='2GB'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET max_wal_size = '2GB';\"`",
+    "done": "max_wal_size = 2GB is in postgresql.auto.conf"
   },
   "6": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET min_wal_size = '256MB';\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='min_wal_size' and setting='256MB'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET min_wal_size = '256MB';\"`",
+    "done": "min_wal_size = 256MB is in postgresql.auto.conf"
   },
   "7": {
     "type": "manual",

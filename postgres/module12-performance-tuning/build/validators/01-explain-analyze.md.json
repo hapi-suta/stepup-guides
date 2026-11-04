@@ -72,12 +72,16 @@
     "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 99; - judge from their output."
   },
   "19": {
-    "type": "manual",
-    "hint": "DROP INDEX orders_total_amount_idx; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_total_amount_idx' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX orders_total_amount_idx;`",
+    "done": "index orders_total_amount_idx is gone"
   },
   "20": {
-    "type": "manual",
-    "hint": "DROP INDEX orders_customer_id_idx; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_customer_id_idx' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX orders_customer_id_idx;`",
+    "done": "index orders_customer_id_idx is gone"
   },
   "21": {
     "type": "manual",

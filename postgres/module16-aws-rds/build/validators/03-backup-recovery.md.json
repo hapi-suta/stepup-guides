@@ -24,8 +24,10 @@
     "hint": "\\q - judge from their output."
   },
   "7": {
-    "type": "manual",
-    "hint": "aws rds create-db-snapshot \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-snapshots --db-snapshot-identifier suta-pg-lab-snap-01",
+    "done": "snapshot suta-pg-lab-snap-01 exists",
+    "hint": "Run: `aws rds create-db-snapshot \\`"
   },
   "8": {
     "type": "manual",

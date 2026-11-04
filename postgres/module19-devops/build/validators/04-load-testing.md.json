@@ -4,8 +4,10 @@
     "hint": "sudo -iu postgres - judge from their output."
   },
   "2": {
-    "type": "manual",
-    "hint": "createdb pgbench_lab - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='pgbench_lab'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `createdb pgbench_lab`",
+    "done": "database pgbench_lab exists"
   },
   "3": {
     "type": "manual",
@@ -32,28 +34,40 @@
     "hint": "psql -d pgbench_lab - judge from their output."
   },
   "9": {
-    "type": "manual",
-    "hint": "CREATE TABLE IF NOT EXISTS products ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='products' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE IF NOT EXISTS products (`",
+    "done": "table products exists"
   },
   "10": {
-    "type": "manual",
-    "hint": "CREATE TABLE IF NOT EXISTS orders ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='orders' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE IF NOT EXISTS orders (`",
+    "done": "table orders exists"
   },
   "11": {
-    "type": "manual",
-    "hint": "CREATE INDEX IF NOT EXISTS idx_products_category ON products (category); - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_products_category' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);`",
+    "done": "index idx_products_category exists"
   },
   "12": {
-    "type": "manual",
-    "hint": "CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status); - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_orders_status' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);`",
+    "done": "index idx_orders_status exists"
   },
   "13": {
-    "type": "manual",
-    "hint": "CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders (product_id); - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_orders_product_id' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders (product_id);`",
+    "done": "index idx_orders_product_id exists"
   },
   "14": {
-    "type": "manual",
-    "hint": "INSERT INTO products (name, price, stock, category) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from products limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO products (name, price, stock, category)`",
+    "done": "products has rows"
   },
   "15": {
     "type": "manual",

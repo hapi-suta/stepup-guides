@@ -36,8 +36,10 @@
     "hint": "CREATE TABLE big_table AS - judge from their output."
   },
   "10": {
-    "type": "manual",
-    "hint": "ANALYZE big_table; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_stat_user_tables where relname='big_table' and (last_analyze is not null or last_autoanalyze is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ANALYZE big_table;`",
+    "done": "big_table was analyzed"
   },
   "11": {
     "type": "manual",
@@ -80,16 +82,20 @@
     "hint": "-- View current settings (do not change them) - judge from their output."
   },
   "21": {
-    "type": "manual",
-    "hint": "ALTER SYSTEM SET max_parallel_workers_per_gather = 1; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_file_settings where name='max_parallel_workers_per_gather' and setting='1'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET max_parallel_workers_per_gather = 1;`",
+    "done": "max_parallel_workers_per_gather = 1 is in postgresql.auto.conf"
   },
   "22": {
     "type": "manual",
     "hint": "SHOW max_parallel_workers_per_gather; - judge from their output."
   },
   "23": {
-    "type": "manual",
-    "hint": "DROP TABLE IF EXISTS big_table; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='big_table' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE IF EXISTS big_table;`",
+    "done": "table big_table is gone"
   },
   "24": {
     "type": "manual",

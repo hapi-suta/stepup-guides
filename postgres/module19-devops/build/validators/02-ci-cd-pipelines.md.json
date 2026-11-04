@@ -44,8 +44,10 @@
     "hint": "vi /opt/pgsql/ci-lab/tests/test_schema.sh - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "#!/bin/bash - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from users limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `#!/bin/bash`",
+    "done": "users has rows"
   },
   "13": {
     "type": "manual",

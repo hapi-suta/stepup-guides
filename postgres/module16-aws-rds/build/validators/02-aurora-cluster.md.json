@@ -8,20 +8,28 @@
     "hint": "aws rds modify-db-cluster-parameter-group \\ - judge from their output."
   },
   "3": {
-    "type": "manual",
-    "hint": "aws rds create-db-parameter-group \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-parameter-groups --db-parameter-group-name suta-aurora-pg15-instance-params",
+    "done": "parameter group suta-aurora-pg15-instance-params exists",
+    "hint": "Run: `aws rds create-db-parameter-group \\`"
   },
   "4": {
-    "type": "manual",
-    "hint": "aws rds create-db-cluster \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-clusters --db-cluster-identifier suta-aurora-pg-lab",
+    "done": "cluster suta-aurora-pg-lab exists",
+    "hint": "Run: `aws rds create-db-cluster \\`"
   },
   "5": {
-    "type": "manual",
-    "hint": "aws rds create-db-instance \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-instances --db-instance-identifier suta-aurora-pg-writer",
+    "done": "RDS instance suta-aurora-pg-writer exists",
+    "hint": "Run: `aws rds create-db-instance \\`"
   },
   "6": {
-    "type": "manual",
-    "hint": "aws rds create-db-instance \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-instances --db-instance-identifier suta-aurora-pg-reader1",
+    "done": "RDS instance suta-aurora-pg-reader1 exists",
+    "hint": "Run: `aws rds create-db-instance \\`"
   },
   "7": {
     "type": "manual",
@@ -68,8 +76,10 @@
     "hint": "\\q - judge from their output."
   },
   "18": {
-    "type": "manual",
-    "hint": "aws rds create-db-instance \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-instances --db-instance-identifier suta-aurora-pg-reader2",
+    "done": "RDS instance suta-aurora-pg-reader2 exists",
+    "hint": "Run: `aws rds create-db-instance \\`"
   },
   "19": {
     "type": "manual",

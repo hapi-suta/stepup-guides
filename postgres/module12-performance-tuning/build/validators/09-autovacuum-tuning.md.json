@@ -108,8 +108,10 @@
     "hint": "UPDATE churn_test SET status = 'monitoring_test', updated_at = now() WHERE id BETWEEN 1 AND 5000; - judge from their output."
   },
   "28": {
-    "type": "manual",
-    "hint": "CREATE EXTENSION IF NOT EXISTS pgstattuple; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_extension where extname='pgstattuple'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE EXTENSION IF NOT EXISTS pgstattuple;`",
+    "done": "extension pgstattuple installed"
   },
   "29": {
     "type": "manual",
@@ -124,16 +126,20 @@
     "hint": "-- DO NOT run this on production during business hours - judge from their output."
   },
   "32": {
-    "type": "manual",
-    "hint": "VACUUM churn_test; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_stat_user_tables where relname='churn_test' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `VACUUM churn_test;`",
+    "done": "churn_test was vacuumd"
   },
   "33": {
     "type": "manual",
     "hint": "SELECT dead_tuple_count, dead_tuple_percent, free_space, free_percent - judge from their output."
   },
   "34": {
-    "type": "manual",
-    "hint": "DROP TABLE churn_test; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='churn_test' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE churn_test;`",
+    "done": "table churn_test is gone"
   },
   "35": {
     "type": "manual",
