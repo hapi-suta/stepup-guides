@@ -52,8 +52,10 @@
     "hint": "psql -d labdb - judge from their output."
   },
   "14": {
-    "type": "manual",
-    "hint": "CREATE EXTENSION IF NOT EXISTS pageinspect; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_extension where extname='pageinspect'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE EXTENSION IF NOT EXISTS pageinspect;`",
+    "done": "extension pageinspect installed"
   },
   "15": {
     "type": "manual",
@@ -92,8 +94,10 @@
     "hint": "psql -d labdb - judge from their output."
   },
   "24": {
-    "type": "manual",
-    "hint": "CREATE EXTENSION IF NOT EXISTS pgstattuple; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_extension where extname='pgstattuple'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE EXTENSION IF NOT EXISTS pgstattuple;`",
+    "done": "extension pgstattuple installed"
   },
   "25": {
     "type": "manual",
@@ -112,8 +116,10 @@
     "hint": "SELECT pg_size_pretty(pg_database_size(current_database())) AS database_size; - judge from their output."
   },
   "29": {
-    "type": "manual",
-    "hint": "DROP TABLE toast_test; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='toast_test' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE toast_test;`",
+    "done": "table toast_test is gone"
   },
   "30": {
     "type": "manual",

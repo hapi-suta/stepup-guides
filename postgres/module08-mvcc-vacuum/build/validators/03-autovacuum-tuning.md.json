@@ -24,12 +24,16 @@
     "hint": "SHOW autovacuum_naptime; - judge from their output."
   },
   "7": {
-    "type": "manual",
-    "hint": "CREATE TABLE hot_orders ( - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='hot_orders' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE hot_orders (`",
+    "done": "table hot_orders exists"
   },
   "8": {
-    "type": "manual",
-    "hint": "INSERT INTO hot_orders (status) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from hot_orders limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO hot_orders (status)`",
+    "done": "hot_orders has rows"
   },
   "9": {
     "type": "manual",
@@ -60,8 +64,10 @@
     "hint": "SELECT relname, - judge from their output."
   },
   "16": {
-    "type": "manual",
-    "hint": "ALTER SYSTEM SET autovacuum_naptime = '15s'; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='autovacuum_naptime' and setting='15s'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET autovacuum_naptime = '15s';`",
+    "done": "autovacuum_naptime = 15s is in postgresql.auto.conf"
   },
   "17": {
     "type": "manual",
@@ -72,8 +78,10 @@
     "hint": "SHOW autovacuum_naptime; - judge from their output."
   },
   "19": {
-    "type": "manual",
-    "hint": "ALTER SYSTEM RESET autovacuum_naptime; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo grep -qE '^autovacuum_naptime = ' $(sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAXqc \"show data_directory\")/postgresql.auto.conf",
+    "hint": "Run: `ALTER SYSTEM RESET autovacuum_naptime;`",
+    "done": "autovacuum_naptime no longer set in postgresql.auto.conf"
   },
   "20": {
     "type": "manual",

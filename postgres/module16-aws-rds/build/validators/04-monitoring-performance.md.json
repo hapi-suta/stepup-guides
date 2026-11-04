@@ -44,12 +44,18 @@
     "hint": "\\q - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "aws sns create-topic \\ - judge from their output."
+    "type": "aws",
+    "check": "sns list-topics",
+    "expect": "suta-rds-events",
+    "done": "SNS topic suta-rds-events exists",
+    "hint": "Run: `aws sns create-topic \\`"
   },
   "13": {
-    "type": "manual",
-    "hint": "TOPIC_ARN=$(aws sns create-topic --name suta-rds-events --query \"TopicArn\" --output text) - judge from their output."
+    "type": "aws",
+    "check": "sns list-topics",
+    "expect": "suta-rds-events",
+    "done": "SNS topic suta-rds-events exists",
+    "hint": "Run: `TOPIC_ARN=$(aws sns create-topic --name suta-rds-events --query \"TopicArn\" --output text)`"
   },
   "14": {
     "type": "manual",

@@ -1,0 +1,3 @@
+# Not injectable: 02-ci-pipeline-broken
+
+The fault lives in a GitHub Actions workflow and a CI test script (a wrong port in DATABASE_URL and a wrong database name in a fallback URL), not on the PostgreSQL server. There is no PostgreSQL state to break, and no CI runner on the lab node. The tutor should walk the runbook from the learner's pasted output: ask them to paste the CI error and the workflow `env` block, then guide them to spot the 5433 versus 5432 mismatch and the `test_db` versus `testdb` name, and have them confirm with a local `psql` connection string against port 5432 and database `testdb`.

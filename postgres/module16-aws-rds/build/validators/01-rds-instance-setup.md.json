@@ -24,28 +24,36 @@
     "hint": "aws rds create-db-subnet-group \\ - judge from their output."
   },
   "7": {
-    "type": "manual",
-    "hint": "aws ec2 create-security-group \\ - judge from their output."
+    "type": "aws",
+    "check": "ec2 describe-security-groups --group-names suta-rds-sg",
+    "done": "security group suta-rds-sg exists",
+    "hint": "Run: `aws ec2 create-security-group \\`"
   },
   "8": {
-    "type": "manual",
-    "hint": "SG_ID=$(aws ec2 create-security-group --group-name suta-rds-sg --description \"Security group for SUTA RDS PostgreSQL\" -- - judge from their output."
+    "type": "aws",
+    "check": "ec2 describe-security-groups --group-names suta-rds-sg",
+    "done": "security group suta-rds-sg exists",
+    "hint": "Run: `SG_ID=$(aws ec2 create-security-group --group-name suta-rds-sg --description \"Security group for SUTA RDS PostgreSQL\" --`"
   },
   "9": {
     "type": "manual",
     "hint": "MY_IP=$(curl -s https://checkip.amazonaws.com) - judge from their output."
   },
   "10": {
-    "type": "manual",
-    "hint": "aws rds create-db-parameter-group \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-parameter-groups --db-parameter-group-name suta-pg15-params",
+    "done": "parameter group suta-pg15-params exists",
+    "hint": "Run: `aws rds create-db-parameter-group \\`"
   },
   "11": {
     "type": "manual",
     "hint": "aws rds modify-db-parameter-group \\ - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "aws rds create-db-instance \\ - judge from their output."
+    "type": "aws",
+    "check": "rds describe-db-instances --db-instance-identifier suta-pg-lab",
+    "done": "RDS instance suta-pg-lab exists",
+    "hint": "Run: `aws rds create-db-instance \\`"
   },
   "13": {
     "type": "manual",

@@ -104,16 +104,20 @@
     "hint": "pgbackrest --stanza=prod info - judge from their output."
   },
   "27": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'diff' || n || '@example.com', ' - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'diff' || n || '@example.com', '`",
+    "done": "customers has rows"
   },
   "28": {
     "type": "manual",
     "hint": "pgbackrest --stanza=prod --type=diff backup - judge from their output."
   },
   "29": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'incr' || n || '@example.com', ' - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'incr' || n || '@example.com', '`",
+    "done": "customers has rows"
   },
   "30": {
     "type": "manual",
@@ -136,20 +140,26 @@
     "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT now();\" - judge from their output."
   },
   "35": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('before-disaster@example.com',  - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('before-disaster@example.com', `",
+    "done": "customers has rows"
   },
   "36": {
     "type": "manual",
     "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT now() AS disaster_time;\" - judge from their output."
   },
   "37": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"DROP TABLE app.order_items;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from pg_class where relname='order_items' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"DROP TABLE app.order_items;\"`",
+    "done": "table order_items is gone"
   },
   "38": {
-    "type": "manual",
-    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('after-disaster@example.com', ' - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('after-disaster@example.com', '`",
+    "done": "customers has rows"
   },
   "39": {
     "type": "manual",

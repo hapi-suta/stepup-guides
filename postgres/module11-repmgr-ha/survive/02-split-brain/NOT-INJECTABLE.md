@@ -1,0 +1,1 @@
+Not injectable: split-brain needs a network partition between nodes (and a promotion on the isolated side), which means changing firewall or interface rules, forbidden by the survive contract, and two nodes accepting writes. Tutor: walk the runbook from pasted repmgr cluster show output and pg_is_in_recovery() results from each node.

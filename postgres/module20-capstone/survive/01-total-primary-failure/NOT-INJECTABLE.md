@@ -1,0 +1,3 @@
+# Not injectable: 01-total-primary-failure
+
+This is a two-node scenario: the data directory of the primary (pg-prod-primary) is destroyed and the fix is a repmgr failover that promotes pg-prod-standby, then rebuilds the old primary as a standby. Destroying a node's only data directory cannot be undone safely on one node, and the proof of recovery (a promoted standby, a repmgr cluster show, a rebuilt node) needs both hosts. The tutor should walk the runbook from pasted output: have the learner run the triage commands on both nodes, paste `repmgr cluster show` and the PostgreSQL log, and confirm each step (promote, verify writes on the new primary, rebuild the old node) from what they paste back.

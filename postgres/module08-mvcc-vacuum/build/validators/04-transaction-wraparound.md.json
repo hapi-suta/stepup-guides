@@ -32,8 +32,10 @@
     "hint": "SHOW vacuum_freeze_min_age; - judge from their output."
   },
   "9": {
-    "type": "manual",
-    "hint": "VACUUM FREEZE VERBOSE mvcc_demo; - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_stat_user_tables where relname='mvcc_demo' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `VACUUM FREEZE VERBOSE mvcc_demo;`",
+    "done": "mvcc_demo was vacuumd"
   },
   "10": {
     "type": "manual",

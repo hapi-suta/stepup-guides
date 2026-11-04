@@ -20,16 +20,22 @@
     "hint": "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tenant_id text DEFAULT current_user; - judge from their output."
   },
   "6": {
-    "type": "manual",
-    "hint": "INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)`",
+    "done": "orders has rows"
   },
   "7": {
-    "type": "manual",
-    "hint": "INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)`",
+    "done": "orders has rows"
   },
   "8": {
-    "type": "manual",
-    "hint": "INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id)`",
+    "done": "orders has rows"
   },
   "9": {
     "type": "manual",

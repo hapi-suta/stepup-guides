@@ -52,8 +52,10 @@
     "hint": "EXPLAIN ANALYZE SELECT a.aid, b.bid - judge from their output."
   },
   "14": {
-    "type": "manual",
-    "hint": "DROP VIEW large_accounts; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='large_accounts' and relkind in ('v','m')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP VIEW large_accounts;`",
+    "done": "view large_accounts is gone"
   },
   "15": {
     "type": "manual",

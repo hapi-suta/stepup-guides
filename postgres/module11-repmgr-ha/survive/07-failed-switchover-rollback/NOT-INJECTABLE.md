@@ -1,0 +1,1 @@
+Not injectable: a failed switchover is a half-finished operation across the old primary and the candidate standby (demotion done, promotion not), which needs both hosts and an interrupted repmgr command; it cannot be reproduced reliably or undone from one node. Tutor: walk the runbook from pasted repmgr cluster show output and the repmgr event table.

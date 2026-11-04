@@ -4,8 +4,10 @@
     "hint": "sudo -iu postgres - judge from their output."
   },
   "2": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_restored;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_restored'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_restored;\"`",
+    "done": "database appdb_restored exists"
   },
   "3": {
     "type": "manual",
@@ -20,8 +22,10 @@
     "hint": "psql -d appdb_restored -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "6": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_custom;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_custom'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_custom;\"`",
+    "done": "database appdb_custom exists"
   },
   "7": {
     "type": "manual",
@@ -32,8 +36,10 @@
     "hint": "psql -d appdb_custom -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "9": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_custom;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_custom'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_custom;\"`",
+    "done": "database appdb_custom is gone"
   },
   "10": {
     "type": "manual",
@@ -44,8 +50,10 @@
     "hint": "psql -d appdb -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_clean_test;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_clean_test'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_clean_test;\"`",
+    "done": "database appdb_clean_test exists"
   },
   "13": {
     "type": "manual",
@@ -56,8 +64,10 @@
     "hint": "psql -d appdb_clean_test -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "15": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_split;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_split'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_split;\"`",
+    "done": "database appdb_split exists"
   },
   "16": {
     "type": "manual",
@@ -72,12 +82,16 @@
     "hint": "psql -d appdb_split -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "19": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_split;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_split'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_split;\"`",
+    "done": "database appdb_split is gone"
   },
   "20": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_partial;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_partial'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_partial;\"`",
+    "done": "database appdb_partial exists"
   },
   "21": {
     "type": "manual",
@@ -88,8 +102,10 @@
     "hint": "psql -d appdb_partial -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "23": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_partial;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_partial'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_partial;\"`",
+    "done": "database appdb_partial is gone"
   },
   "24": {
     "type": "manual",
@@ -104,8 +120,10 @@
     "hint": "vi /tmp/appdb_toc.list - judge from their output."
   },
   "27": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_custom_order;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_custom_order'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_custom_order;\"`",
+    "done": "database appdb_custom_order exists"
   },
   "28": {
     "type": "manual",
@@ -116,12 +134,16 @@
     "hint": "psql -d appdb_custom_order -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "30": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_custom_order;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_custom_order'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_custom_order;\"`",
+    "done": "database appdb_custom_order is gone"
   },
   "31": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE labdb_parallel;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='labdb_parallel'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE labdb_parallel;\"`",
+    "done": "database labdb_parallel exists"
   },
   "32": {
     "type": "manual",
@@ -132,12 +154,16 @@
     "hint": "psql -d labdb_parallel -c \"SELECT count(*) FROM pgbench_accounts;\" - judge from their output."
   },
   "34": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS labdb_parallel;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='labdb_parallel'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS labdb_parallel;\"`",
+    "done": "database labdb_parallel is gone"
   },
   "35": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_sections;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_sections'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_sections;\"`",
+    "done": "database appdb_sections exists"
   },
   "36": {
     "type": "manual",
@@ -156,24 +182,32 @@
     "hint": "psql -d appdb_sections -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "40": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_sections;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_sections'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_sections;\"`",
+    "done": "database appdb_sections is gone"
   },
   "41": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_portable;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_portable'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_portable;\"`",
+    "done": "database appdb_portable exists"
   },
   "42": {
     "type": "manual",
     "hint": "pg_restore -d appdb_portable --no-owner --no-privileges /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
   },
   "43": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_portable;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_portable'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_portable;\"`",
+    "done": "database appdb_portable is gone"
   },
   "44": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_renamed;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_renamed'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_renamed;\"`",
+    "done": "database appdb_renamed exists"
   },
   "45": {
     "type": "manual",
@@ -184,8 +218,10 @@
     "hint": "psql -d appdb_renamed -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "47": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_renamed;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_renamed'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_renamed;\"`",
+    "done": "database appdb_renamed is gone"
   },
   "48": {
     "type": "manual",
@@ -212,8 +248,10 @@
     "hint": "scp postgres@pg-backup:/opt/pgsql/backup/logical/appdb.dump /tmp/appdb_from_backup.dump - judge from their output."
   },
   "54": {
-    "type": "manual",
-    "hint": "psql -c \"CREATE DATABASE appdb_from_backup;\" - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_from_backup'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"CREATE DATABASE appdb_from_backup;\"`",
+    "done": "database appdb_from_backup exists"
   },
   "55": {
     "type": "manual",
@@ -224,8 +262,10 @@
     "hint": "psql -d appdb_from_backup -c \"SELECT count(*) FROM employees;\" - judge from their output."
   },
   "57": {
-    "type": "manual",
-    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_restored;\" - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='appdb_restored'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `psql -c \"DROP DATABASE IF EXISTS appdb_restored;\"`",
+    "done": "database appdb_restored is gone"
   },
   "58": {
     "type": "manual",

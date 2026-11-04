@@ -8,16 +8,22 @@
     "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
   },
   "3": {
-    "type": "manual",
-    "hint": "INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders_partitioned limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region)`",
+    "done": "orders_partitioned has rows"
   },
   "4": {
-    "type": "manual",
-    "hint": "CREATE TABLE orders_default - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_default' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE orders_default`",
+    "done": "table orders_default exists"
   },
   "5": {
-    "type": "manual",
-    "hint": "INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders_partitioned limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region)`",
+    "done": "orders_partitioned has rows"
   },
   "6": {
     "type": "manual",
@@ -32,24 +38,32 @@
     "hint": "DELETE FROM orders_default - judge from their output."
   },
   "9": {
-    "type": "manual",
-    "hint": "CREATE TABLE orders_2025_04 - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_2025_04' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE orders_2025_04`",
+    "done": "table orders_2025_04 exists"
   },
   "10": {
-    "type": "manual",
-    "hint": "INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region) - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from orders_partitioned limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO orders_partitioned (order_id, customer_id, order_date, status, total_amount, region)`",
+    "done": "orders_partitioned has rows"
   },
   "11": {
     "type": "manual",
     "hint": "SELECT tableoid::regclass AS partition_name, order_id, order_date - judge from their output."
   },
   "12": {
-    "type": "manual",
-    "hint": "CREATE TABLE orders_2025_05 - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_2025_05' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE orders_2025_05`",
+    "done": "table orders_2025_05 exists"
   },
   "13": {
-    "type": "manual",
-    "hint": "CREATE TABLE orders_2025_06 - judge from their output."
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_2025_06' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE orders_2025_06`",
+    "done": "table orders_2025_06 exists"
   },
   "14": {
     "type": "manual",
@@ -84,8 +98,10 @@
     "hint": "SELECT COUNT(*) FROM orders_2024_01; - judge from their output."
   },
   "22": {
-    "type": "manual",
-    "hint": "DROP TABLE orders_2024_01; - judge from their output."
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_2024_01' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE orders_2024_01;`",
+    "done": "table orders_2024_01 is gone"
   },
   "23": {
     "type": "manual",
