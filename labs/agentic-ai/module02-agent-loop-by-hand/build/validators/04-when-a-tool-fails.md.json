@@ -1,0 +1,24 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\ndef load(n):\n    p = os.path.expanduser('~/agentic-ai/logs/' + n)\n    return [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nruns, tools = load('runs.jsonl'), load('tool_calls.jsonl')\nsys.exit(0 if (any(r.get('is_error') for r in tools) and len(runs) >= 2 and runs[-1].get('stop_reason') == 'end_turn') else 1)\nPY",
+    "hint": "No failed tool call is logged yet. Run the /data/pgdata question.",
+    "done": "a tool failed, was logged with is_error true, and the run still finished"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/tool_calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (any(r.get('is_error') for r in rows)) else 1)\nPY",
+    "hint": "Run Step 2 first.",
+    "done": "the failed tool call is in the audit log"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/runs.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (len(rows) >= 2) else 1)\nPY",
+    "hint": "Run Step 2 first.",
+    "done": "both runs are in the run log"
+  }
+}

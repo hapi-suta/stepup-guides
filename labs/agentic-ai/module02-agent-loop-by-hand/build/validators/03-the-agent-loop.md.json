@@ -1,0 +1,34 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/agent.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile agent.py && grep -q '^MAX_TURNS = 6$' agent.py && grep -q '\"tool_use_id\": block.id' agent.py",
+    "hint": "agent.py is missing, has an indentation error, or lost a guardrail line; paste the whole block again.",
+    "done": "agent.py exists, compiles and keeps its guardrails"
+  },
+  "3": {
+    "type": "manual",
+    "done": "they counted the lines of agent.py"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\ndef load(n):\n    p = os.path.expanduser('~/agentic-ai/logs/' + n)\n    return [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nruns, tools = load('runs.jsonl'), load('tool_calls.jsonl')\nsys.exit(0 if (any(r.get('turns', 0) >= 2 and r.get('stop_reason') == 'end_turn' for r in runs) and {'tail_log', 'disk_usage'} <= {r.get('tool') for r in tools}) else 1)\nPY",
+    "hint": "No finished agent run with both tools is logged yet. Run the Step 4 question.",
+    "done": "the agent ran, called both tools, and finished with end_turn"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/tool_calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (len(rows) >= 2) else 1)\nPY",
+    "hint": "Run Step 4 first.",
+    "done": "the tool-call audit log exists"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/runs.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (len(rows) >= 1 and all('cost_usd' in r for r in rows)) else 1)\nPY",
+    "hint": "Run Step 4 first.",
+    "done": "the run log exists with a cost on every run"
+  }
+}

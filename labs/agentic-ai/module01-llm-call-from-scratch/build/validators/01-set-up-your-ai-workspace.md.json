@@ -1,0 +1,82 @@
+{
+  "1": {
+    "type": "ssh",
+    "check": "test -x /usr/bin/python3.12",
+    "hint": "Run `sudo dnf install -y python3.12` and wait for `Complete!`.",
+    "done": "Python 3.12 is installed"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "/usr/bin/python3.12 --version | grep -q '^Python 3\\.12'",
+    "hint": "Install Python 3.12 first (Step 1).",
+    "done": "python3.12 reports version 3.12"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "test -d ~/agentic-ai",
+    "hint": "Create it with `mkdir ~/agentic-ai`.",
+    "done": "~/agentic-ai exists"
+  },
+  "4": {
+    "type": "manual",
+    "done": "they moved into ~/agentic-ai"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "test -x ~/agentic-ai/.venv/bin/python",
+    "hint": "Inside ~/agentic-ai run `python3.12 -m venv .venv`.",
+    "done": "the virtual environment exists"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "grep -qx 'source ~/agentic-ai/.venv/bin/activate' ~/.bashrc",
+    "hint": "Append the activate line to ~/.bashrc with `>>` (two arrows).",
+    "done": "~/.bashrc activates the venv"
+  },
+  "7": {
+    "type": "ssh",
+    "check": "grep -qx 'source ~/.suta-llm.env' ~/.bashrc",
+    "hint": "Append `source ~/.suta-llm.env` to ~/.bashrc with `>>`.",
+    "done": "~/.bashrc loads the AI key"
+  },
+  "8": {
+    "type": "manual",
+    "done": "they reloaded ~/.bashrc; their prompt now starts with (.venv)"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "~/agentic-ai/.venv/bin/python --version | grep -q '^Python 3\\.12'",
+    "hint": "The venv is missing or broken; redo Step 5.",
+    "done": "the venv runs Python 3.12"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "grep -qx 'anthropic==2.4.0' ~/agentic-ai/requirements.txt && grep -qx 'openai==3.45.0' ~/agentic-ai/requirements.txt",
+    "hint": "requirements.txt must contain exactly `anthropic==2.4.0` and `openai==3.45.0`.",
+    "done": "requirements.txt pins both libraries"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "~/agentic-ai/.venv/bin/python -c \"import anthropic, openai, sys; sys.exit(not (anthropic.__version__ == '2.4.0' and openai.__version__ == '3.45.0'))\"",
+    "hint": "Run `pip install -r requirements.txt` with (.venv) active.",
+    "done": "anthropic 2.4.0 and openai 3.45.0 are installed in the venv"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "~/agentic-ai/.venv/bin/python -c \"import anthropic, openai, sys; sys.exit(not (anthropic.__version__ == '2.4.0' and openai.__version__ == '3.45.0'))\"",
+    "hint": "Run Step 11 first.",
+    "done": "anthropic 2.4.0 is installed in the venv"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "test -f ~/.suta-llm.env && test \"$(stat -c %a ~/.suta-llm.env)\" = 600",
+    "hint": "The key file is missing or not mode 600. Do not chmod it yourself; tell SutaAI so Prof. Happy can re-issue it.",
+    "done": "the key file exists and is private (600)"
+  },
+  "14": {
+    "type": "ssh",
+    "check": ". ~/.suta-llm.env && curl -sf -m 6 -H \"Authorization: Bearer $ANTHROPIC_API_KEY\" \"$ANTHROPIC_BASE_URL/key/info\" | grep -q '\"key_alias\"'",
+    "hint": "The proxy did not recognise the key. Check Step 7, then `source ~/.bashrc` and retry.",
+    "done": "the SUTA proxy accepts their key"
+  }
+}
