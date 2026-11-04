@@ -22,20 +22,23 @@ need15() {
 
 need15
 if [[ "$(readlink -f "$D16")" == "$(readlink -f "$PGDATA")" ]]; then say "refusing: $D16 is the production data directory"; exit 1; fi
-if [[ -f "$STATE_DIR/injected" && -f "$D16/PG_VERSION" ]]; then
-  say "(locale fault already in place)"
+start15 || { say "could not start the PG15 cluster on 5433"; exit 1; }
+old=$(psq15 postgres "select datcollate from pg_database where datname='template0'")
+stop15 || { say "could not stop the PG15 cluster"; exit 1; }
+cur=$(sudo -u postgres "$PGBIN/pg_controldata" "$D16" 2>/dev/null | awk -F': *' '/LC_COLLATE/{print $2}')
+if [[ -f "$D16/PG_VERSION" && -n "$cur" && "$cur" != "$old" ]]; then
+  say "(locale fault already in place: old $old, new $cur)"
 else
   if [[ -e "$D16/analyze_new_cluster.sh" ]]; then     # a COMPLETED upgrade; --check output dirs are fine
     say "PRECONDITION: $D16 already holds an upgraded cluster; redo Tutorial 2's initdb of /opt/pgsql/data16 (a fresh target) first"; exit 2
   fi
-  start15 || { say "could not start the PG15 cluster on 5433"; exit 1; }
-  old=$(psq15 postgres "select datcollate from pg_database where datname='template0'")
-  stop15 || { say "could not stop the PG15 cluster"; exit 1; }
-  [[ "$old" == "C" ]] && { say "old cluster already uses locale C; cannot build a mismatch"; exit 1; }
+  # the new cluster gets the OTHER locale: C when the old one is en_US.UTF-8, en_US.UTF-8 when the old one is C
+  newloc=C; [[ "$old" == "C" || "$old" == "POSIX" ]] && newloc=en_US.UTF-8
+  locale -a 2>/dev/null | grep -qiE "^${newloc//-/}$|^${newloc}$" || [[ "$newloc" == "C" ]] || { say "PRECONDITION: OS locale $newloc is not installed"; exit 2; }
   if [[ -f "$D16/postmaster.pid" ]]; then sudo -u postgres "$PGBIN/pg_ctl" -D "$D16" stop -m fast -w >/dev/null 2>&1; fi
   rm -rf "$D16"
   install -d -o postgres -g postgres -m 700 "$D16"
-  sudo -u postgres "$PGBIN/initdb" -D "$D16" --encoding=UTF8 --locale=C >"$STATE_DIR/initdb.log" 2>&1 || { say "initdb failed, see $STATE_DIR/initdb.log"; exit 1; }
+  sudo -u postgres "$PGBIN/initdb" -D "$D16" --encoding=UTF8 --locale="$newloc" >"$STATE_DIR/initdb.log" 2>&1 || { say "initdb failed, see $STATE_DIR/initdb.log"; exit 1; }
   echo "$old" > "$STATE_DIR/injected"
 fi
 say "PG15 cluster is stopped; PG16 production is $(pg_up && echo up || echo down)."

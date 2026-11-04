@@ -22,10 +22,11 @@ if [[ $ALREADY -eq 0 ]]; then
   systemctl stop postgresql-16 >/dev/null 2>&1
   for _ in $(seq 1 20); do pg_up || break; sleep 1; done
   rm -f "$PIDF"
-  setsid nohup sleep 86400 >/dev/null 2>&1 &
-  SP=$!
+  # the decoy must be owned by postgres: PostgreSQL 16 treats a pid it cannot signal (EPERM)
+  # with a free shared-memory key as a stale lock and starts anyway
+  sudo -u postgres setsid nohup sleep 86400 >/dev/null 2>&1 &
   sleep 1
-  [[ "$(ps -p "$SP" -o comm= 2>/dev/null)" == "sleep" ]] || SP=$(pgrep -n -x sleep)
+  SP=$(pgrep -n -x sleep -u postgres)
   echo "$SP" > "$STATE_DIR/stale_pid"
   printf '%s\n%s\n%s\n%s\n%s\n%s\n%s\n' "$SP" "$PGDATA" "$(date +%s)" "$PGPORT" "/run/postgresql" "*" "  0         0" > "$PIDF"
   chown postgres:postgres "$PIDF"; chmod 600 "$PIDF"

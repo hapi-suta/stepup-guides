@@ -27,11 +27,11 @@ seed_employees() {
 }
 wait_archived() { local a; for _ in $(seq 1 15); do a=$(psq postgres "select coalesce(last_archived_wal,'') from pg_stat_archiver"); [[ "$a" == "$1" || "$a" > "$1" ]] && return 0; sleep 1; done; return 1; }
 
-ensure_up; need_pbr
 D=/opt/pgsql/data; DEAD=/opt/pgsql/data.destroyed
 if [[ -d "$DEAD" && ! -f "$D/PG_VERSION" ]]; then
   say "(cluster already destroyed)"
 else
+  ensure_up; need_pbr
   [[ -d "$DEAD" ]] && { say "refusing: $DEAD exists from an earlier run; remove it first"; exit 1; }
   need_kb=$(( $(du -sk "$D" | cut -f1) + 1048576 )); free_kb=$(df -Pk /opt/pgsql | awk 'NR==2{print $4}')
   (( free_kb > need_kb )) || { say "not enough free space under /opt/pgsql for a restore"; exit 1; }
