@@ -1,0 +1,24 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/one_round_trip.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile one_round_trip.py",
+    "hint": "one_round_trip.py is missing or has an indentation error.",
+    "done": "one_round_trip.py exists and is valid Python"
+  },
+  "3": {
+    "type": "manual",
+    "done": "stop reason was tool_use with a disk_usage request"
+  },
+  "4": {
+    "type": "manual",
+    "done": "stop reason was end_turn with no tool request"
+  },
+  "5": {
+    "type": "manual",
+    "done": "stop reason was tool_use with a tail_log request"
+  }
+}
