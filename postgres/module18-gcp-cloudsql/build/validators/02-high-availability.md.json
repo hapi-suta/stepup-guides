@@ -1,0 +1,90 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(settings.availabilityType)\" - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --availability-type=REGIONAL - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.availabilityType,gceZone,secondaryGceZone)\" - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(gceZone)\" - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "CREATE TABLE IF NOT EXISTS failover_test ( - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "INSERT INTO failover_test (note) VALUES ('pre-failover marker'); - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT * FROM failover_test; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "gcloud sql instances failover suta-pg-lab - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(gceZone,secondaryGceZone)\" - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT * FROM failover_test; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "INSERT INTO failover_test (note) VALUES ('post-failover - new primary working'); - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT * FROM failover_test; - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.maintenanceWindow)\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(state)\" - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "gcloud sql operations list --instance=suta-pg-lab --limit=10 - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "postgresql://postgres:[PASSWORD]@[IP]:5432/suta_lab?connect_timeout=10&target_session_attrs=read-write - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "gcloud sql instances failover suta-pg-lab - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(gceZone,secondaryGceZone)\" - judge from their output."
+  }
+}

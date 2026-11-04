@@ -1,0 +1,234 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_restored;\" - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "psql -d appdb_restored < /opt/pgsql/backup/dumps/appdb.sql - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "Expected output (yours will differ): - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "psql -d appdb_restored -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_custom;\" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_custom /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "psql -d appdb_custom -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_custom;\" - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "pg_restore --create -d postgres /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "psql -d appdb -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_clean_test;\" - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_clean_test --clean --if-exists /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "psql -d appdb_clean_test -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_split;\" - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_split --schema-only /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "psql -d appdb_split -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "psql -d appdb_split -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_split;\" - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_partial;\" - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_partial -t employees /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "psql -d appdb_partial -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_partial;\" - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "pg_restore --list /opt/pgsql/backup/dumps/appdb.dump > /tmp/appdb_toc.list - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "cat /tmp/appdb_toc.list - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "vi /tmp/appdb_toc.list - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_custom_order;\" - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_custom_order --use-list=/tmp/appdb_toc.list /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "psql -d appdb_custom_order -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_custom_order;\" - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE labdb_parallel;\" - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "pg_restore -d labdb_parallel -j 4 /opt/pgsql/backup/dumps/labdb_dir/ - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "psql -d labdb_parallel -c \"SELECT count(*) FROM pgbench_accounts;\" - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS labdb_parallel;\" - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_sections;\" - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_sections --section=pre-data /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_sections --section=data /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_sections --section=post-data /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "psql -d appdb_sections -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_sections;\" - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_portable;\" - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_portable --no-owner --no-privileges /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_portable;\" - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_renamed;\" - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_renamed /opt/pgsql/backup/dumps/appdb.dump - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "psql -d appdb_renamed -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_renamed;\" - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "pg_dump --version - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "Expected output: - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT version();\" - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "scp postgres@pg-backup:/opt/pgsql/backup/logical/appdb.dump /tmp/appdb_from_backup.dump - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE appdb_from_backup;\" - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "pg_restore -d appdb_from_backup /tmp/appdb_from_backup.dump - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "psql -d appdb_from_backup -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "psql -c \"DROP DATABASE IF EXISTS appdb_restored;\" - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

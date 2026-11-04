@@ -1,0 +1,108 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@NODE1 - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo cat /opt/pgsql/data/pg_hba.conf - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "ALTER ROLE app_user PASSWORD 'apppass123'; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "ALTER ROLE readonly_user PASSWORD 'readpass123'; - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "ALTER ROLE admin_user PASSWORD 'adminpass123'; - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "ALTER ROLE postgres PASSWORD 'pgadminpass123'; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SHOW password_encryption; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo cp /opt/pgsql/data/pg_hba.conf /opt/pgsql/data/pg_hba.conf.backup - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/data/pg_hba.conf - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "# TYPE  DATABASE        USER            ADDRESS                 METHOD - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "sudo systemctl reload postgresql-16 - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT current_user;\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U postgres -d stepup_store -c \"SELECT 1;\" - judge from their output."
+  },
+  "20": {
+    "type": "ssh",
+    "check": "systemctl is-active pulse-dashboard >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl restart pulse-dashboard`",
+    "done": "pulse-dashboard is running"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d stepup_store -U ec2-user -c \"SELECT 1;\" - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "SELECT line_number, type, database, user_name, address, auth_method FROM pg_hba_file_rules; - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

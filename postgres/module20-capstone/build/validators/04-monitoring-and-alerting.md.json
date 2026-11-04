@@ -1,0 +1,318 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "curl -LO https://github.com/prometheus-community/postgres_exporter/releases/download/v0.15.0/postgres_exporter-0.15.0.li - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "tar xzf postgres_exporter-0.15.0.linux-amd64.tar.gz - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "cp postgres_exporter-0.15.0.linux-amd64/postgres_exporter /usr/local/bin/ - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "chmod 755 /usr/local/bin/postgres_exporter - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"CREATE ROLE monitoring WITH LOGIN PASSWORD 'M0n!tor_2026';\" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"GRANT pg_monitor TO monitoring;\" - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"GRANT CONNECT ON DATABASE appdb TO monitoring;\" - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "vi /etc/default/postgres_exporter - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "DATA_SOURCE_NAME=postgresql://monitoring:M0n!tor_2026@localhost:5432/appdb?sslmode=require - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "chmod 600 /etc/default/postgres_exporter - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "vi /etc/postgres_exporter_queries.yaml - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "vi /etc/systemd/system/postgres_exporter.service - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "systemctl daemon-reload - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "systemctl enable postgres_exporter - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "systemctl start postgres_exporter - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9187/metrics > /tmp/pg-exporter-metrics.txt - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "head -20 /tmp/pg-exporter-metrics.txt - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "firewall-cmd --permanent --add-port=9187/tcp - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "firewall-cmd --reload - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "curl -LO https://github.com/prometheus/prometheus/releases/download/v2.51.0/prometheus-2.51.0.linux-amd64.tar.gz - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "tar xzf prometheus-2.51.0.linux-amd64.tar.gz - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/prometheus - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "cp prometheus-2.51.0.linux-amd64/prometheus /opt/prometheus/ - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "cp prometheus-2.51.0.linux-amd64/promtool /opt/prometheus/ - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "useradd -r -s /sbin/nologin prometheus - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/prometheus/data - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "chown -R prometheus:prometheus /opt/prometheus - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "vi /opt/prometheus/prometheus.yml - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "vi /opt/prometheus/alerts.yml - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "chown prometheus:prometheus /opt/prometheus/alerts.yml - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "/opt/prometheus/promtool check rules /opt/prometheus/alerts.yml - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "vi /etc/systemd/system/prometheus.service - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "systemctl daemon-reload - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "systemctl enable prometheus - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "systemctl start prometheus - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9090/api/v1/targets > /tmp/prom-targets.json - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "python3 -m json.tool /tmp/prom-targets.json | head -20 - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "firewall-cmd --permanent --add-port=9090/tcp - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "firewall-cmd --reload - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "vi /etc/yum.repos.d/grafana.repo - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "dnf install -y grafana - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "systemctl enable grafana-server - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "systemctl start grafana-server - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "firewall-cmd --permanent --add-port=3000/tcp - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "firewall-cmd --reload - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/scripts/runbooks - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /opt/pgsql/scripts/runbooks - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/runbooks/postgresql-down.md - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "# PostgreSQL Down - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/runbooks/replication-lag.md - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "# Replication Lag High - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/runbooks/connection-usage.md - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "# Connection Usage High - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/runbooks/dead-tuples.md - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "# Dead Tuple Ratio High - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/runbooks/disk-usage.md - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "# Disk Usage High - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/generate-connections.sh - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "chmod 750 /opt/pgsql/scripts/generate-connections.sh - judge from their output."
+  },
+  "64": {
+    "type": "manual",
+    "hint": "/opt/pgsql/scripts/generate-connections.sh - judge from their output."
+  },
+  "65": {
+    "type": "manual",
+    "hint": "curl -s 'http://localhost:9090/api/v1/alerts' > /tmp/prom-alerts.json - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "python3 -m json.tool /tmp/prom-alerts.json | head -30 - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "68": {
+    "type": "manual",
+    "hint": "curl -s 'http://localhost:9090/api/v1/targets' > /tmp/prom-targets-check.json - judge from their output."
+  },
+  "69": {
+    "type": "manual",
+    "hint": "curl -LO https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz - judge from their output."
+  },
+  "70": {
+    "type": "manual",
+    "hint": "tar xzf node_exporter-1.7.0.linux-amd64.tar.gz - judge from their output."
+  },
+  "71": {
+    "type": "manual",
+    "hint": "cp node_exporter-1.7.0.linux-amd64/node_exporter /usr/local/bin/ - judge from their output."
+  },
+  "72": {
+    "type": "manual",
+    "hint": "vi /etc/systemd/system/node_exporter.service - judge from their output."
+  },
+  "73": {
+    "type": "manual",
+    "hint": "systemctl daemon-reload - judge from their output."
+  },
+  "74": {
+    "type": "manual",
+    "hint": "systemctl enable node_exporter - judge from their output."
+  },
+  "75": {
+    "type": "manual",
+    "hint": "systemctl start node_exporter - judge from their output."
+  },
+  "76": {
+    "type": "manual",
+    "hint": "firewall-cmd --permanent --add-port=9100/tcp - judge from their output."
+  },
+  "77": {
+    "type": "manual",
+    "hint": "firewall-cmd --reload - judge from their output."
+  },
+  "78": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9100/metrics > /tmp/node-exporter-metrics.txt - judge from their output."
+  },
+  "79": {
+    "type": "manual",
+    "hint": "head -5 /tmp/node-exporter-metrics.txt - judge from their output."
+  }
+}
