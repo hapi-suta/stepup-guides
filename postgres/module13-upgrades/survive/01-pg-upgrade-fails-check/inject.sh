@@ -26,10 +26,13 @@ start15 || { say "could not start the PG15 cluster on 5433"; exit 1; }
 if [[ "$(psq15 postgres "select count(*) from pg_database where datname='upgradetest'")" != "1" ]]; then
   psq15 postgres "create database upgradetest" >/dev/null || exit 1
 fi
-if [[ ! -f "$EXT15/chaos_fake.control" ]]; then
+if true; then    # always (re)write: an older half-made attempt must not survive
   printf "default_version = '1.0'\ncomment = 'Fake extension for chaos testing'\nmodule_pathname = '\$libdir/chaos_fake'\nrelocatable = true\n" > "$EXT15/chaos_fake.control"
-  printf "SET check_function_bodies = off;\nCREATE FUNCTION chaos_fake_ping() RETURNS integer AS 'MODULE_PATHNAME', 'chaos_fake_ping' LANGUAGE C;\n" > "$EXT15/chaos_fake--1.0.sql"
+  # a C function must load at CREATE time: give PG15 a real library under the fake name
+  # (a copy of pageinspect.so, symbol page_header) and PG16 none, so pg_upgrade --check fails
+  printf "CREATE FUNCTION chaos_fake_ping(bytea) RETURNS record AS 'MODULE_PATHNAME', 'page_header' LANGUAGE C STRICT;\n" > "$EXT15/chaos_fake--1.0.sql"
 fi
+[[ -f /usr/pgsql-15/lib/chaos_fake.so ]] || cp /usr/pgsql-15/lib/pageinspect.so /usr/pgsql-15/lib/chaos_fake.so
 rm -f /usr/pgsql-16/lib/chaos_fake.so
 psq15 upgradetest "create extension if not exists chaos_fake" >/dev/null || { say "could not create the fake extension"; exit 1; }
 stop15 || { say "could not stop the PG15 cluster"; exit 1; }

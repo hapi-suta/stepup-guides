@@ -46,11 +46,17 @@ SQL
   say "seeded base roles and tables (stepup_store)"
 }
 seed_base
+# roles first (their own statement: a failed seed must not skip them), then make sure the
+# learner's orders table has the columns this scenario uses (another module may have shaped it)
 psq stepup_store "$(cat <<'SQL'
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tenant_alpha') THEN CREATE ROLE tenant_alpha LOGIN PASSWORD 'alphapass123'; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tenant_beta') THEN CREATE ROLE tenant_beta LOGIN PASSWORD 'betapass123'; END IF;
 END $$;
+SQL
+)" >/dev/null
+psq stepup_store "ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id integer, ADD COLUMN IF NOT EXISTS product_id integer, ADD COLUMN IF NOT EXISTS quantity integer, ADD COLUMN IF NOT EXISTS total_amount numeric(10,2), ADD COLUMN IF NOT EXISTS tenant_id text" >/dev/null
+psq stepup_store "$(cat <<'SQL'
 INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id) SELECT 1, 1, 1, 10, 'tenant_alpha' FROM generate_series(1,3) WHERE NOT EXISTS (SELECT 1 FROM orders WHERE tenant_id = 'tenant_alpha');
 INSERT INTO orders (customer_id, product_id, quantity, total_amount, tenant_id) SELECT 2, 2, 1, 20, 'tenant_beta' FROM generate_series(1,3) WHERE NOT EXISTS (SELECT 1 FROM orders WHERE tenant_id = 'tenant_beta');
 GRANT SELECT ON TABLE orders TO tenant_alpha, tenant_beta;

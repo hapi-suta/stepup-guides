@@ -25,8 +25,8 @@ if [[ "$(readlink -f "$D16")" == "$(readlink -f "$PGDATA")" ]]; then say "refusi
 if [[ -f "$STATE_DIR/injected" && -f "$D16/PG_VERSION" ]]; then
   say "(locale fault already in place)"
 else
-  if [[ -e "$D16/analyze_new_cluster.sh" || -d "$D16/pg_upgrade_output.d" ]]; then
-    say "refusing: $D16 already holds an upgraded cluster; reset the module13 lab first"; exit 1
+  if [[ -e "$D16/analyze_new_cluster.sh" ]]; then     # a COMPLETED upgrade; --check output dirs are fine
+    say "PRECONDITION: $D16 already holds an upgraded cluster; redo Tutorial 2's initdb of /opt/pgsql/data16 (a fresh target) first"; exit 2
   fi
   start15 || { say "could not start the PG15 cluster on 5433"; exit 1; }
   old=$(psq15 postgres "select datcollate from pg_database where datname='template0'")
