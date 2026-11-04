@@ -1,0 +1,36 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/first_call.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile first_call.py",
+    "hint": "first_call.py is missing or has an indentation error; paste the whole block again.",
+    "done": "first_call.py exists and is valid Python"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (any(r.get('script') == 'first_call.py' and r.get('output_tokens', 0) > 0 for r in rows)) else 1)\nPY",
+    "hint": "No successful first_call.py run is logged yet. Run `python first_call.py` and read the last line of any error.",
+    "done": "a real call is logged in logs/calls.jsonl"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (any(r.get('script') == 'first_call.py' for r in rows)) else 1)\nPY",
+    "hint": "logs/calls.jsonl has no first_call.py line yet; run Step 3.",
+    "done": "the log line exists"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (sum(r.get('script') == 'first_call.py' for r in rows) >= 2) else 1)\nPY",
+    "hint": "Run `python first_call.py` a second time.",
+    "done": "two first_call.py runs are logged"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (sum(r.get('script') == 'first_call.py' for r in rows) >= 2) else 1)\nPY",
+    "hint": "Two runs are needed before counting.",
+    "done": "the log holds at least two calls"
+  }
+}
