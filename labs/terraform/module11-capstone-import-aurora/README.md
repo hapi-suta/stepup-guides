@@ -1,4 +1,4 @@
-# Module 11 - Capstone: Import a Hand-Built Aurora
+# Importing Existing Infrastructure
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 
