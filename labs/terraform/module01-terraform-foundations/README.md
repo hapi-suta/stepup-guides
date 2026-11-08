@@ -1,4 +1,4 @@
-# Module 01 - Terraform Foundations and Install
+# Terraform Foundations
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

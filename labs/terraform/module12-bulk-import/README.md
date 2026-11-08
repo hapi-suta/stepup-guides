@@ -1,4 +1,4 @@
-# Module 12 - Bulk Import with import Blocks
+# Importing Existing Infrastructure
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 
