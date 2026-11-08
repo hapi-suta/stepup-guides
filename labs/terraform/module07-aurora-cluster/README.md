@@ -1,4 +1,4 @@
-# Module 07 - Provisioning an Aurora PostgreSQL Cluster
+# Provisioning Databases on AWS
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 
