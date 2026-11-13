@@ -1,0 +1,34 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/forgetful.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile forgetful.py",
+    "hint": "forgetful.py is missing or has an indentation error.",
+    "done": "forgetful.py exists and is valid Python"
+  },
+  "3": {
+    "type": "manual",
+    "done": "they ran forgetful.py and the second answer did not know the database name"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/chat.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile chat.py",
+    "hint": "chat.py is missing or has an indentation error.",
+    "done": "chat.py exists and is valid Python"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if ([r.get('turn') for r in rows if r.get('script') == 'chat.py'][-3:] == [1, 2, 3] and [r['input_tokens'] for r in rows if r.get('script') == 'chat.py'][-3] < [r['input_tokens'] for r in rows if r.get('script') == 'chat.py'][-1]) else 1)\nPY",
+    "hint": "No complete 3-turn chat.py run is logged. Run `python chat.py`.",
+    "done": "a 3-turn conversation is logged with input tokens growing each turn"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (sum(r.get('script') == 'chat.py' for r in rows) >= 3) else 1)\nPY",
+    "hint": "Run chat.py first (Step 5).",
+    "done": "the chat turns are in the log"
+  }
+}

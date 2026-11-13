@@ -1,0 +1,62 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i <your-key.pem> ec2-user@<NODE1-IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, datname, state, wait_event_type, wait_event, query - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, datname, state, - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT state, count(*) - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT datname, - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT datname, - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT schemaname, - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT schemaname, - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT schemaname, - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT schemaname, - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT checkpoints_timed, - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@NODE1 - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SHOW max_connections; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM pg_stat_activity; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, client_addr, state, wait_event_type, wait_event, query_start, state_change - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, now() - query_start AS query_duration, state, query - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT pid, usename, application_name, state, state_change, now() - state_change AS idle_duration - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT pid FROM pg_stat_activity WHERE usename = 'app_user' AND state = 'idle' LIMIT 1; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT pg_terminate_backend(12346); - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT pg_terminate_backend(pid) - judge from their output."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='idle_in_transaction_session_timeout' and setting='5min'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET idle_in_transaction_session_timeout = '5min';`",
+    "done": "idle_in_transaction_session_timeout = 5min is in postgresql.auto.conf"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT pg_reload_conf(); - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "ALTER ROLE app_user CONNECTION LIMIT 5; - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "FATAL:  too many connections for role \"app_user\" - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT rolname, rolconnlimit FROM pg_roles WHERE rolconnlimit != -1; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT max_conn, used, reserved_for_superusers, max_conn - used - reserved_for_superusers AS available - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

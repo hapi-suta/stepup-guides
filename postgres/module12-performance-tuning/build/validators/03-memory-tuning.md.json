@@ -1,0 +1,120 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/your-key.pem ec2-user@<NODE1-IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT name, setting, unit, context FROM pg_settings WHERE name IN (' - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW shared_buffers;\" - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET shared_buffers = '256MB';\" - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl restart postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "8": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW shared_buffers;\" - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW work_mem;\" - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders ORDER BY total_amount - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET work_mem = '8MB';\" - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT pg_reload_conf();\" - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW work_mem;\" - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW maintenance_work_mem;\" - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET maintenance_work_mem = '128MB';\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT pg_reload_conf();\" - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW effective_cache_size;\" - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"ALTER SYSTEM SET effective_cache_size = '3GB';\" - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT pg_reload_conf();\" - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SHOW temp_buffers;\" - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "SET temp_buffers = '64MB'; - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"CREATE EXTENSION IF NOT EXISTS pg_buffercache;\" - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT relname, count(*) AS buffers, pg_size_pretty(count(*) * 8192)  - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c \"SELECT buffers_clean, buffers_checkpoint, buffers_alloc, (buffers_cle - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

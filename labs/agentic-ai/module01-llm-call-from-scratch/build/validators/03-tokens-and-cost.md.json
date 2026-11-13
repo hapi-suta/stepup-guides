@@ -1,0 +1,34 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -s ~/agentic-ai/cost.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile cost.py",
+    "hint": "cost.py is missing or has an indentation error; paste the whole block again.",
+    "done": "cost.py exists and is valid Python"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (any(r.get('script') == 'cost.py' and r.get('stop_reason') == 'end_turn' and r.get('cost_usd', 0) > 0 for r in rows)) else 1)\nPY",
+    "hint": "No complete cost.py run is logged. Run it with the question in double quotes.",
+    "done": "a priced cost.py call is logged"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "python3 - <<'PY'\nimport json, os, sys\np = os.path.expanduser('~/agentic-ai/logs/calls.jsonl')\nrows = [json.loads(l) for l in open(p) if l.strip()] if os.path.exists(p) else []\nsys.exit(0 if (any(r.get('script') == 'cost.py' and r.get('stop_reason') == 'max_tokens' and r.get('max_tokens') == 20 for r in rows)) else 1)\nPY",
+    "hint": "Run cost.py again with `20` after the closing quote, so max_tokens is 20.",
+    "done": "a call cut off by max_tokens=20 is logged"
+  },
+  "5": {
+    "type": "manual",
+    "done": "they summed cost_usd from their log"
+  },
+  "6": {
+    "type": "ssh",
+    "check": ". ~/.suta-llm.env && curl -sf -m 6 -H \"Authorization: Bearer $ANTHROPIC_API_KEY\" \"$ANTHROPIC_BASE_URL/key/info\" | grep -q '\"key_alias\"'",
+    "hint": "The proxy did not answer for their key; `source ~/.bashrc` and retry.",
+    "done": "the proxy reports their spend"
+  }
+}

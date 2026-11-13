@@ -1,0 +1,336 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "dnf install -y pgbackrest - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "pgbackrest version - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "mkdir -p /etc/pgbackrest - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/pgbackrest - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/pgbackrest-spool - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/log/pgbackrest - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "chown -R postgres:postgres /opt/pgsql/backup - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "chown -R postgres:postgres /opt/pgsql/log/pgbackrest - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "chmod 640 /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/data/postgresql.conf - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "systemctl restart postgresql-16 - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "systemctl status postgresql-16 - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod stanza-create - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod check - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/log/pgbackrest/prod-check.log - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod info - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --type=full backup - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod info - judge from their output."
+  },
+  "27": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'diff' || n || '@example.com', '`",
+    "done": "customers has rows"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --type=diff backup - judge from their output."
+  },
+  "29": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) SELECT 'incr' || n || '@example.com', '`",
+    "done": "customers has rows"
+  },
+  "30": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --type=incr backup - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod info - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT now();\" - judge from their output."
+  },
+  "35": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('before-disaster@example.com', `",
+    "done": "customers has rows"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT now() AS disaster_time;\" - judge from their output."
+  },
+  "37": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from pg_class where relname='order_items' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"DROP TABLE app.order_items;\"`",
+    "done": "table order_items is gone"
+  },
+  "38": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d appdb -tAXqc \"select 1 from customers limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -d appdb -c \"INSERT INTO app.customers (email, full_name) VALUES ('after-disaster@example.com', '`",
+    "done": "customers has rows"
+  },
+  "39": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "systemctl stop postgresql-16 - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --type=time \"--target=2026-04-19 12:05:00+00\" --target-action=promote --delta restore - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "systemctl start postgresql-16 - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT count(*) FROM app.order_items;\" - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -d appdb -c \"SELECT email FROM app.customers WHERE email LIKE '%disaster%';\" - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/backup-full.sh - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/backup-diff.sh - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /opt/pgsql/scripts/backup-full.sh - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /opt/pgsql/scripts/backup-diff.sh - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "chmod 750 /opt/pgsql/scripts/backup-full.sh - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "chmod 750 /opt/pgsql/scripts/backup-diff.sh - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "crontab -u postgres -e - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "# Full backup every Sunday at 2 AM UTC - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "crontab -u postgres -l - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/check-backup-age.sh - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /opt/pgsql/scripts/check-backup-age.sh - judge from their output."
+  },
+  "64": {
+    "type": "manual",
+    "hint": "chmod 750 /opt/pgsql/scripts/check-backup-age.sh - judge from their output."
+  },
+  "65": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "/opt/pgsql/scripts/check-backup-age.sh - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/scripts/check-wal-archive.sh - judge from their output."
+  },
+  "68": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "69": {
+    "type": "manual",
+    "hint": "chown postgres:postgres /opt/pgsql/scripts/check-wal-archive.sh - judge from their output."
+  },
+  "70": {
+    "type": "manual",
+    "hint": "chmod 750 /opt/pgsql/scripts/check-wal-archive.sh - judge from their output."
+  },
+  "71": {
+    "type": "manual",
+    "hint": "vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "72": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "73": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --type=full --repo=2 backup - judge from their output."
+  },
+  "74": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "75": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "76": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod info - judge from their output."
+  },
+  "77": {
+    "type": "manual",
+    "hint": "mkdir -p /tmp/pitr-test - judge from their output."
+  },
+  "78": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=prod --pg1-path=/tmp/pitr-test --type=immediate --target-action=promote restore - judge from their output."
+  },
+  "79": {
+    "type": "manual",
+    "hint": "ls /tmp/pitr-test/ - judge from their output."
+  },
+  "80": {
+    "type": "manual",
+    "hint": "rm -rf /tmp/pitr-test - judge from their output."
+  },
+  "81": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

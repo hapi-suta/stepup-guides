@@ -1,0 +1,9 @@
+{
+  "6": {
+    "type": "ssh",
+    "node": 0,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -d labdb -tAc \"select 1 from pg_publication where pubname='products_pub'\" 2>/dev/null | grep -q 1",
+    "hint": "Create the publication: `CREATE PUBLICATION products_pub FOR TABLE products;`",
+    "done": "your publication products_pub is created on the primary"
+  }
+}

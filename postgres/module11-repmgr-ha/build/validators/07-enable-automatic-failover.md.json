@@ -1,0 +1,98 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "systemctl cat repmgr-16 - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/repmgr-16.service - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "systemctl daemon-reload - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "systemctl enable repmgr-16 - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo vi /etc/sudoers.d/postgres-repmgr - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "postgres ALL=(ALL) NOPASSWD: /bin/systemctl start postgresql-16, /bin/systemctl stop postgresql-16, /bin/systemctl resta - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo chmod 440 /etc/sudoers.d/postgres-repmgr - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "systemctl status postgresql-16 - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "systemctl start repmgr-16 - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "systemctl status repmgr-16 - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "tail -20 /opt/pgsql/data/log/repmgr.log - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "[INFO] monitoring cluster primary \"pg-repmgr-1\" (ID: 1) - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "[INFO] monitoring primary node \"pg-repmgr-1\" (ID: 1) in normal state - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "repmgr -f /etc/repmgr/16/repmgr.conf cluster event --limit 10 - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "psql -d repmgr -c \" - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "repmgr -f /etc/repmgr/16/repmgr.conf cluster crosscheck - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

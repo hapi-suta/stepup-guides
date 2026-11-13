@@ -1,0 +1,1088 @@
+{
+  "schema_version": 1,
+  "experience_id": "pgbackrest-recovery",
+  "review_scope": "Mechanisms checked against official references and the retained PostgreSQL 16.15 / pgBackRest 2.59.1 lab proof. References are not validator evidence.",
+  "chunks": [
+    {
+      "id": "pgbr-standby-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "direct-full-backup"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "standby backup",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:70258bade6f8ada9d87ea6c500cd8a96d7d2f996107ba8f775041cb2f2ac151b",
+      "content": "A standby backup requires configuring both primary and standby. backup-standby=y requires an available standby; prefer permits fallback to the primary. The primary still participates in coordinating the backup."
+    },
+    {
+      "id": "pgbr-standby-build-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "s3-full-backup",
+        "server-full-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "standby backup",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:70258bade6f8ada9d87ea6c500cd8a96d7d2f996107ba8f775041cb2f2ac151b",
+      "content": "A standby backup requires configuring both primary and standby. backup-standby=y requires an available standby; prefer permits fallback to the primary. The primary still participates in coordinating the backup."
+    },
+    {
+      "id": "pgbr-standby-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "direct-differential-backup",
+        "direct-incremental-backup"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "standby backup",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:70258bade6f8ada9d87ea6c500cd8a96d7d2f996107ba8f775041cb2f2ac151b",
+      "content": "A standby backup requires configuring both primary and standby. backup-standby=y requires an available standby; prefer permits fallback to the primary. The primary still participates in coordinating the backup."
+    },
+    {
+      "id": "pgbr-standby-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "s3-differential-backup",
+        "s3-incremental-backup",
+        "server-differential-backup",
+        "server-incremental-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "standby backup",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:70258bade6f8ada9d87ea6c500cd8a96d7d2f996107ba8f775041cb2f2ac151b",
+      "content": "A standby backup requires configuring both primary and standby. backup-standby=y requires an available standby; prefer permits fallback to the primary. The primary still participates in coordinating the backup."
+    },
+    {
+      "id": "pgbr-tuning-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "config-compression-lz4",
+        "config-compression-lz4-measure",
+        "config-process-one",
+        "config-process-one-measure",
+        "config-process-two",
+        "config-process-two-measure",
+        "restore-tuning-config"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "resource and timeout choices",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:d8e87dab9d6f70953ea912fbf76f2c725674dfc62f8c72da292a4cb110b0d211",
+      "content": "process-max controls parallel compression and transfer workers. More workers consume resources. Compression type and level change CPU and storage tradeoffs. db-timeout must remain below protocol-timeout. Test changes with the same workload and a restore."
+    },
+    {
+      "id": "pgbr-tuning-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "restore-access-config-compression-lz4-restore",
+        "restore-access-config-process-one-restore",
+        "restore-access-config-process-two-restore",
+        "restore-empty-config-compression-lz4-restore",
+        "restore-empty-config-process-one-restore",
+        "restore-empty-config-process-two-restore",
+        "restore-full-config-compression-lz4-restore",
+        "restore-full-config-process-one-restore",
+        "restore-full-config-process-two-restore",
+        "restore-profile-config-compression-lz4-restore",
+        "restore-profile-config-process-one-restore",
+        "restore-profile-config-process-two-restore",
+        "restore-profile-owner-config-compression-lz4-restore",
+        "restore-profile-owner-config-process-one-restore",
+        "restore-profile-owner-config-process-two-restore",
+        "restore-prove-config-compression-lz4-restore",
+        "restore-prove-config-process-one-restore",
+        "restore-prove-config-process-two-restore",
+        "restore-settings-config-compression-lz4-restore",
+        "restore-settings-config-process-one-restore",
+        "restore-settings-config-process-two-restore",
+        "restore-start-config-compression-lz4-restore",
+        "restore-start-config-process-one-restore",
+        "restore-start-config-process-two-restore",
+        "restore-stop-config-compression-lz4-restore",
+        "restore-stop-config-process-one-restore",
+        "restore-stop-config-process-two-restore"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "resource and timeout choices",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:d8e87dab9d6f70953ea912fbf76f2c725674dfc62f8c72da292a4cb110b0d211",
+      "content": "process-max controls parallel compression and transfer workers. More workers consume resources. Compression type and level change CPU and storage tradeoffs. db-timeout must remain below protocol-timeout. Test changes with the same workload and a restore."
+    },
+    {
+      "id": "pgbr-async-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "async-safe-point",
+        "async-target-archived",
+        "check-async-archive",
+        "enable-async-archiving",
+        "preserve-archive-profile",
+        "restore-access-async-safe",
+        "restore-empty-async-safe",
+        "restore-pitr-async-safe",
+        "restore-profile-async-safe",
+        "restore-profile-owner-async-safe",
+        "restore-prove-async-safe",
+        "restore-settings-async-safe",
+        "restore-start-async-safe",
+        "restore-stop-async-safe",
+        "rollback-async-profile"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "asynchronous archive",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:8847228c2336660aea9379e128e6c7ae01f3e7c4b4b9f975419bdc864a1b4c96",
+      "content": "Asynchronous archiving uses local spool state and can reuse connections and parallel workers. A configured archive-push queue limit can discard WAL after reporting success, breaking PITR continuity. Do not treat that limit as a harmless performance knob."
+    },
+    {
+      "id": "pgbr-checksum-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "direct-full-backup"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "backup checksum observations",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:b648d44534b44bc41973122235ae31108c01ff5160e7af284f1bc4e25f38d620",
+      "content": "When database checksums are enabled, pgBackRest normally validates pages during backup. Checksum failures can be warnings rather than a failed exit. Inspect metadata and logs, then verify the restored data."
+    },
+    {
+      "id": "pgbr-checksum-build-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "s3-full-backup",
+        "server-full-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "backup checksum observations",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:b648d44534b44bc41973122235ae31108c01ff5160e7af284f1bc4e25f38d620",
+      "content": "When database checksums are enabled, pgBackRest normally validates pages during backup. Checksum failures can be warnings rather than a failed exit. Inspect metadata and logs, then verify the restored data."
+    },
+    {
+      "id": "pgbr-checksum-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "inspect-backups-direct",
+        "job-direct-diff",
+        "job-direct-full",
+        "job-direct-incr"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "backup checksum observations",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:b648d44534b44bc41973122235ae31108c01ff5160e7af284f1bc4e25f38d620",
+      "content": "When database checksums are enabled, pgBackRest normally validates pages during backup. Checksum failures can be warnings rather than a failed exit. Inspect metadata and logs, then verify the restored data."
+    },
+    {
+      "id": "pgbr-checksum-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "inspect-backups-s3",
+        "inspect-backups-server",
+        "job-s3-diff",
+        "job-s3-full",
+        "job-s3-incr",
+        "job-server-diff",
+        "job-server-full",
+        "job-server-incr"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "backup checksum observations",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/configuration.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:b648d44534b44bc41973122235ae31108c01ff5160e7af284f1bc4e25f38d620",
+      "content": "When database checksums are enabled, pgBackRest normally validates pages during backup. Checksum failures can be warnings rather than a failed exit. Inspect metadata and logs, then verify the restored data."
+    },
+    {
+      "id": "pgbr-chain-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "direct-differential-backup",
+        "direct-incremental-backup",
+        "restore-diff-direct-diff",
+        "restore-diff-s3-diff",
+        "restore-diff-server-diff",
+        "restore-incr-direct-incr",
+        "restore-incr-s3-incr",
+        "restore-incr-server-incr"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "full differential incremental dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:717c9d261a76d95498461c5babfd9096684fa7b086e9d8cac25c4edb65dbd669",
+      "content": "A differential backup depends on its full backup. An incremental backup can also depend on earlier differential or incremental backups. A backup label alone does not establish that every required file and WAL segment survives."
+    },
+    {
+      "id": "pgbr-chain-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "s3-differential-backup",
+        "s3-incremental-backup",
+        "server-differential-backup",
+        "server-incremental-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "full differential incremental dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:717c9d261a76d95498461c5babfd9096684fa7b086e9d8cac25c4edb65dbd669",
+      "content": "A differential backup depends on its full backup. An incremental backup can also depend on earlier differential or incremental backups. A backup label alone does not establish that every required file and WAL segment survives."
+    },
+    {
+      "id": "pgbr-chain-survive-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "survive",
+      "step_ids": [
+        "broken-chain-evidence",
+        "broken-chain-original-health",
+        "restore-access-broken-chain-repaired",
+        "restore-empty-broken-chain-repaired",
+        "restore-pitr-broken-chain-repaired",
+        "restore-profile-broken-chain-repaired",
+        "restore-profile-owner-broken-chain-repaired",
+        "restore-prove-broken-chain-repaired",
+        "restore-settings-broken-chain-repaired",
+        "restore-start-broken-chain-repaired"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "full differential incremental dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:717c9d261a76d95498461c5babfd9096684fa7b086e9d8cac25c4edb65dbd669",
+      "content": "A differential backup depends on its full backup. An incremental backup can also depend on earlier differential or incremental backups. A backup label alone does not establish that every required file and WAL segment survives."
+    },
+    {
+      "id": "pgbr-chain-survive-nfs-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "survive",
+      "step_ids": [
+        "broken-chain-quarantine",
+        "broken-chain-repair"
+      ],
+      "roles": [
+        "nfs-1"
+      ],
+      "concept": "full differential incremental dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:717c9d261a76d95498461c5babfd9096684fa7b086e9d8cac25c4edb65dbd669",
+      "content": "A differential backup depends on its full backup. An incremental backup can also depend on earlier differential or incremental backups. A backup label alone does not establish that every required file and WAL segment survives."
+    },
+    {
+      "id": "pgbr-retention-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "retention-after",
+        "retention-before",
+        "retention-new-full",
+        "retention-second-full"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "expiration dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:613a8c736a449189764d68d260293da6ce5b4e29029d9f069881baa3a2814cbc",
+      "content": "Expiring a full backup also expires dependent differential and incremental backups. Read the retention type before interpreting its value as a count or days. Preserve required WAL for the recovery window and verify a retained chain with a restore."
+    },
+    {
+      "id": "pgbr-retention-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "restore-access-retention-latest",
+        "restore-empty-retention-latest",
+        "restore-full-retention-latest",
+        "restore-profile-owner-retention-latest",
+        "restore-profile-retention-latest",
+        "restore-prove-retention-latest",
+        "restore-settings-retention-latest",
+        "restore-start-retention-latest",
+        "restore-stop-retention-latest"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "expiration dependencies",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:613a8c736a449189764d68d260293da6ce5b4e29029d9f069881baa3a2814cbc",
+      "content": "Expiring a full backup also expires dependent differential and incremental backups. Read the retention type before interpreting its value as a count or days. Preserve required WAL for the recovery window and verify a retained chain with a restore."
+    },
+    {
+      "id": "pgbr-check-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "archive-check-direct"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "archive delivery check",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:69b18eea5eeb57e2593b528374da9a57f41c859f43ce1f706a93e490a55aafb1",
+      "content": "The check command tests configuration and archive operation. On a primary it can force a WAL switch and wait for archival, so it is not a purely read-only inspection. A successful check is not an application recovery test."
+    },
+    {
+      "id": "pgbr-check-build-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "archive-check-server"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "archive delivery check",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:69b18eea5eeb57e2593b528374da9a57f41c859f43ce1f706a93e490a55aafb1",
+      "content": "The check command tests configuration and archive operation. On a primary it can force a WAL switch and wait for archival, so it is not a purely read-only inspection. A successful check is not an application recovery test."
+    },
+    {
+      "id": "pgbr-check-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "check-async-archive",
+        "final-archive-health",
+        "pitr-archive-check"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "archive delivery check",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:69b18eea5eeb57e2593b528374da9a57f41c859f43ce1f706a93e490a55aafb1",
+      "content": "The check command tests configuration and archive operation. On a primary it can force a WAL switch and wait for archival, so it is not a purely read-only inspection. A successful check is not an application recovery test."
+    },
+    {
+      "id": "pgbr-restore-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "restore-full-direct",
+        "restore-full-s3",
+        "restore-full-server"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "restore target selection",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:de204ebc535dd2d059a730620dc464365ee4804a51d642d6514326eb7521ddab",
+      "content": "A restore selects a repository, backup and recovery target. The chosen backup must precede the target and its required WAL must exist. Review recovery logs and accepted data; command completion alone cannot establish a correct target."
+    },
+    {
+      "id": "pgbr-restore-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "restore-full-config-compression-lz4-restore",
+        "restore-full-config-process-one-restore",
+        "restore-full-config-process-two-restore",
+        "restore-full-retention-latest",
+        "restore-pitr-async-safe",
+        "restore-pitr-direct-safe",
+        "restore-pitr-s3-safe",
+        "restore-pitr-server-time"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "restore target selection",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:de204ebc535dd2d059a730620dc464365ee4804a51d642d6514326eb7521ddab",
+      "content": "A restore selects a repository, backup and recovery target. The chosen backup must precede the target and its required WAL must exist. Review recovery logs and accepted data; command completion alone cannot establish a correct target."
+    },
+    {
+      "id": "pgbr-restore-survive-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "survive",
+      "step_ids": [
+        "missing-target-log",
+        "restore-access-incident-wrong-target",
+        "restore-empty-incident-wrong-target",
+        "restore-pitr-broken-chain-repaired",
+        "restore-pitr-corrected-target",
+        "restore-pitr-disaster-candidate",
+        "restore-pitr-existing-target",
+        "restore-pitr-incident-bad-ddl",
+        "restore-pitr-incident-bad-delete",
+        "restore-pitr-incident-bad-update",
+        "restore-pitr-incident-wrong-target",
+        "restore-pitr-missing-wal-repaired",
+        "restore-profile-incident-wrong-target",
+        "restore-profile-owner-incident-wrong-target",
+        "restore-prove-incident-wrong-target",
+        "restore-settings-incident-wrong-target",
+        "restore-start-incident-wrong-target",
+        "restore-stop-incident-wrong-target",
+        "wrong-target-acceptance-start",
+        "wrong-target-business-acceptance",
+        "wrong-target-candidate-stop"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "restore target selection",
+      "failure_codes": [],
+      "source_url": "https://pgbackrest.org/command.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:de204ebc535dd2d059a730620dc464365ee4804a51d642d6514326eb7521ddab",
+      "content": "A restore selects a repository, backup and recovery target. The chosen backup must precede the target and its required WAL must exist. Review recovery logs and accepted data; command completion alone cannot establish a correct target."
+    },
+    {
+      "id": "pgbr-replication-build-pg-standby",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "build",
+      "step_ids": [
+        "backup-config-dir-pg-standby",
+        "backup-work-dirs-pg-standby",
+        "check-hosts-pg-standby",
+        "configure-hosts-pg-standby",
+        "identify-pg-standby",
+        "inspect-os-pg-standby",
+        "install-software-pg-standby",
+        "packages-pg-standby-crb",
+        "packages-pg-standby-epel",
+        "packages-pg-standby-module",
+        "packages-pg-standby-pgdg",
+        "postgres-account-pg-standby",
+        "postgres-version-pg-standby",
+        "preserve-hosts-pg-standby",
+        "profile-pg-standby-pgbackrest-conf",
+        "profile-pg-standby-pgbackrest-conf-mode",
+        "profile-pg-standby-pgbackrest-conf-owner",
+        "standby-basebackup",
+        "standby-enable",
+        "standby-password-file",
+        "standby-password-file-private-file",
+        "standby-start",
+        "trust-pg-standby-authorized-keys-copy",
+        "trust-pg-standby-authorized-keys-mode",
+        "trust-pg-standby-authorized-keys-owner",
+        "trust-pg-standby-directory",
+        "trust-pg-standby-known-hosts-copy",
+        "trust-pg-standby-known-hosts-mode",
+        "trust-pg-standby-known-hosts-owner",
+        "trust-pg-standby-private-key-copy",
+        "trust-pg-standby-private-key-mode",
+        "trust-pg-standby-private-key-owner",
+        "trust-pg-standby-selinux",
+        "trust-pg-standby-ssh-config-copy",
+        "trust-pg-standby-ssh-config-mode",
+        "trust-pg-standby-ssh-config-owner",
+        "trust-pg-standby-tls-root-copy",
+        "trust-pg-standby-tls-root-mode",
+        "trust-pg-standby-tls-root-owner",
+        "verify-standby-data"
+      ],
+      "roles": [
+        "pg-standby"
+      ],
+      "concept": "WAL receiver and replay",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/warm-standby.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:ab10c9c4a42c831801c4fa2c2270977e24ea011cee835e10288b9a54af703254",
+      "content": "Streaming replication transfers WAL to a standby, which replays it. Asynchronous replication can lag behind commits. Valid but unwanted changes are replayed too. Authentication, WAL availability and receiver/replay progress are separate concerns; promoting a standby does not undo replicated mistakes."
+    },
+    {
+      "id": "pgbr-replication-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "build",
+      "step_ids": [
+        "replication-password",
+        "verify-replication"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "WAL receiver and replay",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/warm-standby.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:ab10c9c4a42c831801c4fa2c2270977e24ea011cee835e10288b9a54af703254",
+      "content": "Streaming replication transfers WAL to a standby, which replays it. Asynchronous replication can lag behind commits. Valid but unwanted changes are replayed too. Authentication, WAL availability and receiver/replay progress are separate concerns; promoting a standby does not undo replicated mistakes."
+    },
+    {
+      "id": "pgbr-replication-survive-pg-standby",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "survive",
+      "step_ids": [
+        "dr-empty-standby",
+        "dr-fence-pg-standby",
+        "dr-preserve-standby",
+        "dr-rebuild-standby",
+        "dr-standby-data",
+        "dr-standby-labels",
+        "dr-standby-settings",
+        "dr-standby-start",
+        "survive-standby-start",
+        "survive-standby-status"
+      ],
+      "roles": [
+        "pg-standby"
+      ],
+      "concept": "WAL receiver and replay",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/warm-standby.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:ab10c9c4a42c831801c4fa2c2270977e24ea011cee835e10288b9a54af703254",
+      "content": "Streaming replication transfers WAL to a standby, which replays it. Asynchronous replication can lag behind commits. Valid but unwanted changes are replayed too. Authentication, WAL availability and receiver/replay progress are separate concerns; promoting a standby does not undo replicated mistakes."
+    },
+    {
+      "id": "pgbr-replication-survive-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "survive",
+      "step_ids": [
+        "survive-standby-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "WAL receiver and replay",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/warm-standby.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:ab10c9c4a42c831801c4fa2c2270977e24ea011cee835e10288b9a54af703254",
+      "content": "Streaming replication transfers WAL to a standby, which replays it. Asynchronous replication can lag behind commits. Valid but unwanted changes are replayed too. Authentication, WAL availability and receiver/replay progress are separate concerns; promoting a standby does not undo replicated mistakes."
+    },
+    {
+      "id": "pgbr-recovery-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "build",
+      "step_ids": [
+        "restore-prove-direct",
+        "restore-prove-s3",
+        "restore-prove-server"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "PITR evidence",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/continuous-archiving.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:3419db8b67a5b90999b2a5967dfddbc496cd1d08abb7154a306a62de5da5b012",
+      "content": "Point-in-time recovery starts from a base backup and replays archived WAL. Required WAL must form a continuous usable history. Preserve the old cluster before recovery and use an isolated destination for testing. Verify the intended records before returning the recovered database to service."
+    },
+    {
+      "id": "pgbr-recovery-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "use",
+      "step_ids": [
+        "pitr-archive-check",
+        "pitr-later-write",
+        "pitr-safe-point",
+        "restore-pitr-async-safe",
+        "restore-pitr-direct-safe",
+        "restore-pitr-s3-safe",
+        "restore-pitr-server-time",
+        "restore-prove-async-safe",
+        "restore-prove-config-compression-lz4-restore",
+        "restore-prove-config-process-one-restore",
+        "restore-prove-config-process-two-restore",
+        "restore-prove-direct-diff",
+        "restore-prove-direct-incr",
+        "restore-prove-direct-safe",
+        "restore-prove-retention-latest",
+        "restore-prove-s3-diff",
+        "restore-prove-s3-incr",
+        "restore-prove-s3-safe",
+        "restore-prove-server-diff",
+        "restore-prove-server-incr",
+        "restore-prove-server-time"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "PITR evidence",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/continuous-archiving.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:3419db8b67a5b90999b2a5967dfddbc496cd1d08abb7154a306a62de5da5b012",
+      "content": "Point-in-time recovery starts from a base backup and replays archived WAL. Required WAL must form a continuous usable history. Preserve the old cluster before recovery and use an isolated destination for testing. Verify the intended records before returning the recovered database to service."
+    },
+    {
+      "id": "pgbr-recovery-survive-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "survive",
+      "step_ids": [
+        "bad-ddl-acceptance-start",
+        "bad-ddl-business-acceptance",
+        "bad-delete-acceptance-start",
+        "bad-delete-business-acceptance",
+        "bad-update-acceptance-start",
+        "bad-update-business-acceptance",
+        "missing-wal-evidence",
+        "missing-wal-original-health",
+        "restore-access-incident-bad-ddl",
+        "restore-access-incident-bad-delete",
+        "restore-access-incident-bad-update",
+        "restore-access-missing-wal-repaired",
+        "restore-empty-incident-bad-ddl",
+        "restore-empty-incident-bad-delete",
+        "restore-empty-incident-bad-update",
+        "restore-empty-missing-wal-repaired",
+        "restore-pitr-broken-chain-repaired",
+        "restore-pitr-corrected-target",
+        "restore-pitr-disaster-candidate",
+        "restore-pitr-existing-target",
+        "restore-pitr-incident-bad-ddl",
+        "restore-pitr-incident-bad-delete",
+        "restore-pitr-incident-bad-update",
+        "restore-pitr-incident-wrong-target",
+        "restore-pitr-missing-wal-repaired",
+        "restore-profile-incident-bad-ddl",
+        "restore-profile-incident-bad-delete",
+        "restore-profile-incident-bad-update",
+        "restore-profile-missing-wal-repaired",
+        "restore-profile-owner-incident-bad-ddl",
+        "restore-profile-owner-incident-bad-delete",
+        "restore-profile-owner-incident-bad-update",
+        "restore-profile-owner-missing-wal-repaired",
+        "restore-prove-broken-chain-repaired",
+        "restore-prove-corrected-target",
+        "restore-prove-disaster-candidate",
+        "restore-prove-existing-target",
+        "restore-prove-incident-bad-ddl",
+        "restore-prove-incident-bad-delete",
+        "restore-prove-incident-bad-update",
+        "restore-prove-incident-wrong-target",
+        "restore-prove-missing-wal-repaired",
+        "restore-settings-incident-bad-ddl",
+        "restore-settings-incident-bad-delete",
+        "restore-settings-incident-bad-update",
+        "restore-settings-missing-wal-repaired",
+        "restore-start-incident-bad-ddl",
+        "restore-start-incident-bad-delete",
+        "restore-start-incident-bad-update",
+        "restore-start-missing-wal-repaired",
+        "restore-stop-incident-bad-ddl",
+        "restore-stop-incident-bad-delete",
+        "restore-stop-incident-bad-update"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "PITR evidence",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/continuous-archiving.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:3419db8b67a5b90999b2a5967dfddbc496cd1d08abb7154a306a62de5da5b012",
+      "content": "Point-in-time recovery starts from a base backup and replays archived WAL. Required WAL must form a continuous usable history. Preserve the old cluster before recovery and use an isolated destination for testing. Verify the intended records before returning the recovered database to service."
+    },
+    {
+      "id": "pgbr-recovery-survive-nfs-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "postgresql",
+      "version": "16.15",
+      "phase": "survive",
+      "step_ids": [
+        "missing-wal-quarantine",
+        "missing-wal-repair"
+      ],
+      "roles": [
+        "nfs-1"
+      ],
+      "concept": "PITR evidence",
+      "failure_codes": [],
+      "source_url": "https://www.postgresql.org/docs/16/continuous-archiving.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:3419db8b67a5b90999b2a5967dfddbc496cd1d08abb7154a306a62de5da5b012",
+      "content": "Point-in-time recovery starts from a base backup and replays archived WAL. Required WAL must form a continuous usable history. Preserve the old cluster before recovery and use an isolated destination for testing. Verify the intended records before returning the recovered database to service."
+    },
+    {
+      "id": "pgbr-schedule-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "centos",
+      "version": "Stream 9",
+      "phase": "use",
+      "step_ids": [
+        "cron-direct-file",
+        "cron-direct-install",
+        "cron-direct-observe",
+        "cron-direct-proof",
+        "cron-direct-restore",
+        "cron-direct-test-file",
+        "cron-direct-test-install",
+        "cron-direct-test-time",
+        "cron-enable-pg-primary",
+        "cron-package-pg-primary",
+        "cron-start-pg-primary"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "cron identity and time",
+      "failure_codes": [],
+      "source_url": "https://github.com/cronie-crond/cronie/blob/master/man/crontab.5",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:6183120164684deefc104c2e46c2b67579b12231d33c45deedaf542842a92f1c",
+      "content": "A user crontab has five time fields followed by a command, executed as that user. CRON_TZ selects the scheduling timezone. Cron supplies an environment that can differ from an interactive login. Inspect actual execution separately from installed schedule text."
+    },
+    {
+      "id": "pgbr-schedule-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "centos",
+      "version": "Stream 9",
+      "phase": "use",
+      "step_ids": [
+        "cron-enable-backup-1",
+        "cron-package-backup-1",
+        "cron-s3-proof",
+        "cron-server-file",
+        "cron-server-install",
+        "cron-server-observe",
+        "cron-server-proof",
+        "cron-server-restore",
+        "cron-server-test-file",
+        "cron-server-test-install",
+        "cron-server-test-time",
+        "cron-start-backup-1"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "cron identity and time",
+      "failure_codes": [],
+      "source_url": "https://github.com/cronie-crond/cronie/blob/master/man/crontab.5",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:6183120164684deefc104c2e46c2b67579b12231d33c45deedaf542842a92f1c",
+      "content": "A user crontab has five time fields followed by a command, executed as that user. CRON_TZ selects the scheduling timezone. Cron supplies an environment that can differ from an interactive login. Inspect actual execution separately from installed schedule text."
+    },
+    {
+      "id": "pgbr-iam-build-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "s3-full-backup",
+        "s3-handoff",
+        "s3-profile-backup-1",
+        "s3-stanza"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "temporary instance credentials",
+      "failure_codes": [],
+      "source_url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:58a84ae53e47058e723bc40b94fbdeb1dab4b2114af2722c1c518b3772ffb39c",
+      "content": "An EC2 instance profile supplies temporary role credentials to software on the instance. Restrict the role to required resources and operations. A role attachment does not prove access to the intended bucket and prefix; permission and endpoint failures still need investigation."
+    },
+    {
+      "id": "pgbr-iam-build-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "build",
+      "step_ids": [
+        "restore-access-s3",
+        "restore-empty-s3",
+        "restore-full-s3",
+        "restore-profile-owner-s3",
+        "restore-profile-s3",
+        "restore-prove-s3",
+        "restore-settings-s3",
+        "restore-start-s3",
+        "restore-stop-s3",
+        "s3-profile-pg-primary"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "temporary instance credentials",
+      "failure_codes": [],
+      "source_url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:58a84ae53e47058e723bc40b94fbdeb1dab4b2114af2722c1c518b3772ffb39c",
+      "content": "An EC2 instance profile supplies temporary role credentials to software on the instance. Restrict the role to required resources and operations. A role attachment does not prove access to the intended bucket and prefix; permission and endpoint failures still need investigation."
+    },
+    {
+      "id": "pgbr-iam-use-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "business-baseline-s3",
+        "cron-s3-proof",
+        "inspect-backups-s3",
+        "job-config-mode-s3",
+        "job-config-owner-s3",
+        "job-config-s3",
+        "job-s3-diff",
+        "job-s3-full",
+        "job-s3-incr",
+        "job-state-s3",
+        "s3-differential-backup",
+        "s3-incremental-backup"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "temporary instance credentials",
+      "failure_codes": [],
+      "source_url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:58a84ae53e47058e723bc40b94fbdeb1dab4b2114af2722c1c518b3772ffb39c",
+      "content": "An EC2 instance profile supplies temporary role credentials to software on the instance. Restrict the role to required resources and operations. A role attachment does not prove access to the intended bucket and prefix; permission and endpoint failures still need investigation."
+    },
+    {
+      "id": "pgbr-iam-use-pg-primary",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "use",
+      "step_ids": [
+        "restore-access-s3-diff",
+        "restore-access-s3-incr",
+        "restore-access-s3-safe",
+        "restore-diff-s3-diff",
+        "restore-empty-s3-diff",
+        "restore-empty-s3-incr",
+        "restore-empty-s3-safe",
+        "restore-incr-s3-incr",
+        "restore-pitr-s3-safe",
+        "restore-profile-owner-s3-diff",
+        "restore-profile-owner-s3-incr",
+        "restore-profile-owner-s3-safe",
+        "restore-profile-s3-diff",
+        "restore-profile-s3-incr",
+        "restore-profile-s3-safe",
+        "restore-prove-s3-diff",
+        "restore-prove-s3-incr",
+        "restore-prove-s3-safe",
+        "restore-settings-s3-diff",
+        "restore-settings-s3-incr",
+        "restore-settings-s3-safe",
+        "restore-start-s3-diff",
+        "restore-start-s3-incr",
+        "restore-start-s3-safe",
+        "restore-stop-s3-diff",
+        "restore-stop-s3-incr",
+        "restore-stop-s3-safe"
+      ],
+      "roles": [
+        "pg-primary"
+      ],
+      "concept": "temporary instance credentials",
+      "failure_codes": [],
+      "source_url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:58a84ae53e47058e723bc40b94fbdeb1dab4b2114af2722c1c518b3772ffb39c",
+      "content": "An EC2 instance profile supplies temporary role credentials to software on the instance. Restrict the role to required resources and operations. A role attachment does not prove access to the intended bucket and prefix; permission and endpoint failures still need investigation."
+    },
+    {
+      "id": "pgbr-iam-survive-backup-1",
+      "experience_id": "pgbackrest-recovery",
+      "product": "pgbackrest",
+      "version": "2.59.1",
+      "phase": "survive",
+      "step_ids": [
+        "dr-new-backup-s3",
+        "survive-s3-backup",
+        "survive-s3-job",
+        "survive-s3-job-repair"
+      ],
+      "roles": [
+        "backup-1"
+      ],
+      "concept": "temporary instance credentials",
+      "failure_codes": [],
+      "source_url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2.html",
+      "source_type": "official",
+      "reviewed_at": "2026-09-07",
+      "content_hash": "sha256:58a84ae53e47058e723bc40b94fbdeb1dab4b2114af2722c1c518b3772ffb39c",
+      "content": "An EC2 instance profile supplies temporary role credentials to software on the instance. Restrict the role to required resources and operations. A role attachment does not prove access to the intended bucket and prefix; permission and endpoint failures still need investigation."
+    }
+  ]
+}

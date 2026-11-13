@@ -1,0 +1,224 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d postgres -tAXqc \"select 1 from pg_database where datname='pgbench_lab'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `createdb pgbench_lab`",
+    "done": "database pgbench_lab exists"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "pgbench -i -s 10 pgbench_lab - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "psql -d pgbench_lab -c \"\\dt+ pgbench_*\" - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 pgbench_lab - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 -S pgbench_lab - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 60 -P 10 pgbench_lab - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "psql -d pgbench_lab - judge from their output."
+  },
+  "9": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='products' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE IF NOT EXISTS products (`",
+    "done": "table products exists"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='orders' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE IF NOT EXISTS orders (`",
+    "done": "table orders exists"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_products_category' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_products_category ON products (category);`",
+    "done": "index idx_products_category exists"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_orders_status' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);`",
+    "done": "index idx_orders_status exists"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from pg_class where relname='idx_orders_product_id' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX IF NOT EXISTS idx_orders_product_id ON orders (product_id);`",
+    "done": "index idx_orders_product_id exists"
+  },
+  "14": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d pgbench_lab -tAXqc \"select 1 from products limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO products (name, price, stock, category)`",
+    "done": "products has rows"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/benchmark-read-heavy.sql - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "-- Read-heavy benchmark: product lookups by category - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/benchmark-write-heavy.sql - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "-- Write-heavy benchmark: placing orders - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/benchmark-mixed.sql - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "-- Mixed workload: 70% reads, 20% writes, 10% updates - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 -P 5 -f /opt/pgsql/benchmark-read-heavy.sql pgbench_lab - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 -P 5 -f /opt/pgsql/benchmark-write-heavy.sql pgbench_lab - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "pgbench -c 20 -j 4 -T 60 -P 10 -f /opt/pgsql/benchmark-mixed.sql pgbench_lab - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 -l -f /opt/pgsql/benchmark-read-heavy.sql pgbench_lab - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "ls -la pgbench_log.* - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "cat pgbench_log.* | sort -t' ' -k3 -n | awk '{times[NR]=$3} END { - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "pgbench -c 20 -j 4 -T 60 pgbench_lab 2>&1 | tee /tmp/pgbench_before.txt - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "pgbench -c 20 -j 4 -T 60 pgbench_lab 2>&1 | tee /tmp/pgbench_after.txt - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "grep \"tps\\|latency\" /tmp/pgbench_before.txt - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "grep \"tps\\|latency\" /tmp/pgbench_after.txt - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "psql -d pgbench_lab -c \"SHOW max_connections;\" - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 pgbench_lab 2>&1 | grep tps - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "pgbench -c 50 -j 4 -T 30 pgbench_lab 2>&1 | grep tps - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "pgbench -c 100 -j 4 -T 30 pgbench_lab 2>&1 | grep tps - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "pgbench -c 150 -j 4 -T 30 pgbench_lab 2>&1 | grep tps - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "pgbench -c 10 -j 2 -T 30 -M prepared pgbench_lab - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ci-loadtest.sh - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "chmod +x /opt/pgsql/ci-loadtest.sh - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ci-loadtest-workflow.yml - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "name: Database Load Test - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/benchmark-to-csv.sh - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "#!/bin/bash - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "chmod +x /opt/pgsql/benchmark-to-csv.sh - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "dropdb pgbench_lab - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "rm -f /opt/pgsql/benchmark-read-heavy.sql - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "rm -f /opt/pgsql/benchmark-write-heavy.sql - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "rm -f /opt/pgsql/benchmark-mixed.sql - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "rm -f pgbench_log.* - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_isready -p 5433 - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 -l /opt/pgsql/log/pg15.log start - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -c \"SHOW wal_level;\" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -c \"ALTER SYSTEM SET wal_level = logical;\" - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 restart -m fast - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -c \"SHOW wal_level;\" - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/data16sub - judge from their output."
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo test -f /opt/pgsql/data16sub/PG_VERSION",
+    "hint": "Run: `/usr/pgsql-16/bin/initdb -D /opt/pgsql/data16sub --encoding=UTF8 --locale=en_US.UTF-8`",
+    "done": "cluster initialised in /opt/pgsql/data16sub"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "echo \"port = 5434\" >> /opt/pgsql/data16sub/postgresql.conf - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16sub -l /opt/pgsql/log/pg16sub.log start - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_isready -p 5434 - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -c \"CREATE DATABASE upgradetest;\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_dump -p 5433 -d upgradetest --schema-only -t employees -f /tmp/employees_schema.sql - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -f /tmp/employees_schema.sql - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"\\dt\" - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"CREATE PUBLICATION upgrade_pub FOR ALL TABLES;\" - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"SELECT pubname, puballtables FROM pg_publication;\" - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"CREATE SUBSCRIPTION upgrade_sub CONNECTION 'host=/run/postgresql port= - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT subname, subenabled FROM pg_subscription;\" - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT srrelid::regclass, srsubstate FROM pg_subscription_rel;\" - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"INSERT INTO employees (name, department, salary) VALUES ('New Employee - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -c \"SELECT application_name, sent_lsn, write_lsn, flush_lsn, replay_lsn, (sent_lsn - repl - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"DROP SUBSCRIPTION upgrade_sub;\" - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"DROP PUBLICATION upgrade_pub;\" - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16sub stop - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

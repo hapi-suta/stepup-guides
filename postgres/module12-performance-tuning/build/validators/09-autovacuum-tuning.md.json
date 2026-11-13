@@ -1,0 +1,152 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@YOUR_SERVER_IP - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo su - postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT name, setting - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "Trigger when dead tuples >= threshold + (scale_factor x reltuples) - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "Trigger when dead tuples >= 50 + (0.2 x reltuples) - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "50 + (0.2 x 1,000,000) = 200,050 dead tuples - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "Trigger when changed tuples >= 50 + (0.1 x reltuples) - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "50 + (0.1 x 1,000,000) = 100,050 changed tuples - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "CREATE TABLE churn_test ( - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "INSERT INTO churn_test (status) - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, last_autoanalyze - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "50 + (0.2 x 100,000) = 20,050 dead tuples - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "UPDATE churn_test SET status = 'updated', updated_at = now() WHERE id <= 50000; - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "ALTER TABLE churn_test SET (autovacuum_vacuum_scale_factor = 0.01); - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "ALTER TABLE churn_test SET (autovacuum_analyze_scale_factor = 0.005); - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "SELECT relname, reloptions - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "UPDATE churn_test SET status = 'changed', updated_at = now() WHERE id BETWEEN 1 AND 2000; - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT name, setting, unit - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "ALTER TABLE churn_test SET (autovacuum_vacuum_cost_delay = 0); - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "ALTER TABLE churn_test SET (autovacuum_vacuum_cost_limit = 2000); - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "SELECT relname, reloptions - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "SELECT relname, - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "UPDATE churn_test SET status = 'monitoring_test', updated_at = now() WHERE id BETWEEN 1 AND 5000; - judge from their output."
+  },
+  "28": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_extension where extname='pgstattuple'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE EXTENSION IF NOT EXISTS pgstattuple;`",
+    "done": "extension pgstattuple installed"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "SELECT * FROM pgstattuple('churn_test'); - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "-- This is for reference only - pg_repack is not installed on this lab server - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "-- DO NOT run this on production during business hours - judge from their output."
+  },
+  "32": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_stat_user_tables where relname='churn_test' and (last_vacuum is not null or last_autovacuum is not null)\" 2>/dev/null | grep -q .",
+    "hint": "Run: `VACUUM churn_test;`",
+    "done": "churn_test was vacuumd"
+  },
+  "33": {
+    "type": "manual",
+    "hint": "SELECT dead_tuple_count, dead_tuple_percent, free_space, free_percent - judge from their output."
+  },
+  "34": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='churn_test' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP TABLE churn_test;`",
+    "done": "table churn_test is gone"
+  },
+  "35": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

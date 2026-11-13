@@ -1,0 +1,138 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/your-key.pem ec2-user@<NODE1-IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'orders'; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'pending'; - judge from their output."
+  },
+  "6": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_status' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_status ON orders(status);`",
+    "done": "index idx_orders_status exists"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'pending'; - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "CREATE INDEX idx_orders_customer_hash ON orders USING hash(customer_id); - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 42; - judge from their output."
+  },
+  "10": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_customer_hash' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX idx_orders_customer_hash;`",
+    "done": "index idx_orders_customer_hash is gone"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "\\d products - judge from their output."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_products_name_fts' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_products_name_fts`",
+    "done": "index idx_products_name_fts exists"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "CREATE INDEX idx_products_price_range - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "\\d customers - judge from their output."
+  },
+  "16": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_products_price_range' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX idx_products_price_range;`",
+    "done": "index idx_products_price_range is gone"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT column_name, data_type FROM information_schema.columns - judge from their output."
+  },
+  "18": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_created_brin' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_created_brin ON orders USING BRIN(order_date);`",
+    "done": "index idx_orders_created_brin exists"
+  },
+  "19": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "20": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_pending' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_pending`",
+    "done": "index idx_orders_pending exists"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT indexname, - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "24": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_customers_email_lower' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_customers_email_lower ON customers(lower(email));`",
+    "done": "index idx_customers_email_lower exists"
+  },
+  "25": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "26": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='idx_orders_customer_covering' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE INDEX idx_orders_customer_covering`",
+    "done": "index idx_orders_customer_covering exists"
+  },
+  "27": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "SELECT indexrelname, idx_scan, idx_tup_read - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

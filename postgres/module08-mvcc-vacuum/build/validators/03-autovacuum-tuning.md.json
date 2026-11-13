@@ -1,0 +1,102 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/student.pem ec2-user@<NODE1_IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELECT name, setting, unit, short_desc - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_max_workers; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_naptime; - judge from their output."
+  },
+  "7": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='hot_orders' and relkind in ('r','p')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `CREATE TABLE hot_orders (`",
+    "done": "table hot_orders exists"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from hot_orders limit 1\" 2>/dev/null | grep -q .",
+    "hint": "Run: `INSERT INTO hot_orders (status)`",
+    "done": "hot_orders has rows"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "ALTER TABLE hot_orders SET ( - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT relname, reloptions - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "UPDATE hot_orders SET status = 'processing', updated = now(); - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, autovacuum_count - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, autovacuum_count - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "SELECT pid, query, state, wait_event_type, wait_event - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "SELECT relname, - judge from their output."
+  },
+  "16": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_file_settings where name='autovacuum_naptime' and setting='15s'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `ALTER SYSTEM SET autovacuum_naptime = '15s';`",
+    "done": "autovacuum_naptime = 15s is in postgresql.auto.conf"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT pg_reload_conf(); - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SHOW autovacuum_naptime; - judge from their output."
+  },
+  "19": {
+    "type": "ssh",
+    "check": "! sudo grep -qE '^autovacuum_naptime = ' $(sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -tAXqc \"show data_directory\")/postgresql.auto.conf",
+    "hint": "Run: `ALTER SYSTEM RESET autovacuum_naptime;`",
+    "done": "autovacuum_naptime no longer set in postgresql.auto.conf"
+  },
+  "20": {
+    "type": "manual",
+    "hint": "SELECT pg_reload_conf(); - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

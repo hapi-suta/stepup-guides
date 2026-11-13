@@ -1,4 +1,4 @@
-# Module 02 - The Terraform Core Loop
+# Terraform Foundations
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

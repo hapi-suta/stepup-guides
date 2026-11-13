@@ -1,0 +1,146 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.backupConfiguration)\" - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --enable-point-in-time-recovery - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --retained-transaction-log-days=7 - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --retained-backups-count=14 - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.backupConfiguration)\" - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "gcloud sql backups create --instance=suta-pg-lab --description=\"pre-schema-change-backup\" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "gcloud sql backups list --instance=suta-pg-lab --sort-by=~startTime - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT now(); - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "INSERT INTO students (name, email) VALUES - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM students; - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "DROP TABLE students; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "\\dt students - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "gcloud sql backups list --instance=suta-pg-lab --filter=\"type=ON_DEMAND\" --format=\"value(id)\" - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "gcloud sql backups restore [BACKUP_ID] --restore-instance=suta-pg-lab - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "SELECT * FROM students; - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-pitr --format=\"value(ipAddresses[0].ipAddress)\" - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "psql -h [PITR_INSTANCE_IP] -U postgres -d suta_lab - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "SELECT * FROM students; - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "gcloud sql instances delete suta-pg-pitr - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --backup-location=us-east1 - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(settings.backupConfiguration.location)\" - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "gcloud storage buckets create gs://[PROJECT_ID]-sql-exports -l us-central1 - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "gcloud sql export csv suta-pg-lab gs://[PROJECT_ID]-sql-exports/students.csv \\ - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "gcloud storage ls gs://[PROJECT_ID]-sql-exports/ - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "gcloud storage cat gs://[PROJECT_ID]-sql-exports/students.csv - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "gcloud sql databases create suta_lab_imported --instance=suta-pg-lab - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab_imported - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM students; - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "gcloud sql backups list --instance=suta-pg-lab --filter=\"type=ON_DEMAND\" - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "gcloud sql backups delete [BACKUP_ID] --instance=suta-pg-lab - judge from their output."
+  }
+}

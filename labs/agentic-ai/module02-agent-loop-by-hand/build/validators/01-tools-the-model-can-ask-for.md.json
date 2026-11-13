@@ -1,0 +1,40 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test -d ~/agentic-ai/data",
+    "hint": "Inside ~/agentic-ai run `mkdir data`.",
+    "done": "the data folder exists"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "test \"$(wc -l < ~/agentic-ai/data/postgresql.log)\" -eq 15 && grep -q 'too many clients already' ~/agentic-ai/data/postgresql.log",
+    "hint": "data/postgresql.log should have exactly 15 lines; paste the whole block again.",
+    "done": "the sample PostgreSQL log is in place (15 lines)"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from tools import RUN, TOOLS; sys.exit(sorted(RUN) != ['disk_usage', 'tail_log'] or len(TOOLS) != 2)\"",
+    "hint": "tools.py is missing, has an indentation error, or does not define both tools.",
+    "done": "tools.py defines disk_usage and tail_log"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"from tools import disk_usage; assert '% used' in disk_usage('/')\"",
+    "hint": "disk_usage('/') failed; check Step 4.",
+    "done": "disk_usage works on its own"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"from tools import tail_log; assert len(tail_log(500).splitlines()) == 15\"",
+    "hint": "tail_log(500) should return all 15 lines (capped, not crashed).",
+    "done": "tail_log works and its 50-line cap holds"
+  },
+  "7": {
+    "type": "manual",
+    "done": "they read the tool definition the model sees"
+  }
+}

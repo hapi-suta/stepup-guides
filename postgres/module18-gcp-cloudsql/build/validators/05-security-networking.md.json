@@ -1,0 +1,202 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "gcloud services enable servicenetworking.googleapis.com - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "gcloud compute addresses create cloudsql-private-range \\ - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --network=default --no-assign-ip - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --network=default - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(ipAddresses)\" - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.ipConfiguration.authorizedNetworks)\" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --clear-authorized-networks - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "gcloud iam service-accounts create cloudsql-proxy \\ - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "gcloud iam service-accounts keys create /tmp/cloudsql-proxy-key.json \\ - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "cloud-sql-proxy --credentials-file=/tmp/cloudsql-proxy-key.json [CONNECTION_NAME] - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --database-flags=cloudsql.iam_authentication=on - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "gcloud sql users create user@example.com \\ - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "gcloud sql users create cloudsql-proxy@[PROJECT_ID].iam \\ - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"user@example.com\"; - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \"user@example.com\"; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "cloud-sql-proxy --auto-iam-authn [CONNECTION_NAME] - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "psql \"host=127.0.0.1 user=user@example.com dbname=suta_lab sslmode=disable\" - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.ipConfiguration.requireSsl,serverCaCert)\" - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "gcloud sql instances patch suta-pg-lab --require-ssl - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "gcloud sql ssl server-ca-certs list --instance=suta-pg-lab --format=\"value(cert)\" > /tmp/server-ca.pem - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "gcloud sql ssl client-certs create client-cert /tmp/client-key.pem --instance=suta-pg-lab - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "gcloud sql ssl client-certs describe client-cert --instance=suta-pg-lab --format=\"value(cert)\" > /tmp/client-cert.pem - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "chmod 0600 /tmp/client-key.pem - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "psql \"host=34.71.123.45 user=postgres dbname=suta_lab sslmode=verify-ca sslrootcert=/tmp/server-ca.pem sslcert=/tmp/clie - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "SELECT ssl, version, cipher FROM pg_stat_ssl WHERE pid = pg_backend_pid(); - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "gcloud sql ssl server-ca-certs list --instance=suta-pg-lab - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "gcloud sql ssl server-ca-certs create --instance=suta-pg-lab - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "gcloud sql ssl server-ca-certs rotate --instance=suta-pg-lab - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "gcloud sql ssl server-ca-certs list --instance=suta-pg-lab --format=\"value(cert)\" > /tmp/server-ca-new.pem - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "gcloud services enable cloudkms.googleapis.com - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "gcloud kms keyrings create cloudsql-keyring --location=us-central1 - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "gcloud kms keys create cloudsql-key \\ - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(serviceAccountEmailAddress)\" - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "gcloud sql instances create suta-pg-cmek \\ - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-cmek --format=\"value(diskEncryptionConfiguration.kmsKeyName)\" - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "psql -h 127.0.0.1 -U postgres -d suta_lab - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "CREATE EXTENSION IF NOT EXISTS pgaudit; - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "CREATE ROLE auditor; - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "ALTER ROLE auditor SET pgaudit.log = 'read, write, ddl'; - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "GRANT auditor TO postgres; - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "SHOW pgaudit.log; - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(ipAddresses)\" - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(settings.ipConfiguration.requireSsl)\" - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(settings.databaseFlags)\" - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"yaml(settings.ipConfiguration.authorizedNetworks)\" - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "gcloud sql instances describe suta-pg-lab --format=\"value(diskEncryptionConfiguration)\" - judge from their output."
+  }
+}

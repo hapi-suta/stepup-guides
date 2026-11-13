@@ -1,0 +1,296 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "createdb migration_lab - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "psql -d migration_lab - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "CREATE TABLE employees ( - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "CREATE INDEX idx_employees_department ON employees (department); - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "INSERT INTO employees (name, email, department) VALUES - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "pg_dump --schema-only -d migration_lab -f /tmp/schema_v1.sql - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "cat -n /tmp/schema_v1.sql - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "psql -d migration_lab - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "ALTER TABLE employees ADD COLUMN salary NUMERIC(10,2); - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "pg_dump --schema-only -d migration_lab -f /tmp/schema_v2.sql - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "diff -u /tmp/schema_v1.sql /tmp/schema_v2.sql - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "createdb migration_lab_v2 - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "psql -d migration_lab_v2 -f /tmp/schema_v2.sql - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "psql -d migration_lab_v2 -c \"\\dt\" - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/schema-versions - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "sudo cp /tmp/schema_v1.sql /opt/pgsql/schema-versions/ - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo cp /tmp/schema_v2.sql /opt/pgsql/schema-versions/ - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "curl -L -o /tmp/flyway-commandline-10.10.0-linux-x64.tar.gz https://repo1.maven.org/maven2/org/flywaydb/flyway-commandli - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /tmp/flyway-commandline-10.10.0-linux-x64.tar.gz -C /opt/ - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo ln -s /opt/flyway-10.10.0/flyway /usr/local/bin/flyway - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "flyway --version - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "V{version}__{description}.sql - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "createdb flyway_lab - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/flyway-project/sql - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/flyway-project/flyway.conf - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/flyway-project/sql/V1__create_employees.sql - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "CREATE TABLE IF NOT EXISTS employees ( - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/flyway-project/sql/V2__add_department_column.sql - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "ALTER TABLE employees ADD COLUMN IF NOT EXISTS department VARCHAR(50); - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/flyway-project/sql/V3__create_audit_log.sql - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "CREATE TABLE IF NOT EXISTS audit_log ( - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "flyway -configFiles=/opt/pgsql/flyway-project/flyway.conf migrate - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "flyway -configFiles=/opt/pgsql/flyway-project/flyway.conf info - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "psql -d flyway_lab -c \"\\dt\" - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "psql -d flyway_lab -c \"SELECT installed_rank, version, description, success FROM flyway_schema_history;\" - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "curl -L -o /tmp/liquibase-4.25.1.tar.gz https://github.com/liquibase/liquibase/releases/download/v4.25.1/liquibase-4.25. - judge from their output."
+  },
+  "45": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/liquibase",
+    "hint": "Run: `sudo mkdir -p /opt/liquibase`",
+    "done": "directory /opt/liquibase exist"
+  },
+  "46": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /tmp/liquibase-4.25.1.tar.gz -C /opt/liquibase/ - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "sudo ln -s /opt/liquibase/liquibase /usr/local/bin/liquibase - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "liquibase --version - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "curl -L -o /opt/liquibase/lib/postgresql-42.7.1.jar https://jdbc.postgresql.org/download/postgresql-42.7.1.jar - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "createdb liquibase_lab - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "53": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/liquibase-project",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/liquibase-project`",
+    "done": "directory /opt/pgsql/liquibase-project exist"
+  },
+  "54": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/liquibase-project/liquibase.properties - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/liquibase-project/changelog-master.xml - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/liquibase-project/changelog-001-employees.xml - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "sudo vi /opt/pgsql/liquibase-project/changelog-002-audit.xml - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "cd /opt/pgsql/liquibase-project - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "liquibase update - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "liquibase status - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "liquibase rollbackCountSQL 1 - judge from their output."
+  },
+  "64": {
+    "type": "ssh",
+    "check": "rpm -q perl-App-Sqitch perl-DBD-Pg >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y perl-App-Sqitch perl-DBD-Pg`",
+    "done": "package(s) perl-App-Sqitch perl-DBD-Pg installed"
+  },
+  "65": {
+    "type": "manual",
+    "hint": "CREATE TABLE IF NOT EXISTS employees (...); - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "V{YYYYMMDD}_{sequence}__{description}.sql - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "68": {
+    "type": "manual",
+    "hint": "dropdb migration_lab - judge from their output."
+  },
+  "69": {
+    "type": "manual",
+    "hint": "dropdb migration_lab_v2 - judge from their output."
+  },
+  "70": {
+    "type": "manual",
+    "hint": "dropdb flyway_lab - judge from their output."
+  },
+  "71": {
+    "type": "manual",
+    "hint": "dropdb liquibase_lab - judge from their output."
+  },
+  "72": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

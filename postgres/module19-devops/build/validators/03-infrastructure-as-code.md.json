@@ -1,0 +1,194 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo - judge from their output."
+  },
+  "2": {
+    "type": "ssh",
+    "check": "rpm -q terraform >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y terraform`",
+    "done": "package(s) terraform installed"
+  },
+  "3": {
+    "type": "manual",
+    "hint": "terraform version - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/terraform-rds - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/provider.tf - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/variables.tf - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/main.tf - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/outputs.tf - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/terraform.tfvars - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "export TF_VAR_db_password=\"YourSecurePasswordHere\" - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/.gitignore - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "# Terraform state files contain sensitive data - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "cd /opt/pgsql/terraform-rds - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "terraform init - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "terraform plan - judge from their output."
+  },
+  "16": {
+    "type": "ssh",
+    "check": "rpm -q ansible-core >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y ansible-core`",
+    "done": "package(s) ansible-core installed"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "ansible --version - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/ansible-pg/roles/postgresql/tasks - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/ansible-pg/roles/postgresql/templates - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/ansible-pg/roles/postgresql/handlers - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/ansible-pg/inventory - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/inventory/hosts.yml - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/roles/postgresql/templates/postgresql.conf.j2 - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/roles/postgresql/templates/pg_hba.conf.j2 - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "# pg_hba.conf - Managed by Ansible - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/roles/postgresql/tasks/main.yml - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/roles/postgresql/handlers/main.yml - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/configure-postgresql.yml - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "cd /opt/pgsql/ansible-pg - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "ansible-playbook -i inventory/hosts.yml configure-postgresql.yml --check --diff - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "ansible-playbook -i inventory/hosts.yml configure-postgresql.yml --diff - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/backend.tf - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "psql -c \"CREATE DATABASE tfstate OWNER terraform;\" - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/pg-objects.tf - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/ansible-pg/group_vars - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/group_vars/dev.yml - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/group_vars/prod.yml - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/ansible-pg/rolling-restart.yml - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "--- - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "ansible-vault create /opt/pgsql/ansible-pg/group_vars/vault.yml - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/ansible-pg/group_vars/vault.yml - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "ansible-playbook -i inventory/hosts.yml configure-postgresql.yml --ask-vault-pass - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "vi /opt/pgsql/terraform-rds/secrets.tf - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "export TF_VAR_db_password=\"YourSecurePassword\" - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "export PGPASSWORD=\"YourSecurePassword\" - judge from their output."
+  }
+}

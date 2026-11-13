@@ -1,0 +1,1878 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "hostname - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "cat /etc/centos-release - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo cp /etc/hosts /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo vi /etc/hosts - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/hosts - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "getent ahostsv4 pg-primary - judge from their output."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "rpm -q epel-release dnf-plugins-core >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install epel-release dnf-plugins-core`",
+    "done": "package(s) epel-release dnf-plugins-core installed"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "rpm -q epel-release dnf-plugins-core - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo dnf config-manager --set-enabled crb - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "dnf repolist --enabled - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rp - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "rpm -q pgdg-redhat-repo - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo dnf -qy module disable postgresql - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "sudo dnf -C module list postgresql - judge from their output."
+  },
+  "16": {
+    "type": "ssh",
+    "check": "rpm -q pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16.15 postgresql16-16.15 >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16`",
+    "done": "package(s) pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16.15 postgresql16-16.15 installed"
+  },
+  "17": {
+    "type": "manual",
+    "hint": "pgbackrest version - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/postgres --version - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "id postgres - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "hostname - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "cat /etc/centos-release - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo cp /etc/hosts /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo vi /etc/hosts - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/hosts - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "getent ahostsv4 pg-primary - judge from their output."
+  },
+  "27": {
+    "type": "ssh",
+    "check": "rpm -q epel-release dnf-plugins-core >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install epel-release dnf-plugins-core`",
+    "done": "package(s) epel-release dnf-plugins-core installed"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "rpm -q epel-release dnf-plugins-core - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo dnf config-manager --set-enabled crb - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "dnf repolist --enabled - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "sudo dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rp - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "rpm -q pgdg-redhat-repo - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "sudo dnf -qy module disable postgresql - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo dnf -C module list postgresql - judge from their output."
+  },
+  "35": {
+    "type": "ssh",
+    "check": "rpm -q pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16.15 postgresql16-16.15 >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16`",
+    "done": "package(s) pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time postgresql16-server-16.15 postgresql16-16.15 installed"
+  },
+  "36": {
+    "type": "manual",
+    "hint": "pgbackrest version - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/postgres --version - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "id postgres - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "hostname - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "cat /etc/centos-release - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "sudo cp /etc/hosts /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "sudo vi /etc/hosts - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/hosts - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "getent ahostsv4 pg-primary - judge from their output."
+  },
+  "46": {
+    "type": "ssh",
+    "check": "rpm -q epel-release dnf-plugins-core >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install epel-release dnf-plugins-core`",
+    "done": "package(s) epel-release dnf-plugins-core installed"
+  },
+  "47": {
+    "type": "manual",
+    "hint": "rpm -q epel-release dnf-plugins-core - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "sudo dnf config-manager --set-enabled crb - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "dnf repolist --enabled - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "sudo dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rp - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "rpm -q pgdg-redhat-repo - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "sudo dnf -qy module disable postgresql - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "sudo dnf -C module list postgresql - judge from their output."
+  },
+  "54": {
+    "type": "ssh",
+    "check": "rpm -q pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time`",
+    "done": "package(s) pgbackrest-2.59.1 nfs-utils openssh-clients policycoreutils-python-utils time installed"
+  },
+  "55": {
+    "type": "manual",
+    "hint": "pgbackrest version - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "hostname - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "cat /etc/centos-release - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "sudo cp /etc/hosts /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/hosts.before-pgbackrest - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "sudo vi /etc/hosts - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/hosts - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "getent ahostsv4 pg-primary - judge from their output."
+  },
+  "63": {
+    "type": "ssh",
+    "check": "rpm -q nfs-utils policycoreutils-python-utils >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf -y install nfs-utils policycoreutils-python-utils`",
+    "done": "package(s) nfs-utils policycoreutils-python-utils installed"
+  },
+  "64": {
+    "type": "manual",
+    "hint": "rpm -q nfs-utils policycoreutils-python-utils - judge from their output."
+  },
+  "65": {
+    "type": "manual",
+    "hint": "sudo groupadd -g 2001 pgbackrest - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "getent group pgbackrest - judge from their output."
+  },
+  "67": {
+    "type": "ssh",
+    "check": "id pgbackrest >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd -u 2001 -g pgbackrest -d /home/pgbackrest -m -s /bin/bash pgbackrest`",
+    "done": "user pgbackrest exists"
+  },
+  "68": {
+    "type": "manual",
+    "hint": "id pgbackrest - judge from their output."
+  },
+  "69": {
+    "type": "manual",
+    "hint": "sudo groupadd -g 26 postgres - judge from their output."
+  },
+  "70": {
+    "type": "manual",
+    "hint": "getent group postgres - judge from their output."
+  },
+  "71": {
+    "type": "ssh",
+    "check": "id postgres >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd -u 26 -g postgres -M -s /sbin/nologin postgres`",
+    "done": "user postgres exists"
+  },
+  "72": {
+    "type": "manual",
+    "hint": "id postgres - judge from their output."
+  },
+  "73": {
+    "type": "manual",
+    "hint": "sudo groupadd -g 2001 pgbackrest - judge from their output."
+  },
+  "74": {
+    "type": "manual",
+    "hint": "getent group pgbackrest - judge from their output."
+  },
+  "75": {
+    "type": "ssh",
+    "check": "id pgbackrest >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd -u 2001 -g pgbackrest -M -s /sbin/nologin pgbackrest`",
+    "done": "user pgbackrest exists"
+  },
+  "76": {
+    "type": "manual",
+    "hint": "id pgbackrest - judge from their output."
+  },
+  "77": {
+    "type": "manual",
+    "hint": "sudo restorecon -RF /home/pgbackrest - judge from their output."
+  },
+  "78": {
+    "type": "manual",
+    "hint": "sudo ls -ldZ /home/pgbackrest - judge from their output."
+  },
+  "79": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o postgres -g postgres /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "80": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "81": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/id_ed25519 /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "82": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "83": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "84": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "85": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "86": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "87": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/authorized_keys /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "88": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "89": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "90": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "91": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "92": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "93": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/known_hosts /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "94": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "95": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "96": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "97": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "98": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "99": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/ssh_config /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "100": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "101": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "102": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "103": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "104": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "105": {
+    "type": "manual",
+    "hint": "sudo restorecon -RF /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "106": {
+    "type": "manual",
+    "hint": "sudo ls -ldZ /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "107": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o postgres -g postgres /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "108": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "109": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/id_ed25519 /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "110": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "111": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "112": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "113": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "114": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/id_ed25519 - judge from their output."
+  },
+  "115": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/authorized_keys /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "116": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "117": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "118": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "119": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "120": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/authorized_keys - judge from their output."
+  },
+  "121": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/known_hosts /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "122": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "123": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "124": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "125": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "126": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/known_hosts - judge from their output."
+  },
+  "127": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/ssh_config /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "128": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "129": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "130": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "131": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "132": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.ssh/config - judge from their output."
+  },
+  "133": {
+    "type": "manual",
+    "hint": "sudo restorecon -RF /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "134": {
+    "type": "manual",
+    "hint": "sudo ls -ldZ /var/lib/pgsql/.ssh - judge from their output."
+  },
+  "135": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o pgbackrest -g pgbackrest /home/pgbackrest/.ssh - judge from their output."
+  },
+  "136": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh - judge from their output."
+  },
+  "137": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/id_ed25519 /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "138": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "139": {
+    "type": "manual",
+    "hint": "sudo chown pgbackrest:pgbackrest /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "140": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "141": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "142": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/id_ed25519 - judge from their output."
+  },
+  "143": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/authorized_keys /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "144": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "145": {
+    "type": "manual",
+    "hint": "sudo chown pgbackrest:pgbackrest /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "146": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "147": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "148": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/authorized_keys - judge from their output."
+  },
+  "149": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/known_hosts /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "150": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "151": {
+    "type": "manual",
+    "hint": "sudo chown pgbackrest:pgbackrest /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "152": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "153": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "154": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/known_hosts - judge from their output."
+  },
+  "155": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/ssh_config /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "156": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "157": {
+    "type": "manual",
+    "hint": "sudo chown pgbackrest:pgbackrest /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "158": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "159": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "160": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /home/pgbackrest/.ssh/config - judge from their output."
+  },
+  "161": {
+    "type": "manual",
+    "hint": "sudo restorecon -RF /home/pgbackrest/.ssh - judge from their output."
+  },
+  "162": {
+    "type": "manual",
+    "hint": "sudo ls -ldZ /home/pgbackrest/.ssh - judge from their output."
+  },
+  "163": {
+    "type": "manual",
+    "hint": "sudo install -d -m 750 -o postgres -g postgres /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "164": {
+    "type": "manual",
+    "hint": "sudo ls -ld /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "165": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 /etc/pgbackrest - judge from their output."
+  },
+  "166": {
+    "type": "manual",
+    "hint": "ls -ld /etc/pgbackrest - judge from their output."
+  },
+  "167": {
+    "type": "manual",
+    "hint": "sudo install -d -m 750 -o postgres -g postgres /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "168": {
+    "type": "manual",
+    "hint": "sudo ls -ld /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "169": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 /etc/pgbackrest - judge from their output."
+  },
+  "170": {
+    "type": "manual",
+    "hint": "ls -ld /etc/pgbackrest - judge from their output."
+  },
+  "171": {
+    "type": "manual",
+    "hint": "sudo install -d -m 750 -o pgbackrest -g pgbackrest /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "172": {
+    "type": "manual",
+    "hint": "sudo ls -ld /var/log/pgbackrest /var/spool/pgbackrest - judge from their output."
+  },
+  "173": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 /etc/pgbackrest - judge from their output."
+  },
+  "174": {
+    "type": "manual",
+    "hint": "ls -ld /etc/pgbackrest - judge from their output."
+  },
+  "175": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 /srv/pgbackrest - judge from their output."
+  },
+  "176": {
+    "type": "manual",
+    "hint": "ls -ld /srv/pgbackrest - judge from their output."
+  },
+  "177": {
+    "type": "manual",
+    "hint": "sudo install -d -m 750 -o postgres -g postgres /srv/pgbackrest/direct - judge from their output."
+  },
+  "178": {
+    "type": "manual",
+    "hint": "stat -c \"%u:%g %a %n\" /srv/pgbackrest/direct - judge from their output."
+  },
+  "179": {
+    "type": "manual",
+    "hint": "sudo install -d -m 750 -o pgbackrest -g pgbackrest /srv/pgbackrest/server - judge from their output."
+  },
+  "180": {
+    "type": "manual",
+    "hint": "stat -c \"%u:%g %a %n\" /srv/pgbackrest/server - judge from their output."
+  },
+  "181": {
+    "type": "manual",
+    "hint": "sudo vi /etc/exports.d/pgbackrest.exports - judge from their output."
+  },
+  "182": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/exports.d/pgbackrest.exports - judge from their output."
+  },
+  "183": {
+    "type": "manual",
+    "hint": "sudo vi /etc/nfs.conf - judge from their output."
+  },
+  "184": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/nfs.conf - judge from their output."
+  },
+  "185": {
+    "type": "ssh",
+    "check": "systemctl is-enabled nfs-server >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable nfs-server`",
+    "done": "nfs-server is enabled"
+  },
+  "186": {
+    "type": "manual",
+    "hint": "systemctl is-enabled nfs-server - judge from their output."
+  },
+  "187": {
+    "type": "ssh",
+    "check": "systemctl is-active nfs-server >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start nfs-server`",
+    "done": "nfs-server is running"
+  },
+  "188": {
+    "type": "manual",
+    "hint": "systemctl is-active nfs-server - judge from their output."
+  },
+  "189": {
+    "type": "manual",
+    "hint": "sudo exportfs -rav - judge from their output."
+  },
+  "190": {
+    "type": "manual",
+    "hint": "sudo exportfs -v - judge from their output."
+  },
+  "191": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 -o root -g root /var/lib/pgbackrest - judge from their output."
+  },
+  "192": {
+    "type": "manual",
+    "hint": "ls -ld /var/lib/pgbackrest - judge from their output."
+  },
+  "193": {
+    "type": "manual",
+    "hint": "sudo install -d -m 555 -o root -g root /var/lib/pgbackrest/direct - judge from their output."
+  },
+  "194": {
+    "type": "manual",
+    "hint": "stat -c \"%U:%G %a %n\" /var/lib/pgbackrest/direct - judge from their output."
+  },
+  "195": {
+    "type": "manual",
+    "hint": "sudo vi /etc/fstab - judge from their output."
+  },
+  "196": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/fstab - judge from their output."
+  },
+  "197": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "198": {
+    "type": "manual",
+    "hint": "systemctl --failed --no-pager - judge from their output."
+  },
+  "199": {
+    "type": "manual",
+    "hint": "sudo mount /var/lib/pgbackrest/direct - judge from their output."
+  },
+  "200": {
+    "type": "manual",
+    "hint": "findmnt -T /var/lib/pgbackrest/direct -o SOURCE,TARGET,FSTYPE,OPTIONS - judge from their output."
+  },
+  "201": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "202": {
+    "type": "manual",
+    "hint": "touch /var/lib/pgbackrest/direct/.service-write-proof - judge from their output."
+  },
+  "203": {
+    "type": "manual",
+    "hint": "stat -c \"%u:%g %a %n\" /var/lib/pgbackrest/direct/.service-write-proof - judge from their output."
+  },
+  "204": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "205": {
+    "type": "manual",
+    "hint": "sudo install -d -m 755 -o root -g root /var/lib/pgbackrest - judge from their output."
+  },
+  "206": {
+    "type": "manual",
+    "hint": "ls -ld /var/lib/pgbackrest - judge from their output."
+  },
+  "207": {
+    "type": "manual",
+    "hint": "sudo install -d -m 555 -o root -g root /var/lib/pgbackrest/server - judge from their output."
+  },
+  "208": {
+    "type": "manual",
+    "hint": "stat -c \"%U:%G %a %n\" /var/lib/pgbackrest/server - judge from their output."
+  },
+  "209": {
+    "type": "manual",
+    "hint": "sudo vi /etc/fstab - judge from their output."
+  },
+  "210": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/fstab - judge from their output."
+  },
+  "211": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "212": {
+    "type": "manual",
+    "hint": "systemctl --failed --no-pager - judge from their output."
+  },
+  "213": {
+    "type": "manual",
+    "hint": "sudo mount /var/lib/pgbackrest/server - judge from their output."
+  },
+  "214": {
+    "type": "manual",
+    "hint": "findmnt -T /var/lib/pgbackrest/server -o SOURCE,TARGET,FSTYPE,OPTIONS - judge from their output."
+  },
+  "215": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "216": {
+    "type": "manual",
+    "hint": "touch /var/lib/pgbackrest/server/.service-write-proof - judge from their output."
+  },
+  "217": {
+    "type": "manual",
+    "hint": "stat -c \"%u:%g %a %n\" /var/lib/pgbackrest/server/.service-write-proof - judge from their output."
+  },
+  "218": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "219": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "220": {
+    "type": "ssh",
+    "check": "sudo test -f /var/lib/pgsql/16/data/PG_VERSION",
+    "hint": "Run: `/usr/pgsql-16/bin/initdb -D /var/lib/pgsql/16/data --data-checksums --auth-local=peer --auth-host=scram-sha-256`",
+    "done": "cluster initialised in /var/lib/pgsql/16/data"
+  },
+  "221": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_controldata /var/lib/pgsql/16/data - judge from their output."
+  },
+  "222": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "223": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/server.key /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "224": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "225": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "226": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "227": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "228": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.key - judge from their output."
+  },
+  "229": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/server.crt /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "230": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "231": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "232": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "233": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "234": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/server.crt - judge from their output."
+  },
+  "235": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/pgbackrest-trust/root.crt /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "236": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "237": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "238": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "239": {
+    "type": "manual",
+    "hint": "sudo chmod 600 /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "240": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/root.crt - judge from their output."
+  },
+  "241": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/16/data/postgresql.conf - judge from their output."
+  },
+  "242": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/postgresql.conf - judge from their output."
+  },
+  "243": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/16/data/pg_hba.conf - judge from their output."
+  },
+  "244": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/pg_hba.conf - judge from their output."
+  },
+  "245": {
+    "type": "ssh",
+    "check": "systemctl is-enabled postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable postgresql-16`",
+    "done": "postgresql-16 is enabled"
+  },
+  "246": {
+    "type": "manual",
+    "hint": "systemctl is-enabled postgresql-16 - judge from their output."
+  },
+  "247": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "248": {
+    "type": "manual",
+    "hint": "systemctl is-active postgresql-16 - judge from their output."
+  },
+  "249": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "250": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "251": {
+    "type": "manual",
+    "hint": "SHOW data_directory; - judge from their output."
+  },
+  "252": {
+    "type": "manual",
+    "hint": "SHOW data_checksums; - judge from their output."
+  },
+  "253": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "254": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "255": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "256": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "257": {
+    "type": "manual",
+    "hint": "CREATE ROLE replicator WITH LOGIN REPLICATION; - judge from their output."
+  },
+  "258": {
+    "type": "manual",
+    "hint": "\\du replicator - judge from their output."
+  },
+  "259": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "260": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "261": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "262": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "263": {
+    "type": "manual",
+    "hint": "SELECT rolname, rolpassword LIKE 'SCRAM-SHA-256%' AS scram FROM pg_authid WHERE rolname = 'replicator'; - judge from their output."
+  },
+  "264": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "265": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "266": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "267": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "268": {
+    "type": "manual",
+    "hint": "CREATE TABLE academy_proof (id integer PRIMARY KEY, event text NOT NULL); - judge from their output."
+  },
+  "269": {
+    "type": "manual",
+    "hint": "INSERT INTO academy_proof VALUES (1, 'baseline'); - judge from their output."
+  },
+  "270": {
+    "type": "manual",
+    "hint": "CREATE TABLE academy_payload AS SELECT i AS id, repeat(md5(i::text),128) AS payload FROM generate_series(1,10000) i; - judge from their output."
+  },
+  "271": {
+    "type": "manual",
+    "hint": "TABLE academy_proof; - judge from their output."
+  },
+  "272": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM academy_payload; - judge from their output."
+  },
+  "273": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "274": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "275": {
+    "type": "manual",
+    "hint": "sudo install -m 600 -o postgres -g postgres /dev/null /var/lib/pgsql/.pgpass - judge from their output."
+  },
+  "276": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.pgpass - judge from their output."
+  },
+  "277": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/.pgpass - judge from their output."
+  },
+  "278": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/.pgpass - judge from their output."
+  },
+  "279": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "280": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_basebackup --dbname=\"host=pg-primary user=replicator application_name=pg-standby sslmode=verify-ful - judge from their output."
+  },
+  "281": {
+    "type": "manual",
+    "hint": "ls -l /var/lib/pgsql/16/data/standby.signal - judge from their output."
+  },
+  "282": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "283": {
+    "type": "ssh",
+    "check": "systemctl is-enabled postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable postgresql-16`",
+    "done": "postgresql-16 is enabled"
+  },
+  "284": {
+    "type": "manual",
+    "hint": "systemctl is-enabled postgresql-16 - judge from their output."
+  },
+  "285": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "286": {
+    "type": "manual",
+    "hint": "systemctl is-active postgresql-16 - judge from their output."
+  },
+  "287": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "288": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "289": {
+    "type": "manual",
+    "hint": "SELECT application_name,state,sync_state FROM pg_stat_replication; - judge from their output."
+  },
+  "290": {
+    "type": "manual",
+    "hint": "SELECT r.application_name,s.ssl,s.version FROM pg_stat_replication r JOIN pg_stat_ssl s USING(pid); - judge from their output."
+  },
+  "291": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "292": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "293": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "294": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "295": {
+    "type": "manual",
+    "hint": "SELECT pg_is_in_recovery(); - judge from their output."
+  },
+  "296": {
+    "type": "manual",
+    "hint": "TABLE academy_proof; - judge from their output."
+  },
+  "297": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM academy_payload; - judge from their output."
+  },
+  "298": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "299": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "300": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "301": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "302": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "303": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "304": {
+    "type": "manual",
+    "hint": "sudo chmod 640 /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "305": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "306": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "307": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "308": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "309": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "310": {
+    "type": "manual",
+    "hint": "sudo chmod 640 /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "311": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/direct.conf - judge from their output."
+  },
+  "312": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "313": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "314": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "315": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "316": {
+    "type": "manual",
+    "hint": "sudo chmod 640 /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "317": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "318": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "319": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "320": {
+    "type": "manual",
+    "hint": "sudo chown pgbackrest:pgbackrest /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "321": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "322": {
+    "type": "manual",
+    "hint": "sudo chmod 640 /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "323": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "324": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "325": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/direct.conf --stanza=academy stanza-create - judge from their output."
+  },
+  "326": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/direct.conf --stanza=academy info - judge from their output."
+  },
+  "327": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "328": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "329": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy stanza-create - judge from their output."
+  },
+  "330": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy info - judge from their output."
+  },
+  "331": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "332": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/16/data/postgresql.conf - judge from their output."
+  },
+  "333": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/16/data/postgresql.conf - judge from their output."
+  },
+  "334": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl restart postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "335": {
+    "type": "manual",
+    "hint": "systemctl is-active postgresql-16 - judge from their output."
+  },
+  "336": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "337": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "338": {
+    "type": "manual",
+    "hint": "SHOW archive_mode; - judge from their output."
+  },
+  "339": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "340": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "341": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "342": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy check - judge from their output."
+  },
+  "343": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "344": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "345": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy check - judge from their output."
+  },
+  "346": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "347": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "348": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/direct.conf --stanza=academy --repo=1 --type=full --backup-standby=y --log-level-con - judge from their output."
+  },
+  "349": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy --repo=1 info - judge from their output."
+  },
+  "350": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "351": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "352": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy --repo=2 --type=full --backup-standby=y --log-level-console=detail backup - judge from their output."
+  },
+  "353": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy --repo=2 info - judge from their output."
+  },
+  "354": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "355": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/restore-direct-repo1.conf - judge from their output."
+  },
+  "356": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-direct-repo1.conf - judge from their output."
+  },
+  "357": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/restore-direct-repo1.conf - judge from their output."
+  },
+  "358": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-direct-repo1.conf - judge from their output."
+  },
+  "359": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o postgres -g postgres /var/lib/pgsql/restore-direct-repo1 - judge from their output."
+  },
+  "360": {
+    "type": "manual",
+    "hint": "sudo ls -la /var/lib/pgsql/restore-direct-repo1 - judge from their output."
+  },
+  "361": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "362": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/restore-direct-repo1.conf --stanza=academy --repo=1 --archive-mode=off --type=immedi - judge from their output."
+  },
+  "363": {
+    "type": "manual",
+    "hint": "cat /var/lib/pgsql/restore-direct-repo1/PG_VERSION - judge from their output."
+  },
+  "364": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "365": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-direct-repo1/postgresql.conf - judge from their output."
+  },
+  "366": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-direct-repo1/postgresql.conf - judge from their output."
+  },
+  "367": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-direct-repo1/pg_hba.conf - judge from their output."
+  },
+  "368": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-direct-repo1/pg_hba.conf - judge from their output."
+  },
+  "369": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "370": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-direct-repo1 -l /var/lib/pgsql/restore-direct-repo1/startup.log -t 40 - judge from their output."
+  },
+  "371": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_isready -h /var/run/postgresql -p 55433 - judge from their output."
+  },
+  "372": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "373": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "374": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres -p 55433 - judge from their output."
+  },
+  "375": {
+    "type": "manual",
+    "hint": "SHOW data_directory; - judge from their output."
+  },
+  "376": {
+    "type": "manual",
+    "hint": "SELECT pg_is_in_recovery(); - judge from their output."
+  },
+  "377": {
+    "type": "manual",
+    "hint": "TABLE academy_proof; - judge from their output."
+  },
+  "378": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM academy_payload; - judge from their output."
+  },
+  "379": {
+    "type": "manual",
+    "hint": "SHOW archive_mode; - judge from their output."
+  },
+  "380": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "381": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "382": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "383": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-direct-repo1 -m fast -w stop - judge from their output."
+  },
+  "384": {
+    "type": "manual",
+    "hint": "tail -n 20 /var/lib/pgsql/restore-direct-repo1/startup.log - judge from their output."
+  },
+  "385": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "386": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/restore-server-repo2.conf - judge from their output."
+  },
+  "387": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-server-repo2.conf - judge from their output."
+  },
+  "388": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/restore-server-repo2.conf - judge from their output."
+  },
+  "389": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-server-repo2.conf - judge from their output."
+  },
+  "390": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o postgres -g postgres /var/lib/pgsql/restore-server-repo2 - judge from their output."
+  },
+  "391": {
+    "type": "manual",
+    "hint": "sudo ls -la /var/lib/pgsql/restore-server-repo2 - judge from their output."
+  },
+  "392": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "393": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/restore-server-repo2.conf --stanza=academy --repo=2 --archive-mode=off --type=immedi - judge from their output."
+  },
+  "394": {
+    "type": "manual",
+    "hint": "cat /var/lib/pgsql/restore-server-repo2/PG_VERSION - judge from their output."
+  },
+  "395": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "396": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-server-repo2/postgresql.conf - judge from their output."
+  },
+  "397": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-server-repo2/postgresql.conf - judge from their output."
+  },
+  "398": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-server-repo2/pg_hba.conf - judge from their output."
+  },
+  "399": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-server-repo2/pg_hba.conf - judge from their output."
+  },
+  "400": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "401": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-server-repo2 -l /var/lib/pgsql/restore-server-repo2/startup.log -t 40 - judge from their output."
+  },
+  "402": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_isready -h /var/run/postgresql -p 55434 - judge from their output."
+  },
+  "403": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "404": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "405": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres -p 55434 - judge from their output."
+  },
+  "406": {
+    "type": "manual",
+    "hint": "SHOW data_directory; - judge from their output."
+  },
+  "407": {
+    "type": "manual",
+    "hint": "SELECT pg_is_in_recovery(); - judge from their output."
+  },
+  "408": {
+    "type": "manual",
+    "hint": "TABLE academy_proof; - judge from their output."
+  },
+  "409": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM academy_payload; - judge from their output."
+  },
+  "410": {
+    "type": "manual",
+    "hint": "SHOW archive_mode; - judge from their output."
+  },
+  "411": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "412": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "413": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "414": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-server-repo2 -m fast -w stop - judge from their output."
+  },
+  "415": {
+    "type": "manual",
+    "hint": "tail -n 20 /var/lib/pgsql/restore-server-repo2/startup.log - judge from their output."
+  },
+  "416": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "417": {
+    "type": "manual",
+    "hint": "cat /opt/suta/handoff/pgbackrest-s3.json - judge from their output."
+  },
+  "418": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "419": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "420": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "421": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/pgbackrest.conf - judge from their output."
+  },
+  "422": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "423": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy stanza-create - judge from their output."
+  },
+  "424": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy check - judge from their output."
+  },
+  "425": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "426": {
+    "type": "manual",
+    "hint": "sudo -iu pgbackrest - judge from their output."
+  },
+  "427": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy --repo=3 --type=full --backup-standby=y --log-level-console=detail backup - judge from their output."
+  },
+  "428": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=academy --repo=3 info - judge from their output."
+  },
+  "429": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "430": {
+    "type": "manual",
+    "hint": "sudo vi /etc/pgbackrest/restore-s3-repo3.conf - judge from their output."
+  },
+  "431": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-s3-repo3.conf - judge from their output."
+  },
+  "432": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/pgbackrest/restore-s3-repo3.conf - judge from their output."
+  },
+  "433": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /etc/pgbackrest/restore-s3-repo3.conf - judge from their output."
+  },
+  "434": {
+    "type": "manual",
+    "hint": "sudo install -d -m 700 -o postgres -g postgres /var/lib/pgsql/restore-s3-repo3 - judge from their output."
+  },
+  "435": {
+    "type": "manual",
+    "hint": "sudo ls -la /var/lib/pgsql/restore-s3-repo3 - judge from their output."
+  },
+  "436": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "437": {
+    "type": "manual",
+    "hint": "pgbackrest --config=/etc/pgbackrest/restore-s3-repo3.conf --stanza=academy --repo=3 --archive-mode=off --type=immediate  - judge from their output."
+  },
+  "438": {
+    "type": "manual",
+    "hint": "cat /var/lib/pgsql/restore-s3-repo3/PG_VERSION - judge from their output."
+  },
+  "439": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "440": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-s3-repo3/postgresql.conf - judge from their output."
+  },
+  "441": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-s3-repo3/postgresql.conf - judge from their output."
+  },
+  "442": {
+    "type": "manual",
+    "hint": "sudo vi /var/lib/pgsql/restore-s3-repo3/pg_hba.conf - judge from their output."
+  },
+  "443": {
+    "type": "manual",
+    "hint": "sudo stat -c \"%U:%G %a %n\" /var/lib/pgsql/restore-s3-repo3/pg_hba.conf - judge from their output."
+  },
+  "444": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "445": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-s3-repo3 -l /var/lib/pgsql/restore-s3-repo3/startup.log -t 40 -w star - judge from their output."
+  },
+  "446": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_isready -h /var/run/postgresql -p 55435 - judge from their output."
+  },
+  "447": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "448": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "449": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -X -h /var/run/postgresql -d postgres -p 55435 - judge from their output."
+  },
+  "450": {
+    "type": "manual",
+    "hint": "SHOW data_directory; - judge from their output."
+  },
+  "451": {
+    "type": "manual",
+    "hint": "SELECT pg_is_in_recovery(); - judge from their output."
+  },
+  "452": {
+    "type": "manual",
+    "hint": "TABLE academy_proof; - judge from their output."
+  },
+  "453": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM academy_payload; - judge from their output."
+  },
+  "454": {
+    "type": "manual",
+    "hint": "SHOW archive_mode; - judge from their output."
+  },
+  "455": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "456": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "457": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "458": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /var/lib/pgsql/restore-s3-repo3 -m fast -w stop - judge from their output."
+  },
+  "459": {
+    "type": "manual",
+    "hint": "tail -n 20 /var/lib/pgsql/restore-s3-repo3/startup.log - judge from their output."
+  },
+  "460": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

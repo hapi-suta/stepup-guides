@@ -1,0 +1,204 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "vim /opt/pgsql/data/postgresql.conf - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-backup \"ls -la /opt/pgsql/backup/archive/\" - judge from their output."
+  },
+  "5": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl restart postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "psql -c \"SHOW archive_mode;\" - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "psql -c \"SHOW archive_command;\" - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "Expected output (yours will differ): - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-backup \"ls -la /opt/pgsql/backup/archive/\" - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT archived_count, last_archived_wal, last_archived_time FROM pg_stat_archiver;\" - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "pg_basebackup: error: connection to server at \"pg-primary\" ... failed: FATAL:  no pg_hba.conf entry for replication conn - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo grep replication /opt/pgsql/data/pg_hba.conf - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "vim /opt/pgsql/data/pg_hba.conf - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "host    replication     postgres        [NODE2_PRIVATE_IP]/32       scram-sha-256 - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo systemctl reload postgresql-16 - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "PGPASSWORD=backup_lab_2026 pg_basebackup \\ - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/backup/basebackup/plain_backup/ - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "PGPASSWORD=backup_lab_2026 pg_basebackup \\ - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "ls -lh /opt/pgsql/backup/basebackup/tar_backup/ - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "du -sh /opt/pgsql/backup/basebackup/plain_backup/ - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "du -sh /opt/pgsql/backup/basebackup/tar_backup/ - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/backup/basebackup/plain_backup/PG_VERSION - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "ls /opt/pgsql/backup/basebackup/plain_backup/global/pg_control - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "Base Backup (Point A) + WAL Archives (A -> B) = Recovery to Point B - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "cat /opt/pgsql/backup/basebackup/plain_backup/backup_label - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "ls /opt/pgsql/backup/archive/ | wc -l - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "psql -d labdb -c \" - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "Expected output: - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "47": {
+    "type": "manual",
+    "hint": "Expected output (yours will differ): - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "sleep 5 - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-backup \"ls -lt /opt/pgsql/backup/archive/ | head -5\" - judge from their output."
+  }
+}

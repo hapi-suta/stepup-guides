@@ -1,0 +1,3 @@
+# Not injectable: 02-ransomware-simulation
+
+The scenario corrupts the data directory and the pgBackRest backup catalog together, so the fix is a restore from a surviving copy of the repository (the standby, an off-host or off-region copy) plus a security audit. Wiping the only backup repository on the single lab node would leave the learner with no recovery path and no way to practise the restore, and the surviving copy lives on another host. The tutor should walk the runbook from pasted output: have the learner paste `pgbackrest info`, the directory listings and the log excerpts, and guide the restore decisions and the audit step by step.

@@ -1,0 +1,90 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "az postgres flexible-server update \\ - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "az postgres flexible-server create \\ - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "psql \"host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=postgres user=pgadmin sslmode=require\" - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "CREATE DATABASE pitr_test; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "\\c pitr_test - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "CREATE TABLE orders ( - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "INSERT INTO orders (product, quantity) - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "SELECT * FROM orders; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT now(); - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "psql \"host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=pitr_test user=pgadmin sslmode=require\" - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "DELETE FROM orders; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM orders; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "az postgres flexible-server firewall-rule create \\ - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "psql \"host=suta-pg-lab-restored.postgres.database.azure.com port=5432 dbname=pitr_test user=pgadmin sslmode=require\" - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT * FROM orders; - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "pg_dump \"host=suta-pg-lab-server.postgres.database.azure.com port=5432 dbname=pitr_test user=pgadmin sslmode=require\" -- - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "ls -lh /tmp/pitr_test_backup.dump - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "az postgres flexible-server delete \\ - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "az postgres flexible-server delete \\ - judge from their output."
+  }
+}

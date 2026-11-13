@@ -1,0 +1,60 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@<your-server-ip> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo vi /etc/prometheus/rules/postgres.yml - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo -u prometheus /usr/local/bin/promtool check rules /etc/prometheus/rules/postgres.yml - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo chown prometheus:prometheus /etc/prometheus/rules/postgres.yml - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "curl -s -X POST http://localhost:9090/-/reload - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9090/-/healthy - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "http://<your-server-ip>:9090/alerts - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9090/api/v1/rules | python3 -m json.tool | grep '\"name\"' - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgres_exporter - judge from their output."
+  },
+  "10": {
+    "type": "ssh",
+    "check": "systemctl is-active postgres_exporter >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgres_exporter`",
+    "done": "postgres_exporter is running"
+  },
+  "11": {
+    "type": "manual",
+    "hint": "tar -xzf /tmp/alertmanager.tar.gz -C /tmp/ - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo mv /tmp/alertmanager-0.27.0.linux-amd64/alertmanager /usr/local/bin/ - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo mkdir -p /etc/alertmanager - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo vi /etc/alertmanager/alertmanager.yml - judge from their output."
+  }
+}

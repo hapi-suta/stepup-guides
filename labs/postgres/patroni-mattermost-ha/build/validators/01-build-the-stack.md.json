@@ -1,0 +1,1176 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sha256sum /opt/suta/artifacts/etcd-v3.6.14-suta.2-linux-amd64.tar.gz - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcd - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdctl - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdutl - judge from their output."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo test -d /etc/etcd",
+    "hint": "Run: `sudo mkdir -p /etc/etcd`",
+    "done": "directory /etc/etcd exist"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /etc/etcd - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /etc/etcd - judge from their output."
+  },
+  "11": {
+    "type": "ssh",
+    "check": "sudo test -d /var/lib/etcd",
+    "hint": "Run: `sudo mkdir -p /var/lib/etcd`",
+    "done": "directory /var/lib/etcd exist"
+  },
+  "12": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /var/lib/etcd - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /var/lib/etcd - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/member.crt - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/ca.crt - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/etcd/member.key - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/etcd.service - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcd - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdctl - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdutl - judge from their output."
+  },
+  "27": {
+    "type": "ssh",
+    "check": "sudo test -d /etc/etcd",
+    "hint": "Run: `sudo mkdir -p /etc/etcd`",
+    "done": "directory /etc/etcd exist"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /etc/etcd - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /etc/etcd - judge from their output."
+  },
+  "30": {
+    "type": "ssh",
+    "check": "sudo test -d /var/lib/etcd",
+    "hint": "Run: `sudo mkdir -p /var/lib/etcd`",
+    "done": "directory /var/lib/etcd exist"
+  },
+  "31": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /var/lib/etcd - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /var/lib/etcd - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/member.crt - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/ca.crt - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/etcd/member.key - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/etcd.service - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcd /usr/local/bin/etcd - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcd - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdctl /usr/local/bin/etcdctl - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdctl - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/etcdutl /usr/local/bin/etcdutl - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/etcdutl - judge from their output."
+  },
+  "46": {
+    "type": "ssh",
+    "check": "sudo test -d /etc/etcd",
+    "hint": "Run: `sudo mkdir -p /etc/etcd`",
+    "done": "directory /etc/etcd exist"
+  },
+  "47": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /etc/etcd - judge from their output."
+  },
+  "48": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /etc/etcd - judge from their output."
+  },
+  "49": {
+    "type": "ssh",
+    "check": "sudo test -d /var/lib/etcd",
+    "hint": "Run: `sudo mkdir -p /var/lib/etcd`",
+    "done": "directory /var/lib/etcd exist"
+  },
+  "50": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /var/lib/etcd - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /var/lib/etcd - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.crt /etc/etcd/member.crt - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/member.crt - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/ca.crt /etc/etcd/ca.crt - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/etcd/ca.crt - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/etcd/member.key /etc/etcd/member.key - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/etcd/member.key - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/etcd.service - judge from their output."
+  },
+  "59": {
+    "type": "ssh",
+    "check": "systemctl is-active etcd >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now etcd`",
+    "done": "etcd is running"
+  },
+  "60": {
+    "type": "ssh",
+    "check": "systemctl is-active etcd >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now etcd`",
+    "done": "etcd is running"
+  },
+  "61": {
+    "type": "ssh",
+    "check": "systemctl is-active etcd >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now etcd`",
+    "done": "etcd is running"
+  },
+  "62": {
+    "type": "manual",
+    "hint": "sudo /usr/local/bin/etcdctl --endpoints=https://dcs-1:2379,https://dcs-2:2379,https://dcs-3:2379 --cacert=/etc/etcd/ca.c - judge from their output."
+  },
+  "63": {
+    "type": "ssh",
+    "check": "id postgres >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres`",
+    "done": "user postgres exists"
+  },
+  "64": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C / - judge from their output."
+  },
+  "65": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/data && sudo test -d /opt/pgsql/wal && sudo test -d /opt/pgsql/backup && sudo test -d /opt/pgsql/log",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log`",
+    "done": "directories /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log exist"
+  },
+  "66": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "68": {
+    "type": "ssh",
+    "check": "id postgres >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres`",
+    "done": "user postgres exists"
+  },
+  "69": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C / - judge from their output."
+  },
+  "70": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/data && sudo test -d /opt/pgsql/wal && sudo test -d /opt/pgsql/backup && sudo test -d /opt/pgsql/log",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log`",
+    "done": "directories /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log exist"
+  },
+  "71": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "72": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "73": {
+    "type": "ssh",
+    "check": "id postgres >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd --system --home-dir /opt/pgsql --shell /bin/bash postgres`",
+    "done": "user postgres exists"
+  },
+  "74": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/postgresql-16.15-centos9-amd64.tar.gz -C / - judge from their output."
+  },
+  "75": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/data && sudo test -d /opt/pgsql/wal && sudo test -d /opt/pgsql/backup && sudo test -d /opt/pgsql/log",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log`",
+    "done": "directories /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log exist"
+  },
+  "76": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "77": {
+    "type": "manual",
+    "hint": "sudo chmod 0700 /opt/pgsql/data /opt/pgsql/wal /opt/pgsql/backup /opt/pgsql/log - judge from their output."
+  },
+  "78": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/patroni && sudo test -d /etc/patroni",
+    "hint": "Run: `sudo mkdir -p /opt/patroni /etc/patroni`",
+    "done": "directories /opt/patroni /etc/patroni exist"
+  },
+  "79": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "80": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni - judge from their output."
+  },
+  "81": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "82": {
+    "type": "manual",
+    "hint": "sudo chmod 0750 /opt/patroni /etc/patroni - judge from their output."
+  },
+  "83": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "84": {
+    "type": "ssh",
+    "check": "sudo test -d /var/run/postgresql",
+    "hint": "Run: `sudo mkdir -p /var/run/postgresql`",
+    "done": "directory /var/run/postgresql exist"
+  },
+  "85": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "86": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /var/run/postgresql - judge from their output."
+  },
+  "87": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "88": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /var/run/postgresql - judge from their output."
+  },
+  "89": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "90": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1 - judge from their output."
+  },
+  "91": {
+    "type": "manual",
+    "hint": "sudo ls -l /opt/patroni/bin/patroni - judge from their output."
+  },
+  "92": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "93": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "94": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "95": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "96": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "97": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "98": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "99": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "100": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "101": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "102": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "103": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "104": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "105": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "106": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "107": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "108": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "109": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "110": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni - judge from their output."
+  },
+  "111": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "112": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patroni - judge from their output."
+  },
+  "113": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "114": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl - judge from their output."
+  },
+  "115": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "116": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patronictl - judge from their output."
+  },
+  "117": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "118": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "119": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "120": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "121": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "122": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "123": {
+    "type": "manual",
+    "hint": "systemctl cat patroni - judge from their output."
+  },
+  "124": {
+    "type": "manual",
+    "hint": "sudo vi /etc/patroni/patroni.yml - judge from their output."
+  },
+  "125": {
+    "type": "manual",
+    "hint": "scope: {{cluster_scope}} - judge from their output."
+  },
+  "126": {
+    "type": "manual",
+    "hint": "sudo grep -n -E \"^(scope|name|restapi|etcd3|postgresql):\" /etc/patroni/patroni.yml - judge from their output."
+  },
+  "127": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/patroni.yml - judge from their output."
+  },
+  "128": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "129": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/patroni.yml - judge from their output."
+  },
+  "130": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "131": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/patroni && sudo test -d /etc/patroni",
+    "hint": "Run: `sudo mkdir -p /opt/patroni /etc/patroni`",
+    "done": "directories /opt/patroni /etc/patroni exist"
+  },
+  "132": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "133": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni - judge from their output."
+  },
+  "134": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "135": {
+    "type": "manual",
+    "hint": "sudo chmod 0750 /opt/patroni /etc/patroni - judge from their output."
+  },
+  "136": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "137": {
+    "type": "ssh",
+    "check": "sudo test -d /var/run/postgresql",
+    "hint": "Run: `sudo mkdir -p /var/run/postgresql`",
+    "done": "directory /var/run/postgresql exist"
+  },
+  "138": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "139": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /var/run/postgresql - judge from their output."
+  },
+  "140": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "141": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /var/run/postgresql - judge from their output."
+  },
+  "142": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "143": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1 - judge from their output."
+  },
+  "144": {
+    "type": "manual",
+    "hint": "sudo ls -l /opt/patroni/bin/patroni - judge from their output."
+  },
+  "145": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "146": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "147": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "148": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "149": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "150": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "151": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "152": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "153": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "154": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "155": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "156": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "157": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "158": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "159": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "160": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "161": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "162": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "163": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni - judge from their output."
+  },
+  "164": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "165": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patroni - judge from their output."
+  },
+  "166": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "167": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl - judge from their output."
+  },
+  "168": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "169": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patronictl - judge from their output."
+  },
+  "170": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "171": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "172": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "173": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "174": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "175": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "176": {
+    "type": "manual",
+    "hint": "systemctl cat patroni - judge from their output."
+  },
+  "177": {
+    "type": "manual",
+    "hint": "sudo vi /etc/patroni/patroni.yml - judge from their output."
+  },
+  "178": {
+    "type": "manual",
+    "hint": "scope: {{cluster_scope}} - judge from their output."
+  },
+  "179": {
+    "type": "manual",
+    "hint": "sudo grep -n -E \"^(scope|name|restapi|etcd3|postgresql):\" /etc/patroni/patroni.yml - judge from their output."
+  },
+  "180": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/patroni.yml - judge from their output."
+  },
+  "181": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "182": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/patroni.yml - judge from their output."
+  },
+  "183": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "184": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/patroni && sudo test -d /etc/patroni",
+    "hint": "Run: `sudo mkdir -p /opt/patroni /etc/patroni`",
+    "done": "directories /opt/patroni /etc/patroni exist"
+  },
+  "185": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "186": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/patroni /etc/patroni - judge from their output."
+  },
+  "187": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "188": {
+    "type": "manual",
+    "hint": "sudo chmod 0750 /opt/patroni /etc/patroni - judge from their output."
+  },
+  "189": {
+    "type": "manual",
+    "hint": "ls -ld /opt/patroni /etc/patroni - judge from their output."
+  },
+  "190": {
+    "type": "ssh",
+    "check": "sudo test -d /var/run/postgresql",
+    "hint": "Run: `sudo mkdir -p /var/run/postgresql`",
+    "done": "directory /var/run/postgresql exist"
+  },
+  "191": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "192": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /var/run/postgresql - judge from their output."
+  },
+  "193": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "194": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /var/run/postgresql - judge from their output."
+  },
+  "195": {
+    "type": "manual",
+    "hint": "ls -ld /var/run/postgresql - judge from their output."
+  },
+  "196": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/patroni-4.1.4-python39-centos9-amd64.tar.gz -C /opt/patroni --strip-components=1 - judge from their output."
+  },
+  "197": {
+    "type": "manual",
+    "hint": "sudo ls -l /opt/patroni/bin/patroni - judge from their output."
+  },
+  "198": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/ca.crt /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "199": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "200": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "201": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "202": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "203": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-ca.crt - judge from their output."
+  },
+  "204": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.crt /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "205": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "206": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "207": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "208": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "209": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.crt - judge from their output."
+  },
+  "210": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/client.key /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "211": {
+    "type": "manual",
+    "hint": "sudo ls -l /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "212": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "213": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "214": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "215": {
+    "type": "manual",
+    "hint": "sudo stat -c '%U %G %a %n' /etc/patroni/etcd-client.key - judge from their output."
+  },
+  "216": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni /usr/local/bin/patroni - judge from their output."
+  },
+  "217": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "218": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patroni - judge from their output."
+  },
+  "219": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patroni - judge from their output."
+  },
+  "220": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patronictl /usr/local/bin/patronictl - judge from their output."
+  },
+  "221": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "222": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/bin/patronictl - judge from their output."
+  },
+  "223": {
+    "type": "manual",
+    "hint": "ls -l /usr/local/bin/patronictl - judge from their output."
+  },
+  "224": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/patroni/patroni.service /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "225": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "226": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "227": {
+    "type": "manual",
+    "hint": "ls -l /etc/systemd/system/patroni.service - judge from their output."
+  },
+  "228": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "229": {
+    "type": "manual",
+    "hint": "systemctl cat patroni - judge from their output."
+  },
+  "230": {
+    "type": "manual",
+    "hint": "sudo vi /etc/patroni/patroni.yml - judge from their output."
+  },
+  "231": {
+    "type": "manual",
+    "hint": "scope: {{cluster_scope}} - judge from their output."
+  },
+  "232": {
+    "type": "manual",
+    "hint": "sudo grep -n -E \"^(scope|name|restapi|etcd3|postgresql):\" /etc/patroni/patroni.yml - judge from their output."
+  },
+  "233": {
+    "type": "manual",
+    "hint": "sudo chown postgres:postgres /etc/patroni/patroni.yml - judge from their output."
+  },
+  "234": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "235": {
+    "type": "manual",
+    "hint": "sudo chmod 0600 /etc/patroni/patroni.yml - judge from their output."
+  },
+  "236": {
+    "type": "manual",
+    "hint": "sudo stat -c '%A %U %G' /etc/patroni/patroni.yml - judge from their output."
+  },
+  "237": {
+    "type": "ssh",
+    "check": "systemctl is-active patroni >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now patroni`",
+    "done": "patroni is running"
+  },
+  "238": {
+    "type": "manual",
+    "hint": "systemctl status patroni --no-pager - judge from their output."
+  },
+  "239": {
+    "type": "ssh",
+    "check": "systemctl is-active patroni >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now patroni`",
+    "done": "patroni is running"
+  },
+  "240": {
+    "type": "manual",
+    "hint": "systemctl status patroni --no-pager - judge from their output."
+  },
+  "241": {
+    "type": "ssh",
+    "check": "systemctl is-active patroni >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now patroni`",
+    "done": "patroni is running"
+  },
+  "242": {
+    "type": "manual",
+    "hint": "systemctl status patroni --no-pager - judge from their output."
+  },
+  "243": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/artifacts/haproxy-3.2.22 /usr/local/sbin/haproxy - judge from their output."
+  },
+  "244": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /usr/local/sbin/haproxy - judge from their output."
+  },
+  "245": {
+    "type": "ssh",
+    "check": "sudo test -d /etc/haproxy",
+    "hint": "Run: `sudo mkdir -p /etc/haproxy`",
+    "done": "directory /etc/haproxy exist"
+  },
+  "246": {
+    "type": "manual",
+    "hint": "sudo chown -R root:root /etc/haproxy - judge from their output."
+  },
+  "247": {
+    "type": "manual",
+    "hint": "sudo chmod 0755 /etc/haproxy - judge from their output."
+  },
+  "248": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/haproxy/haproxy.service /etc/systemd/system/haproxy.service - judge from their output."
+  },
+  "249": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/systemd/system/haproxy.service - judge from their output."
+  },
+  "250": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "251": {
+    "type": "manual",
+    "hint": "sudo vi /etc/haproxy/haproxy.cfg - judge from their output."
+  },
+  "252": {
+    "type": "ssh",
+    "check": "systemctl is-active haproxy >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now haproxy`",
+    "done": "haproxy is running"
+  },
+  "253": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "254": {
+    "type": "manual",
+    "hint": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "255": {
+    "type": "manual",
+    "hint": "CREATE ROLE mattermost LOGIN; - judge from their output."
+  },
+  "256": {
+    "type": "manual",
+    "hint": "\\du mattermost - judge from their output."
+  },
+  "257": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "258": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "259": {
+    "type": "manual",
+    "hint": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "260": {
+    "type": "manual",
+    "hint": "select rolname, rolpassword like 'SCRAM-SHA-256%' as scram from pg_authid where rolname = 'mattermost'; - judge from their output."
+  },
+  "261": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "262": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "263": {
+    "type": "manual",
+    "hint": "/opt/pgsql/bin/psql -h /var/run/postgresql -d postgres - judge from their output."
+  },
+  "264": {
+    "type": "manual",
+    "hint": "SELECT 'CREATE DATABASE mattermost OWNER mattermost' WHERE NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'matter - judge from their output."
+  },
+  "265": {
+    "type": "manual",
+    "hint": "ALTER DATABASE mattermost OWNER TO mattermost; - judge from their output."
+  },
+  "266": {
+    "type": "manual",
+    "hint": "\\l mattermost - judge from their output."
+  },
+  "267": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "268": {
+    "type": "ssh",
+    "check": "id mattermost >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd --system --home-dir /opt/mattermost --shell /sbin/nologin mattermost`",
+    "done": "user mattermost exists"
+  },
+  "269": {
+    "type": "manual",
+    "hint": "sudo tar -xzf /opt/suta/artifacts/mattermost-team-11.10.1-linux-amd64.tar.gz -C /opt - judge from their output."
+  },
+  "270": {
+    "type": "manual",
+    "hint": "sudo chmod -R go-w /opt/mattermost - judge from their output."
+  },
+  "271": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/mattermost/data",
+    "hint": "Run: `sudo mkdir -p /opt/mattermost/data`",
+    "done": "directory /opt/mattermost/data exist"
+  },
+  "272": {
+    "type": "manual",
+    "hint": "sudo chown -R mattermost:mattermost /opt/mattermost/data - judge from their output."
+  },
+  "273": {
+    "type": "manual",
+    "hint": "sudo chmod 0750 /opt/mattermost/data - judge from their output."
+  },
+  "274": {
+    "type": "manual",
+    "hint": "sudo chown -R mattermost:mattermost /opt/mattermost - judge from their output."
+  },
+  "275": {
+    "type": "manual",
+    "hint": "sudo cp /opt/suta/handoff/mattermost/mattermost.service /etc/systemd/system/mattermost.service - judge from their output."
+  },
+  "276": {
+    "type": "manual",
+    "hint": "sudo chmod 0644 /etc/systemd/system/mattermost.service - judge from their output."
+  },
+  "277": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "278": {
+    "type": "manual",
+    "hint": "sudo vi /opt/mattermost/config/config.json - judge from their output."
+  },
+  "279": {
+    "type": "ssh",
+    "check": "systemctl is-active mattermost >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable --now mattermost`",
+    "done": "mattermost is running"
+  }
+}

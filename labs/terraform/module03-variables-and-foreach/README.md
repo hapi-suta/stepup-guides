@@ -1,4 +1,4 @@
-# Module 03 - Variables, for_each and Clean Config
+# Clean Configuration and State
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 
