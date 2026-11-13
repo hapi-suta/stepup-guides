@@ -1,0 +1,76 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "tr '\\t' '\\n' < /tmp/rds-metrics.txt > /tmp/rds-metrics-lines.txt - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sort /tmp/rds-metrics-lines.txt - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "aws iam create-role \\ - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "MONITORING_ROLE_ARN=$(aws iam get-role --role-name rds-enhanced-monitoring --query \"Role.Arn\" --output text) - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "DBI_RESOURCE_ID=$(aws rds describe-db-instances --db-instance-identifier suta-pg-lab --query \"DBInstances[0].DbiResource - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "RDS_ENDPOINT=$(aws rds describe-db-instances --db-instance-identifier suta-pg-lab --query \"DBInstances[0].Endpoint.Addre - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "psql -h \"${RDS_ENDPOINT}\" -U sutaadmin -d postgres -p 5432 - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "CREATE EXTENSION IF NOT EXISTS pg_stat_statements; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "SELECT - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "SELECT pg_stat_statements_reset(); - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "12": {
+    "type": "aws",
+    "check": "sns list-topics",
+    "expect": "suta-rds-events",
+    "done": "SNS topic suta-rds-events exists",
+    "hint": "Run: `aws sns create-topic \\`"
+  },
+  "13": {
+    "type": "aws",
+    "check": "sns list-topics",
+    "expect": "suta-rds-events",
+    "done": "SNS topic suta-rds-events exists",
+    "hint": "Run: `TOPIC_ARN=$(aws sns create-topic --name suta-rds-events --query \"TopicArn\" --output text)`"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "aws rds create-event-subscription \\ - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "aws cloudwatch delete-alarms \\ - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "aws rds delete-event-subscription \\ - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "aws sns delete-topic \\ - judge from their output."
+  }
+}

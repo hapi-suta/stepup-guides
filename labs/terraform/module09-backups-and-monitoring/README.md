@@ -1,4 +1,4 @@
-# Module 09 - Backups and Monitoring as Code
+# Running Databases in Production
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

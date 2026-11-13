@@ -1,4 +1,4 @@
-# Module 10 - Protecting a Database with Lifecycle Rules
+# Running Databases in Production
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

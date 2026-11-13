@@ -1,0 +1,180 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/data15 - judge from their output."
+  },
+  "3": {
+    "type": "ssh",
+    "check": "sudo test -f /opt/pgsql/data15/PG_VERSION",
+    "hint": "Run: `/usr/pgsql-15/bin/initdb -D /opt/pgsql/data15 --encoding=UTF8 --locale=en_US.UTF-8`",
+    "done": "cluster initialised in /opt/pgsql/data15"
+  },
+  "4": {
+    "type": "manual",
+    "hint": "echo \"port = 5433\" >> /opt/pgsql/data15/postgresql.conf - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "echo \"unix_socket_directories = '/run/postgresql'\" >> /opt/pgsql/data15/postgresql.conf - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 -l /opt/pgsql/log/pg15.log start - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_isready -p 5433 - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -c \"CREATE DATABASE upgradetest;\" - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"CREATE TABLE employees (id SERIAL PRIMARY KEY, name TEXT, department T - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"INSERT INTO employees (name, department, salary) SELECT 'Employee ' || - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "17": {
+    "type": "ssh",
+    "check": "rpm -q postgresql15-contrib >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y postgresql15-contrib`",
+    "done": "package(s) postgresql15-contrib installed"
+  },
+  "18": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/psql -p 5433 -d upgradetest -c \"CREATE EXTENSION pg_stat_statements;\" - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/data16 - judge from their output."
+  },
+  "23": {
+    "type": "ssh",
+    "check": "sudo test -f /opt/pgsql/data16/PG_VERSION",
+    "hint": "Run: `/usr/pgsql-16/bin/initdb -D /opt/pgsql/data16 --encoding=UTF8 --locale=en_US.UTF-8`",
+    "done": "cluster initialised in /opt/pgsql/data16"
+  },
+  "24": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_ctl -D /opt/pgsql/data15 stop -m fast - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "/usr/pgsql-15/bin/pg_isready -p 5433 - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_upgrade \\ - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 -l /opt/pgsql/log/pg16-upgraded.log start - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -c \"SELECT version();\" - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "grep ^port /opt/pgsql/data16/postgresql.conf - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "echo \"port = 5434\" >> /opt/pgsql/data16/postgresql.conf - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 stop - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 -l /opt/pgsql/log/pg16-upgraded.log start - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT count(*) FROM employees;\" - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5434 -d upgradetest -c \"SELECT extname, extversion FROM pg_extension;\" - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "/opt/pgsql/data16/analyze_new_cluster.sh - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pg_ctl -D /opt/pgsql/data16 stop - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

@@ -212,7 +212,7 @@ Expected output:
 ### Step 7 - Warm the cache and verify hit ratio improves
 
 ```bash
-/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT COUNT(*) FROM orders JOIN customers c ON c.id = orders.customer_id JOIN order_items oi ON oi.order_id = orders.id;"
+/usr/pgsql-16/bin/psql -p 5432 -d stepup_store -c "SELECT COUNT(*) FROM orders JOIN customers c ON c.customer_id = orders.customer_id JOIN order_items oi ON oi.order_id = orders.order_id;"
 ```
 
 Run the cache hit query again to see improvement.

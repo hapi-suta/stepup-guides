@@ -1,4 +1,4 @@
-# Module 05 - Reusable Modules
+# Clean Configuration and State
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

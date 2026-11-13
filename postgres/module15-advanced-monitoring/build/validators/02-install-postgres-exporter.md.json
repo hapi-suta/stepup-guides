@@ -1,0 +1,110 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@<your-server-ip> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "tar -xzf /tmp/postgres_exporter.tar.gz -C /tmp/ - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "sudo mv /tmp/postgres_exporter-0.15.0.linux-amd64/postgres_exporter /usr/local/bin/ - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "sudo chmod 755 /usr/local/bin/postgres_exporter - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "/usr/local/bin/postgres_exporter --version - judge from their output."
+  },
+  "6": {
+    "type": "ssh",
+    "check": "id postgres_exporter >/dev/null 2>&1",
+    "hint": "Run: `sudo useradd --system --no-create-home --shell /sbin/nologin postgres_exporter`",
+    "done": "user postgres_exporter exists"
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "psql - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "CREATE ROLE postgres_exporter WITH LOGIN PASSWORD 'monitor_secret_2024'; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "\\c stepup_store - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "13": {
+    "type": "ssh",
+    "check": "sudo test -d /etc/postgres_exporter",
+    "hint": "Run: `sudo mkdir -p /etc/postgres_exporter`",
+    "done": "directory /etc/postgres_exporter exist"
+  },
+  "14": {
+    "type": "manual",
+    "hint": "sudo vi /etc/postgres_exporter/postgres_exporter.env - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "DATA_SOURCE_NAME=postgresql://postgres_exporter:monitor_secret_2024@localhost:5432/postgres?sslmode=disable - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "sudo chown root:postgres_exporter /etc/postgres_exporter/postgres_exporter.env - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "sudo vi /etc/systemd/system/postgres_exporter.service - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "sudo systemctl daemon-reload - judge from their output."
+  },
+  "19": {
+    "type": "ssh",
+    "check": "systemctl is-enabled postgres_exporter >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl enable postgres_exporter`",
+    "done": "postgres_exporter is enabled"
+  },
+  "20": {
+    "type": "ssh",
+    "check": "systemctl is-active postgres_exporter >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgres_exporter`",
+    "done": "postgres_exporter is running"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo systemctl status postgres_exporter - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "sudo journalctl -u postgres_exporter -n 50 --no-pager - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9187/metrics | head -30 - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "curl -s http://localhost:9187/metrics | grep pg_stat_bgwriter - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "ss -tlnp | grep 9187 - judge from their output."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "12": {
+    "type": "ssh",
+    "node": 0,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -tAc \"SHOW wal_level\" 2>/dev/null | grep -qx logical",
+    "hint": "Set wal_level=logical in postgresql.conf and restart: `sudo systemctl restart postgresql-16`.",
+    "done": "logical WAL is now enabled on the primary"
+  }
+}

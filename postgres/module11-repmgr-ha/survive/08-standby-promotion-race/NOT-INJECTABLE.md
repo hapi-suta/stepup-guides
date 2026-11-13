@@ -1,0 +1,1 @@
+Not injectable: it needs two standbys promoting themselves while the old primary is alive, producing two writable primaries with divergent timelines; that spans multiple hosts and would leave data the validator cannot reconcile from one node. Tutor: walk the runbook from pasted repmgr cluster show and pg_is_in_recovery() output for each node.

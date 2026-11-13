@@ -1,0 +1,94 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/your-key.pem ec2-user@<NODE1-IP> - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM orders WHERE customer_id = 5; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 5; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT o.order_id, c.email - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM products; - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM customers WHERE customer_id = 42; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "CREATE INDEX orders_total_amount_idx ON orders(total_amount); - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM orders WHERE total_amount BETWEEN 50 AND 200; - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT p.name, SUM(oi.quantity) - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "CREATE INDEX orders_customer_id_idx ON orders(customer_id); - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT c.email, o.total_amount - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT c.email, o.order_id - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT c.email, o.order_id - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders WHERE customer_id = 5; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) SELECT * FROM orders WHERE customer_id = 5; - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 99; - judge from their output."
+  },
+  "19": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_total_amount_idx' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX orders_total_amount_idx;`",
+    "done": "index orders_total_amount_idx is gone"
+  },
+  "20": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d stepup_store -tAXqc \"select 1 from pg_class where relname='orders_customer_id_idx' and relkind in ('i','I')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP INDEX orders_customer_id_idx;`",
+    "done": "index orders_customer_id_idx is gone"
+  },
+  "21": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

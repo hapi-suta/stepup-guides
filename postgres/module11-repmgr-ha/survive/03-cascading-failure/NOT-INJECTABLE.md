@@ -1,0 +1,1 @@
+Not injectable: it requires the primary and a standby to be down at the same time and the proof (the surviving standby promoted, then the other nodes rebuilt or rejoined) spans several hosts. One script on one node cannot take down another node. Tutor: walk the runbook from pasted pg_isready results for all four nodes, or have the learner stop postgresql-16 on two nodes by hand.

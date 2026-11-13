@@ -1,0 +1,96 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@YOUR_SERVER_IP - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo su - postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SHOW max_connections; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SELECT count(*) FROM pg_stat_activity; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT state, count(*) - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "8": {
+    "type": "ssh",
+    "check": "sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_file_settings where name='idle_in_transaction_session_timeout' and setting='30s'\" 2>/dev/null | grep -q .",
+    "hint": "Run: `/usr/pgsql-16/bin/psql -p 5432 -d labdb -c \"ALTER SYSTEM SET idle_in_transaction_session_timeout = '30s';\"`",
+    "done": "idle_in_transaction_session_timeout = 30s is in postgresql.auto.conf"
+  },
+  "9": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb -c \"SELECT pg_reload_conf();\" - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb -c \"SHOW idle_in_transaction_session_timeout;\" - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "BEGIN; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "SELECT 1; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "tail -n 5 /opt/pgsql/log/postgresql-$(date +%Y-%m-%d).log - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "Optimal max_connections = 2-4x CPU cores - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d labdb - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "SELECT 1; - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pgbench -i -s 10 -p 5432 labdb - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pgbench -c 5 -j 2 -T 10 -p 5432 labdb - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/pgbench -c 50 -j 2 -T 10 -p 5432 labdb - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

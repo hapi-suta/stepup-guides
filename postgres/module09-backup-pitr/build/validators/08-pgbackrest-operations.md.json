@@ -1,0 +1,282 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main --type=full backup - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "psql -d labdb -c \" - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "sleep 3 - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main --type=diff backup - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "psql -d labdb -c \" - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sleep 3 - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main --type=incr backup - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info --output=json | python3 -m json.tool | head -40 - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main repo-ls backup/main - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-16 - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "sudo rm -rf /opt/pgsql/data/* - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main --delta restore - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/data/ - judge from their output."
+  },
+  "28": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "psql -d labdb -c \"SELECT count(*) FROM pgbench_accounts;\" - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-16 - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "sudo rm -rf /opt/pgsql/data/* - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT now() AS pitr_target_time;\" - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "sleep 3 - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "psql -d appdb -c \" - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_switch_wal();\" - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "43": {
+    "type": "manual",
+    "hint": "sleep 5 - judge from their output."
+  },
+  "44": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "45": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "46": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "47": {
+    "type": "ssh",
+    "check": "systemctl is-active postgresql-16 >/dev/null 2>&1",
+    "hint": "Run: `sudo systemctl start postgresql-16`",
+    "done": "postgresql-16 is running"
+  },
+  "48": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "49": {
+    "type": "manual",
+    "hint": "psql -d appdb -c \"SELECT * FROM employees WHERE department = 'mistake';\" - judge from their output."
+  },
+  "50": {
+    "type": "manual",
+    "hint": "psql -c \"SELECT pg_is_in_recovery();\" - judge from their output."
+  },
+  "51": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "52": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "53": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "54": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "55": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "56": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "57": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-16 - judge from their output."
+  },
+  "58": {
+    "type": "manual",
+    "hint": "sudo rm -rf /opt/pgsql/data/* - judge from their output."
+  },
+  "59": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "60": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "61": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "62": {
+    "type": "manual",
+    "hint": "sudo -i -u postgres - judge from their output."
+  },
+  "63": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main info - judge from their output."
+  },
+  "64": {
+    "type": "manual",
+    "hint": "pgbackrest --stanza=main --type=full backup - judge from their output."
+  },
+  "65": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "66": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup - judge from their output."
+  },
+  "67": {
+    "type": "manual",
+    "hint": "sudo systemctl stop postgresql-16 - judge from their output."
+  },
+  "68": {
+    "type": "manual",
+    "hint": "sudo rm -rf /opt/pgsql/data/* - judge from their output."
+  },
+  "69": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP] - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "mkdir -p ~/.ssh && cp /drives/c/Users/*/Desktop/[YOUR-KEY-FILE].pem ~/.ssh/ && chmod 400 ~/.ssh/[YOUR-KEY-FILE].pem - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "ssh -i ~/.ssh/[YOUR-KEY-FILE].pem ec2-user@[NODE1_IP] - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "ssh ec2-user@[NODE_IP] - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "sudo dnf update -y - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "sudo hostnamectl set-hostname pg-primary - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "sudo hostnamectl set-hostname pg-backup - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "hostnamectl - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "sudo tee -a /etc/hosts <<EOF - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "ping -c 2 pg-primary - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "ping -c 2 pg-backup - judge from their output."
+  },
+  "12": {
+    "type": "ssh",
+    "check": "rpm -q vim curl wget gnupg2 sudo net-tools rsync tar >/dev/null 2>&1",
+    "hint": "Run: `sudo dnf install -y vim curl wget gnupg2 sudo net-tools rsync tar`",
+    "done": "package(s) vim curl wget gnupg2 sudo net-tools rsync tar installed"
+  },
+  "13": {
+    "type": "manual",
+    "hint": "sudo timedatectl set-timezone UTC - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "timedatectl - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-backup hostname - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ssh ec2-user@pg-primary hostname - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "getent passwd postgres - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-backup hostname - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "getent passwd postgres - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "ssh postgres@pg-primary hostname - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "24": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/data",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/data`",
+    "done": "directory /opt/pgsql/data exist"
+  },
+  "25": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/log",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/log`",
+    "done": "directory /opt/pgsql/log exist"
+  },
+  "26": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/wal",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/wal`",
+    "done": "directory /opt/pgsql/wal exist"
+  },
+  "27": {
+    "type": "ssh",
+    "check": "sudo test -d /opt/pgsql/backup",
+    "hint": "Run: `sudo mkdir -p /opt/pgsql/backup`",
+    "done": "directory /opt/pgsql/backup exist"
+  },
+  "28": {
+    "type": "manual",
+    "hint": "sudo chown -R postgres:postgres /opt/pgsql - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "sudo chmod 700 /opt/pgsql/data - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/archive - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/dumps - judge from their output."
+  },
+  "33": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "34": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "35": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/archive - judge from their output."
+  },
+  "36": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/dumps - judge from their output."
+  },
+  "37": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/basebackup - judge from their output."
+  },
+  "38": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/logical - judge from their output."
+  },
+  "39": {
+    "type": "manual",
+    "hint": "mkdir -p /opt/pgsql/backup/pgbackrest - judge from their output."
+  },
+  "40": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "41": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/ - judge from their output."
+  },
+  "42": {
+    "type": "manual",
+    "hint": "ls -la /opt/pgsql/backup/ - judge from their output."
+  }
+}

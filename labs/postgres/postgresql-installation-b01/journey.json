@@ -1,0 +1,278 @@
+{
+  "experience_id": "pg-dba-14-b01",
+  "title": "Install PostgreSQL: the first small lab",
+  "publication": "Candidate module lab; not published or student-qualified.",
+  "lab_id": "pg-dba-14.B01",
+  "audience": "PostgreSQL beginner with basic Linux terminal practice",
+  "outcome": "Install PostgreSQL 18 server and client software and explain the evidence. Initializing, starting and connecting are later labs.",
+  "introduction": [
+    "Bob is preparing a training database server for the application team. First, he needs to install the software. A successful installation does not mean a database is running yet.",
+    "The client, psql, lets you send requests to a database server. The server program, postgres, does the database work. In this lab you install both, but do not start the server.",
+    "A package is software prepared for installation on this operating system. A repository is a source from which the package manager downloads it. DNF is the package manager used on this Rocky Linux machine.",
+    "Use the Linux terminal on the assigned lab machine, as the normal login user. Your login user is student on pg-lab-1. Commands beginning with sudo request administrator permission for that one action; your terminal stays in the same user session.",
+    "Type only the command, without a shell prompt such as $. Press Enter once, wait for the command to finish and read its result before continuing. Download progress is normal. Stop on an error and ask SutaBot about that result when using the connected workspace.",
+    "The number 18 is the PostgreSQL major version. The .6 in 18.6 is a maintenance release within that major version. This walkthrough was tested with PostgreSQL 18.6 on Rocky Linux 9.8, x86_64. Other systems need their own tested instructions."
+  ],
+  "orientation": [
+    {
+      "title": "Check who you are",
+      "command": "whoami",
+      "explanation": "This prints your Linux login name. On your assigned machine it is student. It does not show a database role."
+    },
+    {
+      "title": "Check the machine",
+      "command": "hostname",
+      "explanation": "This prints the machine name. Compare it with the assigned terminal, so you do not install on another server."
+    },
+    {
+      "title": "Check the operating system",
+      "command": "cat /etc/os-release",
+      "explanation": "cat displays the file. Look for Rocky Linux and VERSION_ID=9.8. Reading the file does not change the machine."
+    },
+    {
+      "title": "Check the architecture",
+      "command": "uname -m",
+      "explanation": "This reports the machine architecture. This walkthrough uses x86_64 packages. If yours differs, use the matching lab profile before installing."
+    }
+  ],
+  "phases": [
+    {
+      "id": "build",
+      "title": "BUILD",
+      "lesson_sections": [
+        {
+          "id": "b01",
+          "title": "B01 \u00b7 Install and verify the software",
+          "milestones": [
+            {
+              "id": "sources",
+              "title": "Prepare the package sources",
+              "goal": "Tell DNF where this lab gets its PostgreSQL software and dependencies.",
+              "step_ids": [
+                "b01.repository",
+                "b01.dependencies",
+                "b01.stream"
+              ]
+            },
+            {
+              "id": "software",
+              "title": "Install and check both programs",
+              "goal": "Install the server and client, then prove each intended executable can run.",
+              "step_ids": [
+                "b01.install",
+                "b01.client",
+                "b01.server"
+              ]
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "id": "b01.repository",
+          "title": "Add the PostgreSQL package source",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "change",
+          "why": "PostgreSQL publishes packages through PGDG, the PostgreSQL Global Development Group. Install its repository settings so DNF can find the PostgreSQL 18 packages for this machine. This action adds the source; it does not install the database server yet.",
+          "command": "sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm",
+          "command_explanation": "sudo gives this action administrator permission. dnf install installs a package. -y accepts the package manager's confirmation prompts for this supplied command. The official URL selects the repository-settings package for Enterprise Linux 9 and x86_64. Do not replace it with an unknown download.",
+          "expected": "DNF reports that pgdg-redhat-repo was installed and returns to the shell. Download progress and package build numbers can differ. If you see an error, inspect it before moving on.",
+          "verify": {
+            "kind": "command",
+            "command": "rpm -q pgdg-redhat-repo",
+            "look_for": "One installed package named pgdg-redhat-repo, followed by its build information. It must not say the package is not installed.",
+            "explanation": "rpm reads the installed-package inventory. -q means query. This confirms the repository-settings package is present. It does not prove the PostgreSQL server is installed."
+          },
+          "hints": {
+            "question": "Did you install PostgreSQL, or just the settings that help DNF find it?",
+            "hint": "Look for pgdg-redhat-repo in the package check.",
+            "stronger_hint": "If the download failed, read the network or repository error. Keep signature checking enabled.",
+            "solution": "Resolve the reported download or repository problem, repeat this supplied install command, then run the package check again. A signature error needs investigation, not a bypass."
+          },
+          "validator": {
+            "code": "B01_REPOSITORY"
+          },
+          "release_verified": false
+        },
+        {
+          "id": "b01.dependencies",
+          "title": "Add the extra package source",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "change",
+          "why": "Some PGDG packages need supporting software from EPEL, Extra Packages for Enterprise Linux. Add its repository settings before the PostgreSQL installation so DNF can resolve those dependencies. A dependency is another package the selected software needs.",
+          "command": "sudo dnf install -y epel-release",
+          "command_explanation": "This uses the same dnf install pattern. epel-release is the package containing EPEL repository settings. DNF may also import signing keys declared by the official repositories. These keys help it verify downloaded metadata or packages; do not disable the checks.",
+          "expected": "DNF finishes the installation of epel-release without a repository or signature error, then returns to the shell.",
+          "verify": {
+            "kind": "command",
+            "command": "rpm -q epel-release",
+            "look_for": "An installed epel-release package and its build information.",
+            "explanation": "This checks that the EPEL repository-settings package is installed. It does not install or start PostgreSQL."
+          },
+          "hints": {
+            "question": "Why do we prepare dependencies before installing the main software?",
+            "hint": "The main package may need libraries from another supported source.",
+            "stronger_hint": "If DNF reports a signature or download failure, inspect that error before repeating the step.",
+            "solution": "After resolving the reported repository problem, run the supplied epel-release installation again and check it with rpm -q epel-release."
+          },
+          "validator": {
+            "code": "B01_DEPENDENCIES"
+          },
+          "release_verified": false
+        },
+        {
+          "id": "b01.stream",
+          "title": "Use the PostgreSQL source chosen for this lab",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "change",
+          "why": "Rocky Linux also offers PostgreSQL through a distribution module stream, a selectable software-version source. This lab uses PGDG packages. Disable the distribution's PostgreSQL stream so the two package choices do not interfere. This is a package-source setting, not a command to stop a running database.",
+          "command": "sudo dnf module disable -y postgresql",
+          "command_explanation": "dnf module manages distribution module streams. disable prevents this named stream from supplying packages. -y accepts the confirmation for this change. postgresql is the stream name; it is not the versioned PGDG server package name.",
+          "expected": "DNF reports the PostgreSQL module is disabled, or already disabled, and finishes without an error.",
+          "verify": {
+            "kind": "command",
+            "command": "cat /etc/dnf/modules.d/postgresql.module",
+            "look_for": "The section named [postgresql] has a line state=disabled.",
+            "explanation": "This reads DNF's saved setting. Other lines may be empty or differ; the important fact is that this PostgreSQL stream is disabled. Reading the file makes no change."
+          },
+          "hints": {
+            "question": "Are you disabling a package source or stopping a database process?",
+            "hint": "The command uses dnf module, not a service command.",
+            "stronger_hint": "Read the state line in the postgresql section. Do not edit this file just to make the check pass.",
+            "solution": "Use the supplied dnf module disable command and re-read the setting. If the file is missing or DNF fails, ask for help with that actual error before installing PostgreSQL."
+          },
+          "validator": {
+            "code": "B01_STREAM"
+          },
+          "release_verified": false
+        },
+        {
+          "id": "b01.install",
+          "title": "Install the client and server packages",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "change",
+          "why": "Install both programs for this lab. postgresql18 provides the client tools, including psql. postgresql18-server provides the database server. DNF installs their required dependencies too. Wait for this command to finish before checking the result.",
+          "command": "sudo dnf install -y postgresql18-18.6 postgresql18-server-18.6",
+          "command_explanation": "The two package specifications select version 18.6 of the client and server. DNF installs them together because this action needs the matching pair. DNF handles dependencies; you do not need to install each dependency by hand.",
+          "expected": "DNF completes successfully. Both requested packages are installed, or reported already installed. This action does not initialize or start a database on this qualified package profile.",
+          "verify": {
+            "kind": "command",
+            "command": "rpm -q postgresql18 postgresql18-server",
+            "look_for": "Two installed package entries: postgresql18 and postgresql18-server. Both show version 18.6. Neither may say not installed.",
+            "explanation": "One inventory query checks both required packages. If psql works but postgresql18-server is absent, the client alone is installed and this lab is not complete. Package presence does not prove a server is running."
+          },
+          "hints": {
+            "question": "Would finding only the client package prove that the server was installed?",
+            "hint": "There must be a separate entry for postgresql18-server.",
+            "stronger_hint": "Read each package name, then its version. Do not use psql --version as the only server-installation check.",
+            "solution": "If the server package is missing, repeat the supplied installation of the matching client and server pair, then query both packages again. If version 18.6 cannot be found, the lab maintainer must requalify its package profile; do not guess a replacement."
+          },
+          "validator": {
+            "code": "B01_INSTALL"
+          },
+          "release_verified": false
+        },
+        {
+          "id": "b01.client",
+          "title": "Check the intended client program",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "read",
+          "why": "The package inventory says the client is installed. Now run that client's version check. Use its full path so the shell cannot accidentally select a different psql installation.",
+          "command": "/usr/pgsql-18/bin/psql --version",
+          "command_explanation": "/usr/pgsql-18/bin/psql is the executable installed by this PGDG package. --version prints its software version and exits. It does not connect to a database and does not open an interactive psql session.",
+          "expected": "The client prints psql (PostgreSQL) 18.6 and returns to the Linux shell.",
+          "verify": {
+            "kind": "self",
+            "explanation": "This read-only command is the check. Its successful result proves that the intended client executable can run. It says nothing about whether a database server is running or reachable."
+          },
+          "hints": {
+            "question": "Did this command connect to a database?",
+            "hint": "The --version option only reports the client program's version.",
+            "stronger_hint": "If the shell says the file is missing, compare the path with the Guide and revisit the package check.",
+            "solution": "Use the full path shown in this step. If that exact executable is missing, inspect the installed client package before repeating its installation. A different psql program selected by a shorter command is not proof for this lab."
+          },
+          "validator": {
+            "code": "B01_CLIENT"
+          },
+          "release_verified": false
+        },
+        {
+          "id": "b01.server",
+          "title": "Check the intended server program",
+          "role": "pg-lab-1",
+          "user": "student",
+          "safety": "read",
+          "why": "Check the server executable separately. Both the client and server should report the version selected for this lab. This finishes the installation evidence; preparing the database files comes in B02.",
+          "command": "/usr/pgsql-18/bin/postgres --version",
+          "command_explanation": "postgres is the database server executable. --version prints its version and exits without starting a server. Keep the --version option: this step is an inspection, not a startup instruction.",
+          "expected": "The server executable prints postgres (PostgreSQL) 18.6 and returns to the shell.",
+          "verify": {
+            "kind": "self",
+            "explanation": "Together, the package inventory and the two executable checks prove that the intended client and server software is installed and can report its version. They do not prove that database files have been initialized, that a server is running, or that a connection works."
+          },
+          "hints": {
+            "question": "What is still missing before an application can use a database?",
+            "hint": "Installed software is only the first stage.",
+            "stronger_hint": "Database initialization, server startup and a real connection each need their own later action and evidence.",
+            "solution": "Confirm the server version matches the client and package inventory. When the connected platform validates the evidence, read its explanation and choose Continue when ready. In this author preview, no student completion is saved."
+          },
+          "validator": {
+            "code": "B01_SERVER"
+          },
+          "release_verified": false
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "PostgreSQL packages for Red Hat family distributions",
+      "url": "https://www.postgresql.org/download/linux/redhat/",
+      "supports": "PGDG packages and the distinction between installation, initialization and startup"
+    },
+    {
+      "title": "PGDG Yum installation guidance",
+      "url": "https://yum.postgresql.org/howto/",
+      "supports": "EPEL dependencies and versioned package selection"
+    },
+    {
+      "title": "PGDG repository packages",
+      "url": "https://yum.postgresql.org/repopackages/",
+      "supports": "Official repository-settings package for EL9 x86_64"
+    },
+    {
+      "title": "PGDG signing-key update",
+      "url": "https://yum.postgresql.org/news/pgdg-rpm-repo-gpg-key-update/",
+      "supports": "Official repository package and signing-key setup"
+    },
+    {
+      "title": "PostgreSQL 18 psql reference",
+      "url": "https://www.postgresql.org/docs/18/app-psql.html",
+      "supports": "Client program and --version"
+    },
+    {
+      "title": "PostgreSQL 18 server reference",
+      "url": "https://www.postgresql.org/docs/18/app-postgres.html",
+      "supports": "Server executable and --version"
+    }
+  ],
+  "survive": {
+    "scenarios": []
+  },
+  "interview": {
+    "questions": []
+  },
+  "release": {
+    "stage": "candidate",
+    "student_runtime_qualified": false
+  },
+  "completion": {
+    "title": "Lab complete",
+    "summary": "The intended PostgreSQL 18 server and client software is installed. Initializing a database, starting it and connecting are later labs. Your six completed checks are saved."
+  }
+}

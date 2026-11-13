@@ -1,0 +1,1 @@
+Not injectable: the fault is the witness node (pg-repmgr-w) being unavailable while the primary crashes, so it needs two other hosts to fail and the failover result is visible only from the standbys. Tutor: walk the runbook from pasted repmgr cluster show and repmgrd.log output, or have the learner stop postgresql-16 on the witness and the primary by hand.

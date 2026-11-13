@@ -1,0 +1,9 @@
+{
+  "2": {
+    "type": "ssh",
+    "node": 1,
+    "check": "sudo -iu postgres /usr/pgsql-16/bin/psql -d labdb -tAc \"select subenabled from pg_subscription where subname='products_sub'\" 2>/dev/null | grep -qx t",
+    "hint": "Create the subscription on the subscriber: `CREATE SUBSCRIPTION products_sub CONNECTION '...' PUBLICATION products_pub;`",
+    "done": "your subscription products_sub is active on the subscriber"
+  }
+}

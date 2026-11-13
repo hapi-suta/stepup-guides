@@ -1,0 +1,72 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "sudo su - - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "su - postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "psql -d labdb - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "SELCT * FROM pgbench_accounts; - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "SELECT * FROM this_table_does_not_exist; - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "SELECT nonexistent_column FROM pgbench_accounts; - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "\\d pgbench_accounts - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "CREATE VIEW large_accounts AS SELECT * FROM pgbench_accounts WHERE abalance > 0; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM large_accounts; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT * FROM pgbench_accounts WHERE aid = 1; - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "EXPLAIN SELECT count(*) FROM pgbench_accounts; - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT * FROM pgbench_accounts WHERE aid = 1; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "EXPLAIN ANALYZE SELECT a.aid, b.bid - judge from their output."
+  },
+  "14": {
+    "type": "ssh",
+    "check": "! sudo -u postgres /usr/pgsql-16/bin/psql -p 5432 -d labdb -tAXqc \"select 1 from pg_class where relname='large_accounts' and relkind in ('v','m')\" 2>/dev/null | grep -q .",
+    "hint": "Run: `DROP VIEW large_accounts;`",
+    "done": "view large_accounts is gone"
+  },
+  "15": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

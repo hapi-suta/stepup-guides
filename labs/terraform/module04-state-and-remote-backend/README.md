@@ -1,4 +1,4 @@
-# Module 04 - State and the Remote Backend
+# Clean Configuration and State
 
 Part of the Terraform for DBAs track: learn Terraform from scratch to provision and import real AWS database infrastructure as code.
 

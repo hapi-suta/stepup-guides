@@ -1,0 +1,130 @@
+{
+  "1": {
+    "type": "manual",
+    "hint": "ssh -i your-key.pem ec2-user@NODE1 - judge from their output."
+  },
+  "2": {
+    "type": "manual",
+    "hint": "sudo -iu postgres - judge from their output."
+  },
+  "3": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -p 5432 -d stepup_store - judge from their output."
+  },
+  "4": {
+    "type": "manual",
+    "hint": "\\dt - judge from their output."
+  },
+  "5": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store -c \"SELECT 1;\" - judge from their output."
+  },
+  "6": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store - judge from their output."
+  },
+  "7": {
+    "type": "manual",
+    "hint": "SELECT * FROM orders LIMIT 1; - judge from their output."
+  },
+  "8": {
+    "type": "manual",
+    "hint": "GRANT CONNECT ON DATABASE stepup_store TO app_user; - judge from their output."
+  },
+  "9": {
+    "type": "manual",
+    "hint": "GRANT USAGE ON SCHEMA public TO app_user; - judge from their output."
+  },
+  "10": {
+    "type": "manual",
+    "hint": "GRANT SELECT, INSERT, UPDATE ON TABLE orders TO app_user; - judge from their output."
+  },
+  "11": {
+    "type": "manual",
+    "hint": "GRANT SELECT ON TABLE products TO app_user; - judge from their output."
+  },
+  "12": {
+    "type": "manual",
+    "hint": "GRANT SELECT ON TABLE customers TO app_user; - judge from their output."
+  },
+  "13": {
+    "type": "manual",
+    "hint": "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user; - judge from their output."
+  },
+  "14": {
+    "type": "manual",
+    "hint": "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly_user; - judge from their output."
+  },
+  "15": {
+    "type": "manual",
+    "hint": "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE ON TABLES TO app_user; - judge from their output."
+  },
+  "16": {
+    "type": "manual",
+    "hint": "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO app_user; - judge from their output."
+  },
+  "17": {
+    "type": "manual",
+    "hint": "GRANT CONNECT ON DATABASE stepup_store TO readonly_user; - judge from their output."
+  },
+  "18": {
+    "type": "manual",
+    "hint": "GRANT USAGE ON SCHEMA public TO readonly_user; - judge from their output."
+  },
+  "19": {
+    "type": "manual",
+    "hint": "GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user; - judge from their output."
+  },
+  "20": {
+    "type": "manual",
+    "hint": "\\dp orders - judge from their output."
+  },
+  "21": {
+    "type": "manual",
+    "hint": "REVOKE SELECT ON TABLE products FROM readonly_user; - judge from their output."
+  },
+  "22": {
+    "type": "manual",
+    "hint": "GRANT SELECT (product_id, name, price, category) ON TABLE products TO readonly_user; - judge from their output."
+  },
+  "23": {
+    "type": "manual",
+    "hint": "SELECT grantee, table_name, column_name, privilege_type - judge from their output."
+  },
+  "24": {
+    "type": "manual",
+    "hint": "GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_user; - judge from their output."
+  },
+  "25": {
+    "type": "manual",
+    "hint": "/usr/pgsql-16/bin/psql -h 127.0.0.1 -p 5432 -U app_user -d stepup_store - judge from their output."
+  },
+  "26": {
+    "type": "manual",
+    "hint": "SELECT * FROM orders LIMIT 3; - judge from their output."
+  },
+  "27": {
+    "type": "manual",
+    "hint": "DELETE FROM orders WHERE order_id = 1; - judge from their output."
+  },
+  "28": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "29": {
+    "type": "manual",
+    "hint": "REVOKE INSERT ON TABLE orders FROM app_user; - judge from their output."
+  },
+  "30": {
+    "type": "manual",
+    "hint": "GRANT INSERT ON TABLE orders TO app_user; - judge from their output."
+  },
+  "31": {
+    "type": "manual",
+    "hint": "\\q - judge from their output."
+  },
+  "32": {
+    "type": "manual",
+    "hint": "exit - judge from their output."
+  }
+}

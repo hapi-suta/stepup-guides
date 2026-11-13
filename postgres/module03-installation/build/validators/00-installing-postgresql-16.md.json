@@ -17,8 +17,8 @@
   },
   "5": {
     "type": "ssh",
-    "check": "rpm -q pgdg-redhat-repo >/dev/null 2>&1",
-    "hint": "Install the PGDG repo RPM (the `sudo dnf install ... pgdg-redhat-repo-latest.noarch.rpm` command).",
+    "check": "rpm -q pgdg-redhat-repo >/dev/null 2>&1 && ! grep -qF 'releasever_major.$releasever_minor' /etc/yum.repos.d/pgdg-redhat-all.repo",
+    "hint": "Install the PGDG repo RPM, then run the `sudo sed -i ... pgdg-redhat-all.repo` line from the same step (CentOS Stream needs it or dnf cannot download).",
     "done": "the PGDG repository is installed"
   },
   "6": {
