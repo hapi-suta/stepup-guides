@@ -1,100 +1,165 @@
 # How an LLM Call Works
 
-Read this before Build 01. It explains the words the tutorials use, with a DBA comparison for each one. No code.
+Before you write any code, let's get the words straight.
 
----
+Each part is one idea. Read it, think about the question at the end, then say *next*.
 
-## 1. What an LLM is, in one paragraph
+## What an LLM actually does
 
-A **large language model (LLM)** is a program that reads text and writes the most likely next text, one small piece at a time. It was trained on a huge amount of writing, so "the most likely next text" is often a useful answer, an explanation, or a block of code. It does not look anything up and it does not run anything by itself. It only reads what you send and writes back.
+An LLM reads your text.
 
-That last sentence matters for the whole course. In Module 2 you give the model **tools** (your code that does look things up), and that is what turns a text writer into an **agent**.
+Then it writes the text most likely to come next.
 
----
+That is all it does. It learned this from a huge amount of writing, so "the most likely next text" is often a good answer.
 
-## 2. The pieces of one call
+*Think:* if it only predicts text, can it be wrong and still sound sure?
 
-| Term | Meaning | DBA comparison |
-|---|---|---|
-| **API** | A web address that accepts requests and returns responses | A database listener on port 5432 |
-| **Client library** (`anthropic`) | Python code that formats the request and parses the response for you | `psycopg` or `libpq` |
-| **API key** | A secret that identifies who is calling and who pays | A password, stored like `.pgpass` (mode 600, never shared) |
-| **Base URL** | Where the requests go. For this course: the SUTA proxy | The host in your connection string |
-| **Model** | Which LLM answers (`claude-haiku-5-5` in this course) | Which database you connect to |
-| **Messages** | The conversation: a list of `user` and `assistant` turns | The SQL you send |
-| **System prompt** | Standing instructions for the whole conversation | Session settings (`SET search_path`, `SET statement_timeout`) |
-| **Response content** | A list of **blocks**: text, and later tool requests | The result set |
-| **Stop reason** | Why the model stopped writing | The command tag (`SELECT 3`, or an error) |
-| **Usage** | Tokens in and tokens out for this call | The cost line of `EXPLAIN ANALYZE` |
+## It cannot do anything by itself
 
----
+An LLM does not look things up.
 
-## 3. Tokens
+It does not run commands. It cannot see your server.
 
-Models do not read letters or words. They read **tokens**: small chunks of text. In English a token is roughly three quarters of a word, so 100 words is about 130 tokens. Code, numbers and other languages usually take more tokens per word.
+It only reads what you send and writes back.
 
-Tokens matter for three reasons:
+In Module 2 you give it *tools*: small pieces of your own code it can ask you to run. That is what turns a text writer into an *agent*.
 
-1. **Cost.** You pay per token, input and output priced separately.
-2. **Limits.** `max_tokens` caps how much the model may write in one call. If it hits the cap, the answer is cut off and `stop_reason` is `max_tokens`.
-3. **Context.** Everything you send in one call (system prompt, all messages, tool results) is counted as input. A long conversation means many input tokens on every call.
+## One call, start to finish
 
-You can count tokens before sending with `count_tokens`. It is free, and it is the `EXPLAIN` to the call's `EXPLAIN ANALYZE`.
+Your program sends a request over the internet.
 
----
+The model sends back a response.
 
-## 4. Cost
+That's one call.
 
-For `claude-haiku-5-5`:
+You already know this shape. It is your app sending a query to PostgreSQL and getting rows back.
 
-| | Price per million tokens | Price per token |
-|---|---|---|
-| Input | $0.10 | $0.0000001 |
-| Output | $0.50 | $0.0000005 |
+## Where the call goes
 
-Cost of one call = input tokens x input price + output tokens x output price.
+*The API* is the address that answers. Think of the PostgreSQL listener on port 5432.
 
-A typical question in this course: about 30 tokens in and 200 out, so about $0.0001. Your $5 cap covers tens of thousands of calls like that. Agents are more expensive, because one question becomes several calls, and every call resends the growing conversation.
+*The base URL* is where your calls are sent. In this course, that is the SUTA proxy.
 
-Output tokens include the model's **thinking**. Claude models can reason before they answer, and that reasoning is billed as output even when you do not see it. `output_config={"effort": "low"}` keeps that thinking short for simple questions.
+*The client library* is the Python package that builds the request for you. Think psycopg.
 
----
+## Your key
 
-## 5. Stateless: the model remembers nothing
+Your *API key* is a secret that says who is calling, and who pays.
 
-Each call is independent. The model does not remember your last call, your name, or your database. If a chat seems to remember, it is because the program **resends the whole conversation** every time.
+Treat it like a database password.
 
-DBA comparison: each call is a separate `psql -c` session. Session state (temporary tables, `SET` values) is gone the moment the session ends.
+It lives in one private file on your server. You never paste it in chat or show it to anyone.
 
-Consequence: conversation cost grows with every turn, because turn 10 resends turns 1 to 9.
+*Think:* where do you keep PostgreSQL passwords today?
 
----
+## What you send
 
-## 6. Stop reasons you will see in this course
+Three things go into every call:
 
-| Stop reason | What happened | What your program should do |
-|---|---|---|
-| `end_turn` | The model finished its answer | Use the answer |
-| `max_tokens` | The cap cut it off | Do not trust it as complete; raise `max_tokens` or ask for less |
-| `tool_use` | The model wants you to run a tool (Module 2) | Run the tool, send the result back |
-| `refusal` | The model declined | Show the refusal; do not retry blindly |
+*The model:* which LLM answers. Here, claude-haiku-5-5.
 
----
+*The system prompt:* standing instructions, like SET statement_timeout for a session.
 
-## 7. Why a proxy, and why your key has a cap
+*The messages:* the conversation so far. Your question goes here.
 
-Every call costs real money. Instead of sharing one paid key (which nobody could revoke or limit), each student gets a **personal key** that only works through the **SUTA LLM proxy**:
+## What comes back
 
-- The real paid key stays on SUTA's server. Your server never sees it.
-- Your key has a **$5 cap**. When you hit it, calls fail with a "budget exceeded" error until Prof. Happy raises it.
-- Every call is logged with your key's name, tokens and cost. Prompts are not stored.
+*The answer:* the text the model wrote.
 
-DBA comparison: PgBouncer in front of PostgreSQL. Applications connect to the pooler, the pooler holds the real connection and enforces limits. If you have used connection limits per role (`ALTER ROLE ... CONNECTION LIMIT`), the per-key cap is the same idea, for money.
+*The stop reason:* why it stopped writing. Like the tag after a query: SELECT 3, or an error.
 
----
+*The usage:* how much text went in and out. Like the cost line in EXPLAIN ANALYZE.
 
-## 8. Your answers will differ
+## Tokens
 
-The model chooses its words fresh on every call, so two runs of the same program give two different answers. That is why every tutorial says "Expected output (yours will differ)", and why SutaAI checks your work by looking at **side effects** (files, log lines, exit codes), never by matching the exact words the model wrote.
+Models don't read words. They read *tokens*: small chunks of text.
 
-You will build the same habit: judge an AI program by what it did and what it logged, not by how its answer sounds.
+A rough rule: 100 English words is about 130 tokens.
+
+Code and numbers use more tokens than plain English.
+
+*Think:* would a long SQL error message be many tokens or few?
+
+## Why tokens matter
+
+*Money.* You pay for every token you send and every token you get back.
+
+*Length.* max_tokens caps how much the model may write. If it hits the cap, the answer is cut off.
+
+*Size.* Everything you send in one call is counted. A long conversation costs more on every turn.
+
+## What one call costs
+
+On claude-haiku-5-5:
+
+Text you send: 10 cents per million tokens.
+
+Text you get back: 50 cents per million tokens.
+
+A typical question here costs about one hundredth of a cent.
+
+Your $5 cap covers tens of thousands of questions like that.
+
+## Thinking costs too
+
+The model can think before it answers.
+
+You may never see that thinking, but you pay for it as output.
+
+For simple questions, the tutorials ask it to keep its thinking short. That keeps the cost down.
+
+## It remembers nothing
+
+Every call starts from zero.
+
+The model does not remember your last question, your name, or your server.
+
+When a chat seems to remember, your program is resending the whole conversation every time.
+
+It's like running psql -c again and again. Nothing from the last session survives.
+
+*Think:* why does a long chat get more expensive with every message?
+
+## Why it stopped
+
+*end_turn:* it finished. Use the answer.
+
+*max_tokens:* it hit the cap. The answer is cut off, so don't trust it as complete.
+
+*tool_use:* it wants you to run one of your tools. You meet this in Module 2.
+
+*refusal:* it declined. Show that to the user. Don't just retry.
+
+## Why your calls go through a proxy
+
+Calls cost real money.
+
+SUTA's paid key stays on SUTA's server. Your server never sees it.
+
+Instead, you get a *personal key* that only works through the SUTA proxy.
+
+You already know this pattern. It is PgBouncer: apps talk to the pooler, and only the pooler holds the real connection.
+
+## Your $5 cap
+
+Your key can spend up to $5.
+
+When you reach it, calls fail with "budget exceeded" until Prof. Happy raises it.
+
+It's the same idea as a role's CONNECTION LIMIT, only for money.
+
+Every call is logged with your key name, the tokens and the cost. What you write is not stored.
+
+*Think:* why is a cap per student safer than one shared key?
+
+## Your answers will differ
+
+Ask the same question twice and you get two different answers.
+
+That's normal. The model picks its words fresh every time.
+
+So nobody checks your work by the exact words the AI wrote.
+
+We check what your program *did*: the files it made, the log lines it wrote, the exit codes.
+
+That's the habit you're building: judge an AI program by what it did, not by how it sounds.
