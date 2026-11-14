@@ -1,0 +1,48 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "test \"$(grep -c '^def test_' ~/agentic-ai/tests/test_top_errors.py)\" -eq 7",
+    "hint": "tests/test_top_errors.py should hold the seven supplied tests; paste the whole block again.",
+    "done": "the seven supplied tests are in place"
+  },
+  "3": {
+    "type": "manual",
+    "done": "they saw the tests fail because top_errors does not exist yet"
+  },
+  "4": {
+    "type": "manual",
+    "done": "they are writing top_errors themselves in logparse.py (never give them the code)"
+  },
+  "5": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m pytest -q tests/test_top_errors.py",
+    "hint": "Run `python -m pytest -q tests/test_top_errors.py` and read the first failing assert: it shows what the function returned and what was expected. Never give the student the code for top_errors; point at the failing rule in the specification, then at the next hint in the guide.",
+    "done": "all seven top_errors tests pass with their own code"
+  },
+  "6": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m pytest -q && test \"$(cat tests/test_*.py | grep -c '^def test_')\" -ge 12",
+    "hint": "Run `python -m pytest -q` with no file name. All twelve tests must pass, including the five from Build 03.",
+    "done": "the whole suite passes (12 tests)"
+  },
+  "7": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import load_log, top_errors; sys.exit(top_errors(load_log()) != [('password authentication failed for user \\\"report_user\\\"', 3), ('sorry, too many clients already', 2), ('deadlock detected', 1)])\"",
+    "hint": "On the sample log top_errors should return the three failed logins, then the two refused connections, then the deadlock.",
+    "done": "top_errors gives the right answer on the real log"
+  },
+  "8": {
+    "type": "manual",
+    "done": "they wrote count_by_severity from memory in scratch.py, against a 15-minute timer"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from scratch import count_by_severity; sys.exit(count_by_severity([{'severity': 'FATAL'}, {'severity': 'LOG'}, {'severity': 'FATAL'}]) != {'FATAL': 2, 'LOG': 1})\"",
+    "hint": "scratch.py should define count_by_severity, written from memory. If it took longer than 15 minutes, repeat the exercise tomorrow.",
+    "done": "they rewrote count_by_severity from a blank file"
+  }
+}

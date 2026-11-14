@@ -1,0 +1,76 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "manual",
+    "done": "they saw the 'not enough values to unpack' traceback and read it from the bottom"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile logparse.py && grep -q 'not a PostgreSQL log line' logparse.py",
+    "hint": "Add the two lines from Step 3 directly under `def parse_line(line):`, indented four spaces (the raise line eight).",
+    "done": "parse_line has the early check"
+  },
+  "4": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"\nimport sys\nfrom logparse import parse_line\ntry:\n    parse_line('garbage')\nexcept ValueError as error:\n    sys.exit('not a PostgreSQL log line' not in str(error) or 'garbage' not in str(error))\nsys.exit(1)\" && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import load_log; sys.exit(len(load_log()) != 15)\"",
+    "hint": "parse_line('garbage') should raise ValueError with a message containing 'not a PostgreSQL log line' and the input, and load_log() must still return 15 records. If real lines are now rejected, check that the test is line[24:25] != \"[\".",
+    "done": "garbage is rejected with a clear message and real lines still parse"
+  },
+  "5": {
+    "type": "manual",
+    "done": "they saw the FileNotFoundError for a missing file"
+  },
+  "6": {
+    "type": "manual",
+    "done": "they are at the Python >>> prompt"
+  },
+  "7": {
+    "type": "manual",
+    "done": "they saw the 'tool failed: ValueError(...)' line the model would receive and left the Python prompt"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "grep -qx 'pytest==9.2.0' ~/agentic-ai/requirements.txt",
+    "hint": "Inside ~/agentic-ai run: echo 'pytest==9.2.0' >> requirements.txt",
+    "done": "pytest is pinned in requirements.txt"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "~/agentic-ai/.venv/bin/python -m pytest --version 2>&1 | grep -q 'pytest 9.2.0'",
+    "hint": "Run `pip install -r requirements.txt` with the virtual environment active (your prompt starts with (.venv)).",
+    "done": "pytest 9.2.0 is installed in the virtual environment"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "test -d ~/agentic-ai/tests",
+    "hint": "Inside ~/agentic-ai run `mkdir tests`.",
+    "done": "the tests folder exists"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "test \"$(grep -c '^def test_' ~/agentic-ai/tests/test_logparse.py)\" -ge 4 && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile tests/test_logparse.py",
+    "hint": "tests/test_logparse.py should hold the four supplied tests; paste the whole block again.",
+    "done": "the supplied test file is in place"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m pytest -q tests/test_logparse.py",
+    "hint": "Run `python -m pytest -q` and read the first failure. The report shows the claim and the two values that did not match.",
+    "done": "the tests pass"
+  },
+  "13": {
+    "type": "ssh",
+    "check": "grep -q '^def test_parse_line_turns_pid_into_an_integer' ~/agentic-ai/tests/test_logparse.py && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile tests/test_logparse.py",
+    "hint": "Add a test named test_parse_line_turns_pid_into_an_integer at the bottom of tests/test_logparse.py. Do not give the student the body of the test; point them at type() from Build 01.",
+    "done": "they wrote a fifth test of their own"
+  },
+  "14": {
+    "type": "ssh",
+    "check": "test \"$(grep -c '^def test_' ~/agentic-ai/tests/test_logparse.py)\" -ge 5 && cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m pytest -q tests/test_logparse.py",
+    "hint": "Run `python -m pytest -q`. All five tests must pass. If the new one fails, read the assert line pytest prints.",
+    "done": "all five tests pass, including their own"
+  }
+}
