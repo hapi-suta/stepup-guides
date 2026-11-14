@@ -1,0 +1,50 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "manual",
+    "done": "they are at the Python >>> prompt"
+  },
+  "3": {
+    "type": "manual",
+    "done": "type(line) showed str and len(line) showed 92"
+  },
+  "4": {
+    "type": "manual",
+    "done": "line[:23] gave the timestamp and line[24:] the rest"
+  },
+  "5": {
+    "type": "manual",
+    "done": "they split at '] ' and unpacked pid_part and rest"
+  },
+  "6": {
+    "type": "manual",
+    "done": "they converted the pid with int() and saw the TypeError from \"5701\" + 1"
+  },
+  "7": {
+    "type": "manual",
+    "done": "they have severity and the stripped message"
+  },
+  "8": {
+    "type": "manual",
+    "done": "they left the Python prompt and are back at the shell"
+  },
+  "9": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -m py_compile logparse.py && grep -q 'def parse_line' logparse.py",
+    "hint": "logparse.py is missing, has an indentation or syntax error, or does not define parse_line. Run `python -m py_compile logparse.py` and read the line number.",
+    "done": "logparse.py exists, is valid Python and defines parse_line"
+  },
+  "10": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import parse_line; r = parse_line('2026-11-04 02:52:38 UTC [5844] ERROR:  deadlock detected'); sys.exit(r != {'time': '2026-11-04 02:52:38 UTC', 'pid': 5844, 'severity': 'ERROR', 'message': 'deadlock detected'})\"",
+    "hint": "parse_line should return a dictionary with the keys time, pid (an integer), severity and message (stripped). Compare your function with Step 9.",
+    "done": "parse_line returns the four fields, with pid as an integer"
+  },
+  "11": {
+    "type": "manual",
+    "done": "they predicted the result for the HINT line before running it"
+  }
+}

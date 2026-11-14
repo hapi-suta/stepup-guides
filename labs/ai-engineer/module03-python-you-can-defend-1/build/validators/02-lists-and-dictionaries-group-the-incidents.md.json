@@ -1,0 +1,66 @@
+{
+  "1": {
+    "type": "manual",
+    "done": "they are in ~/agentic-ai"
+  },
+  "2": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; import logparse; sys.exit(not hasattr(logparse, 'load_log') or not logparse.LOG_FILE.endswith('data/postgresql.log'))\"",
+    "hint": "logparse.py should have `import os` and LOG_FILE at the top and define load_log at the bottom. Run `python -m py_compile logparse.py` to find an indentation error.",
+    "done": "logparse.py defines LOG_FILE and load_log"
+  },
+  "3": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import load_log; r = load_log(); sys.exit(len(r) != 15 or r[0]['pid'] != 1201 or r[-1]['severity'] != 'LOG')\"",
+    "hint": "load_log() should return 15 dictionaries. If it returns 1, `return records` is indented inside the loop. If it returns None, the return line is missing.",
+    "done": "load_log() returns all 15 records as dictionaries"
+  },
+  "4": {
+    "type": "manual",
+    "done": "they are at the Python >>> prompt"
+  },
+  "5": {
+    "type": "manual",
+    "done": "their loop printed the five FATAL records"
+  },
+  "6": {
+    "type": "manual",
+    "done": "they counted to 2 with .get(), saw the KeyError for a missing key, and left the Python prompt"
+  },
+  "7": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import count_by_severity; sys.exit(count_by_severity([{'severity': 'FATAL'}, {'severity': 'LOG'}, {'severity': 'FATAL'}]) != {'FATAL': 2, 'LOG': 1})\"",
+    "hint": "count_by_severity should return a dictionary of severity to count. Check the line counts[severity] = counts.get(severity, 0) + 1 and that return counts is outside the loop.",
+    "done": "count_by_severity counts each severity"
+  },
+  "8": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import load_log, count_by_severity; sys.exit(count_by_severity(load_log()) != {'LOG': 5, 'ERROR': 2, 'WARNING': 1, 'FATAL': 5, 'HINT': 1, 'DETAIL': 1})\"",
+    "hint": "The counts for the sample log should be LOG 5, FATAL 5, ERROR 2, WARNING 1, HINT 1, DETAIL 1.",
+    "done": "the sample log counts are right"
+  },
+  "9": {
+    "type": "manual",
+    "done": "they are at the Python >>> prompt again"
+  },
+  "10": {
+    "type": "manual",
+    "done": "they sorted the pairs by count, biggest first, and left the Python prompt"
+  },
+  "11": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; import logparse; sys.exit(not hasattr(logparse, 'severity_summary'))\"",
+    "hint": "Add severity_summary at the bottom of logparse.py as shown in Step 11.",
+    "done": "logparse.py defines severity_summary"
+  },
+  "12": {
+    "type": "ssh",
+    "check": "cd ~/agentic-ai && ~/agentic-ai/.venv/bin/python -c \"import sys; from logparse import severity_summary; s = severity_summary().split(); sys.exit(sorted(s) != sorted(['LOG=5', 'FATAL=5', 'ERROR=2', 'WARNING=1', 'HINT=1', 'DETAIL=1']) or s[0] not in ('LOG=5', 'FATAL=5') or s[2] != 'ERROR=2')\"",
+    "hint": "severity_summary() should return one line like LOG=5 FATAL=5 ERROR=2 WARNING=1 HINT=1 DETAIL=1, highest count first.",
+    "done": "severity_summary returns the one-line summary, highest count first"
+  },
+  "13": {
+    "type": "manual",
+    "done": "they predicted the result for an empty list before running it"
+  }
+}
